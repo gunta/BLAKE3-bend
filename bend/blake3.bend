@@ -8185,8 +8185,12 @@ def hex.word(+x: U32, s: String) -> String:
   hex.byte(x, hex.byte((x >> 8n : U32), hex.byte((x >> 16n : U32),
     hex.byte((x >> 24n : U32), s))))
 
-def hex(cv: CV) -> String:
+# The 64 hex digits of a CV, in front of s.
+def hex.onto(cv: CV, s: String) -> String:
   match cv:
     case CV{h0, h1, h2, h3, h4, h5, h6, h7}:
       hex.word(h0, hex.word(h1, hex.word(h2, hex.word(h3, hex.word(h4,
-        hex.word(h5, hex.word(h6, hex.word(h7, SNil{}))))))))
+        hex.word(h5, hex.word(h6, hex.word(h7, s))))))))
+
+def hex(cv: CV) -> String:
+  hex.onto(cv, SNil{})
