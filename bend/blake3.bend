@@ -8356,6 +8356,97 @@ def hash(a: Array<U32>, +len: U32) -> CV:
   +n = chunks(len)
   hash.at(a, 0, n, tail(len, n), ROOT())
 
+# Bao outboards
+# -------------
+#
+# iroh-blobs (bao-tree) stores, beside a blob, the pair (left CV, right CV)
+# of every parent above its 16 KiB chunk groups, in pre-order: a blob of B
+# groups has B - 1 pairs. A group is 2^4 chunks, so those are BLAKE3's own
+# parents of level 5 and up (each child at least a whole group). tree8o is
+# tree8 that keeps them as an OB tree (the pair, then the left side's pairs,
+# then the right side's), as it computes them.
+
+type OB is Data:
+  ONil{}
+  ONode{l: CV, r: CV, a: OB, b: OB}
+
+def join.pick(rec: Bool, +l: CV, +r: CV, a: OB, b: OB, +rf: U32) -> CV & OB:
+  match rec:
+    case True{}:
+      (parent(l, r, rf), ONode{l, r, a, b})
+    case False{}:
+      (parent(l, r, rf), ONil{})
+
+# A parent over two subtrees' results; rec says whether it is an outboard
+# node (both children at least a chunk group).
+def join.o(x: CV & OB, y: CV & OB, +rf: U32, rec: Bool) -> CV & OB:
+  (l, a) = x
+  (r, b) = y
+  join.pick(rec, l, r, a, b, rf)
+
+# fold8 that keeps its top parent: over a CV8 of 4-chunk subtrees, that
+# parent's children are the two 16-chunk groups.
+def fold8o(x: CV8, +rf: U32) -> CV & OB:
+  match x:
+    case CV8{x0_0, x1_0, x2_0, x3_0, x4_0, x5_0, x6_0, x7_0, x0_1, x1_1, x2_1, x3_1, x4_1, x5_1, x6_1, x7_1, x0_2, x1_2, x2_2, x3_2, x4_2, x5_2, x6_2, x7_2, x0_3, x1_3, x2_3, x3_3, x4_3, x5_3, x6_3, x7_3, x0_4, x1_4, x2_4, x3_4, x4_4, x5_4, x6_4, x7_4, x0_5, x1_5, x2_5, x3_5, x4_5, x5_5, x6_5, x7_5, x0_6, x1_6, x2_6, x3_6, x4_6, x5_6, x6_6, x7_6, x0_7, x1_7, x2_7, x3_7, x4_7, x5_7, x6_7, x7_7}:
+      +gl = parent(parent(CV{x0_0, x0_1, x0_2, x0_3, x0_4, x0_5, x0_6, x0_7}, CV{x1_0, x1_1, x1_2, x1_3, x1_4, x1_5, x1_6, x1_7}, 0), parent(CV{x2_0, x2_1, x2_2, x2_3, x2_4, x2_5, x2_6, x2_7}, CV{x3_0, x3_1, x3_2, x3_3, x3_4, x3_5, x3_6, x3_7}, 0), 0)
+      +gr = parent(parent(CV{x4_0, x4_1, x4_2, x4_3, x4_4, x4_5, x4_6, x4_7}, CV{x5_0, x5_1, x5_2, x5_3, x5_4, x5_5, x5_6, x5_7}, 0), parent(CV{x6_0, x6_1, x6_2, x6_3, x6_4, x6_5, x6_6, x6_7}, CV{x7_0, x7_1, x7_2, x7_3, x7_4, x7_5, x7_6, x7_7}, 0), 0)
+      (parent(gl, gr, rf), ONode{gl, gr, ONil{}, ONil{}})
+
+def leaf32o.fin(r: Array<U32> & CV8, +rf: U32) -> CV & OB:
+  (a, x) = r
+  _ = a
+  fold8o(x, rf)
+
+def leaf32o(a: Array<U32>, +c: U32, +t: U32, +rf: U32) -> CV & OB:
+  leaf32o.fin(leaf32.s0(group(a, c, t), c, t), rf)
+
+def tree8o(+k: Nat, +ku: U32, d: Node, aa: Array<U32> & Array<U32>, +c: U32,
+  +n: U32, +cb: U32, +nch: U32, +last: U32, +rf: U32) -> CV & OB:
+  match k d:
+    case 0n _:
+      (a1, a2) = aa
+      _ = a2
+      (chunk(a1, c, cb, nch, last, rf), ONil{})
+    case 1n+p Down{}:
+      +kp = (ku - 1 : U32)
+      tree8o(p, kp, kind(kp, n, c, nch, last), aa, c, n, cb, nch, last, rf)
+    case 1n+p Leaf32{}:
+      (a1, a2) = aa
+      _ = a2
+      leaf32o(a1, c, (cb + c : U32), rf)
+    case 1n+p Leaf8{}:
+      (a1, a2) = aa
+      _ = a2
+      (leaf8(a1, c, (cb + c : U32), rf), ONil{})
+    case 1n+p Split{}:
+      (a1, a2) = aa
+      +kp = (ku - 1 : U32)
+      +h = U32.shln(1, p)
+      +n2 = (n - h : U32)
+      +c2 = (c + h : U32)
+      x y = tree8o(p, kp, kind(kp, h, c, nch, last), Array.fork(U32, a1), c, h, cb, nch, last, 0) tree8o(p, kp, kind(kp, n2, c2, nch, last), Array.fork(U32, a2), c2, n2, cb, nch, last, 0)
+      join.o(x, y, rf, U32.is_ge(ku, 5))
+
+def hash.ob.go(+k: Nat, a: Array<U32>, +cb: U32, +nch: U32, +last: U32,
+  +rf: U32) -> CV & OB:
+  match k:
+    case 0n:
+      (chunk(a, 0, cb, nch, last, rf), ONil{})
+    case 1n+p:
+      +ku = U32.from_nat(k)
+      tree8o(k, ku, kind(ku, nch, 0, nch, last), Array.fork(U32, a), 0, nch,
+        cb, nch, last, rf)
+
+# The CV of a span, with its outboard pairs (see above).
+def hash.ob.at(a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32) ->
+  CV & OB:
+  hash.ob.go(depth(nch), a, cb, nch, last, rf)
+
+def hash.ob(a: Array<U32>, +len: U32) -> CV & OB:
+  +n = chunks(len)
+  hash.ob.at(a, 0, n, tail(len, n), ROOT())
+
 def hash1.go(+k: Nat, a: Array<U32>, +cb: U32, +nch: U32, +last: U32,
   +rf: U32) -> CV:
   match k:

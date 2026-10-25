@@ -57,6 +57,25 @@ def B3IO.release() -> IO(Unit):
   import "./effs/load.c"
   import "./effs/load.js"
 
+# Outboards: a hash with its bao outboard pairs (see blake3.bend's OB).
+type Obo is Data:
+  BNone{}
+  BHash{cv: B3.CV, ob: B3.OB, name: String}
+  BErr{msg: String, name: String}
+  BPair{l: Obo, r: Obo}
+
+# Writes each file's outboard, in bao-tree's pre-order layout (64 bytes a
+# pair, no size suffix), to dir/<base name>.obao; prints the hashes as
+# b3sum does; answers the errors.
+def B3IO.ob_write(o: Obo, dir: String) -> IO(U32):
+  import "./effs/emit.c"
+  import "./effs/emit.js"
+
+# The XOR of every hash's words and every outboard pair's words.
+def B3IO.ob_fold(o: Obo) -> IO(U32):
+  import "./effs/emit.c"
+  import "./effs/emit.js"
+
 # Hashing
 # -------
 
@@ -85,3 +104,30 @@ def hash(t: Files) -> Out:
     case FPair{l, r}:
       x y = hash(l) hash(r)
       OPair{x, y}
+
+def segs.o(s: Segs, +rf: U32) -> B3.CV & B3.OB:
+  match s:
+    case SLeaf{a, cb, nch, last}:
+      B3.hash.ob.at(a, cb, nch, last, rf)
+    case SNode{l, r}:
+      x y = segs.o(l, 0) segs.o(r, 0)
+      B3.join.o(x, y, rf, True{})
+
+def hash_ob.leaf(r: B3.CV & B3.OB, name: String) -> Obo:
+  (cv, ob) = r
+  BHash{cv, ob, name}
+
+# hash, keeping every file's outboard.
+def hash_ob(t: Files) -> Obo:
+  match t:
+    case FNone{}:
+      BNone{}
+    case FFile{a, len, name}:
+      hash_ob.leaf(B3.hash.ob(a, len), name)
+    case FSegs{s, name}:
+      hash_ob.leaf(segs.o(s, B3.ROOT()), name)
+    case FErr{msg, name}:
+      BErr{msg, name}
+    case FPair{l, r}:
+      x y = hash_ob(l) hash_ob(r)
+      BPair{x, y}

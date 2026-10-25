@@ -45,6 +45,9 @@ WORKLOADS = {
     "SDK headers": lambda: tree(SDK),
     "cargo src 8k": lambda: tree("~/.cargo/registry/src", 8000),
     "5 GiB file": lambda: [str(DATA / "huge_5g.bin")],
+    # deepseek-ai/DeepSeek-V4.1-Flash-1017 (MIT), via bench/hf_fetch.py
+    "DeepSeek shards 1-6": lambda: files("hf/DeepSeek-V4.1-Flash-1017/model-0000[1-6]-of-00048.safetensors"),
+    "DeepSeek 101 GB shard": lambda: [str(DATA / "hf/DeepSeek-V4.1-Flash-1017/model-00048-of-00048.safetensors")],
 }
 
 

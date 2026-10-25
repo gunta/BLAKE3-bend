@@ -575,6 +575,97 @@ def hash(a: Array<U32>, +len: U32) -> CV:
   +n = chunks(len)
   hash.at(a, 0, n, tail(len, n), ROOT())
 
+# Bao outboards
+# -------------
+#
+# iroh-blobs (bao-tree) stores, beside a blob, the pair (left CV, right CV)
+# of every parent above its 16 KiB chunk groups, in pre-order: a blob of B
+# groups has B - 1 pairs. A group is 2^4 chunks, so those are BLAKE3's own
+# parents of level 5 and up (each child at least a whole group). tree8o is
+# tree8 that keeps them as an OB tree (the pair, then the left side's pairs,
+# then the right side's), as it computes them.
+
+type OB is Data:
+  ONil{{}}
+  ONode{{l: CV, r: CV, a: OB, b: OB}}
+
+def join.pick(rec: Bool, +l: CV, +r: CV, a: OB, b: OB, +rf: U32) -> CV & OB:
+  match rec:
+    case True{{}}:
+      (parent(l, r, rf), ONode{{l, r, a, b}})
+    case False{{}}:
+      (parent(l, r, rf), ONil{{}})
+
+# A parent over two subtrees' results; rec says whether it is an outboard
+# node (both children at least a chunk group).
+def join.o(x: CV & OB, y: CV & OB, +rf: U32, rec: Bool) -> CV & OB:
+  (l, a) = x
+  (r, b) = y
+  join.pick(rec, l, r, a, b, rf)
+
+# fold8 that keeps its top parent: over a CV8 of 4-chunk subtrees, that
+# parent's children are the two 16-chunk groups.
+def fold8o(x: CV8, +rf: U32) -> CV & OB:
+  match x:
+    case CV8{{{cv8f}}}:
+      +gl = parent(parent({c0}, {c1}, 0), parent({c2}, {c3}, 0), 0)
+      +gr = parent(parent({c4}, {c5}, 0), parent({c6}, {c7}, 0), 0)
+      (parent(gl, gr, rf), ONode{{gl, gr, ONil{{}}, ONil{{}}}})
+
+def leaf32o.fin(r: Array<U32> & CV8, +rf: U32) -> CV & OB:
+  (a, x) = r
+  _ = a
+  fold8o(x, rf)
+
+def leaf32o(a: Array<U32>, +c: U32, +t: U32, +rf: U32) -> CV & OB:
+  leaf32o.fin(leaf32.s0(group(a, c, t), c, t), rf)
+
+def tree8o(+k: Nat, +ku: U32, d: Node, aa: Array<U32> & Array<U32>, +c: U32,
+  +n: U32, +cb: U32, +nch: U32, +last: U32, +rf: U32) -> CV & OB:
+  match k d:
+    case 0n _:
+      (a1, a2) = aa
+      _ = a2
+      (chunk(a1, c, cb, nch, last, rf), ONil{{}})
+    case 1n+p Down{{}}:
+      +kp = (ku - 1 : U32)
+      tree8o(p, kp, kind(kp, n, c, nch, last), aa, c, n, cb, nch, last, rf)
+    case 1n+p Leaf32{{}}:
+      (a1, a2) = aa
+      _ = a2
+      leaf32o(a1, c, (cb + c : U32), rf)
+    case 1n+p Leaf8{{}}:
+      (a1, a2) = aa
+      _ = a2
+      (leaf8(a1, c, (cb + c : U32), rf), ONil{{}})
+    case 1n+p Split{{}}:
+      (a1, a2) = aa
+      +kp = (ku - 1 : U32)
+      +h = U32.shln(1, p)
+      +n2 = (n - h : U32)
+      +c2 = (c + h : U32)
+      x y = tree8o(p, kp, kind(kp, h, c, nch, last), Array.fork(U32, a1), c, h, cb, nch, last, 0) tree8o(p, kp, kind(kp, n2, c2, nch, last), Array.fork(U32, a2), c2, n2, cb, nch, last, 0)
+      join.o(x, y, rf, U32.is_ge(ku, 5))
+
+def hash.ob.go(+k: Nat, a: Array<U32>, +cb: U32, +nch: U32, +last: U32,
+  +rf: U32) -> CV & OB:
+  match k:
+    case 0n:
+      (chunk(a, 0, cb, nch, last, rf), ONil{{}})
+    case 1n+p:
+      +ku = U32.from_nat(k)
+      tree8o(k, ku, kind(ku, nch, 0, nch, last), Array.fork(U32, a), 0, nch,
+        cb, nch, last, rf)
+
+# The CV of a span, with its outboard pairs (see above).
+def hash.ob.at(a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32) ->
+  CV & OB:
+  hash.ob.go(depth(nch), a, cb, nch, last, rf)
+
+def hash.ob(a: Array<U32>, +len: U32) -> CV & OB:
+  +n = chunks(len)
+  hash.ob.at(a, 0, n, tail(len, n), ROOT())
+
 def hash1.go(+k: Nat, a: Array<U32>, +cb: U32, +nch: U32, +last: U32,
   +rf: U32) -> CV:
   match k:
@@ -810,7 +901,9 @@ def main():
         iv8=", ".join(str(IV[i]) for l, i in cv8_order()),
         ld8=gen_ld8(), compress8=gen_compress8(),
         compress8p=gen_compress8("compress8.p", parent=True), par8=gen_par8(),
-        fold8=gen_fold8())
+        fold8=gen_fold8(),
+        cv8f=cv8_fields("x"),
+        **{f"c{l}": "CV{" + ", ".join(f"x{l}_{i}" for i in range(8)) + "}" for l in range(L)})
     src += TREE.replace("@@WIDE@@", GPU_LEAVES + wide)
     OUT.write_text(src)
     print(f"wrote {OUT}")

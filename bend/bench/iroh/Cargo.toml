@@ -9,6 +9,16 @@ iroh-blobs = "0.103"
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 futures = "0.3"
 tempfile = "3"
+bao-tree = "0.16"
+memmap2 = "0.9"
+
+[[bin]]
+name = "iroh-ingest"
+path = "src/main.rs"
+
+[[bin]]
+name = "ob-check"
+path = "src/ob_check.rs"
 
 [profile.release]
 lto = true
