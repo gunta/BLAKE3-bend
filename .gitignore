@@ -1,2 +1,13 @@
 Cargo.lock
 target
+# Bend2 port: build outputs and generated bench data
+/bend/**/*.c.out
+/bend/test/vectors
+/bend/bench/mem
+/bend/bench/*.gpu
+/bend/test/*.gpu
+/bend/*.gpu
+/bend/bench/data/
+/bend/bench/rust/target/
+/bend/bench/rust/Cargo.lock
+/bend/build/
