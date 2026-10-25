@@ -58,12 +58,12 @@ leaf of 4^j chunks, ~2^14 leaves, as `level` picks them.
 | native, reads alone, Bend's shape, chunks interleaved over threads (`roof_stride`) | 5.6-6.5 |
 | native, reads alone, Bend's shape, a redirect-cell load before each word (`roof_redir`) | 10.1 |
 | native, compressions alone, Bend's shape (`roof_alu`)            | 4.4-4.9   |
-| Bend, a 2^14-leaf fork tree like `hash1!`'s, leaves that only read (`B3.ld`) | 12.0-12.3 |
-| Bend, the same tree, leaves that only compress (1024 each)       | 4.4-4.5   |
+| Bend, a 2^14-leaf fork tree like `hash1!`'s, leaves that only read (`B3.ld`) | 11.4-12.3 |
+| Bend, the same tree, leaves that only compress (1024 each)       | 4.2-4.5   |
 | Bend `hash1!`                                                    | 12.5-12.8 |
 
 1. **The hash is bound by reads**, natively and in Bend: the compressions
-   run under the loads. Bend's compute is already native speed (4.4 ms
+   run under the loads. Bend's compute is already native speed (4.2-4.5 ms
    against 4.4-4.9 in the same shape), and its hash takes as long as its
    reads alone.
 2. **The lane cube's shape costs ~1.5x.** 16384 lanes that each stream
@@ -72,7 +72,7 @@ leaf of 4^j chunks, ~2^14 leaves, as `level` picks them.
    locality (DRAM pages, TLB reach), not the lane count: 2 or 4 chunks
    interleaved inside a lane (more loads in flight) changed nothing.
 3. **Bend's array reads cost ~1.3x a native read in the same shape**
-   (12.0 against 9.0-9.7). A lane reads its `Array.fork`ed input through a
+   (11.4-12.3 against 9.0-9.7). A lane reads its `Array.fork`ed input through a
    redirect cell (`term_peek` in `blk_loc`); a load of such a cell before
    each word costs the native read ~10%, so that is a part of it.
 4. **A bang costs ~0.9 ms of fixed time**, which is all of the gap below

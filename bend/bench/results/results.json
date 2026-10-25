@@ -235,6 +235,11 @@
       "summary": "Metal and CUDA BLAKE3 as yardsticks: native Metal hashes 1 GiB in ~6 ms. Bend's GPU path is read-bound: ~1.5x from its lane cube's memory locality, ~1.3x from its array reads."
     },
     {
+      "adr": "0007",
+      "title": "Laws and proofs",
+      "summary": "20 laws the checker proves: official vectors computed by the checker, compress8 and par8 equal the scalar path lane by lane for every input, and BLAKE3's tree splits into 2^k segments and builds level by level, for any compression."
+    },
+    {
       "adr": "0008",
       "title": "Daemon race, map zone, iroh outboards",
       "summary": "Mapped files go into an address-space zone of their own (one munmap a round); the CPU tree also emits iroh-blobs' bao outboard, byte-identical to bao-tree."
