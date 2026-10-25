@@ -1,0 +1,501 @@
+---
+/**
+ * The proofs section: what Bend's checker proves about this BLAKE3, against
+ * what the official crate's tests check. The laws come from bend/LAWS.bend
+ * (src/lib/proofs.ts); the gate's time comes from results.json.
+ */
+import Section from './Section.astro';
+import { adr } from '../lib/adr';
+import { results } from '../lib/results';
+import { GENERATOR_URL, LAWS_URL, PROOF_URL, lawCount, lawGroups, lemmaCount, sample, type Scope } from '../lib/proofs';
+import { blobUrl } from '../lib/site';
+import { machineName } from '../lib/page';
+
+const gate = results.proofs;
+const minutes = gate ? Math.round(gate.seconds / 60) : undefined;
+const shown = sample('ob.hash');
+
+// "2^6,275" -> 2 with a superscript, as text and <sup> parts.
+const powers = (text: string) => text.split(/\^([\d,]+|[a-z])/);
+
+const badge: Record<Scope, string> = {
+  'every-input': '∀ input',
+  'every-size': '∀ size',
+  computed: 'computed',
+};
+
+// What the official crate's own tests (src/test.rs) check, beside the laws.
+const contrast = [
+  {
+    what: 'The SIMD compression',
+    rust: 'Each backend against the portable code on one 61-byte block, one counter and one set of flags.',
+    bend: 'Each of compress8’s eight lanes against the scalar compression, for every block, CV, counter and flag set.',
+    laws: ['compress8.lane'],
+  },
+  {
+    what: 'Many parents at once',
+    rust: 'hash_many over 31 chunks and 31 parents, at three starting counters.',
+    bend: 'par8 against eight scalar parents, for every pair of 8-lane CVs.',
+    laws: ['par8.lane'],
+  },
+  {
+    what: 'The tree',
+    rust: '39 input lengths up to 100 KiB against the reference implementation, and 10,000 seeded random inputs up to 4 KiB.',
+    bend: 'Every chunk count: the 1 GiB segment split, the GPU-style reduction, leaf and parent counts, and the streaming stack.',
+    laws: ['segments', 'levels', 'tree.leaves', 'stream.shape'],
+  },
+];
+
+const limits = [
+  'The laws pass Array.clone where the code that runs passes Array.fork, which is @unsafe in Base; the two agree by Array.fork’s contract, which Base cannot prove.',
+  'The known answers pin small inputs. Leaf32 (32+ chunks), g16 and g64 are covered by the runtime vectors (every length up to 102,400 bytes) and by big.py against the official b3sum past 4 GiB.',
+  'The tree and stream laws are about models: Shapes, and Nat counts for the U32 ones. The stream model leaves out the ROOT flag, and tree1.digits ties the split rule to the model up to 1,024 chunks by computation.',
+  'The loader and the printer are C (effs/load.c, effs/emit.c): they move bytes, outside the checker.',
+];
+---
+
+<Section id="proofs" kicker="Machine-checked" title="Proven for every input, not only tested">
+  <Fragment slot="lede">
+    <p>
+      Bend’s type checker is also a prover. A <code>law</code> in <a href={LAWS_URL}>LAWS.bend</a> states a claim; a def of the same name in{' '}
+      <a href={PROOF_URL}>PROOF.bend</a> proves it; <code>bend PROOF.bend</code> prints <strong>ALL PROOFS CHECK</strong> only when every law holds. The Rust
+      compiler checks types and lifetimes, but a claim like “lane 3 equals the scalar compression for every input” is not something Rust can state, let alone
+      check. The official crate’s evidence is tests, on inputs someone picked.
+    </p>
+  </Fragment>
+
+  <ul class="stats" role="list">
+    <li class="card">
+      <span class="stat">{lawCount}</span>
+      <span class="stat-label">laws about this BLAKE3, all proven</span>
+    </li>
+    <li class="card">
+      <span class="stat">{lemmaCount}</span>
+      <span class="stat-label">lemmas proven on the way</span>
+    </li>
+    <li class="card">
+      <span class="stat">0</span>
+      <span class="stat-label">open claims, and no <code>@unsafe</code> code under the laws</span>
+    </li>
+    {
+      minutes !== undefined && (
+        <li class="card">
+          <span class="stat">~{minutes} min</span>
+          <span class="stat-label">for <code>bend/prove.sh</code> on the {machineName}</span>
+        </li>
+      )
+    }
+  </ul>
+
+  <div class="contrast card">
+    <table>
+      <caption class="sr-only">What the official Rust crate’s tests check, beside what this port’s laws prove</caption>
+      <thead>
+        <tr>
+          <th scope="col"><span class="sr-only">Part</span></th>
+          <th scope="col">Official Rust crate: tested</th>
+          <th scope="col">Bend2 port: proven</th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          contrast.map((c) => (
+            <tr>
+              <th scope="row">{c.what}</th>
+              <td class="rust">{c.rust}</td>
+              <td class="bend">
+                {c.bend} <span class="law-refs">{c.laws.map((n) => <code>{n}</code>)}</span>
+              </td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+  <p class="aside prose">
+    The Rust column is the official crate’s <a href="https://github.com/BLAKE3-team/BLAKE3/blob/master/src/test.rs">src/test.rs</a>. This port runs tests
+    too: the official vectors at every length up to 102,400 bytes, and big files against the official <code>b3sum</code>. The laws cover what those inputs
+    leave out.
+  </p>
+
+  {
+    lawGroups.map((g) => (
+      <div class="group" id={`proofs-${g.id}`}>
+        <div class="group-head">
+          <h3>{g.title}</h3>
+          <p class="prose">{g.blurb}</p>
+        </div>
+        <ul class:list={['laws', g.cards.length % 3 === 0 ? 'cols-3' : 'cols-2']} role="list">
+          {g.cards.map((c) => (
+            <li class="card law">
+              <p class="law-top">
+                <span class:list={['badge', `badge-${g.scope}`]}>{badge[g.scope]}</span>
+                <span class="names">
+                  {c.laws.length > 3 ? (
+                    <code>{c.names.join(', ')}</code>
+                  ) : (
+                    c.laws.map((n) => <code>{n}</code>)
+                  )}
+                  {c.laws.length > 3 && <span class="n-laws">{c.laws.length} laws</span>}
+                </span>
+              </p>
+              <p class="claim">{powers(c.claim).map((t, i) => (i % 2 === 1 ? <sup>{t}</sup> : t))}</p>
+              <p class="covers">{powers(c.covers).map((t, i) => (i % 2 === 1 ? <sup>{t}</sup> : t))}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))
+  }
+
+  <div class="how">
+    <h3>State it, prove it, check it</h3>
+    <ol class="how-steps" role="list">
+      <li>
+        <p class="how-label"><span class="how-n" aria-hidden="true">1</span> The claim, in <a href={LAWS_URL}>LAWS.bend</a></p>
+        <pre><code>{shown.law}</code></pre>
+        <p class="how-note">For every input array and every length, the root of the outboard tree is the plain hash.</p>
+      </li>
+      <li>
+        <p class="how-label"><span class="how-n" aria-hidden="true">2</span> The proof, in <a href={PROOF_URL}>PROOF.bend</a></p>
+        <pre><code>{shown.proof}</code></pre>
+        <p class="how-note">
+          A proof is a def. <code>ob.go</code> is an induction over the tree: a recursive call is the induction hypothesis, a <code>match</code> is a case split.
+        </p>
+      </li>
+      <li>
+        <p class="how-label"><span class="how-n" aria-hidden="true">3</span> The gate</p>
+        <pre><code><span class="prompt">$</span> bend/prove.sh{'\n'}ALL PROOFS CHECK</code></pre>
+        <p class="how-note">
+          A false claim does not check: swapping a parent’s children in blake3.bend’s outboard code fails the gate, and so does merging the stream stack’s
+          top two the wrong way round.
+        </p>
+      </li>
+    </ol>
+  </div>
+
+  <aside class="limits" aria-labelledby="proofs-limits">
+    <h3 id="proofs-limits">What is not proven</h3>
+    <ul role="list">{limits.map((l) => <li>{l}</li>)}</ul>
+    <p>
+      The laws and proofs are generated by <a href={GENERATOR_URL}>tools/gen_laws.py</a>. <a href={adr('0007').url}>ADR 0007</a> and{' '}
+      <a href={adr('0010').url}>ADR 0010</a> have how each is proven and what it cost; <a href={blobUrl('bend/prove.sh')}>bend/prove.sh</a> runs the gate.
+    </p>
+  </aside>
+</Section>
+
+<style>
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+    gap: 1rem;
+    margin: 0 0 1.5rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .stats li {
+    display: grid;
+    align-content: start;
+    gap: 0.35rem;
+    padding: 1.1rem 1.25rem;
+  }
+
+  .stat {
+    font-size: clamp(2rem, 1.6rem + 1.6vw, 2.75rem);
+    font-weight: 750;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stat-label {
+    color: var(--ink-2);
+    font-size: 0.9375rem;
+  }
+
+  /* Tested vs proven */
+  .contrast {
+    overflow-x: auto;
+  }
+
+  .contrast table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+  }
+
+  .contrast th,
+  .contrast td {
+    padding: 0.85rem 1.1rem;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .contrast tbody tr:last-child > * {
+    border-bottom: 0;
+  }
+
+  .contrast thead th {
+    font-size: 0.8125rem;
+    font-weight: 650;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .contrast tbody th {
+    font-weight: 650;
+    white-space: nowrap;
+  }
+
+  .contrast .rust {
+    color: var(--ink-2);
+  }
+
+  .contrast .bend {
+    color: var(--ink);
+  }
+
+  .law-refs {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-left: 0.15em;
+  }
+
+  @media (max-width: 40rem) {
+    .contrast table,
+    .contrast tbody,
+    .contrast tr,
+    .contrast th,
+    .contrast td {
+      display: block;
+    }
+
+    .contrast thead {
+      display: none;
+    }
+
+    .contrast tbody tr {
+      padding: 0.9rem 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .contrast tbody tr:last-child {
+      border-bottom: 0;
+    }
+
+    .contrast tbody th,
+    .contrast td {
+      padding: 0;
+      border: 0;
+      white-space: normal;
+    }
+
+    .contrast td {
+      margin-top: 0.5rem;
+    }
+
+    .contrast td.rust::before {
+      content: 'Rust, tested: ';
+      font-weight: 650;
+      color: var(--ink-3);
+    }
+
+    .contrast td.bend::before {
+      content: 'Bend2, proven: ';
+      font-weight: 650;
+      color: var(--ink-3);
+    }
+  }
+
+  .aside {
+    margin-top: 1rem;
+    font-size: 0.9375rem;
+  }
+
+  /* Law groups */
+  .group {
+    margin-top: 2.75rem;
+  }
+
+  .group-head {
+    display: grid;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+  }
+
+  .group-head p {
+    font-size: 0.9375rem;
+  }
+
+  .laws {
+    display: grid;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 44rem) {
+    .laws {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .laws.cols-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .law {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 1.1rem 1.25rem 1.2rem;
+  }
+
+  .law-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.6rem;
+  }
+
+  .names {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .n-laws {
+    color: var(--ink-3);
+    font-size: 0.8125rem;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid currentColor;
+    font-size: 0.75rem;
+    font-weight: 650;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  .badge-every-input {
+    color: var(--s-bend);
+  }
+
+  .badge-every-size {
+    color: var(--s-bend-alt);
+  }
+
+  .badge-computed {
+    color: var(--ink-3);
+  }
+
+  .claim {
+    flex: 1;
+    font-size: 0.9375rem;
+  }
+
+  sup {
+    line-height: 0;
+  }
+
+  .covers {
+    color: var(--ink-3);
+    font-size: 0.875rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* How */
+  .how {
+    margin-top: 3rem;
+  }
+
+  .how h3 {
+    margin-bottom: 1rem;
+  }
+
+  .how-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+    gap: 1.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .how-steps li {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  .how-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9375rem;
+  }
+
+  .how-n {
+    display: grid;
+    place-items: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    border: 1px solid var(--line-strong);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .how-steps pre {
+    font-size: 0.8125rem;
+  }
+
+  .prompt {
+    color: var(--ink-3);
+    user-select: none;
+  }
+
+  .how-note {
+    color: var(--ink-2);
+    font-size: 0.875rem;
+  }
+
+  /* Limits */
+  .limits {
+    max-width: var(--measure);
+    margin-top: 2.75rem;
+    padding: 1rem 1.25rem;
+    border-left: 3px solid var(--axis);
+    background: var(--surface-2);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    color: var(--ink-2);
+    font-size: 0.9375rem;
+  }
+
+  .limits h3 {
+    font-size: 1rem;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+  }
+
+  .limits ul {
+    display: grid;
+    gap: 0.4rem;
+    margin: 0 0 0.75rem;
+    padding-left: 1.1rem;
+  }
+</style>
