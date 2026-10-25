@@ -89,6 +89,332 @@ def gen_loader():
     return "\n".join(defs)
 
 
+# 8-lane path
+# -----------
+# compress8 runs eight independent compressions with every G operation
+# emitted for all lanes back to back, the shape clang's SLP vectorizer packs
+# into NEON registers. Lane l of a CV8 is h{l}_0..h{l}_7; of a B128,
+# m{l}_0..m{l}_15.
+
+L = 8
+
+
+# Fields are word-major (word 0 of every lane, then word 1, ...): a
+# compress8 that clang keeps out of line reads its arguments and writes its
+# o[] results as runs of eight lanes, the seeds SLP needs for NEON vectors.
+def cv8_order():
+    return [(l, i) for i in range(8) for l in range(L)]
+
+
+def b128_order():
+    return [(l, i) for i in range(16) for l in range(L)]
+
+
+def cv8_fields(prefix="h", plus=False):
+    p = "+" if plus else ""
+    return ", ".join(f"{p}{prefix}{l}_{i}" for l, i in cv8_order())
+
+
+def b128_fields(prefix="m", plus=False):
+    p = "+" if plus else ""
+    return ", ".join(f"{p}{prefix}{l}_{i}" for l, i in b128_order())
+
+
+def schedules():
+    s = list(range(16))
+    out = []
+    for _ in range(7):
+        out.append(s)
+        s = [s[p] for p in PERM]
+    return out
+
+
+def gen_compress8(dname="compress8", parent=False):
+    lines = []
+    cur = {}
+    ver = {}
+
+    def name(l, i):
+        return cur[(l, i)]
+
+    def let(l, i, expr):
+        ver[(l, i)] = ver.get((l, i), 0) + 1
+        nm = f"x{l}_{i}_{ver[(l, i)]}"
+        lines.append(f"      +{nm} = {expr}")
+        cur[(l, i)] = nm
+
+    for l in range(L if not parent else 0):
+        lines.append(f"      +t{l} = (ctr + (step * {l} : U32) : U32)")
+    for l in range(L):
+        for i in range(8):
+            cur[(l, i)] = f"h{l}_{i}"
+        for i in range(4):
+            cur[(l, 8 + i)] = str(IV[i])
+        cur[(l, 12)] = "0" if parent else f"t{l}"
+        cur[(l, 13)] = "0"
+        cur[(l, 14)] = "blen"
+        cur[(l, 15)] = "flags"
+    for sched in schedules():
+        for g, (a, b, c, d) in enumerate(G_COLS):
+            x, y = sched[2 * g], sched[2 * g + 1]
+            for (mx, r1, r2) in ((x, 16, 12), (y, 8, 7)):
+                for l in range(L):
+                    let(l, a, f"({name(l, a)} + {name(l, b)} + m{l}_{mx} : U32)")
+                for l in range(L):
+                    let(l, d, f"rotr{r1}(({name(l, d)} .^. {name(l, a)} : U32))")
+                for l in range(L):
+                    let(l, c, f"({name(l, c)} + {name(l, d)} : U32)")
+                for l in range(L):
+                    let(l, b, f"rotr{r2}(({name(l, b)} .^. {name(l, c)} : U32))")
+    outs = ", ".join(f"({name(l, i)} .^. {name(l, i + 8)} : U32)"
+                     for l, i in cv8_order())
+    if parent:
+        head = ("# compress8 for parents (counter 0): a body of its own, so each\n"
+                "# copy keeps one call site and clang inlines it there.\n"
+                f"def {dname}(cv: CV8, m: B128, +blen: U32, +flags: U32) -> CV8:\n")
+    else:
+        head = ("# Eight compressions at once; lane l's counter is ctr + step * l.\n"
+                f"def {dname}(cv: CV8, m: B128, +ctr: U32, +step: U32, +blen: U32,\n"
+                "  +flags: U32) -> CV8:\n")
+    return (
+        head +
+        "  match cv m:\n"
+        f"    case CV8{{{cv8_fields(plus=True)}}} B128{{{b128_fields(plus=True)}}}:\n"
+        + "\n".join(lines) + f"\n      CV8{{{outs}}}\n"
+    )
+
+
+def gen_ld8():
+    """ld8(a, w): word i of lane l is at w + 256 * l + i (eight chunks)."""
+    n = L * 16
+    off = lambda j: (j // 16) * 256 + j % 16
+    nm = lambda j: f"m{j // 16}_{j % 16}"
+    defs = []
+    prev_all = ", ".join(nm(j) for j in range(n - 1))
+    defs.append(
+        f"def ld8.s{n - 1}(r: Array<U32> & U32, "
+        + ", ".join(f"{nm(j)}: U32" for j in range(n - 1))
+        + ") -> Array<U32> & B128:\n"
+        f"  (a, {nm(n - 1)}) = r\n"
+        f"  (a, B128{{{b128_fields()}}})\n"
+    )
+    for k in range(n - 2, -1, -1):
+        params = ", ".join(f"{nm(j)}: U32" for j in range(k))
+        args = ", ".join(nm(j) for j in range(k + 1))
+        nxt = k + 1
+        sig = f"def ld8.s{k}(r: Array<U32> & U32, +w: U32" + (", " + params if k else "") + ")"
+        if nxt == n - 1:
+            call = f"  ld8.s{nxt}(a[(w + {off(nxt)} : U32)], {args})\n"
+        else:
+            call = f"  ld8.s{nxt}(a[(w + {off(nxt)} : U32)], w, {args})\n"
+        defs.append(sig + " -> Array<U32> & B128:\n" + f"  (a, {nm(k)}) = r\n" + call)
+    defs.append(
+        "# The blocks at word w of eight consecutive chunks.\n"
+        "def ld8(a: Array<U32>, +w: U32) -> Array<U32> & B128:\n"
+        "  ld8.s0(a[w], w)\n"
+    )
+    return "\n".join(defs)
+
+
+def gen_par8():
+    # lane j < 4: parent of x's lanes 2j, 2j+1; lane 4 + j: of y's.
+    val = {}
+    for j in range(L):
+        src, base = ("x", 2 * j) if j < 4 else ("y", 2 * (j - 4))
+        for i in range(8):
+            val[(j, i)] = f"{src}{base}_{i}"
+            val[(j, 8 + i)] = f"{src}{base + 1}_{i}"
+    msg = [val[k] for k in b128_order()]
+    xs = cv8_fields("x")
+    ys = cv8_fields("y")
+    return (
+        "# One level of parents over 16 CVs: lanes 0-3 merge x's lane pairs,\n"
+        "# lanes 4-7 merge y's, so a level stays in lane order.\n"
+        "def par8(x: CV8, y: CV8) -> CV8:\n"
+        "  match x y:\n"
+        f"    case CV8{{{xs}}} CV8{{{ys}}}:\n"
+        f"      compress8.p(IV8(), B128{{{', '.join(msg)}}}, 64, PARENT())\n"
+    )
+
+
+def gen_fold8():
+    xs = cv8_fields("x")
+    cv = lambda l: "CV{" + ", ".join(f"x{l}_{i}" for i in range(8)) + "}"
+    return (
+        "# The last three levels over a CV8's lanes, one compression each.\n"
+        "def fold8(x: CV8, +rf: U32) -> CV:\n"
+        "  match x:\n"
+        f"    case CV8{{{xs}}}:\n"
+        f"      parent(parent(parent({cv(0)}, {cv(1)}, 0), parent({cv(2)}, {cv(3)}, 0), 0),\n"
+        f"        parent(parent({cv(4)}, {cv(5)}, 0), parent({cv(6)}, {cv(7)}, 0), 0), rf)\n"
+    )
+
+
+WIDE = """
+type CV8 is Data:
+  CV8{{{cv8}}}
+
+type B128 is Data:
+  B128{{{b128}}}
+
+def IV8() -> CV8:
+  CV8{{{iv8}}}
+
+{ld8}
+{compress8}
+{compress8p}
+def endf(+p: Nat) -> U32:
+  match p:
+    case 0n:
+      CHUNK_END()
+    case 1n+q:
+      0
+
+# Chains eight full chunks from word w at once; n counts the blocks left.
+# The loop has one compress8, so clang inlines it and vectorizes the whole
+# loop from the word-major stores of its result. At n = 0, r holds the
+# block past the chunks, read for nothing.
+def c8.go(+n: Nat, r: Array<U32> & B128, +w: U32, cv: CV8, +ctr: U32,
+  +fl: U32) -> Array<U32> & CV8:
+  match n:
+    case 0n:
+      (a, m) = r
+      (a, cv)
+    case 1n+p:
+      (a, m) = r
+      +w2 = (w + 16 : U32)
+      c8.go(p, ld8(a, w2), w2, compress8(cv, m, ctr, 1, 64,
+        (fl .|. endf(p) : U32)), ctr, 0)
+
+# The CVs of chunks c..c+7.
+def group(a: Array<U32>, +c: U32) -> Array<U32> & CV8:
+  +w = (c << 8n : U32)
+  c8.go(16n, ld8(a, w), w, IV8(), c, CHUNK_START())
+
+{par8}
+{fold8}
+def leaf8.fin(r: Array<U32> & CV8, +rf: U32) -> CV:
+  (a, x) = r
+  _ = a
+  fold8(x, rf)
+
+def leaf8(a: Array<U32>, +c: U32, +rf: U32) -> CV:
+  leaf8.fin(group(a, c), rf)
+
+# 32 full chunks: four groups, two levels of par8, then fold8.
+def leaf32.s3(r: Array<U32> & CV8, x: CV8, g2: CV8) -> Array<U32> & CV8:
+  (a, g3) = r
+  (a, par8(x, par8(g2, g3)))
+
+def leaf32.s2(r: Array<U32> & CV8, +c: U32, x: CV8) -> Array<U32> & CV8:
+  (a, g2) = r
+  leaf32.s3(group(a, (c + 24 : U32)), x, g2)
+
+def leaf32.s1(r: Array<U32> & CV8, +c: U32, g0: CV8) -> Array<U32> & CV8:
+  (a, g1) = r
+  leaf32.s2(group(a, (c + 16 : U32)), c, par8(g0, g1))
+
+def leaf32.s0(r: Array<U32> & CV8, +c: U32) -> Array<U32> & CV8:
+  (a, g0) = r
+  leaf32.s1(group(a, (c + 8 : U32)), c, g0)
+
+def leaf32(a: Array<U32>, +c: U32, +rf: U32) -> CV:
+  leaf8.fin(leaf32.s0(group(a, c), c), rf)
+
+# What a node of the CPU tree does.
+type Node is Data:
+  Down{{}}
+  Split{{}}
+  Leaf8{{}}
+  Leaf32{{}}
+
+def kind.at3(b: Bool) -> Node:
+  match b:
+    case True{{}}:
+      Leaf8{{}}
+    case False{{}}:
+      Split{{}}
+
+def kind.at(b: Bool, +k: U32) -> Node:
+  match b:
+    case True{{}}:
+      Leaf32{{}}
+    case False{{}}:
+      kind.at3(U32.is_eq(k, 3))
+
+def kind.full(+k: U32, full: Bool) -> Node:
+  match full:
+    case False{{}}:
+      Split{{}}
+    case True{{}}:
+      kind.at(U32.is_eq(k, 5), k)
+
+def kind.big(+k: U32, +n: U32, +c: U32, +len: U32, b: Bool) -> Node:
+  match b:
+    case False{{}}:
+      Down{{}}
+    case True{{}}:
+      kind.full(k, U32.is_eq(n, U32.shln(1, U32.to_nat(k))) &&
+        U32.is_le(((c + n : U32) << 10n : U32), len))
+
+# The kind of a node of depth k >= 1 over chunks c..c+n of a len-byte input:
+# a wide leaf needs all 2^k chunks full.
+def kind(+k: U32, +n: U32, +c: U32, +len: U32) -> Node:
+  kind.big(k, n, c, len, U32.is_gt(n, U32.shln(1, U32.to_nat((k - 1 : U32)))))
+
+# tree1's shape, but full 32- and 8-chunk subtrees go through compress8.
+def tree8(+k: Nat, +ku: U32, d: Node, aa: Array<U32> & Array<U32>, +c: U32,
+  +n: U32, +len: U32, +rf: U32) -> CV:
+  match k d:
+    case 0n _:
+      (a1, a2) = aa
+      _ = a2
+      chunk(a1, c, len, rf)
+    case 1n+p Down{{}}:
+      +kp = (ku - 1 : U32)
+      tree8(p, kp, kind(kp, n, c, len), aa, c, n, len, rf)
+    case 1n+p Leaf32{{}}:
+      (a1, a2) = aa
+      _ = a2
+      leaf32(a1, c, rf)
+    case 1n+p Leaf8{{}}:
+      (a1, a2) = aa
+      _ = a2
+      leaf8(a1, c, rf)
+    case 1n+p Split{{}}:
+      (a1, a2) = aa
+      +kp = (ku - 1 : U32)
+      +h = U32.shln(1, p)
+      +n2 = (n - h : U32)
+      l r = tree8(p, kp, kind(kp, h, c, len), Array.fork(U32, a1), c, h, len, 0) tree8(p, kp, kind(kp, n2, (c + h : U32), len), Array.fork(U32, a2), (c + h : U32), n2, len, 0)
+      parent(l, r, rf)
+
+# Entry points
+# ------------
+
+def hash.go(+k: Nat, a: Array<U32>, +n: U32, +len: U32) -> CV:
+  match k:
+    case 0n:
+      chunk(a, 0, len, ROOT())
+    case 1n+p:
+      +ku = U32.from_nat(k)
+      tree8(k, ku, kind(ku, n, 0, len), Array.fork(U32, a), 0, n, len, ROOT())
+
+# The BLAKE3 hash (first 32 bytes) of `len` bytes held in `a`, for the CPU.
+def hash(a: Array<U32>, +len: U32) -> CV:
+  +n = chunks(len)
+  hash.go(depth(n), a, n, len)
+
+def hash1.go(+k: Nat, a: Array<U32>, +n: U32, +len: U32) -> CV:
+  tree1(k, big(k, n), Array.fork(U32, a), 0, n, len, ROOT())
+
+# The same hash, one lane per chunk: the shape for the GPU (call it with !).
+def hash1(a: Array<U32>, +len: U32) -> CV:
+  +n = chunks(len)
+  hash1.go(depth(n), a, n, len)
+"""
+
+
 HEADER = '''\
 # BLAKE3 in Bend2
 # ===============
@@ -216,7 +542,7 @@ def big(+k: Nat, +n: U32) -> Bool:
 
 # The CV of the n chunks from chunk c, n <= 2^k. Each node holds two read
 # handles of the input (an O(1) Array.fork), so both halves read it at once.
-def tree(+k: Nat, b: Bool, aa: Array<U32> & Array<U32>, +c: U32, +n: U32,
+def tree1(+k: Nat, b: Bool, aa: Array<U32> & Array<U32>, +c: U32, +n: U32,
   +len: U32, +rf: U32) -> CV:
   match k b:
     case 0n _:
@@ -224,12 +550,12 @@ def tree(+k: Nat, b: Bool, aa: Array<U32> & Array<U32>, +c: U32, +n: U32,
       _ = a2
       chunk(a1, c, len, rf)
     case 1n+p False{}:
-      tree(p, big(p, n), aa, c, n, len, rf)
+      tree1(p, big(p, n), aa, c, n, len, rf)
     case 1n+p True{}:
       (a1, a2) = aa
       +h = U32.shln(1, p)
       +n2 = (n - h : U32)
-      l r = tree(p, big(p, h), Array.fork(U32, a1), c, h, len, 0) tree(p, big(p, n2), Array.fork(U32, a2), (c + h : U32), n2, len, 0)
+      l r = tree1(p, big(p, h), Array.fork(U32, a1), c, h, len, 0) tree1(p, big(p, n2), Array.fork(U32, a2), (c + h : U32), n2, len, 0)
       parent(l, r, rf)
 
 def chunks(+len: U32) -> U32:
@@ -246,14 +572,7 @@ def depth.go(b: Bool, +n: U32) -> Nat:
 def depth(+n: U32) -> Nat:
   depth.go(U32.is_le(n, 1), n)
 
-def hash.go(+k: Nat, a: Array<U32>, +n: U32, +len: U32) -> CV:
-  tree(k, big(k, n), Array.fork(U32, a), 0, n, len, ROOT())
-
-# The BLAKE3 hash (first 32 bytes) of `len` bytes held in `a`.
-def hash(a: Array<U32>, +len: U32) -> CV:
-  +n = chunks(len)
-  hash.go(depth(n), a, n, len)
-
+@@WIDE@@
 # Hex
 # ---
 
@@ -297,7 +616,14 @@ def main():
         cvout=", ".join(f"(v{i} .^. v{i + 8} : U32)" for i in range(8)),
         iv4=", ".join(str(x) for x in IV[:4]),
     )
-    src += TREE
+    wide = WIDE.format(
+        cv8=", ".join(f"h{l}_{i}: U32" for l, i in cv8_order()),
+        b128=", ".join(f"m{l}_{i}: U32" for l, i in b128_order()),
+        iv8=", ".join(str(IV[i]) for l, i in cv8_order()),
+        ld8=gen_ld8(), compress8=gen_compress8(),
+        compress8p=gen_compress8("compress8.p", parent=True), par8=gen_par8(),
+        fold8=gen_fold8())
+    src += TREE.replace("@@WIDE@@", wide)
     OUT.write_text(src)
     print(f"wrote {OUT}")
 

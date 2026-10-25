@@ -20,9 +20,13 @@ def fill(n: Nat, a: Array<U32>, +j: U32, +len: U32) -> Array<U32>:
       a[j] <- word(j, len)
       fill(p, a, (j + 1 : U32), len)
 
+def input(+len: U32) -> Array<U32>:
+  fill(U32.to_nat(((len + 3 : U32) >> 2n : U32)), [0 : U32^15n], 0, len)
+
+# Both paths: the CPU's 8-lane tree and the GPU's 1-lane tree.
 def one(+len: U32) -> String:
-  a = fill(U32.to_nat(((len + 3 : U32) >> 2n : U32)), [0 : U32^15n], 0, len)
-  U32.show(len) ++ " " ++ B3.hex(B3.hash(a, len))
+  U32.show(len) ++ " " ++ B3.hex(B3.hash(input(len), len)) ++ "\n" ++
+    U32.show(len) ++ " " ++ B3.hex(B3.hash1(input(len), len))
 
 def run(xs: List<&2, U32>) -> IO(Unit):
   match xs:

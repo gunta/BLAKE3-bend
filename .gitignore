@@ -12,3 +12,4 @@ target
 /bend/bench/rust/Cargo.lock
 /bend/build/
 /bend/**/build/
+.DS_Store

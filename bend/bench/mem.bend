@@ -33,7 +33,7 @@ def cpu(a: Array<U32>, +len: U32) -> B3.CV:
   B3.hash(a, len)
 
 def gpu(a: Array<U32>, +len: U32) -> B3.CV:
-  B3.hash!(a, len)
+  B3.hash1!(a, len)
 
 def run(b: Bool, a: Array<U32>, +len: U32) -> B3.CV:
   match b:
