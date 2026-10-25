@@ -45,6 +45,36 @@
       }
     ]
   },
+  "gpu_reference": {
+    "unit": "ms",
+    "note": "Bend's GPU path (hash1!) against hand-written Metal (bend/ref, ADR 0006), warm, in memory, same digest; medians of 6 interleaved rounds on a loaded machine (+-10%). metal_bend_leaves runs the native kernel in hash1!'s shape: one thread per leaf, ~16,384 leaves.",
+    "rows": [
+      {
+        "input": "16 MiB",
+        "bend_gpu": 1.29,
+        "metal_bend_leaves": 0.41,
+        "metal": 0.37
+      },
+      {
+        "input": "64 MiB",
+        "bend_gpu": 1.52,
+        "metal_bend_leaves": 0.73,
+        "metal": 0.66
+      },
+      {
+        "input": "256 MiB",
+        "bend_gpu": 2.7,
+        "metal_bend_leaves": 1.8,
+        "metal": 1.72
+      },
+      {
+        "input": "1 GiB",
+        "bend_gpu": 12.82,
+        "metal_bend_leaves": 8.95,
+        "metal": 6.04
+      }
+    ]
+  },
   "cli": {
     "unit": "ms",
     "note": "One-shot `b3sum FILE...` (process start included), medians of 15 interleaved rounds; output byte-identical to the official b3sum.",
@@ -170,7 +200,8 @@
     "macOS open(): ~48 ms per 10,000 files at best, however many threads (volume-wide serialization).",
     "GPU start-up: the Metal heap costs ~50 ms per GiB to set up, so one-shot CLI runs stay on the CPU.",
     "Uncached files: the SSD reads 10-14 GB/s with large parallel preads but 0.2-0.8 GB/s through page faults, so mapping a file that is not in the page cache throws most of the SSD away (Bend streams those).",
-    "NVIDIA GPUs: Bend 2.0.39's CUDA runtime hangs inside Modal's sandbox, even for the guide's pow2! example, while plain CUDA managed memory works there; NVIDIA numbers wait on that."
+    "NVIDIA GPUs: Bend 2.0.39's CUDA runtime hangs inside Modal's sandbox, even for the guide's pow2! example, while plain CUDA managed memory works there; NVIDIA numbers wait on that.",
+    "GPU reads: ~5.5-6.8 ms per GiB natively; BLAKE3's compressions fit under them, natively and in Bend, so the GPU hash is read-bound."
   ],
   "techniques": [
     {
@@ -197,6 +228,11 @@
       "adr": "0005",
       "title": "Flat GPU leaves",
       "summary": "Fork-free 4/16/64-chunk leaves sized to the 16,384-lane cube: 93-110 GB/s on the GPU."
+    },
+    {
+      "adr": "0006",
+      "title": "Native GPU references",
+      "summary": "Metal and CUDA BLAKE3 as yardsticks: native Metal hashes 1 GiB in ~6 ms. Bend's GPU path is read-bound: ~1.5x from its lane cube's memory locality, ~1.3x from its array reads."
     },
     {
       "adr": "0008",

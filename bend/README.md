@@ -19,6 +19,7 @@ appears only in the effects that move bytes in and out (`effs/`).
 | `build.sh`              | bend -> C -> clang with the tuned flags (ADR 0002)    |
 | `test/`                 | official test vectors (both paths), big-file test     |
 | `bench/`                | in-memory bench, file bench, race vs b3sum, Rust ref  |
+| `ref/`                  | native Metal and CUDA BLAKE3, the GPU path's yardstick (ADR 0006) |
 | `../adr/`               | what we did for speed, and what we measured           |
 
 ## Build and check
@@ -94,6 +95,12 @@ rounds, medians, `bench/race.py`; output byte-identical):
 | 1k x 1 MiB                 | 241.7 ms | 70.6 ms    | 3.42x faster  |
 | SDK headers (3460 files)   | 129.1 ms | 37.5 ms    | 3.45x faster  |
 | cargo sources (8000 files) | 259.5 ms | 73.5 ms    | 3.53x faster  |
+
+Hand-written Metal (`ref/`, ADR 0006) hashes the same 1 GiB in ~6 ms
+(178 GB/s), and 256 MiB in 1.7 ms. The GPU hash is bound by reads, in Bend
+too (its compressions alone run at native speed): Bend loses ~1.5x to its
+lane cube's memory locality and ~1.3x to its array reads, and ~0.9 ms per
+bang below 64 MiB.
 
 Big single files sit on two floors that `b3sum` shares: ~15 ms of page
 faults per GiB of a mapped file, and an all-core compute ceiling near
