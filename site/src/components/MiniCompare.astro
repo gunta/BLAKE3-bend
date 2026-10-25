@@ -1,0 +1,101 @@
+---
+/** Two bars, baseline vs Bend, for a headline figure. Times: shorter is faster. */
+import type { Comparison } from '../lib/model';
+import { fmtMeasured } from '../lib/format';
+
+interface Props {
+  comparison: Comparison;
+  unit: string;
+}
+
+const { comparison: c, unit } = Astro.props;
+const max = Math.max(c.baselineValue, c.bendValue);
+const rows = [
+  { series: c.baseline, value: c.baselineValue },
+  { series: c.bend, value: c.bendValue },
+];
+---
+
+<dl class="mini">
+  {
+    rows.map((r) => (
+      <div class:list={['row', { bend: r.series.isBend }]}>
+        <dt>{r.series.label}</dt>
+        <dd>
+          <span class="track" aria-hidden="true">
+            <span class={`bar tone-${r.series.tone}`} style={`--f: ${(r.value / max).toFixed(5)}`} />
+          </span>
+          <span class="v">
+            {fmtMeasured(r.value)} {unit}
+          </span>
+        </dd>
+      </div>
+    ))
+  }
+</dl>
+
+<style>
+  .mini {
+    display: grid;
+    gap: 0.4rem;
+    margin: 0;
+    font-size: 0.875rem;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: minmax(5.5rem, max-content) minmax(0, 1fr);
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  dt {
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+
+  .row.bend dt {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  dd {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 4.75rem;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+  }
+
+  .track {
+    position: relative;
+    height: 12px;
+  }
+
+  .bar {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: max(3px, calc(var(--f) * 100%));
+    border-radius: 0 4px 4px 0;
+  }
+
+  .v {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .row.bend .v {
+    font-weight: 650;
+  }
+
+
+  @media (forced-colors: active) {
+    .bar {
+      forced-color-adjust: none;
+      background: CanvasText;
+    }
+    .row.bend .bar {
+      background: Highlight;
+    }
+  }
+</style>

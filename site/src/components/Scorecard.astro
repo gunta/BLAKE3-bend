@@ -1,0 +1,119 @@
+---
+/** Wins, ties and losses for each Bend series against a baseline, counted from the data. */
+import type { Tally, Verdict } from '../lib/model';
+import { VERDICT } from '../lib/model';
+import { fmtRange } from '../lib/format';
+
+interface Props {
+  tallies: Tally[];
+}
+
+const { tallies } = Astro.props;
+const order: Verdict[] = ['faster', 'tie', 'slower'];
+const nouns: Record<Verdict, [string, string]> = {
+  faster: ['faster', 'faster'],
+  tie: ['tie', 'ties'],
+  slower: ['slower', 'slower'],
+};
+---
+
+{
+  tallies.length > 0 && (
+    <ul class="scorecard" role="list">
+      {tallies.map((t) => (
+        <li class="card">
+          <p class="who">
+            <strong>{t.bend.label}</strong> <span class="vs">vs {t.against}</span>
+          </p>
+          <p class="counts">
+            {order.map((v) => {
+              const n = t[v].length;
+              return (
+                <span class:list={['count', `v-${v}`, { zero: n === 0 }]}>
+                  <span class="icon" aria-hidden="true">
+                    {VERDICT[v].icon}
+                  </span>
+                  <span class="n">{n}</span> {nouns[v][n === 1 ? 0 : 1]}
+                </span>
+              );
+            })}
+            <span class="of">of {t.all.length}</span>
+          </p>
+          <p class="range">
+            Speedup {fmtRange(t.min, t.max)}
+          </p>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+<style>
+  .scorecard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: 0.75rem;
+    margin: 0 0 1.75rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .card {
+    padding: 0.85rem 1rem;
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .who {
+    font-size: 0.9375rem;
+  }
+
+  .vs {
+    color: var(--ink-2);
+  }
+
+  .counts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 0.9rem;
+    font-size: 0.9375rem;
+  }
+
+  .count {
+    white-space: nowrap;
+  }
+
+  .count .n {
+    font-weight: 700;
+    font-size: 1.25rem;
+    letter-spacing: -0.01em;
+  }
+
+  .count .icon {
+    font-size: 0.7em;
+    margin-right: 0.2rem;
+  }
+
+  .count.v-faster .icon {
+    color: var(--good);
+  }
+
+  .count.v-slower .icon {
+    color: var(--critical);
+  }
+
+  .count.v-tie .icon {
+    color: var(--ink-2);
+  }
+
+  .count.zero {
+    color: var(--ink-3);
+  }
+
+  .of,
+  .range {
+    color: var(--ink-3);
+    font-size: 0.875rem;
+  }
+</style>

@@ -1,0 +1,737 @@
+---
+import Base from '../layouts/Base.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import Section from '../components/Section.astro';
+import BarChart from '../components/BarChart.astro';
+import DataTable from '../components/DataTable.astro';
+import Scorecard from '../components/Scorecard.astro';
+import Note from '../components/Note.astro';
+import MiniCompare from '../components/MiniCompare.astro';
+import { adr, ADR_INDEX_URL } from '../lib/adr';
+import { fmtList, fmtRange } from '../lib/format';
+import { TIE_TEXT, tableView, fmtSpeedup } from '../lib/model';
+import {
+  cli,
+  cliChart,
+  cliTallies,
+  daemon,
+  daemonChart,
+  daemonTallies,
+  floors,
+  headlines,
+  inMemory,
+  inMemoryCharts,
+  inMemoryTallies,
+  iroh,
+  irohChart,
+  irohHashOnly,
+  irohTallies,
+  levelWording,
+  machine,
+  machineName,
+  results,
+} from '../lib/page';
+import { BEND_URL, REPO_URL, blobUrl, treeUrl } from '../lib/site';
+
+const links = [
+  { href: '#in-memory', label: 'In memory' },
+  { href: '#cli', label: 'CLI race' },
+  ...(daemon ? [{ href: '#daemon', label: 'Daemon' }] : []),
+  ...(iroh ? [{ href: '#iroh', label: 'iroh-blobs' }] : []),
+  { href: '#floors', label: 'Floors' },
+  { href: '#techniques', label: 'Techniques' },
+  { href: '#reproduce', label: 'Reproduce' },
+  { href: '#machine', label: 'Machine' },
+];
+
+const { gpu, cli: cliHead, perCore, ties } = headlines;
+
+// CLI prose: which workloads win and which tie, straight from the tally.
+const cliTally = cliTallies[0];
+const cliTies = cliTally?.tie ?? [];
+const cliWins = cliTally?.faster ?? [];
+const cliBest = cliTally?.best;
+
+// Daemon prose: how Bend does against the strongest baseline.
+const daemonStrongest = daemonTallies[0];
+const daemonLevel = levelWording(daemonStrongest);
+
+const irohCaveat = irohHashOnly;
+
+const reproduce = [
+  {
+    title: 'Get the code',
+    body: 'The fork keeps the official BLAKE3 tree next to bend/, so both sides of every race build from one checkout.',
+    code: `git clone ${REPO_URL}.git\ncd BLAKE3-bend`,
+  },
+  {
+    title: 'Build the official b3sum to race against',
+    body: 'NEON on, as the reference runs.',
+    code: '(cd b3sum && cargo build --release --features neon)',
+  },
+  {
+    title: 'Build the Bend b3sum',
+    body: 'build.sh runs bend, then clang with the tuned flags. It needs ~/.bend/bin/bend and Apple clang.',
+    code: 'bend/build.sh bend/b3sum.bend bend/build/b3sum',
+  },
+  {
+    title: 'Check the official test vectors',
+    body: 'Both paths, against test_vectors/test_vectors.json.',
+    code: 'bend/build.sh bend/test/vectors.bend && bend/test/build/vectors | python3 bend/test/check.py',
+  },
+  {
+    title: 'Check big files against the official b3sum',
+    body: 'Sparse files past the 4 GiB mark with random bytes at every segment edge, hashed by both tools and compared.',
+    code: 'python3 bend/test/big.py',
+  },
+  {
+    title: 'Race',
+    body: 'Interleaved rounds against the official b3sum; the argument is the round count.',
+    code: 'python3 bend/bench/race.py 15',
+  },
+];
+---
+
+<Base>
+  <SiteHeader slot="header" links={links} />
+
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wrap">
+      <p class="eyebrow">Bend2 · BLAKE3 · {machineName}</p>
+      <h1 id="hero-title">BLAKE3, written in Bend2, raced against the official Rust/C.</h1>
+      <p class="lead">
+        A full BLAKE3 hash and a <code>b3sum</code> whose output is byte-identical to the official one, written in <a href={BEND_URL}>Bend2</a>.
+        Every compression runs in Bend; C only moves bytes in and out. This page shows where it wins, where it only ties, and the floors that stop both.
+      </p>
+
+      <div class="tiles">
+        {
+          gpu && (
+            <div class="tile tile-hero card">
+              <div class="tile-top">
+                <a class="tile-label stretched" href={gpu.href}>
+                  {gpu.label}
+                </a>
+                <p class="hero-figure">{gpu.value}</p>
+              </div>
+              <div class="tile-bottom">
+                <MiniCompare comparison={gpu.comparison} unit="ms" />
+                <p class="tile-detail">{gpu.detail}</p>
+              </div>
+            </div>
+          )
+        }
+        {
+          cliHead && (
+            <div class="tile card">
+              <div class="tile-top">
+                <a class="tile-label stretched" href={cliHead.href}>
+                  {cliHead.label}
+                </a>
+                <p class="tile-figure">{cliHead.value}</p>
+              </div>
+              <div class="tile-bottom">
+                <MiniCompare comparison={cliHead.comparison} unit="ms" />
+                <p class="tile-detail">{cliHead.detail}</p>
+              </div>
+            </div>
+          )
+        }
+        {
+          perCore && (
+            <div class="tile card">
+              <div class="tile-top">
+                <a class="tile-label stretched" href={perCore.href}>
+                  {perCore.label}
+                </a>
+                <p class="tile-figure">{perCore.value}</p>
+              </div>
+              <div class="tile-bottom">
+                <MiniCompare comparison={perCore.comparison} unit="ms" />
+                <p class="tile-detail">{perCore.detail}</p>
+              </div>
+            </div>
+          )
+        }
+        {
+          ties && (
+            <div class="tile tile-ties card">
+              <div class="tile-top">
+                <p class="tile-label">Where it only ties</p>
+                <p class="tile-figure">
+                  <span aria-hidden="true">≈&#8239;1x</span>
+                  <span class="sr-only">about 1x</span>
+                </p>
+              </div>
+              <ul class="tie-lines" role="list">
+                {ties.lines.map((l) => (
+                  <li>
+                    <a href={l.href}>{l.text}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )
+        }
+      </div>
+
+      {results.status_note && <p class="status"><strong>Status.</strong> {results.status_note}</p>}
+
+      <p class="actions">
+        <a class="button primary" href={REPO_URL}>Source on GitHub</a>
+        <a class="button" href="#techniques">How it got fast</a>
+        <a class="button" href="#reproduce">Reproduce</a>
+      </p>
+    </div>
+  </section>
+
+  <Section id="in-memory" kicker="Hashing in memory" title="Throughput: Bend CPU and GPU vs the official crate">
+    <Fragment slot="lede">
+      <p>
+        Warm data already in memory, the same bytes and the same digest on every side. Bars are GB/s, computed from the input size and the measured time, so
+        longer is faster. The baseline is the official <code>blake3</code> crate in its fastest configuration, NEON plus rayon.
+      </p>
+    </Fragment>
+    <Note text={inMemory.note} />
+    <Scorecard tallies={inMemoryTallies} />
+    <div class="charts">
+      {inMemoryCharts.map((c) => <BarChart chart={c} />)}
+    </div>
+    <p class="aside prose">
+      The GPU is the throughput path for long-running, in-memory hashing. A one-shot <code>b3sum</code> stays on the CPU: the GPU has to set up its Metal
+      heap first, which costs more than the whole CPU run (see <a href="#floors">the floors</a>).
+    </p>
+    <DataTable id="in-memory-table" view={tableView(inMemory, `In-memory hashing, times in ${inMemory.unit} with GB/s below each time.`, { throughput: true })} />
+  </Section>
+
+  <Section id="cli" kicker="End to end" title="One-shot b3sum race" tone="alt">
+    <Fragment slot="lede">
+      <p>
+        <code>b3sum FILE...</code> against the official <code>b3sum</code>, process start included, output byte for byte the same.
+        {
+          cliTally && cliBest && cliWins.length > 0 && (
+            <>
+              {' '}
+              Bend is faster by more than {TIE_TEXT} on {cliWins.length} of {cliTally.all.length} workloads, by up to {fmtSpeedup(cliBest)} on {cliBest.row.label}.
+            </>
+          )
+        }
+        {
+          cliTies.length > 0 && (
+            <>
+              {' '}
+              It ties on {fmtList(cliTies.map((c) => c.row.label))} ({fmtRange(Math.min(...cliTies.map((c) => c.ratio)), Math.max(...cliTies.map((c) => c.ratio)))}),
+              where both tools sit on the same floors.
+            </>
+          )
+        }
+      </p>
+    </Fragment>
+    <Note text={cli.note} />
+    <Scorecard tallies={cliTallies} />
+    <BarChart chart={cliChart} />
+    <DataTable id="cli-table" view={tableView(cli, `One-shot CLI race, ${cli.unit}.`)} />
+  </Section>
+
+  {
+    daemon && daemonChart && (
+      <Section id="daemon" kicker="Start-up excluded" title="Daemon race: against the strongest baseline">
+        <Fragment slot="lede">
+          <p>
+            A long-running process re-opens, re-maps and re-hashes the files every round, so process start drops out. Rust runs two ways: one file at a time,
+            as <code>b3sum</code> does, and with rayon across files, the strongest baseline we have.
+            {daemonLevel && daemonStrongest && (
+              <>
+                {' '}
+                Against {daemonStrongest.against}, Bend is <strong>{daemonLevel}</strong> ({fmtRange(daemonStrongest.min, daemonStrongest.max)}). The big one-shot
+                wins on many files come from hashing files in parallel, and Rust with rayon does that too.
+              </>
+            )}
+          </p>
+        </Fragment>
+        <Note text={daemon.note} />
+        <Scorecard tallies={daemonTallies} />
+        <BarChart chart={daemonChart} />
+        <DataTable id="daemon-table" view={tableView(daemon, `Daemon race, ${daemon.unit}.`)} />
+      </Section>
+    )
+  }
+
+  {
+    iroh && irohChart && (
+      <Section id="iroh" kicker="Content-addressed storage" title="iroh-blobs ingest" tone="alt">
+        <Fragment slot="lede">
+          <p>
+            <a href="https://github.com/n0-computer/iroh-blobs">iroh-blobs</a> adds a file by hashing it with BLAKE3 and writing a bao outboard, the tree of
+            hashes it needs to verify streamed ranges. It runs here into a fresh store, in memory or on disk, copying the data in or referencing the file in
+            place.
+          </p>
+        </Fragment>
+        <Note label={irohCaveat ? 'Not like for like yet' : 'How it was measured'} tone={irohCaveat ? 'caveat' : 'info'} text={iroh.note}>
+          {irohCaveat && <p class="note-more">Read these speedups as an upper bound until the Bend side writes the outboard too.</p>}
+        </Note>
+        <Scorecard tallies={irohTallies} />
+        <BarChart chart={irohChart} />
+        <DataTable id="iroh-table" view={tableView(iroh, `iroh-blobs ingest, ${iroh.unit}.`)} />
+      </Section>
+    )
+  }
+
+  <Section id="floors" kicker="Honest limits" title="The floors">
+    <Fragment slot="lede">
+      <p>
+        Where the time goes once Bend stops pulling ahead. These limits come from the kernel, the chip and the GPU runtime rather than from either
+        implementation, and most of them bind the official tools just as hard.
+      </p>
+    </Fragment>
+    <ol class="floors" role="list">
+      {
+        floors.map((f, i) => (
+          <li class="card">
+            <span class="floor-n" aria-hidden="true">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <h3>{f.title}</h3>
+            {f.body && <p>{f.body}</p>}
+          </li>
+        ))
+      }
+    </ol>
+  </Section>
+
+  <Section id="techniques" kicker="How it got fast" title="Techniques, one decision record each" tone="alt">
+    <Fragment slot="lede">
+      <p>
+        Each step is written up as an architecture decision record: what the emitted C looked like, what was tried, what was measured, and what was
+        rejected. <a href={ADR_INDEX_URL}>All ADRs</a>.
+      </p>
+    </Fragment>
+    <ol class="techniques" role="list">
+      {
+        results.techniques.map((t) => {
+          const record = adr(t.adr);
+          return (
+            <li class="card technique">
+              <p class="adr-meta">
+                <span class="adr-n">ADR {t.adr}</span>
+                {record.status && <span>{record.status}</span>}
+                {record.date && <time datetime={record.date}>{record.date}</time>}
+              </p>
+              <h3>{t.title}</h3>
+              <p class="technique-summary">{t.summary}</p>
+              <a class="adr-link" href={record.url}>
+                Read ADR {t.adr}
+                <span class="sr-only">: {record.title ?? t.title}</span>
+                <span class="arrow" aria-hidden="true">→</span>
+              </a>
+            </li>
+          );
+        })
+      }
+    </ol>
+  </Section>
+
+  <Section id="reproduce" kicker="Run it yourself" title="Reproduce">
+    <Fragment slot="lede">
+      <p>
+        On an Apple Silicon Mac with <a href={BEND_URL}>Bend2</a> installed at <code>~/.bend/bin/bend</code>, Apple clang, Rust and Python 3. The commands come
+        from <a href={blobUrl('bend/README.md')}>bend/README.md</a>.
+      </p>
+    </Fragment>
+    <ol class="steps" role="list">
+      {
+        reproduce.map((s, i) => (
+          <li>
+            <span class="step-n" aria-hidden="true">
+              {i + 1}
+            </span>
+            <div class="step-body">
+              <h3>{s.title}</h3>
+              <p>{s.body}</p>
+              <pre><code>{s.code}</code></pre>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+    <p class="aside prose">
+      The in-memory numbers come from <a href={blobUrl('bend/bench/mem.bend')}>bend/bench/mem.bend</a> against the Rust reference in{' '}
+      <a href={treeUrl('bend/bench/rust')}>bend/bench/rust</a>. Every number on this page is read from{' '}
+      <a href={blobUrl('bend/bench/results/results.json')}>bend/bench/results/results.json</a> when the site builds.
+    </p>
+  </Section>
+
+  <Section id="machine" kicker="Where it ran" title="Test machine" tone="alt">
+    <Fragment slot="lede">
+      <p>Every result above comes from this one machine. Other hardware will move the numbers, and maybe the verdicts.</p>
+    </Fragment>
+    <dl class="specs card">
+      {
+        machine.map((m) => (
+          <div>
+            <dt>{m.label}</dt>
+            <dd>{m.value}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </Section>
+
+  <SiteFooter slot="footer" />
+</Base>
+
+<style>
+  /* Hero */
+  .hero {
+    padding-block: clamp(2.5rem, 1.5rem + 4vw, 5rem) clamp(3rem, 2rem + 4vw, 5rem);
+  }
+
+  .eyebrow {
+    font-size: 0.8125rem;
+    font-weight: 650;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 1rem;
+  }
+
+  h1 {
+    max-width: 20ch;
+    font-size: clamp(2.25rem, 1.4rem + 4.2vw, 4.25rem);
+    font-weight: 750;
+    letter-spacing: -0.035em;
+    line-height: 1.03;
+  }
+
+  .lead {
+    max-width: 62ch;
+    margin-top: 1.25rem;
+    font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem);
+    color: var(--ink-2);
+  }
+
+  .tiles {
+    display: grid;
+    gap: 1rem;
+    margin-top: 2.5rem;
+  }
+
+  .tile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 1.25rem;
+    padding: 1.25rem 1.25rem 1.35rem;
+  }
+
+  .tile:has(.stretched:hover) {
+    border-color: var(--line-strong);
+  }
+
+  .tile:has(.stretched:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: 3px;
+  }
+
+  .tile-top,
+  .tile-bottom {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .tile-label {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  a.tile-label:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+  }
+
+  .stretched::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+
+  .stretched:focus-visible {
+    outline: none;
+  }
+
+  .hero-figure,
+  .tile-figure {
+    font-weight: 750;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+
+  .hero-figure {
+    font-size: clamp(3.5rem, 2.5rem + 5vw, 6.5rem);
+  }
+
+  .tile-figure {
+    font-size: clamp(2.25rem, 1.8rem + 2vw, 3rem);
+  }
+
+  .tile-detail {
+    color: var(--ink-2);
+    font-size: 0.9375rem;
+  }
+
+  .tie-lines {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.9375rem;
+  }
+
+  .tie-lines a {
+    color: var(--ink-2);
+  }
+
+  @media (min-width: 40rem) {
+    .tiles {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .tile-hero,
+    .tile-ties {
+      grid-column: 1 / -1;
+    }
+
+    .tile-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-rows: auto 1fr;
+      column-gap: 2rem;
+      row-gap: 1rem;
+    }
+
+    .tile-hero .tile-top {
+      display: contents;
+    }
+
+    .tile-hero .tile-label {
+      grid-column: 1 / -1;
+    }
+
+    .tile-hero .hero-figure {
+      grid-column: 1;
+      align-self: end;
+    }
+
+    .tile-hero .tile-bottom {
+      grid-column: 2;
+      align-self: end;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .tiles {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .tile-hero {
+      grid-column: span 2;
+    }
+
+    .tile-ties {
+      grid-column: span 2;
+    }
+  }
+
+  .status {
+    margin-top: 1.25rem;
+    color: var(--ink-3);
+    font-size: 0.9375rem;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.75rem;
+  }
+
+  /* Sections */
+  .charts {
+    display: grid;
+    gap: 2.5rem;
+  }
+
+  .aside {
+    margin-top: 1.75rem;
+    font-size: 0.9375rem;
+  }
+
+  .note-more {
+    margin-top: 0.5rem;
+  }
+
+  /* Floors */
+  .floors {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .floors li {
+    display: grid;
+    align-content: start;
+    gap: 0.5rem;
+    padding: 1.25rem;
+  }
+
+  .floor-n {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .floors h3 {
+    font-size: 1.0625rem;
+    line-height: 1.3;
+  }
+
+  .floors p {
+    color: var(--ink-2);
+    font-size: 0.9375rem;
+  }
+
+  /* Techniques */
+  .techniques {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .technique {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 1.25rem;
+  }
+
+  .adr-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.75rem;
+    font-size: 0.8125rem;
+    color: var(--ink-3);
+  }
+
+  .adr-n {
+    font-weight: 700;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .technique-summary {
+    color: var(--ink-2);
+    font-size: 0.9375rem;
+    flex: 1;
+  }
+
+  .adr-link {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-weight: 600;
+  }
+
+  .arrow {
+    margin-left: 0.35em;
+  }
+
+  /* Reproduce */
+  .steps {
+    display: grid;
+    gap: 1.5rem;
+    max-width: 52rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .steps li {
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr);
+    gap: 1rem;
+  }
+
+  .step-n {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    border: 1px solid var(--line-strong);
+    font-weight: 700;
+    font-size: 0.875rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .step-body {
+    display: grid;
+    gap: 0.4rem;
+    min-width: 0;
+  }
+
+  .step-body h3 {
+    font-size: 1.0625rem;
+    line-height: 2rem;
+  }
+
+  .step-body p {
+    color: var(--ink-2);
+    font-size: 0.9375rem;
+  }
+
+  .step-body pre {
+    margin-top: 0.25rem;
+  }
+
+  /* Machine */
+  .specs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+    column-gap: 1.5rem;
+    margin: 0;
+    padding: 0 1.25rem;
+    overflow: hidden;
+  }
+
+  .specs div {
+    padding-block: 0.9rem;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: -1px;
+  }
+
+  .specs dt {
+    font-size: 0.8125rem;
+    font-weight: 650;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .specs dd {
+    margin: 0.15rem 0 0;
+  }
+</style>

@@ -1,0 +1,485 @@
+---
+/**
+ * Horizontal grouped bar chart rendered at build time as plain HTML + CSS.
+ * Every bar carries its series name and value as text, so nothing depends on
+ * color; Bend bars also carry their speedup over the fastest baseline in the
+ * row, with a shape (▲ = ▼) and a word. One shared axis per chart.
+ */
+import type { Chart } from '../lib/model';
+import { TIE_TEXT, VERDICT, fmtSpeedup } from '../lib/model';
+import { fmtTick } from '../lib/format';
+
+interface Props {
+  chart: Chart;
+  /** Visible caption under the chart. */
+  caption?: string;
+}
+
+const { chart, caption } = Astro.props;
+const intervals = Math.max(1, chart.axis.ticks.length - 1);
+const nameChars = Math.max(...chart.series.map((s) => s.label.length));
+const hasComparisons = chart.groups.some((g) => g.bars.some((b) => b.comparison));
+const titleId = `${chart.id}-title`;
+const scaleId = `${chart.id}-scale`;
+const betterWord = chart.better === 'lower' ? 'shorter bars are faster' : 'longer bars are faster';
+---
+
+<figure class="chart" aria-labelledby={chart.title ? titleId : scaleId} style={`--name-w: calc(${nameChars}ch + 0.75rem); --n: ${intervals};`}>
+  <div class="chart-inner">
+  <div class="chart-head">
+    {chart.title && <h3 class="chart-title" id={titleId}>{chart.title}</h3>}
+    <p class="chart-scale" id={scaleId}>
+      {chart.quantity === 'throughput' ? 'Throughput' : 'Time'} in {chart.axisUnit}, {chart.better} is better ({betterWord})
+    </p>
+  </div>
+
+  <ul class="legend" role="list" aria-label="Series">
+    {
+      chart.series.map((s) => (
+        <li>
+          <span class={`swatch tone-${s.tone}`} aria-hidden="true" />
+          <span class="legend-name">{s.label}</span>
+          {s.description && <span class="legend-desc">{s.description}</span>}
+        </li>
+      ))
+    }
+  </ul>
+
+  <div class="plot">
+    <div class="gridlines" aria-hidden="true"></div>
+    <ul class="groups" role="list">
+      {
+        chart.groups.map((g) => (
+          <li class="group" id={g.id}>
+            <span class="group-label">{g.label}</span>
+            <ul class="bars" role="list">
+              {g.bars.map((b) => {
+                const c = b.comparison;
+                return (
+                  <li class:list={['bar-row', { bend: b.series.isBend }]}>
+                    <span class="bar-name">{b.series.label}</span>
+                    <span class="track" aria-hidden="true">
+                      {b.value != null && <span class={`bar tone-${b.series.tone}`} style={`--f: ${b.fraction.toFixed(5)}`} />}
+                    </span>
+                    <span class:list={['bar-value', { missing: b.value == null }]}>
+                      <span class="v">{b.text}</span>
+                      {b.detail && <span class="sr-only">({b.detail})</span>}
+                      {c && (
+                        <span class={`chip v-${c.verdict}`}>
+                          <span class="chip-icon" aria-hidden="true">
+                            {VERDICT[c.verdict].icon}
+                          </span>
+                          <span class="chip-ratio">{fmtSpeedup(c)}</span>
+                          <span class="chip-word">{VERDICT[c.verdict].word}</span>
+                          <span class="sr-only">
+                            {c.verdict === 'tie' ? ' with ' : ' than '}
+                            {c.baseline.label}
+                          </span>
+                        </span>
+                      )}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </li>
+        ))
+      }
+    </ul>
+    <div class="axis" aria-hidden="true">
+      {
+        chart.axis.ticks.map((t, i) => (
+          <span class:list={['tick', { first: i === 0, last: i === chart.axis.ticks.length - 1 }]} style={`left: ${((t / chart.axis.max) * 100).toFixed(4)}%`}>
+            {fmtTick(t)}
+          </span>
+        ))
+      }
+    </div>
+  </div>
+
+  {
+    (caption || hasComparisons) && (
+      <figcaption class="chart-caption">
+        {hasComparisons && (
+          <span class="key">
+            <span aria-hidden="true">▲</span> Bend faster by more than {TIE_TEXT} · <span aria-hidden="true">=</span> tie, within {TIE_TEXT} ·{' '}
+            <span aria-hidden="true">▼</span> Bend slower by more than {TIE_TEXT}. Speedup = fastest baseline time ÷ Bend time, per row.
+          </span>
+        )}
+        {caption && <span>{caption}</span>}
+      </figcaption>
+    )
+  }
+  </div>
+</figure>
+
+<style>
+  .chart {
+    container-type: inline-size;
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.35;
+  }
+
+  .chart-inner {
+    --group-w: 0px;
+    --value-w: 0px;
+    --row-h: 22px;
+    --bar-h: 14px;
+  }
+
+  .chart-head {
+    display: grid;
+    gap: 0.2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .chart-title {
+    font-size: 1.0625rem;
+  }
+
+  .chart-scale {
+    color: var(--ink-3);
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.25rem;
+    margin: 0 0 1rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .legend li {
+    display: block;
+  }
+
+  .legend-name {
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .legend-desc {
+    margin-left: 0.4rem;
+    color: var(--ink-3);
+  }
+
+  .swatch {
+    display: inline-block;
+    width: 0.75rem;
+    height: 0.75rem;
+    margin-right: 0.45rem;
+    border-radius: 3px;
+    vertical-align: -0.05rem;
+  }
+
+  @container (max-width: 35.99rem) {
+    .legend {
+      flex-direction: column;
+    }
+  }
+
+  /* Plot */
+  .plot {
+    position: relative;
+  }
+
+  .groups,
+  .bars {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .groups {
+    position: relative;
+    display: grid;
+    gap: 1rem;
+  }
+
+  .group-label {
+    display: block;
+    margin-bottom: 0.3rem;
+    font-weight: 650;
+    color: var(--ink);
+  }
+
+  .bars {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  /* Narrow: name and value on one line, the bar under them, full width. */
+  .bar-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'name value'
+      'track track';
+    align-items: center;
+    column-gap: 0.75rem;
+    row-gap: 0.15rem;
+  }
+
+  .bar-name {
+    grid-area: name;
+    color: var(--ink-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .bar-row.bend .bar-name {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .track {
+    grid-area: track;
+    position: relative;
+    display: block;
+    height: var(--row-h);
+  }
+
+  .track::before {
+    /* the baseline every bar grows from */
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--axis);
+  }
+
+  .bar {
+    position: absolute;
+    left: 0;
+    top: calc((var(--row-h) - var(--bar-h)) / 2);
+    height: var(--bar-h);
+    width: max(3px, calc(var(--f) * 100%));
+    border-radius: 0 4px 4px 0;
+  }
+
+  .bar-value {
+    grid-area: value;
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 0.15rem 0.5rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .bar-row.bend .v {
+    font-weight: 650;
+  }
+
+  .bar-value.missing .v {
+    color: var(--ink-3);
+    font-style: italic;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.25rem;
+    padding: 0 0.4rem;
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    font-size: 0.8125rem;
+    font-weight: 650;
+    color: var(--ink);
+    line-height: 1.45;
+  }
+
+  .chip-icon {
+    font-size: 0.75em;
+  }
+
+  .chip.v-faster {
+    background: color-mix(in srgb, var(--good) 12%, transparent);
+    border-color: color-mix(in srgb, var(--good) 45%, transparent);
+  }
+
+  .chip.v-faster .chip-icon {
+    color: var(--good);
+  }
+
+  .chip.v-tie {
+    background: var(--surface-2);
+  }
+
+  .chip.v-tie .chip-icon {
+    color: var(--ink-2);
+  }
+
+  .chip.v-slower {
+    background: color-mix(in srgb, var(--critical) 10%, transparent);
+    border-color: color-mix(in srgb, var(--critical) 45%, transparent);
+  }
+
+  .chip.v-slower .chip-icon {
+    color: var(--critical);
+  }
+
+  .chip-word {
+    font-weight: 500;
+    color: var(--ink-2);
+  }
+
+  /* Axis */
+  .axis {
+    position: relative;
+    height: 1.5rem;
+    margin-top: 0.6rem;
+    margin-left: calc(var(--group-w) + var(--name-w-col, 0px));
+    margin-right: var(--value-w);
+    border-top: 1px solid var(--axis);
+    color: var(--ink-3);
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tick {
+    position: absolute;
+    top: 0.3rem;
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+
+  .tick::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: calc(-0.3rem - 1px);
+    width: 1px;
+    height: 0.25rem;
+    background: var(--axis);
+  }
+
+  .tick.first {
+    transform: none;
+  }
+
+  .tick.first::before {
+    left: 0;
+  }
+
+  .tick.last {
+    transform: translateX(-100%);
+  }
+
+  .tick.last::before {
+    left: auto;
+    right: 0;
+  }
+
+  .gridlines {
+    display: none;
+  }
+
+  .chart-caption {
+    display: grid;
+    gap: 0.35rem;
+    margin-top: 0.75rem;
+    color: var(--ink-3);
+    font-size: 0.8125rem;
+  }
+
+  /* Medium: name | bar | value on one line; gridlines span the plot. */
+  @container (min-width: 36rem) {
+    .chart-inner {
+      --value-w: 13rem;
+      --name-w-col: var(--name-w);
+    }
+
+    .bar-row {
+      grid-template-columns: var(--name-w) minmax(0, 1fr) var(--value-w);
+      grid-template-areas: 'name track value';
+      column-gap: 0;
+      row-gap: 0;
+    }
+
+    .bar-name {
+      padding-right: 0.75rem;
+    }
+
+    .bar-value {
+      justify-content: flex-start;
+      flex-wrap: nowrap;
+      padding-left: 0.6rem;
+    }
+
+    .gridlines {
+      display: block;
+      position: absolute;
+      top: 0;
+      bottom: calc(1.5rem + 0.6rem);
+      left: calc(var(--group-w) + var(--name-w));
+      right: var(--value-w);
+      background-image: linear-gradient(to right, var(--grid) 1px, transparent 1px);
+      background-size: calc(100% / var(--n)) 100%;
+      border-right: 1px solid var(--grid);
+    }
+  }
+
+  /* Wide: the group label gets its own column on the left. */
+  @container (min-width: 56rem) {
+    .chart-inner {
+      --group-w: 12rem;
+      --value-w: 14rem;
+    }
+
+    .group {
+      display: grid;
+      grid-template-columns: var(--group-w) minmax(0, 1fr);
+      align-items: start;
+    }
+
+    .group-label {
+      margin: 0;
+      padding-right: 1rem;
+      line-height: var(--row-h);
+    }
+
+    .groups {
+      gap: 0.9rem;
+    }
+  }
+
+  @container (max-width: 35.99rem) {
+    /* keep the word for screen readers, drop it visually on narrow charts */
+    .chip-word {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
+
+
+  @media (forced-colors: active) {
+    .bar,
+    .swatch {
+      forced-color-adjust: none;
+      background: CanvasText;
+    }
+    .bar.tone-bend,
+    .bar.tone-gpu,
+    .bar.tone-bend-alt,
+    .swatch.tone-bend,
+    .swatch.tone-gpu,
+    .swatch.tone-bend-alt {
+      background: Highlight;
+    }
+    .chip {
+      border-color: CanvasText;
+    }
+  }
+</style>

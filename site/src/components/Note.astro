@@ -1,0 +1,45 @@
+---
+/** A method note or caveat taken from results.json, shown as-is. */
+interface Props {
+  label?: string;
+  text: string | undefined;
+  tone?: 'info' | 'caveat';
+}
+
+const { label = 'How it was measured', text, tone = 'info' } = Astro.props;
+// `backticks` in the JSON notes become inline code.
+const parts = (text ?? '').split('`');
+const code = parts.length % 2 === 1;
+---
+
+{
+  text && (
+    <aside class:list={['note', `tone-${tone}`]} aria-label={label}>
+      <p>
+        <strong class="label">{label}.</strong> {parts.map((part, i) => (code && i % 2 === 1 ? <code>{part}</code> : part))}
+      </p>
+      <slot />
+    </aside>
+  )
+}
+
+<style>
+  .note {
+    max-width: var(--measure);
+    margin: 0 0 1.75rem;
+    padding: 0.8rem 1rem;
+    border-left: 3px solid var(--axis);
+    background: var(--surface-2);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    color: var(--ink-2);
+    font-size: 0.9375rem;
+  }
+
+  .label {
+    color: var(--ink);
+  }
+
+  .tone-caveat {
+    border-left-color: var(--ink-2);
+  }
+</style>

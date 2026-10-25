@@ -1,0 +1,164 @@
+---
+/** The table twin of a chart: every value and every speedup, behind a native disclosure. */
+import type { TableView } from '../lib/model';
+import { VERDICT } from '../lib/model';
+
+interface Props {
+  view: TableView;
+  id: string;
+  open?: boolean;
+}
+
+const { view, id, open = false } = Astro.props;
+---
+
+<details class="data" open={open}>
+  <summary>
+    <span class="summary-label">Data table</span>
+    <span class="summary-hint">every measurement and speedup</span>
+  </summary>
+  <div class="scroll" role="region" aria-labelledby={`${id}-caption`} tabindex="0">
+    <table>
+      <caption id={`${id}-caption`}>{view.caption}</caption>
+      <thead>
+        <tr>
+          {view.head.map((h, i) => <th scope="col" class:list={{ num: i > 0 }}>{h}</th>)}
+        </tr>
+      </thead>
+      <tbody>
+        {
+          view.rows.map((r) => (
+            <tr>
+              <th scope="row">{r.header}</th>
+              {r.cells.map((c) => (
+                <td class:list={['num', c.verdict && `v-${c.verdict}`]}>
+                  {c.verdict && (
+                    <span class="icon" aria-hidden="true">
+                      {VERDICT[c.verdict].icon}{' '}
+                    </span>
+                  )}
+                  <span class="val">{c.text}</span>
+                  {c.sub && <span class="sub">{c.sub}</span>}
+                </td>
+              ))}
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+</details>
+
+<style>
+  .data {
+    margin-top: 1.25rem;
+    border-top: 1px solid var(--line);
+    padding-top: 0.75rem;
+  }
+
+  summary {
+    display: list-item;
+    width: fit-content;
+    padding-block: 0.6rem;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  summary::marker {
+    color: var(--ink-3);
+  }
+
+  .summary-hint {
+    margin-left: 0.5rem;
+    font-weight: 400;
+    color: var(--ink-3);
+    font-size: 0.875rem;
+  }
+
+  .scroll {
+    margin-top: 0.5rem;
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    line-height: 1.35;
+  }
+
+  caption {
+    padding: 0.75rem 0.9rem 0.25rem;
+    text-align: left;
+    color: var(--ink-2);
+    font-size: 0.8125rem;
+    caption-side: top;
+  }
+
+  th,
+  td {
+    padding: 0.55rem 0.9rem;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid var(--line);
+  }
+
+  thead th {
+    font-weight: 600;
+    color: var(--ink-2);
+    font-size: 0.8125rem;
+    white-space: nowrap;
+    vertical-align: bottom;
+  }
+
+  tbody th {
+    font-weight: 600;
+    min-width: 7.5rem;
+  }
+
+  /* keep the row labels in view while the table scrolls sideways */
+  tbody th,
+  thead th:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--surface);
+  }
+
+  tbody tr:last-child > * {
+    border-bottom: 0;
+  }
+
+  .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .sub {
+    display: block;
+    color: var(--ink-3);
+    font-size: 0.8125rem;
+  }
+
+  .icon {
+    font-size: 0.75em;
+  }
+
+  .v-faster .icon {
+    color: var(--good);
+  }
+
+  .v-slower .icon {
+    color: var(--critical);
+  }
+
+  .v-faster .val,
+  .v-slower .val {
+    font-weight: 650;
+  }
+</style>

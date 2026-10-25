@@ -1,0 +1,50 @@
+name: pages
+
+# Builds the Astro site in site/ and deploys it to GitHub Pages
+# (https://gunta.github.io/BLAKE3-bend/). The page reads its numbers from
+# bend/bench/results/results.json at build time, so a new result redeploys it.
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "site/**"
+      - "bend/bench/results/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time; let an in-progress deployment finish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build site
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+      - name: Install, check, build and upload the site
+        uses: withastro/action@v6
+        with:
+          path: site
+          node-version: 26
+          # pnpm comes from "packageManager" in site/package.json.
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v5

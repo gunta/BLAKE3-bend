@@ -1,0 +1,63 @@
+---
+import { ADR_INDEX_URL } from '../lib/adr';
+import { TIE_TEXT } from '../lib/model';
+import { BEND_URL, REPO_URL, UPSTREAM_URL, blobUrl, buildCommit } from '../lib/site';
+
+const commit = buildCommit();
+---
+
+<footer class="site-footer">
+  <div class="wrap inner">
+    <p>
+      Every number on this page is read from
+      <a href={blobUrl('bend/bench/results/results.json')}><code>bend/bench/results/results.json</code></a>
+      when the site builds{
+        commit && (
+          <>
+            {' '}
+            (commit <a href={`${REPO_URL}/commit/${commit}`}><code>{commit.slice(0, 7)}</code></a>)
+          </>
+        )
+      }. Speedups are derived from those times; a result within {TIE_TEXT} either way is called a tie.
+    </p>
+    <ul class="links" role="list">
+      <li><a href={REPO_URL}>Repository</a></li>
+      <li><a href={ADR_INDEX_URL}>Decision records</a></li>
+      <li><a href={UPSTREAM_URL}>Official BLAKE3</a></li>
+      <li><a href={BEND_URL}>Bend2</a></li>
+    </ul>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: 1px solid var(--line);
+    padding-block: 2.5rem 3rem;
+    color: var(--ink-3);
+    font-size: 0.9375rem;
+  }
+
+  .inner {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .inner > p {
+    max-width: var(--measure);
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+</style>
