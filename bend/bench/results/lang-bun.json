@@ -1,0 +1,404 @@
+{
+  "info": {
+    "runtime": "bun 1.4.3",
+    "digests_agree": true
+  },
+  "rows": [
+    {
+      "impl": "b3bend",
+      "bytes": 1024,
+      "ms": 0.0017089999999484462,
+      "digest": "8214d8245d795ade"
+    },
+    {
+      "impl": "@napi-rs/blake-hash",
+      "bytes": 1024,
+      "ms": 0.0017910000000256332,
+      "digest": "8214d8245d795ade"
+    },
+    {
+      "impl": "hash-wasm",
+      "bytes": 1024,
+      "ms": 0.005166999999971722,
+      "digest": "8214d8245d795ade"
+    },
+    {
+      "impl": "@noble/hashes",
+      "bytes": 1024,
+      "ms": 0.05691699999999855,
+      "digest": "8214d8245d795ade"
+    },
+    {
+      "impl": "crypto sha256",
+      "bytes": 1024,
+      "ms": 0.0012919999999780885,
+      "digest": "447fb7c94f4e9091"
+    },
+    {
+      "impl": "crypto sha512",
+      "bytes": 1024,
+      "ms": 0.0009999999999763531,
+      "digest": "0836548ddc3a2b77"
+    },
+    {
+      "impl": "crypto sha1",
+      "bytes": 1024,
+      "ms": 0.0007080000000314612,
+      "digest": "a37fb4c68177df13"
+    },
+    {
+      "impl": "crypto md5",
+      "bytes": 1024,
+      "ms": 0.001583000000039192,
+      "digest": "57b49e462481dbca"
+    },
+    {
+      "impl": "crypto blake2b512",
+      "bytes": 1024,
+      "ms": 0.0013749999999959073,
+      "digest": "17595db39b16a052"
+    },
+    {
+      "impl": "crypto blake2s256",
+      "bytes": 1024,
+      "ms": 0.0016669999999976426,
+      "digest": "a0d717911968a92c"
+    },
+    {
+      "impl": "crypto sha3-256",
+      "bytes": 1024,
+      "ms": 0.0015419999999721767,
+      "digest": "51e451262e11cb30"
+    },
+    {
+      "impl": "b3bend",
+      "bytes": 65536,
+      "ms": 0.03387499999996635,
+      "digest": "bb790298334ebf43"
+    },
+    {
+      "impl": "@napi-rs/blake-hash",
+      "bytes": 65536,
+      "ms": 0.031833000000005995,
+      "digest": "bb790298334ebf43"
+    },
+    {
+      "impl": "hash-wasm",
+      "bytes": 65536,
+      "ms": 0.12754200000000537,
+      "digest": "bb790298334ebf43"
+    },
+    {
+      "impl": "@noble/hashes",
+      "bytes": 65536,
+      "ms": 1.0023329999999646,
+      "digest": "bb790298334ebf43"
+    },
+    {
+      "impl": "crypto sha256",
+      "bytes": 65536,
+      "ms": 0.023250000000018645,
+      "digest": "3a43a35d764c0aa8"
+    },
+    {
+      "impl": "crypto sha512",
+      "bytes": 65536,
+      "ms": 0.03737499999999727,
+      "digest": "7d5936195c43be7b"
+    },
+    {
+      "impl": "crypto sha1",
+      "bytes": 65536,
+      "ms": 0.02112499999998363,
+      "digest": "edcc2b89e8bc3ddc"
+    },
+    {
+      "impl": "crypto md5",
+      "bytes": 65536,
+      "ms": 0.07645800000000236,
+      "digest": "70bdf8b670064914"
+    },
+    {
+      "impl": "crypto blake2b512",
+      "bytes": 65536,
+      "ms": 0.04508299999997689,
+      "digest": "df2316883255077b"
+    },
+    {
+      "impl": "crypto blake2s256",
+      "bytes": 65536,
+      "ms": 0.07133299999998144,
+      "digest": "650a2f7f30855be8"
+    },
+    {
+      "impl": "crypto sha3-256",
+      "bytes": 65536,
+      "ms": 0.0665419999999699,
+      "digest": "84e690f9961ac8a4"
+    },
+    {
+      "impl": "b3bend",
+      "bytes": 1048576,
+      "ms": 0.22154199999999946,
+      "digest": "6fbaf80bd5940fc4"
+    },
+    {
+      "impl": "@napi-rs/blake-hash",
+      "bytes": 1048576,
+      "ms": 0.44633299999998144,
+      "digest": "6fbaf80bd5940fc4"
+    },
+    {
+      "impl": "hash-wasm",
+      "bytes": 1048576,
+      "ms": 1.7661249999999882,
+      "digest": "6fbaf80bd5940fc4"
+    },
+    {
+      "impl": "@noble/hashes",
+      "bytes": 1048576,
+      "ms": 2.7448340000000258,
+      "digest": "6fbaf80bd5940fc4"
+    },
+    {
+      "impl": "crypto sha256",
+      "bytes": 1048576,
+      "ms": 0.32708299999995916,
+      "digest": "f5600770a8695a85"
+    },
+    {
+      "impl": "crypto sha512",
+      "bytes": 1048576,
+      "ms": 0.5789579999999432,
+      "digest": "cd413518ca0383b2"
+    },
+    {
+      "impl": "crypto sha1",
+      "bytes": 1048576,
+      "ms": 0.327541999999994,
+      "digest": "59656b1808e5e200"
+    },
+    {
+      "impl": "crypto md5",
+      "bytes": 1048576,
+      "ms": 1.223583000000076,
+      "digest": "8f82ce4cfc5debdf"
+    },
+    {
+      "impl": "crypto blake2b512",
+      "bytes": 1048576,
+      "ms": 0.6973750000000791,
+      "digest": "30ae8470cc761c06"
+    },
+    {
+      "impl": "crypto blake2s256",
+      "bytes": 1048576,
+      "ms": 1.1308340000000499,
+      "digest": "9d6544ce973125b1"
+    },
+    {
+      "impl": "crypto sha3-256",
+      "bytes": 1048576,
+      "ms": 1.0936250000000882,
+      "digest": "51bbab928e79a870"
+    },
+    {
+      "impl": "b3bend",
+      "bytes": 16777216,
+      "ms": 1.1011670000000322,
+      "digest": "4f9c38bd6b77a54e"
+    },
+    {
+      "impl": "@napi-rs/blake-hash",
+      "bytes": 16777216,
+      "ms": 6.944165999999996,
+      "digest": "4f9c38bd6b77a54e"
+    },
+    {
+      "impl": "hash-wasm",
+      "bytes": 16777216,
+      "ms": 28.184749999999894,
+      "digest": "4f9c38bd6b77a54e"
+    },
+    {
+      "impl": "@noble/hashes",
+      "bytes": 16777216,
+      "ms": 43.54887499999995,
+      "digest": "4f9c38bd6b77a54e"
+    },
+    {
+      "impl": "crypto sha256",
+      "bytes": 16777216,
+      "ms": 5.263124999999945,
+      "digest": "136c0a30d6325e8c"
+    },
+    {
+      "impl": "crypto sha512",
+      "bytes": 16777216,
+      "ms": 9.36633299999994,
+      "digest": "88eb65d439b60fae"
+    },
+    {
+      "impl": "crypto sha1",
+      "bytes": 16777216,
+      "ms": 5.307042000000138,
+      "digest": "d1348fbed811e92c"
+    },
+    {
+      "impl": "crypto md5",
+      "bytes": 16777216,
+      "ms": 19.788375000000087,
+      "digest": "1ce8601272deff63"
+    },
+    {
+      "impl": "crypto blake2b512",
+      "bytes": 16777216,
+      "ms": 11.32308399999988,
+      "digest": "31b39fb45789fbe7"
+    },
+    {
+      "impl": "crypto blake2s256",
+      "bytes": 16777216,
+      "ms": 18.15958300000011,
+      "digest": "f400a85f4f1e2663"
+    },
+    {
+      "impl": "crypto sha3-256",
+      "bytes": 16777216,
+      "ms": 17.464666999999963,
+      "digest": "df0a5b3fb9589168"
+    },
+    {
+      "impl": "b3bend",
+      "bytes": 268435456,
+      "ms": 10.868749999999636,
+      "digest": "ec510ebc356e96a9"
+    },
+    {
+      "impl": "@napi-rs/blake-hash",
+      "bytes": 268435456,
+      "ms": 114.55354099999931,
+      "digest": "ec510ebc356e96a9"
+    },
+    {
+      "impl": "hash-wasm",
+      "bytes": 268435456,
+      "ms": 456.8931250000005,
+      "digest": "ec510ebc356e96a9"
+    },
+    {
+      "impl": "@noble/hashes",
+      "bytes": 268435456,
+      "ms": 768.5648749999982,
+      "digest": "ec510ebc356e96a9"
+    },
+    {
+      "impl": "crypto sha256",
+      "bytes": 268435456,
+      "ms": 85.66070800000034,
+      "digest": "61cd0b906732e749"
+    },
+    {
+      "impl": "crypto sha512",
+      "bytes": 268435456,
+      "ms": 150.29308300000048,
+      "digest": "dc2ff14af492fcca"
+    },
+    {
+      "impl": "crypto sha1",
+      "bytes": 268435456,
+      "ms": 87.73633300000074,
+      "digest": "bc52719fc9db335e"
+    },
+    {
+      "impl": "crypto md5",
+      "bytes": 268435456,
+      "ms": 333.29199999999946,
+      "digest": "18c3ab4d53c7c0c1"
+    },
+    {
+      "impl": "crypto blake2b512",
+      "bytes": 268435456,
+      "ms": 207.28833400000076,
+      "digest": "982126016203e0b9"
+    },
+    {
+      "impl": "crypto blake2s256",
+      "bytes": 268435456,
+      "ms": 313.31295800000044,
+      "digest": "b977cbb038a492e7"
+    },
+    {
+      "impl": "crypto sha3-256",
+      "bytes": 268435456,
+      "ms": 304.29954200000066,
+      "digest": "6085c136429b569d"
+    },
+    {
+      "impl": "b3bend",
+      "bytes": 1073741824,
+      "ms": 37.51837499999965,
+      "digest": "b6e2b68c4439bd98"
+    },
+    {
+      "impl": "@napi-rs/blake-hash",
+      "bytes": 1073741824,
+      "ms": 478.59316700000636,
+      "digest": "b6e2b68c4439bd98"
+    },
+    {
+      "impl": "hash-wasm",
+      "bytes": 1073741824,
+      "ms": 1868.8822910000017,
+      "digest": "b6e2b68c4439bd98"
+    },
+    {
+      "impl": "@noble/hashes",
+      "bytes": 1073741824,
+      "ms": 3009.5364579999987,
+      "digest": "b6e2b68c4439bd98"
+    },
+    {
+      "impl": "crypto sha256",
+      "bytes": 1073741824,
+      "ms": 342.02741700000115,
+      "digest": "18ddfccdc445117d"
+    },
+    {
+      "impl": "crypto sha512",
+      "bytes": 1073741824,
+      "ms": 604.5061669999996,
+      "digest": "deff23d71be7328a"
+    },
+    {
+      "impl": "crypto sha1",
+      "bytes": 1073741824,
+      "ms": 337.044415999997,
+      "digest": "2502066cb224af9e"
+    },
+    {
+      "impl": "crypto md5",
+      "bytes": 1073741824,
+      "ms": 1281.0525409999973,
+      "digest": "1bfb38f0e6f16404"
+    },
+    {
+      "impl": "crypto blake2b512",
+      "bytes": 1073741824,
+      "ms": 792.5946250000052,
+      "digest": "6960ce8e9feb92df"
+    },
+    {
+      "impl": "crypto blake2s256",
+      "bytes": 1073741824,
+      "ms": 1227.2323340000003,
+      "digest": "b0aeabb25f4ff27f"
+    },
+    {
+      "impl": "crypto sha3-256",
+      "bytes": 1073741824,
+      "ms": 1204.5101249999934,
+      "digest": "dcf9468168969f43"
+    }
+  ]
+}
