@@ -8,64 +8,221 @@
     "bend": "Bend2 2.0.39",
     "reference": "official BLAKE3 1.8.7: b3sum and the blake3 crate with NEON + rayon"
   },
-  "status_note": "Interim numbers; HF model and outboard results are added as they land.",
+  "status_note": "Numbers from 2026-10-26; NVIDIA results are pending: Bend 2.0.39's CUDA runtime hangs inside Modal's sandbox.",
   "in_memory": {
     "unit": "ms",
     "note": "Warm, data already in memory, same bytes and same digest. Rust = blake3 crate (NEON + rayon).",
     "rows": [
-      {"input": "1 GiB, 1 core", "rust": 448, "bend_cpu": 377, "bend_gpu": null},
-      {"input": "16 MiB, all cores", "rust": 1.13, "bend_cpu": 0.50, "bend_gpu": 0.88},
-      {"input": "64 MiB, all cores", "rust": 1.95, "bend_cpu": 1.74, "bend_gpu": 1.21},
-      {"input": "256 MiB, all cores", "rust": 6.9, "bend_cpu": 6.6, "bend_gpu": 2.43},
-      {"input": "1 GiB, all cores", "rust": 27.8, "bend_cpu": 26.9, "bend_gpu": 11.6}
+      {
+        "input": "1 GiB, 1 core",
+        "rust": 448,
+        "bend_cpu": 377,
+        "bend_gpu": null
+      },
+      {
+        "input": "16 MiB, all cores",
+        "rust": 1.13,
+        "bend_cpu": 0.5,
+        "bend_gpu": 0.88
+      },
+      {
+        "input": "64 MiB, all cores",
+        "rust": 1.95,
+        "bend_cpu": 1.74,
+        "bend_gpu": 1.21
+      },
+      {
+        "input": "256 MiB, all cores",
+        "rust": 6.9,
+        "bend_cpu": 6.6,
+        "bend_gpu": 2.43
+      },
+      {
+        "input": "1 GiB, all cores",
+        "rust": 27.8,
+        "bend_cpu": 26.9,
+        "bend_gpu": 11.6
+      }
     ]
   },
   "cli": {
     "unit": "ms",
     "note": "One-shot `b3sum FILE...` (process start included), medians of 15 interleaved rounds; output byte-identical to the official b3sum.",
     "rows": [
-      {"workload": "1 GiB file", "b3sum": 49.8, "bend": 48.4},
-      {"workload": "64 MiB file", "b3sum": 7.4, "bend": 7.3},
-      {"workload": "5 GiB file", "b3sum": 249.4, "bend": 242.0},
-      {"workload": "10,000 x 4 KiB", "b3sum": 148.5, "bend": 77.1},
-      {"workload": "2,000 x 64 KiB", "b3sum": 275.4, "bend": 25.7},
-      {"workload": "1,000 x 1 MiB", "b3sum": 241.7, "bend": 70.6},
-      {"workload": "macOS SDK headers (3,460 files)", "b3sum": 129.1, "bend": 37.5},
-      {"workload": "cargo sources (8,000 files)", "b3sum": 259.5, "bend": 73.5}
+      {
+        "workload": "1 GiB file",
+        "b3sum": 49.8,
+        "bend": 48.4
+      },
+      {
+        "workload": "64 MiB file",
+        "b3sum": 7.4,
+        "bend": 7.3
+      },
+      {
+        "workload": "5 GiB file",
+        "b3sum": 249.4,
+        "bend": 242.0
+      },
+      {
+        "workload": "10,000 x 4 KiB",
+        "b3sum": 148.5,
+        "bend": 77.1
+      },
+      {
+        "workload": "2,000 x 64 KiB",
+        "b3sum": 275.4,
+        "bend": 25.7
+      },
+      {
+        "workload": "1,000 x 1 MiB",
+        "b3sum": 241.7,
+        "bend": 70.6
+      },
+      {
+        "workload": "macOS SDK headers (3,460 files)",
+        "b3sum": 129.1,
+        "bend": 37.5
+      },
+      {
+        "workload": "cargo sources (8,000 files)",
+        "b3sum": 259.5,
+        "bend": 73.5
+      }
     ]
   },
   "daemon": {
     "unit": "ms per round",
-    "note": "Long-running process, start-up excluded: every round re-opens, re-maps and re-hashes the files. Rust seq = one file at a time like b3sum; Rust par = rayon across files (strongest baseline).",
+    "note": "A long-running process, start-up excluded: every round re-opens and re-reads the files and hashes them. Rust seq = one file at a time, as b3sum; Rust par = rayon across files (the strongest baseline). Bend GPU reads into reused blocks of a 4 GB Metal heap set up once, then hashes every file in one bang. Medians of 21 rounds on a busy machine (load average ~20).",
     "rows": [
-      {"workload": "1 GiB file", "rust_seq": 47.4, "rust_par": 44.4, "bend": 44.9},
-      {"workload": "64 MiB file", "rust_seq": 3.2, "rust_par": 3.1, "bend": 3.0},
-      {"workload": "10,000 x 4 KiB", "rust_seq": 144.3, "rust_par": 51.8, "bend": 53.5},
-      {"workload": "2,000 x 64 KiB", "rust_seq": 292.4, "rust_par": 12.7, "bend": 13.2},
-      {"workload": "1,000 x 1 MiB", "rust_seq": 252.7, "rust_par": 43.5, "bend": 45.0},
-      {"workload": "macOS SDK headers", "rust_seq": 136.1, "rust_par": 21.1, "bend": 21.5},
-      {"workload": "cargo sources (8,000 files)", "rust_seq": 273.8, "rust_par": 41.5, "bend": 43.4}
+      {
+        "workload": "1 GiB file",
+        "rust_seq": 46.0,
+        "rust_par": 45.1,
+        "bend_cpu": 44.7,
+        "bend_gpu": 29.7
+      },
+      {
+        "workload": "64 MiB file",
+        "rust_seq": 3.8,
+        "rust_par": 3.5,
+        "bend_cpu": 3.5,
+        "bend_gpu": 3.2
+      },
+      {
+        "workload": "10,000 x 4 KiB",
+        "rust_seq": 162.9,
+        "rust_par": 53.4,
+        "bend_cpu": 58.6,
+        "bend_gpu": 59.5
+      },
+      {
+        "workload": "2,000 x 64 KiB",
+        "rust_seq": 429.4,
+        "rust_par": 17.6,
+        "bend_cpu": 16.3,
+        "bend_gpu": 15.0
+      },
+      {
+        "workload": "1,000 x 1 MiB",
+        "rust_seq": 639.3,
+        "rust_par": 43.0,
+        "bend_cpu": 48.7,
+        "bend_gpu": 33.9
+      },
+      {
+        "workload": "macOS SDK headers",
+        "rust_seq": 180.8,
+        "rust_par": 23.3,
+        "bend_cpu": 22.7,
+        "bend_gpu": 25.2
+      },
+      {
+        "workload": "cargo sources (8,000 files)",
+        "rust_seq": 338.8,
+        "rust_par": 42.6,
+        "bend_cpu": 44.8,
+        "bend_gpu": 49.4
+      }
     ]
   },
   "iroh": {
     "unit": "ms",
-    "note": "iroh-blobs 0.103 ingest (add_path: BLAKE3 hash + bao outboard) into a fresh store vs Bend. Bend outboard support in progress; these Bend numbers are root hash only.",
+    "note": "iroh-blobs 0.103 ingest (add_path: BLAKE3 + bao outboard, plus the store's own bookkeeping) into a fresh store, against Bend computing the same hash and the same outboard (byte-identical to bao-tree's) in a long-running process. Best of 5 rounds each.",
     "rows": [
-      {"workload": "1 GiB file", "iroh_mem_copy": 826, "iroh_fs_copy": 808, "iroh_fs_ref": 737, "bend": 42.2},
-      {"workload": "1,000 x 1 MiB", "iroh_mem_copy": 181, "iroh_fs_copy": null, "iroh_fs_ref": 88, "bend": 47.1}
+      {
+        "workload": "1 GiB file",
+        "iroh_mem_copy": 1240.0,
+        "iroh_fs_ref": 836.9,
+        "bend": 51.7
+      },
+      {
+        "workload": "1,000 x 1 MiB",
+        "iroh_mem_copy": 215.8,
+        "iroh_fs_ref": 88.5,
+        "bend": 57.3
+      }
     ]
   },
   "floors": [
     "Page faults on a mapped file: ~15 ms per GiB, serialized in the kernel (shared by every tool).",
     "All-core CPU ceiling near 38 GB/s for BLAKE3 on this chip (Rust and Bend both reach it).",
     "macOS open(): ~48 ms per 10,000 files at best, however many threads (volume-wide serialization).",
-    "GPU start-up: the Metal heap costs ~50 ms per GiB to set up, so one-shot CLI runs stay on the CPU."
+    "GPU start-up: the Metal heap costs ~50 ms per GiB to set up, so one-shot CLI runs stay on the CPU.",
+    "Uncached files: the SSD reads 10-14 GB/s with large parallel preads but 0.2-0.8 GB/s through page faults, so mapping a file that is not in the page cache throws most of the SSD away (Bend streams those).",
+    "NVIDIA GPUs: Bend 2.0.39's CUDA runtime hangs inside Modal's sandbox, even for the guide's pow2! example, while plain CUDA managed memory works there; NVIDIA numbers wait on that."
   ],
   "techniques": [
-    {"adr": "0001", "title": "BLAKE3 core in Bend2", "summary": "Unboxed U32 records compile to register code; Array<U32> is a packed buffer; Array.fork shares input down a parallel fork tree."},
-    {"adr": "0002", "title": "8-lane compress8 + clang SLP", "summary": "Eight chunks per call, word-major lanes, one call site, SLP and inline flags: 2.95 GB/s per core vs NEON's 2.40."},
-    {"adr": "0003", "title": "b3sum I/O path", "summary": "Parallel one-pass loader, zero-copy read-only mmap, byte-balanced file tree, one write for all output."},
-    {"adr": "0004", "title": "Files past 4 GiB", "summary": "1 GiB segments are complete BLAKE3 subtrees, hashed in parallel and merged as parents; up to 4 TiB."},
-    {"adr": "0005", "title": "Flat GPU leaves", "summary": "Fork-free 4/16/64-chunk leaves sized to the 16,384-lane cube: 93-110 GB/s on the GPU."}
-  ]
+    {
+      "adr": "0001",
+      "title": "BLAKE3 core in Bend2",
+      "summary": "Unboxed U32 records compile to register code; Array<U32> is a packed buffer; Array.fork shares input down a parallel fork tree."
+    },
+    {
+      "adr": "0002",
+      "title": "8-lane compress8 + clang SLP",
+      "summary": "Eight chunks per call, word-major lanes, one call site, SLP and inline flags: 2.95 GB/s per core vs NEON's 2.40."
+    },
+    {
+      "adr": "0003",
+      "title": "b3sum I/O path",
+      "summary": "Parallel one-pass loader, zero-copy read-only mmap, byte-balanced file tree, one write for all output."
+    },
+    {
+      "adr": "0004",
+      "title": "Files past 4 GiB",
+      "summary": "1 GiB segments are complete BLAKE3 subtrees, hashed in parallel and merged as parents; up to 4 TiB."
+    },
+    {
+      "adr": "0005",
+      "title": "Flat GPU leaves",
+      "summary": "Fork-free 4/16/64-chunk leaves sized to the 16,384-lane cube: 93-110 GB/s on the GPU."
+    },
+    {
+      "adr": "0008",
+      "title": "Daemon race, map zone, iroh outboards",
+      "summary": "Mapped files go into an address-space zone of their own (one munmap a round); the CPU tree also emits iroh-blobs' bao outboard, byte-identical to bao-tree."
+    },
+    {
+      "adr": "0009",
+      "title": "Streaming and a GPU daemon",
+      "summary": "Files not in the page cache stream in 1 GiB segments with 16 F_NOCACHE readers while Bend hashes (101.5 GB in ~7.6 s); a daemon refills reused GPU-heap blocks and hashes in one bang."
+    }
+  ],
+  "models": {
+    "unit": "s",
+    "note": "Real model weights from deepseek-ai/DeepSeek-V4.1-Flash-1017 (MIT), one-shot b3sum FILE... on a 64 GB Mac, identical hashes. Files this size are mostly not in the page cache: the official b3sum reads them through page faults (16 KiB at a time); Bend checks residency and streams them in 1 GiB segments with large parallel preads while it hashes. The official b3sum took 526 s on its first run of the 101.5 GB shard.",
+    "rows": [
+      {
+        "workload": "DeepSeek-V4.1-Flash shard 48 (101.5 GB, bigger than RAM)",
+        "b3sum": 211.4,
+        "bend": 7.65
+      },
+      {
+        "workload": "DeepSeek-V4.1-Flash shards 1-6 (31.3 GB)",
+        "b3sum": 23.37,
+        "bend": 4.17
+      }
+    ]
+  }
 }

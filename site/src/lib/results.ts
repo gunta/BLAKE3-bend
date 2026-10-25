@@ -26,6 +26,7 @@ const schema = z.looseObject({
   status_note: z.string().optional(),
   in_memory: table,
   cli: table,
+  models: table.optional(),
   daemon: table.optional(),
   iroh: table.optional(),
   floors: z.array(z.string()).default([]),

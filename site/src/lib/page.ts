@@ -37,11 +37,21 @@ export const cli: Table = buildTable(results.cli, {
   bend: { label: 'Bend b3sum', description: 'bend/b3sum.bend, CPU only' },
 });
 
+/** Real model weights, one shot: the case where most of the file is on disk. */
+export const models: Table | undefined = results.models
+  ? buildTable(results.models, {
+      b3sum: { label: 'b3sum', description: 'the official b3sum CLI' },
+      bend: { label: 'Bend b3sum', description: 'bend/b3sum.bend, streaming what is not cached' },
+    })
+  : undefined;
+
 export const daemon: Table | undefined = results.daemon
   ? buildTable(results.daemon, {
       rust_seq: { label: 'Rust seq', description: 'one file at a time, like b3sum' },
       rust_par: { label: 'Rust par', description: 'rayon across files, the strongest baseline' },
       bend: { label: 'Bend', description: 'Bend, in a long-running process' },
+      bend_cpu: { label: 'Bend CPU', description: 'Bend on the CPU cores, in a long-running process' },
+      bend_gpu: { label: 'Bend GPU', description: 'Bend on the GPU, heap set up once' },
     })
   : undefined;
 
@@ -55,7 +65,7 @@ export const iroh: Table | undefined = results.iroh
       iroh_fs_ref: { label: 'iroh fs, ref', description: 'file-system store, file referenced in place' },
       bend: irohHashOnly
         ? { label: 'Bend, hash only', description: 'root hash only, no outboard yet' }
-        : { label: 'Bend', description: 'Bend over the same input' },
+        : { label: 'Bend, hash + outboard', description: 'the same hash and bao outboard, in a long-running process' },
     })
   : undefined;
 
@@ -63,6 +73,7 @@ export const iroh: Table | undefined = results.iroh
 
 export const inMemoryCharts: Chart[] = throughputCharts(inMemory, 'mem') ?? [timeChart(inMemory, 'mem')];
 export const cliChart: Chart = timeChart(cli, 'cli');
+export const modelsChart: Chart | undefined = models ? timeChart(models, 'models') : undefined;
 export const daemonChart: Chart | undefined = daemon ? timeChart(daemon, 'daemon') : undefined;
 export const irohChart: Chart | undefined = iroh ? timeChart(iroh, 'iroh') : undefined;
 
@@ -89,6 +100,7 @@ function tallies(table: Table, perBaseline: boolean): Tally[] {
 
 export const inMemoryTallies = tallies(inMemory, false);
 export const cliTallies = tallies(cli, false);
+export const modelsTallies = models ? tallies(models, false) : [];
 export const daemonTallies = daemon ? tallies(daemon, true) : [];
 export const irohTallies = iroh ? tallies(iroh, false) : [];
 
@@ -173,6 +185,23 @@ function cliHeadline(): Headline | undefined {
   };
 }
 
+function modelsHeadline(): Headline | undefined {
+  const t = modelsTallies[0];
+  if (!t) return undefined;
+  // The biggest file, not the best ratio: the first row is the headline file.
+  const c = t.all[0];
+  if (!c) return undefined;
+  return {
+    value: fmtSpeedup(c),
+    label: `${t.bend.label} vs the official ${c.baseline.label} on real model weights`,
+    detail: `${c.row.label}: ${fmtMeasured(c.bendValue)} s against ${fmtMeasured(c.baselineValue)} s, same hash.`,
+    href: '#models',
+    comparison: c,
+    short: `${t.bend.label} vs ${c.baseline.label}`,
+    context: c.row.label,
+  };
+}
+
 function perCoreHeadline(): Headline | undefined {
   if (!cpuSeries) return undefined;
   const one = sized(inMemory).find((r) => /^(1|one|single)\b/i.test(r.mode));
@@ -218,6 +247,7 @@ function capitalize(text: string): string {
 }
 
 export const headlines = {
+  models: modelsHeadline(),
   gpu: gpuHeadline(),
   cli: cliHeadline(),
   perCore: perCoreHeadline(),

@@ -25,6 +25,9 @@ import {
   inMemoryTallies,
   iroh,
   irohChart,
+  models,
+  modelsChart,
+  modelsTallies,
   irohHashOnly,
   irohTallies,
   levelWording,
@@ -37,6 +40,7 @@ import { BEND_URL, REPO_URL, blobUrl, treeUrl } from '../lib/site';
 const links = [
   { href: '#in-memory', label: 'In memory' },
   { href: '#cli', label: 'CLI race' },
+  ...(models ? [{ href: '#models', label: 'Models' }] : []),
   ...(daemon ? [{ href: '#daemon', label: 'Daemon' }] : []),
   ...(iroh ? [{ href: '#iroh', label: 'iroh-blobs' }] : []),
   { href: '#floors', label: 'Floors' },
@@ -45,7 +49,7 @@ const links = [
   { href: '#machine', label: 'Machine' },
 ];
 
-const { gpu, cli: cliHead, perCore, ties } = headlines;
+const { models: modelsHead, gpu, cli: cliHead, perCore, ties } = headlines;
 
 // CLI prose: which workloads win and which tie, straight from the tally.
 const cliTally = cliTallies[0];
@@ -106,6 +110,22 @@ const reproduce = [
       </p>
 
       <div class="tiles">
+        {
+          modelsHead && (
+            <div class="tile tile-hero card">
+              <div class="tile-top">
+                <a class="tile-label stretched" href={modelsHead.href}>
+                  {modelsHead.label}
+                </a>
+                <p class="hero-figure">{modelsHead.value}</p>
+              </div>
+              <div class="tile-bottom">
+                <MiniCompare comparison={modelsHead.comparison} unit="s" />
+                <p class="tile-detail">{modelsHead.detail}</p>
+              </div>
+            </div>
+          )
+        }
         {
           gpu && (
             <div class="tile tile-hero card">
@@ -233,6 +253,25 @@ const reproduce = [
     <BarChart chart={cliChart} />
     <DataTable id="cli-table" view={tableView(cli, `One-shot CLI race, ${cli.unit}.`)} />
   </Section>
+
+  {
+    models && modelsChart && (
+      <Section id="models" kicker="Real model weights" title="Hashing a DeepSeek model">
+        <Fragment slot="lede">
+          <p>
+            Shards of <a href="https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017">DeepSeek-V4.1-Flash</a>, the kind of file people hash after a
+            download: one shard is 101.5 GB, more than this Mac's RAM, so it lives on the SSD, not in the page cache. Mapping it and faulting pages in, as
+            <code>b3sum</code> does, reads the SSD 16 KiB at a time; Bend sees the file is not cached and streams it in 1 GiB segments with large parallel
+            reads while every core hashes the segment before.
+          </p>
+        </Fragment>
+        <Note text={models.note} />
+        <Scorecard tallies={modelsTallies} />
+        <BarChart chart={modelsChart} />
+        <DataTable id="models-table" view={tableView(models, `Real model files, one shot, ${models.unit}.`)} />
+      </Section>
+    )
+  }
 
   {
     daemon && daemonChart && (
