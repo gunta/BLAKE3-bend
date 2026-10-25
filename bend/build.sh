@@ -11,7 +11,7 @@ BEND="${BEND:-$HOME/.bend/bin/bend}"
 # The SLP flags let clang pack compress8's eight lanes into NEON registers
 # (ADR 0002): 8 x 64-bit result stores make a 512-bit seed, and the tree
 # behind it is ~1700 instructions deep.
-CFLAGS="${CFLAGS:--O3 -mcpu=native -mllvm -slp-max-reg-size=512 -mllvm -slp-recursion-max-depth=100000 -mllvm -slp-threshold=-20}"
+CFLAGS="${CFLAGS:--O3 -mcpu=native -mllvm -slp-max-reg-size=512 -mllvm -slp-recursion-max-depth=100000 -mllvm -slp-threshold=-20 -mllvm -inline-threshold=20000}"
 # compress8 is one def of ~3600 lets: the checker (Bun/JSC) needs a deep stack.
 ulimit -s 65520 2>/dev/null || true
 export BUN_JSC_maxPerThreadStackUsage=60000000 JSC_maxPerThreadStackUsage=60000000

@@ -68,3 +68,29 @@ also cut forks by 32x (one task per 32 KiB, not per KiB).
   and the 70 test vectors (35 per path).
 - Still 1.3x behind NEON per core: 128 scalar masked loads per block and
   the marshalling around `ld8` are the next targets.
+
+## Addendum: the inline threshold (same day)
+
+Profiling the v2 build showed `compress8` at ~49% of samples and the
+loader/loop at ~45%: the block's 128 words came back from `ld8` through
+`o[]`, went out again as 196 stack arguments, and the CV8 came back through
+`o[]`. Fully inlining `compress8` into the loop (`-inline-threshold=40000`)
+is worse (268-288 ms): Bend's tail loop carries the lanes through phis, so
+the loop body has no stores to seed SLP. The out-of-line `compress8`, whose
+`o[]` stores are the seeds, is structural. In between, the threshold
+matters a lot and not monotonically (256 MiB, 1 thread / 18 threads):
+
+| -inline-threshold | 1T      | 18T     |
+|-------------------|---------|---------|
+| default (487)     | 148 ms  | 10.8 ms |
+| 3000              | 135     | 10.0    |
+| 6000              | 128     | 8.6     |
+| 10000             | 150     | 10.0    |
+| 15000             | 93      | 7.0     |
+| **20000**         | **92**  | **6.4** |
+| 25000             | 93      | 6.7     |
+| 40000             | 288     | 23.9    |
+
+20000 is the default in `build.sh` now. At 1 GiB in memory: Bend 1 thread
+377 ms (2.85 GB/s) vs Rust NEON 448 ms (2.40 GB/s); 18 threads 27.2 ms vs
+Rust rayon 27.3 ms. The CPU path no longer trails the official crate.
