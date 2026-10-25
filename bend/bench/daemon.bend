@@ -11,6 +11,18 @@ def Clock.us() -> IO(Nat):
   import "../effs/clock.c"
   import "../effs/clock.js"
 
+# The parts of a progressive load, each hashed while the next ones are
+# still opening; the folds of the parts XOR into the round's fold.
+def parts(n: Nat, +k: U32, +acc: U32) -> IO(U32):
+  match n:
+    case 0n:
+      IO.pure(U32, acc)
+    case 1n+p:
+      do IO<U32>:
+        files : F.Files <- F.B3IO.again_take(k)
+        x : U32 <- F.B3IO.fold(F.hash(files))
+        parts(p, (k + 1 : U32), (acc .^. x : U32))
+
 def round(n: Nat, +threads: U32) -> IO(Unit):
   match n:
     case 0n:
@@ -18,8 +30,8 @@ def round(n: Nat, +threads: U32) -> IO(Unit):
     case 1n+p:
       do IO<Unit>:
         t0 : Nat <- Clock.us()
-        files : F.Files <- F.B3IO.again(threads)
-        x : U32 <- F.B3IO.fold(F.hash(files))
+        np : U32 <- F.B3IO.again_start(threads)
+        x : U32 <- parts(U32.to_nat(np), 0, 0)
         F.B3IO.release()
         t1 : Nat <- Clock.us()
         IO.print("us " ++ Nat.show(Nat.sub(t1, t0)) ++ " fold " ++ U32.show(x))

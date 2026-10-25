@@ -19,7 +19,7 @@ Site with every chart: **[gunta.github.io/BLAKE3-bend](https://gunta.github.io/B
 | `b3sum` 8,000 cargo source files | 260 ms | **73.5 ms** (3.5x) |
 | `b3sum` one 5 GiB file | 249 ms | **242 ms** |
 | iroh-blobs ingest of 1 GiB (hash + bao outboard) | 837 ms (iroh-blobs) | **51.7 ms** (16x) |
-| re-hash 1 GiB in a long-running process | 45.1 ms (rayon) | **29.7 ms** on the GPU (1.5x) |
+| re-hash 1 GiB in a long-running process | 43.6 ms (rayon) | **29.4 ms** on the GPU (1.48x) |
 
 Every number is a median of interleaved runs on identical bytes with identical
 digests; the full tables, the ties and the losses are below and on the site.
@@ -128,19 +128,19 @@ one-shot, identical hashes:
 **Daemon** (a long-running process re-hashing the same files every round, as a
 sync service would; start-up excluded), against Rust that is parallel across
 files as well as within them, the strongest baseline we could write with the
-official crate. The GPU daemon wins on big inputs; on thousands of tiny files
-both sides sit on the same `open()` floor (medians, ms per round, a busy
-machine):
+official crate. Bend's best side wins six of seven, by up to 1.48x (the GPU
+on big inputs); the SDK headers are a tie at the kernel's `open()` floor
+(medians, ms per round, a busy machine):
 
 | workload | Rust, files in order (b3sum) | Rust, rayon across files | Bend CPU | Bend GPU |
 |---|---|---|---|---|
-| 1 GiB file | 46.0 | 45.1 | 44.7 | **29.7** |
-| 64 MiB file | 3.8 | 3.5 | 3.5 | **3.2** |
-| 2,000 x 64 KiB | 429.4 | 17.6 | 16.3 | **15.0** |
-| 1,000 x 1 MiB | 639.3 | 43.0 | 48.7 | **33.9** |
-| macOS SDK headers | 180.8 | 23.3 | **22.7** | 25.2 |
-| 10,000 x 4 KiB | 162.9 | **53.4** | 58.6 | 59.5 |
-| cargo sources (8,000 files) | 338.8 | **42.6** | 44.8 | 49.4 |
+| 1 GiB file | 44.7 | 43.6 | 44.6 | **29.4** |
+| 64 MiB file | 4.1 | 3.3 | 3.3 | **3.0** |
+| 2,000 x 64 KiB | 422.5 | 16.3 | 16.0 | **14.1** |
+| 1,000 x 1 MiB | 522.9 | 39.2 | 49.2 | **31.8** |
+| 10,000 x 4 KiB | 152.8 | 54.0 | **51.3** | 57.4 |
+| cargo sources (8,000 files) | 307.0 | 43.9 | **42.9** | 49.2 |
+| macOS SDK headers | 164.7 | **21.5** | 22.0 | 26.0 |
 
 **iroh-blobs** 0.103 ingest (`add_path`: BLAKE3 + bao outboard, plus its store
 bookkeeping) against Bend computing the same hash and the same outboard: a

@@ -93,56 +93,56 @@
   },
   "daemon": {
     "unit": "ms per round",
-    "note": "A long-running process, start-up excluded: every round re-opens and re-reads the files and hashes them. Rust seq = one file at a time, as b3sum; Rust par = rayon across files (the strongest baseline). Bend GPU reads into reused blocks of a 4 GB Metal heap set up once, then hashes every file in one bang. Medians of 21 rounds on a busy machine (load average ~20).",
+    "note": "A long-running process, start-up excluded: every round re-opens and re-reads the files and hashes them. Rust seq = one file at a time, as b3sum; Rust par = rayon across files (the strongest baseline). Bend GPU reads into reused blocks of a 4 GB Metal heap set up once, then hashes every file in one bang. Bend CPU loads in 8 parts and hashes each while the rest open. Medians of 21 rounds on a busy machine (load average ~18).",
     "rows": [
       {
         "workload": "1 GiB file",
-        "rust_seq": 46.0,
-        "rust_par": 45.1,
-        "bend_cpu": 44.7,
-        "bend_gpu": 29.7
+        "rust_seq": 44.7,
+        "rust_par": 43.6,
+        "bend_cpu": 44.6,
+        "bend_gpu": 29.4
       },
       {
         "workload": "64 MiB file",
-        "rust_seq": 3.8,
-        "rust_par": 3.5,
-        "bend_cpu": 3.5,
-        "bend_gpu": 3.2
+        "rust_seq": 4.1,
+        "rust_par": 3.3,
+        "bend_cpu": 3.3,
+        "bend_gpu": 3.0
       },
       {
         "workload": "10,000 x 4 KiB",
-        "rust_seq": 162.9,
-        "rust_par": 53.4,
-        "bend_cpu": 58.6,
-        "bend_gpu": 59.5
+        "rust_seq": 152.8,
+        "rust_par": 54.0,
+        "bend_cpu": 51.3,
+        "bend_gpu": 57.4
       },
       {
         "workload": "2,000 x 64 KiB",
-        "rust_seq": 429.4,
-        "rust_par": 17.6,
-        "bend_cpu": 16.3,
-        "bend_gpu": 15.0
+        "rust_seq": 422.5,
+        "rust_par": 16.3,
+        "bend_cpu": 16.0,
+        "bend_gpu": 14.1
       },
       {
         "workload": "1,000 x 1 MiB",
-        "rust_seq": 639.3,
-        "rust_par": 43.0,
-        "bend_cpu": 48.7,
-        "bend_gpu": 33.9
+        "rust_seq": 522.9,
+        "rust_par": 39.2,
+        "bend_cpu": 49.2,
+        "bend_gpu": 31.8
       },
       {
         "workload": "macOS SDK headers",
-        "rust_seq": 180.8,
-        "rust_par": 23.3,
-        "bend_cpu": 22.7,
-        "bend_gpu": 25.2
+        "rust_seq": 164.7,
+        "rust_par": 21.5,
+        "bend_cpu": 22.0,
+        "bend_gpu": 26.0
       },
       {
         "workload": "cargo sources (8,000 files)",
-        "rust_seq": 338.8,
-        "rust_par": 42.6,
-        "bend_cpu": 44.8,
-        "bend_gpu": 49.4
+        "rust_seq": 307.0,
+        "rust_par": 43.9,
+        "bend_cpu": 42.9,
+        "bend_gpu": 49.2
       }
     ]
   },

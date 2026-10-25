@@ -63,3 +63,20 @@ arity table.
 
 Against rayon-parallel Rust the daemon race is a tie within a few percent:
 both sit on the same floors (open(), page faults, the all-core ceiling).
+
+## Addendum: a progressive load (same day)
+
+On thousands of tiny files a round was the parallel opens (51-55 ms for
+10,000 files, the kernel's floor) *then* ~4.5 ms of hashing, while Rust hashes
+each file as soon as it has read it, under the other threads' opens. Now
+`B3IO.again_start` starts loading every kept path on background threads, in
+order, and `B3IO.again_take(k)` waits for part k of 8 alone, so Bend hashes
+part k on every core while the later parts are still opening; the parts'
+folds XOR into the round's. A daemon's files never stream (they are tagged
+with their slot). 16 and 32 parts were no better than 8.
+
+Four-way daemon race after it (medians, load average ~18; Bend's best side
+against rayon): 1 GiB 1.48x faster (GPU), 64 MiB 1.10x, 10,000 x 4 KiB 1.05x
+(was 1.10x slower), 2,000 x 64 KiB 1.15x, 1,000 x 1 MiB 1.23x (GPU), cargo
+sources 1.02x (was 1.05x slower), macOS SDK headers 1.02x slower: a tie at
+the open() floor (21.6 against 21.4 ms in a separate sweep).

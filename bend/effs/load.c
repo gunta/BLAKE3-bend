@@ -69,6 +69,12 @@ typedef struct {
   u32      next;
   u32      rows;
   u64*     heap;
+  // a progressive load (B3IO.again_start): the part of each file, and how
+  // many files of each part are still loading; NULL otherwise
+  u32*            part;
+  u32*            left;
+  pthread_mutex_t mu;
+  pthread_cond_t  cv;
 } B3Jobs;
 
 typedef struct {
@@ -432,6 +438,11 @@ static void* b3_file_job(void* arg) {
       return NULL;
     }
     b3_file(e, &j->files[i]);
+    if (j->left != NULL && __atomic_sub_fetch(&j->left[j->part[i]], 1, __ATOMIC_ACQ_REL) == 0) {
+      pthread_mutex_lock(&j->mu);
+      pthread_cond_broadcast(&j->cv);
+      pthread_mutex_unlock(&j->mu);
+    }
   }
 }
 
@@ -785,6 +796,126 @@ Term b3io_again_run(Env e, Term* f, IoWork* w) {
 // Every mapped file of the round goes in one munmap of the zone's used
 // range; the kept references are left as they are (a word each), since a
 // zone block must not reach the heap's free lists.
+// A progressive round: B3IO.again_start(threads) starts loading every kept
+// path on background threads, in order, and returns how many parts it cut
+// them into; B3IO.again_take(k) waits for part k alone and answers its
+// Files. Bend hashes part k on every core while parts k + 1.. are still
+// opening (on many small files, the open() calls are most of the round).
+
+#define B3_PARTS 8
+
+static struct {
+  B3Jobs    j;
+  pthread_t coord;
+  u32       parts;
+  u32       threads;
+  bool      at_once;  // a GPU heap loads the round in one go, as part 0
+  Term      whole;
+} b3_prog;
+
+static void* b3_prog_main(void* arg) {
+  B3Jobs* j = arg;
+  b3_pool(j, b3_file_job, j->nfiles < b3_prog.threads ? j->nfiles : b3_prog.threads);
+  return NULL;
+}
+
+Term b3io_again_start_run(Env e, Term* f, IoWork* w) {
+  u32 threads = (u32)f[0];
+  u32 n = b3_nsaved;
+  b3_heap = e.mem;
+  if (io_gpu || n == 0) {
+    // the slice pass for big parts on a GPU heap runs after every open:
+    // load it all now, hand it out as part 0
+    Term args[1] = { (Term)threads };
+    b3_prog.whole = b3io_again_run(e, args, w);
+    b3_prog.at_once = true;
+    b3_prog.parts = 1;
+    return (Term)1;
+  }
+  B3File* fs = io_mem(calloc(n, sizeof(B3File)));
+  for (u32 i = 0; i < n; i += 1) {
+    fs[i].path = strdup(b3_saved[i]);
+    fs[i].plen = strlen(fs[i].path);
+    fs[i].slot = i + 1;  // a daemon's file: mapped or read, never streamed
+    fs[i].name = term_pak(CID_SNil, 0);
+    fs[i].fd = -1;
+  }
+  const char* pe = getenv("B3IO_PARTS");
+  u32 want = pe != NULL && atoi(pe) > 0 ? (u32)atoi(pe) : B3_PARTS;
+  u32 parts = n < want ? n : want;
+  B3Jobs* j = &b3_prog.j;
+  memset(j, 0, sizeof(*j));
+  j->files = fs;
+  j->nfiles = n;
+  j->heap = e.mem;
+  j->rows = CUBE_T + 1 - pool_size;
+  j->part = io_mem(malloc(n * sizeof(u32)));
+  j->left = io_mem(calloc(parts, sizeof(u32)));
+  for (u32 i = 0; i < n; i += 1) {
+    j->part[i] = (u32)((u64)i * parts / n);
+    j->left[j->part[i]] += 1;
+  }
+  pthread_mutex_init(&j->mu, NULL);
+  pthread_cond_init(&j->cv, NULL);
+  b3_prog.parts = parts;
+  b3_prog.threads = threads;
+  b3_prog.at_once = false;
+  pthread_create(&b3_prog.coord, NULL, b3_prog_main, j);
+  return (Term)parts;
+}
+
+Term b3io_again_take_run(Env e, Term* f, IoWork* w) {
+  u32 k = (u32)f[0];
+  if (b3_prog.at_once) {
+    Term t = k == 0 ? b3_prog.whole : term_pak(CID(FNone), 0);
+    b3_prog.whole = term_pak(CID(FNone), 0);
+    return t;
+  }
+  B3Jobs* j = &b3_prog.j;
+  B3File* fs = j->files;
+  u32 n = j->nfiles, parts = b3_prog.parts;
+  pthread_mutex_lock(&j->mu);
+  while (__atomic_load_n(&j->left[k], __ATOMIC_ACQUIRE) != 0) {
+    pthread_cond_wait(&j->cv, &j->mu);
+  }
+  pthread_mutex_unlock(&j->mu);
+  u32 lo = 0;
+  while (lo < n && j->part[lo] < k) {
+    lo += 1;
+  }
+  u32 hi = lo;
+  while (hi < n && j->part[hi] == k) {
+    hi += 1;
+  }
+  u64* pre = io_mem(malloc((hi - lo + 1) * sizeof(u64)));
+  pre[0] = 0;
+  for (u32 i = lo; i < hi; i += 1) {
+    if (fs[i].fd >= 0 && !fs[i].stream) {
+      close(fs[i].fd);
+      fs[i].fd = -1;
+    }
+    pre[i - lo + 1] = pre[i - lo] + fs[i].len + 64;
+    free(fs[i].path);
+  }
+  Term t = hi > lo ? b3_tree(e, fs + lo, pre, 0, hi - lo) : term_pak(CID(FNone), 0);
+  free(pre);
+  if (k + 1 >= parts) {
+    pthread_join(b3_prog.coord, NULL);
+    for (u32 i = 0; i < n; i += 1) {
+      if (fs[i].parts != &fs[i].one) {
+        free(fs[i].parts);
+      }
+    }
+    free(fs);
+    free(j->part);
+    free(j->left);
+    pthread_mutex_destroy(&j->mu);
+    pthread_cond_destroy(&j->cv);
+    j->files = NULL;
+  }
+  return t;
+}
+
 Term b3io_release_run(Env e, Term* f, IoWork* w) {
   u64 t0 = b3_us();
   u32 kept = b3_nkept;
@@ -815,5 +946,11 @@ static void __attribute__((constructor)) b3io_load_use(void) {
 #endif
 #ifdef CID(B3IO.release)
   io_eff(CID(B3IO.release), b3io_release_run);
+#endif
+#ifdef CID(B3IO.again_start)
+  io_eff(CID(B3IO.again_start), b3io_again_start_run);
+#endif
+#ifdef CID(B3IO.again_take)
+  io_eff(CID(B3IO.again_take), b3io_again_take_run);
 #endif
 }

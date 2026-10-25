@@ -68,6 +68,17 @@ def B3IO.release() -> IO(Unit):
   import "./effs/load.c"
   import "./effs/load.js"
 
+# The same load, in parts: again_start begins reading every kept path in
+# the background and answers the part count; again_take(k) waits for part
+# k alone, so Bend can hash it while the later parts are still opening.
+def B3IO.again_start(threads: U32) -> IO(U32):
+  import "./effs/load.c"
+  import "./effs/load.js"
+
+def B3IO.again_take(k: U32) -> IO(Files):
+  import "./effs/load.c"
+  import "./effs/load.js"
+
 # Outboards: a hash with its bao outboard pairs (see blake3.bend's OB).
 type Obo is Data:
   BNone{}
