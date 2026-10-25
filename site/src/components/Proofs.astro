@@ -11,6 +11,12 @@ import { GENERATOR_URL, LAWS_URL, PROOF_URL, lawCount, lawGroups, lemmaCount, sa
 import { blobUrl } from '../lib/site';
 import { machineName } from '../lib/page';
 
+interface Props {
+  /** Position in the race (see Section). */
+  lap: number;
+}
+
+const { lap } = Astro.props;
 const gate = results.proofs;
 const minutes = gate ? Math.round(gate.seconds / 60) : undefined;
 const shown = sample('ob.hash');
@@ -54,7 +60,7 @@ const limits = [
 ];
 ---
 
-<Section id="proofs" kicker="Machine-checked" title="Proven for every input, not only tested">
+<Section id="proofs" lap={lap} kicker="Machine-checked" title="Proven for every input, not only tested">
   <Fragment slot="lede">
     <p>
       Bend’s type checker is also a prover. A <code>law</code> in <a href={LAWS_URL}>LAWS.bend</a> states a claim; a def of the same name in{' '}
@@ -65,21 +71,21 @@ const limits = [
   </Fragment>
 
   <ul class="stats" role="list">
-    <li class="card">
+    <li class="card" data-reveal style="--i: 0">
       <span class="stat">{lawCount}</span>
       <span class="stat-label">laws about this BLAKE3, all proven</span>
     </li>
-    <li class="card">
+    <li class="card" data-reveal style="--i: 1">
       <span class="stat">{lemmaCount}</span>
       <span class="stat-label">lemmas proven on the way</span>
     </li>
-    <li class="card">
+    <li class="card" data-reveal style="--i: 2">
       <span class="stat">0</span>
       <span class="stat-label">open claims, and no <code>@unsafe</code> code under the laws</span>
     </li>
     {
       minutes !== undefined && (
-        <li class="card">
+        <li class="card" data-reveal style="--i: 3">
           <span class="stat">~{minutes} min</span>
           <span class="stat-label">for <code>bend/prove.sh</code> on the {machineName}</span>
         </li>
@@ -87,7 +93,7 @@ const limits = [
     }
   </ul>
 
-  <div class="contrast card">
+  <div class="contrast card" data-reveal>
     <table>
       <caption class="sr-only">What the official Rust crate’s tests check, beside what this port’s laws prove</caption>
       <thead>
@@ -121,13 +127,13 @@ const limits = [
   {
     lawGroups.map((g) => (
       <div class="group" id={`proofs-${g.id}`}>
-        <div class="group-head">
+        <div class="group-head" data-reveal>
           <h3>{g.title}</h3>
           <p class="prose">{g.blurb}</p>
         </div>
         <ul class:list={['laws', g.cards.length % 3 === 0 ? 'cols-3' : 'cols-2']} role="list">
-          {g.cards.map((c) => (
-            <li class="card law">
+          {g.cards.map((c, i) => (
+            <li class="card law" data-reveal style={`--i: ${i}`}>
               <p class="law-top">
                 <span class:list={['badge', `badge-${g.scope}`]}>{badge[g.scope]}</span>
                 <span class="names">

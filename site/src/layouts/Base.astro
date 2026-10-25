@@ -1,6 +1,10 @@
 ---
+import '@fontsource-variable/archivo/wdth.css';
+import '@fontsource-variable/archivo/wdth-italic.css';
+import '@fontsource-variable/martian-mono/wdth.css';
 import '../styles/global.css';
-import { SITE_DESCRIPTION, SITE_TITLE, absoluteUrl, withBase } from '../lib/site';
+import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, absoluteUrl, withBase } from '../lib/site';
+import BrandSprite from '../components/BrandSprite.astro';
 
 interface Props {
   title?: string;
@@ -11,10 +15,10 @@ interface Props {
 }
 
 const { title, description = SITE_DESCRIPTION, path = '', noindex = false } = Astro.props;
-const pageTitle = title ? `${title} · ${SITE_TITLE}` : SITE_TITLE;
+const pageTitle = title ? `${title} · ${SITE_NAME}` : SITE_TITLE;
 const canonical = absoluteUrl(path, Astro.site);
 const ogImage = absoluteUrl('og.png', Astro.site);
-const ogAlt = 'BLAKE3 in Bend2: headline speedups against the official Rust/C BLAKE3.';
+const ogAlt = 'b3bend, BLAKE3 written in Bend2: the Merge logo and the headline speedups against the official Rust/C BLAKE3.';
 ---
 
 <!doctype html>
@@ -26,14 +30,15 @@ const ogAlt = 'BLAKE3 in Bend2: headline speedups against the official Rust/C BL
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     {noindex && <meta name="robots" content="noindex" />}
-    <meta name="color-scheme" content="light dark" />
-    <meta name="theme-color" content="#f9f9f7" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#060608" />
     <link rel="icon" type="image/svg+xml" href={withBase('favicon.svg')} />
+    <link rel="apple-touch-icon" href={withBase('apple-touch-icon.png')} />
+    <script is:inline>document.documentElement.classList.add('js');</script>
     <meta name="generator" content={Astro.generator} />
 
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content={SITE_TITLE} />
+    <meta property="og:site_name" content={SITE_NAME} />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
@@ -50,11 +55,43 @@ const ogAlt = 'BLAKE3 in Bend2: headline speedups against the official Rust/C BL
     <meta name="twitter:image:alt" content={ogAlt} />
   </head>
   <body>
+    <BrandSprite />
     <a class="skip-link" href="#main">Skip to content</a>
     <slot name="header" />
     <main id="main" tabindex="-1">
       <slot />
     </main>
     <slot name="footer" />
+    <script>
+      // Reveal [data-reveal] blocks as they scroll in, once.
+      const io = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (!e.isIntersecting) continue;
+            e.target.classList.add('in');
+            io.unobserve(e.target);
+          }
+        },
+        { rootMargin: '0px 0px -8% 0px' },
+      );
+      for (const el of document.querySelectorAll('[data-reveal]')) {
+        // Whatever is already on screen shows at once, without waiting for an observer tick.
+        if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add('in');
+        else io.observe(el);
+      }
+
+      // Cards catch the light under the pointer (.card::before reads --mx/--my).
+      document.addEventListener(
+        'pointermove',
+        (e) => {
+          const card = (e.target as Element | null)?.closest?.<HTMLElement>('.card');
+          if (!card) return;
+          const r = card.getBoundingClientRect();
+          card.style.setProperty('--mx', `${e.clientX - r.left}px`);
+          card.style.setProperty('--my', `${e.clientY - r.top}px`);
+        },
+        { passive: true },
+      );
+    </script>
   </body>
 </html>

@@ -1,0 +1,94 @@
+{
+  "info": {
+    "cpu": "unknown",
+    "cpus": 16,
+    "memory": "676 GiB",
+    "disk": "8.0E",
+    "clang": "Ubuntu clang version 20.1.8 (++20250804090239+87f0227cb601-1~exp1~20250804210352.139)",
+    "kernel": "4.19.0-gvisor",
+    "b3sum": "b3sum 1.8.7"
+  },
+  "generate": {
+    "model-00001-of-00048.safetensors": "wrote /data/model-00001-of-00048.safetensors: 970533624 bytes in 0.13 s (7.48 GB/s)",
+    "model-00002-of-00048.safetensors": "wrote /data/model-00002-of-00048.safetensors: 1323858272 bytes in 0.17 s (7.89 GB/s)",
+    "model-00003-of-00048.safetensors": "wrote /data/model-00003-of-00048.safetensors: 7389759032 bytes in 0.85 s (8.66 GB/s)",
+    "model-00004-of-00048.safetensors": "wrote /data/model-00004-of-00048.safetensors: 7389759032 bytes in 0.95 s (7.77 GB/s)",
+    "model-00005-of-00048.safetensors": "wrote /data/model-00005-of-00048.safetensors: 7405953784 bytes in 0.92 s (8.07 GB/s)",
+    "model-00006-of-00048.safetensors": "wrote /data/model-00006-of-00048.safetensors: 7389759032 bytes in 0.89 s (8.29 GB/s)",
+    "model-00048-of-00048.safetensors": "wrote /data/model-00048-of-00048.safetensors: 101537926640 bytes in 13.34 s (7.61 GB/s)"
+  },
+  "workloads": {
+    "DeepSeek shards 1-6": {
+      "files": [
+        "model-00001-of-00048.safetensors",
+        "model-00002-of-00048.safetensors",
+        "model-00003-of-00048.safetensors",
+        "model-00004-of-00048.safetensors",
+        "model-00005-of-00048.safetensors",
+        "model-00006-of-00048.safetensors"
+      ],
+      "bytes": 31869622776,
+      "b3sum_ms": [
+        1574.8561560000028,
+        1563.2705570000028
+      ],
+      "bend_ms": [
+        1239.3249909999965,
+        1240.2443530000014
+      ],
+      "resident_before": {
+        "b3sum": [
+          1.0,
+          1.0
+        ],
+        "bend": [
+          1.0,
+          1.0
+        ]
+      },
+      "b3sum_median_ms": 1569.0633565000028,
+      "bend_median_ms": 1239.7846719999989,
+      "output_identical": true,
+      "output": [
+        "c8e8bc5a4a82172610943ebb323264b5f949ca7f910762adbd6621fd625c7ed4  /data/model-00001-of-00048.safetensors",
+        "749bc53eabae664c8bedfb14847d2e5e1649e9f9cd55971b36d6acf268690ba4  /data/model-00002-of-00048.safetensors",
+        "7d59faffb4f33dbf3aef5f37416af24bc331de331dc66bf27a81ec4861d5a1d9  /data/model-00003-of-00048.safetensors",
+        "3b97925d2827dcbe6671be4bb296e19ff07d08506a5caa1c27230a9793cab7b1  /data/model-00004-of-00048.safetensors",
+        "3d92169f811397187e746100f6d59e617c66df88ee9e4b4d1c7aa3a5f781aff9  /data/model-00005-of-00048.safetensors",
+        "e195780a124a131ecddada95d468117775fdf95602edb7a8c180c78a49ae3e9c  /data/model-00006-of-00048.safetensors"
+      ]
+    },
+    "DeepSeek 101 GB shard": {
+      "files": [
+        "model-00048-of-00048.safetensors"
+      ],
+      "bytes": 101537926640,
+      "b3sum_ms": [
+        4027.441240999998,
+        4069.3014599999983
+      ],
+      "bend_ms": [
+        3967.317755000003,
+        3932.732643999998
+      ],
+      "resident_before": {
+        "b3sum": [
+          1.0,
+          1.0
+        ],
+        "bend": [
+          1.0,
+          1.0
+        ]
+      },
+      "b3sum_median_ms": 4048.3713504999982,
+      "bend_median_ms": 3950.025199500001,
+      "output_identical": true,
+      "output": [
+        "c434849d197dfd2160194a26039226f6d6a1dae4520cf5fe9be5ae25a592b05c  /data/model-00048-of-00048.safetensors"
+      ]
+    }
+  },
+  "note": "one-shot runs, interleaved, each after posix_fadvise(DONTNEED) on the inputs; files written by bench/synth.c at the real shards' sizes",
+  "wall_s": 62.2
+}

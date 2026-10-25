@@ -1,0 +1,5 @@
+allowBuilds:
+  '@vgpu/adapter-node': false
+  webgpu: false
+minimumReleaseAgeExclude:
+  - simple-icons@16.36.0

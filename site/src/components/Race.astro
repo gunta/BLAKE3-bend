@@ -1,0 +1,561 @@
+---
+/**
+ * The headline race, to scale: two lanes run at the measured times, slowed by
+ * the same factor, so the moment Bend crosses the line you can see how much of
+ * the file the official b3sum has hashed. Then the rest of the scoreboard.
+ * Without JavaScript (or with reduced motion) the lanes show that moment, still.
+ */
+import MiniCompare from './MiniCompare.astro';
+import BrandMark from './BrandMark.astro';
+import { seriesMark } from '../lib/brands';
+import { fmtMeasured } from '../lib/format';
+import { headlines } from '../lib/page';
+
+const { models: m, gpu, cli, perCore, ties } = headlines;
+const c = m?.comparison;
+const share = c ? c.bendValue / c.baselineValue : 0;
+const pct = (share * 100).toFixed(1);
+const big = (v: string) => v.replace(/x$/, '×');
+/** "up to 10.7x" -> a small "up to" over a big "10.7×". */
+const split = (v: string) => {
+  const m = /^(up to )?(.*)$/.exec(v);
+  return { prefix: m?.[1]?.trim(), figure: big(m?.[2] ?? v) };
+};
+const tiles = [gpu && { h: gpu, unit: 'ms', hero: true }, cli && { h: cli, unit: 'ms' }, perCore && { h: perCore, unit: 'ms' }].filter(
+  (t) => !!t,
+);
+---
+
+<section id="race" class="race" aria-labelledby="race-title">
+  <div class="wrap">
+    <p class="kicker" data-reveal><span class="lap">Lap 00</span> The headline</p>
+
+    {
+      m && c && (
+        <div class="headline" data-reveal style="--i: 1">
+          <h2 id="race-title" class="sr-only">
+            {m.value} faster: {m.label}
+          </h2>
+          <p class="figure display fast" aria-hidden="true">
+            <span data-count={big(m.value)}>{big(m.value)}</span>
+          </p>
+          <div class="claim">
+            {/deepseek/i.test(c.row.label) && <p class="claim-src">
+              <BrandMark name="deepseek" tone="brand" /> DeepSeek weights <span aria-hidden="true">·</span>
+              <BrandMark name="huggingface" tone="brand" /> Hugging Face
+            </p>}
+            <p class="claim-main">
+              {c.bend.label} vs the official {c.baseline.label}, hashing <strong>{c.row.label}</strong>.
+            </p>
+            <p class="claim-sub">
+              {fmtMeasured(c.bendValue)} s against {fmtMeasured(c.baselineValue)} s, one shot, same hash.
+            </p>
+          </div>
+        </div>
+      )
+    }
+
+    {
+      c && (
+        <figure class="lanes card" data-race data-bend={c.bendValue} data-base={c.baselineValue} data-reveal style="--i: 2">
+          <div class="lanes-head">
+            <span class="kicker">To scale · same file, same hash</span>
+            <span class="clock mono" aria-hidden="true">
+              <span data-clock>{fmtMeasured(c.bendValue)}</span> s
+            </span>
+          </div>
+          {[
+            { s: c.bend, v: c.bendValue, f: 1, cls: 'is-bend' },
+            { s: c.baseline, v: c.baselineValue, f: share, cls: 'is-base' },
+          ].map((l) => (
+            <div class:list={['lane', l.cls, { finished: l.f >= 1 }]} style={`--p: ${l.f.toFixed(5)}`}>
+              <span class="who">
+                {seriesMark(l.s.key) && <BrandMark name={seriesMark(l.s.key)!} class="series-mark" />}
+                {l.s.label}
+              </span>
+              <span class="track" aria-hidden="true">
+                <span class="fill" data-fill />
+              </span>
+              <span class="t mono">{fmtMeasured(l.v)} s</span>
+              <span class="state mono" data-state>
+                {l.cls === 'is-bend' ? 'done' : `${pct}% hashed`}
+              </span>
+            </div>
+          ))}
+          <figcaption>
+            <span>
+              Lanes run at the measured times, slowed by one factor. When Bend has hashed the whole file, the official b3sum has hashed <strong>{pct}%</strong>{' '}
+              of it.
+            </span>
+            <button class="replay" type="button" data-replay hidden>
+              <span aria-hidden="true">↻</span> Replay
+            </button>
+          </figcaption>
+        </figure>
+      )
+    }
+
+    <div class="board">
+      {
+        tiles.map((t, i) => (
+          <div class:list={['tile card', { wide: t.hero }]} data-reveal style={`--i: ${i}`}>
+            <a class="tile-label stretched" href={t.h.href}>
+              {t.h.label}
+            </a>
+            <p class="tile-figure display fast">
+              {split(t.h.value).prefix && <span class="upto">{split(t.h.value).prefix}</span>}
+              {split(t.h.value).figure}
+            </p>
+            <MiniCompare comparison={t.h.comparison} unit={t.unit} />
+            <p class="tile-detail">{t.h.detail}</p>
+          </div>
+        ))
+      }
+      {
+        ties && (
+          <div class="tile card ties" data-reveal style="--i: 3">
+            <p class="tile-label">Where it only ties</p>
+            <p class="tile-figure display">
+              <span aria-hidden="true">≈1×</span>
+              <span class="sr-only">about 1x</span>
+            </p>
+            <ul class="tie-lines" role="list">
+              {ties.lines.map((l) => (
+                <li>
+                  <a href={l.href}>{l.text}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<script>
+  import { fmtMeasured } from '../lib/format';
+
+  const RUN_SECONDS = 2.4; // Bend's lane, on screen
+
+  for (const fig of document.querySelectorAll<HTMLElement>('[data-race]')) {
+    const bend = Number(fig.dataset.bend);
+    const base = Number(fig.dataset.base);
+    const lanes = [...fig.querySelectorAll<HTMLElement>('.lane')];
+    const clock = fig.querySelector<HTMLElement>('[data-clock]');
+    const replay = fig.querySelector<HTMLButtonElement>('[data-replay]');
+    const figure = document.querySelector<HTMLElement>('[data-count]');
+    // The figure as the page formats it ("27.6×"): count up to it with the same decimals.
+    const final = figure?.dataset.count ?? '';
+    const target = Number.parseFloat(final);
+    const decimals = (final.split('.')[1] ?? '').replace(/\D/g, '').length;
+    if (!(bend > 0 && base > 0) || lanes.length !== 2 || matchMedia('(prefers-reduced-motion: reduce)').matches) continue;
+
+    const scale = RUN_SECONDS / bend;
+    let raf = 0;
+    let t0 = 0;
+
+    const paint = (sim: number) => {
+      const done = [sim >= bend, sim >= base];
+      [bend, base].forEach((v, i) => {
+        const lane = lanes[i]!;
+        lane.style.setProperty('--p', Math.min(1, sim / v).toFixed(5));
+        lane.classList.toggle('finished', done[i]!);
+        const state = lane.querySelector<HTMLElement>('[data-state]');
+        if (state) state.textContent = done[i] ? 'done' : `${((Math.min(sim, v) / v) * 100).toFixed(1)}% hashed`;
+      });
+      if (clock) clock.textContent = fmtMeasured(Number(sim.toFixed(2)));
+      // The big figure counts up only while a run is on; before that it shows the real value.
+      if (figure && Number.isFinite(target) && fig.classList.contains('running')) {
+        const k = Math.min(1, sim / bend);
+        const eased = 1 - Math.pow(1 - k, 3);
+        figure.textContent = `${(1 + (target - 1) * eased).toFixed(decimals)}×`;
+      }
+    };
+
+    const run = () => {
+      cancelAnimationFrame(raf);
+      t0 = performance.now();
+      fig.classList.add('running');
+      const tick = (now: number) => {
+        const sim = ((now - t0) / 1000) / scale;
+        paint(Math.min(sim, base));
+        if (sim < base) raf = requestAnimationFrame(tick);
+        else fig.classList.remove('running');
+        if (sim >= bend && figure) figure.textContent = final;
+        if (sim >= bend && replay) replay.hidden = false;
+      };
+      raf = requestAnimationFrame(tick);
+    };
+
+    paint(0);
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        io.disconnect();
+        run();
+      },
+      { threshold: 0.35, rootMargin: '0px 0px -20% 0px' },
+    );
+    io.observe(fig);
+    replay?.addEventListener('click', run);
+  }
+</script>
+
+<style>
+  .race {
+    position: relative;
+    padding-block: clamp(4rem, 3rem + 5vw, 8rem);
+    background:
+      radial-gradient(60rem 30rem at 85% 0%, rgb(70 227 255 / 0.06), transparent 70%),
+      radial-gradient(50rem 30rem at 10% 30%, rgb(212 255 58 / 0.05), transparent 70%);
+  }
+
+  .lap {
+    color: var(--volt);
+  }
+
+  .headline {
+    display: grid;
+    gap: 1.25rem 3rem;
+    align-items: end;
+    margin-top: 1.5rem;
+  }
+
+  .figure {
+    font-size: clamp(3.5rem, 0.6rem + 15vw, 15rem);
+    line-height: 0.82;
+    color: var(--volt);
+    text-shadow:
+      -0.04em 0 0 rgb(212 255 58 / 0.25),
+      -0.09em 0 0 rgb(212 255 58 / 0.12),
+      -0.15em 0 0 rgb(212 255 58 / 0.05);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .claim {
+    display: grid;
+    gap: 0.75rem;
+    max-width: 34rem;
+    padding-bottom: 0.6rem;
+  }
+
+  .claim-src {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-stretch: 90%;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .claim-src :global(.brandmark) {
+    font-size: 1.15rem;
+  }
+
+  .claim-main {
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 1rem + 0.9vw, 1.75rem);
+    font-weight: 650;
+    font-stretch: 108%;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
+
+  .claim-sub {
+    color: var(--ink-2);
+  }
+
+  @media (min-width: 64rem) {
+    .headline {
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+  }
+
+  /* Lanes */
+  .lanes {
+    display: grid;
+    gap: 1rem;
+    margin: clamp(2rem, 1.5rem + 2vw, 3.5rem) 0 0;
+    padding: clamp(1.1rem, 0.8rem + 1vw, 1.75rem);
+  }
+
+  .lanes-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+  }
+
+  .clock {
+    font-size: 0.875rem;
+    color: var(--ink-2);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .clock span {
+    color: var(--ink);
+    font-size: 1.25rem;
+  }
+
+  .lane {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'who t'
+      'track track'
+      'state state';
+    align-items: center;
+    gap: 0.35rem 1rem;
+  }
+
+  .who {
+    grid-area: who;
+    font-weight: 650;
+  }
+
+  .who :global(.series-mark) {
+    margin-right: 0.4rem;
+  }
+
+  .is-bend .who :global(.series-mark) {
+    color: var(--volt);
+  }
+
+  .is-base .who {
+    color: var(--ink-2);
+    font-weight: 500;
+  }
+
+  .t {
+    grid-area: t;
+    font-size: 0.8125rem;
+    color: var(--ink-2);
+  }
+
+  .state {
+    grid-area: state;
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .is-bend.finished .state {
+    color: var(--volt);
+  }
+
+  .track {
+    grid-area: track;
+    position: relative;
+    height: 22px;
+    border-radius: 6px;
+    background:
+      repeating-linear-gradient(90deg, transparent 0 calc(10% - 1px), var(--grid) calc(10% - 1px) 10%),
+      var(--surface-2);
+    overflow: hidden;
+  }
+
+  .fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: calc(var(--p, 1) * 100%);
+    min-width: 3px;
+    border-radius: inherit;
+    background: var(--s-base-1);
+  }
+
+  .is-bend .fill {
+    background: var(--heat);
+    box-shadow: 0 0 24px rgb(212 255 58 / 0.45);
+  }
+
+  /* The leading edge glows while the lane is running. */
+  .is-bend .fill::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    width: 3rem;
+    height: 200%;
+    translate: 40% -50%;
+    background: radial-gradient(closest-side, rgb(255 255 240 / 0.9), rgb(212 255 58 / 0.4) 40%, transparent);
+    opacity: 0;
+    transition: opacity 300ms var(--ease-out);
+  }
+
+  .running .is-bend:not(.finished) .fill::after {
+    opacity: 1;
+  }
+
+  figcaption {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1.5rem;
+    margin-top: 0.4rem;
+    color: var(--ink-3);
+    font-size: 0.875rem;
+  }
+
+  figcaption strong {
+    color: var(--volt);
+  }
+
+  .replay {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 40px;
+    padding: 0.4rem 0.9rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-stretch: 90%;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .replay:hover {
+    border-color: var(--volt);
+    color: var(--volt);
+  }
+
+  @media (min-width: 48rem) {
+    .lane {
+      grid-template-columns: 9rem minmax(0, 1fr) 5rem 8.5rem;
+      grid-template-areas: 'who track t state';
+    }
+    .t {
+      text-align: right;
+    }
+  }
+
+  /* Scoreboard */
+  .board {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .tile {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: 1rem;
+    padding: 1.35rem 1.35rem 1.5rem;
+  }
+
+  .tile:has(.stretched:hover) {
+    border-color: var(--line-strong);
+  }
+
+  .tile:has(.stretched:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: 3px;
+  }
+
+  .tile-label {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  a.tile-label:hover {
+    text-decoration: underline;
+  }
+
+  .stretched::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+
+  .stretched:focus-visible {
+    outline: none;
+  }
+
+  .tile-figure {
+    font-size: clamp(2.75rem, 2rem + 2.6vw, 4.25rem);
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .wide .tile-figure {
+    color: var(--ion);
+  }
+
+  .upto {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    font-stretch: 90%;
+    font-style: normal;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+  }
+
+  .tile-detail {
+    color: var(--ink-2);
+    font-size: 0.9375rem;
+  }
+
+  .ties .tile-figure {
+    color: var(--ink-3);
+  }
+
+  .tie-lines {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.9375rem;
+  }
+
+  .tie-lines a {
+    color: var(--ink-2);
+  }
+
+  @media (min-width: 44rem) {
+    .board {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .wide,
+    .ties {
+      grid-column: 1 / -1;
+    }
+    .ties {
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      column-gap: 2.5rem;
+    }
+    .ties .tile-label {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (min-width: 68rem) {
+    .board {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .wide {
+      grid-column: span 2;
+    }
+  }
+</style>

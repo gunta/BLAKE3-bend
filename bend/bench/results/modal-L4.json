@@ -1,0 +1,204 @@
+{
+  "info": {
+    "gpu": "NVIDIA L4, 23034 MiB, 610.57.04",
+    "cpu": "unknown",
+    "cpus": 16,
+    "bend": "bend 2.0.39",
+    "cuda": "Cuda compilation tools, release 13.4, V13.4.92",
+    "clang": "Ubuntu clang version 20.1.8 (++20250804090239+87f0227cb601-1~exp1~20250804210352.139)"
+  },
+  "vectors": {
+    "cuda": "35/35 official vectors match"
+  },
+  "rows": [
+    {
+      "bytes": 67108864,
+      "bend_gpu": {
+        "runs_ms": [
+          13.669,
+          1.744,
+          1.607,
+          1.603
+        ],
+        "min_ms": 1.603,
+        "median_ms": 1.607
+      },
+      "bend_cpu": {
+        "runs_ms": [
+          12.658,
+          2.631,
+          2.465,
+          2.314
+        ],
+        "min_ms": 2.314,
+        "median_ms": 2.465
+      },
+      "rust_cpu": {
+        "runs_ms": [
+          10.295,
+          2.93,
+          3.465,
+          2.297
+        ],
+        "min_ms": 2.297,
+        "median_ms": 2.93
+      },
+      "native_cuda": {
+        "runs_ms": [
+          1.003,
+          0.47,
+          0.472,
+          0.471
+        ],
+        "min_ms": 0.47,
+        "median_ms": 0.471
+      },
+      "native_cuda_bend_shape": {
+        "runs_ms": [
+          1.101,
+          0.468,
+          0.469,
+          0.468
+        ],
+        "min_ms": 0.468,
+        "median_ms": 0.468
+      },
+      "digest": "884b8397c001238c143369ebbb8c95928312b32bf108ed9498dcb42d34f6a2fb",
+      "digests_agree": true
+    },
+    {
+      "bytes": 134217728,
+      "bend_gpu": {
+        "runs_ms": [
+          19.912,
+          2.331,
+          2.129,
+          2.151
+        ],
+        "min_ms": 2.129,
+        "median_ms": 2.151
+      },
+      "bend_cpu": {
+        "runs_ms": [
+          12.462,
+          4.68,
+          4.054,
+          4.338
+        ],
+        "min_ms": 4.054,
+        "median_ms": 4.338
+      },
+      "rust_cpu": {
+        "runs_ms": [
+          12.069,
+          3.947,
+          4.022,
+          3.124
+        ],
+        "min_ms": 3.124,
+        "median_ms": 3.947
+      },
+      "native_cuda": {
+        "runs_ms": [
+          2.055,
+          1.365,
+          1.355,
+          1.358
+        ],
+        "min_ms": 1.355,
+        "median_ms": 1.358
+      },
+      "native_cuda_bend_shape": {
+        "runs_ms": [
+          2.081,
+          1.366,
+          1.353,
+          1.365
+        ],
+        "min_ms": 1.353,
+        "median_ms": 1.365
+      },
+      "digest": "5b739ffc5641db7d1fd2874bb702045ddc4d6d3be9d813f856fe3158ced6c95a",
+      "digests_agree": true
+    },
+    {
+      "bytes": 268435456,
+      "bend_gpu": {
+        "runs_ms": [
+          37.228,
+          3.329,
+          3.159,
+          3.152
+        ],
+        "min_ms": 3.152,
+        "median_ms": 3.159
+      },
+      "bend_cpu": {
+        "runs_ms": [
+          18.755,
+          8.451,
+          10.579,
+          8.459
+        ],
+        "min_ms": 8.451,
+        "median_ms": 8.459
+      },
+      "rust_cpu": {
+        "runs_ms": [
+          15.211,
+          5.71,
+          5.693,
+          6.005
+        ],
+        "min_ms": 5.693,
+        "median_ms": 5.71
+      },
+      "native_cuda": {
+        "runs_ms": [
+          3.485,
+          2.688,
+          2.691,
+          2.689
+        ],
+        "min_ms": 2.688,
+        "median_ms": 2.689
+      },
+      "native_cuda_bend_shape": {
+        "runs_ms": [
+          2.572,
+          1.664,
+          1.66,
+          1.685
+        ],
+        "min_ms": 1.66,
+        "median_ms": 1.664
+      },
+      "digest": "6fbb7c42c17be45f2b1bdb6d2aa8a1f6720e40479f0536ca533b7858da27a7c8",
+      "digests_agree": true
+    }
+  ],
+  "single_thread": {
+    "bytes": 268435456,
+    "bend_cpu_1t": {
+      "runs_ms": [
+        217.947,
+        216.941,
+        219.717
+      ],
+      "min_ms": 216.941,
+      "median_ms": 218.329
+    },
+    "rust_cpu_1t": {
+      "runs_ms": [
+        57.86,
+        56.588,
+        56.555
+      ],
+      "min_ms": 56.555,
+      "median_ms": 56.5715
+    }
+  },
+  "note": "warm, in memory; min/median skip the first run (CUDA managed memory moves the pages to the GPU on first touch)",
+  "requested_gpu": "L4",
+  "wall_s": 74.4
+}

@@ -1,5 +1,5 @@
 [package]
-name = "b3sum-bend"
+name = "b3bend"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.85"
@@ -15,7 +15,7 @@ include = ["src/**", "csrc/**", "build.rs", "README.md", "LICENSE_*"]
 build = "build.rs"
 
 [[bin]]
-name = "b3sum-bend"
+name = "b3bend"
 path = "src/main.rs"
 
 [build-dependencies]

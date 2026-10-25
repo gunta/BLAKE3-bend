@@ -45,7 +45,7 @@ for n in [0, 1, 63, 64, 65, 1023, 1024, 1025, 2048, 7169, 8192, 8193, 16384,
 PY
 set -- "$scratch"/e*.bin
 "$ref" "$@" > "$scratch/want.txt"
-for bin in bend/build/b3sum bend/crate/target/release/b3sum-bend; do
+for bin in bend/build/b3sum bend/crate/target/release/b3bend; do
   "$bin" "$@" > "$scratch/got.txt"
   cmp "$scratch/want.txt" "$scratch/got.txt"
   echo "$bin: $# files identical"

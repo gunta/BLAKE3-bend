@@ -1,0 +1,26 @@
+---
+/** A Lucide icon (ISC), inline and decorative: pass the SVG string from lucide-static. */
+interface Props {
+  svg: string;
+  class?: string;
+}
+
+const { svg, class: className } = Astro.props;
+const html = svg
+  .replace(/<!--.*?-->/s, '')
+  .replace(/class="[^"]*"/, `class="icon${className ? ` ${className}` : ''}" aria-hidden="true" focusable="false"`)
+  .replace(/\s(width|height)="24"/g, '');
+---
+
+<Fragment set:html={html} />
+
+<style is:global>
+  svg.icon {
+    display: inline-block;
+    flex: none;
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.125em;
+    stroke-width: 1.75;
+  }
+</style>

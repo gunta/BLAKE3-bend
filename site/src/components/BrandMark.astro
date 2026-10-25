@@ -1,0 +1,61 @@
+---
+/**
+ * One official mark (src/lib/brands.ts), drawn from BrandSprite's symbols. `tone="mono"` paints it in
+ * currentColor so it sits in running text; `tone="brand"` uses its owner's color.
+ * `name="merge"` is this page's own mark; `name="bend"` is Bend's icon (a PNG).
+ */
+import { MARKS, type Mark, type MarkName } from '../lib/brands';
+import { MARK_DOT, MARK_PATHS, MARK_SKEW, MARK_VIEWBOX } from '../lib/brand';
+import bendIcon from '../assets/brands/bend.png';
+
+interface Props {
+  name: MarkName | 'merge' | 'bend';
+  tone?: 'mono' | 'brand';
+  /** Accessible name; without it the mark is decorative. */
+  label?: string;
+  class?: string;
+}
+
+const { name, tone = 'mono', label, class: className } = Astro.props;
+const a11y = label ? { role: 'img' as const, 'aria-label': label } : { 'aria-hidden': 'true' as const };
+const mark: Mark | undefined = name === 'merge' || name === 'bend' ? undefined : MARKS[name];
+const fill = tone === 'brand' && mark ? mark.color : 'currentColor';
+---
+
+{
+  name === 'bend' ? (
+    <img class:list={['brandmark', 'bend', className]} src={bendIcon.src} width="200" height="200" alt={label ?? ''} loading="lazy" decoding="async" />
+  ) : name === 'merge' ? (
+    <svg class:list={['brandmark', 'merge', className]} viewBox={MARK_VIEWBOX} focusable="false" {...a11y}>
+      <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" transform={MARK_SKEW}>
+        {MARK_PATHS.map((p) => <path d={p.d} stroke-width={p.w} />)}
+      </g>
+      <circle cx={MARK_DOT.cx} cy={MARK_DOT.cy} r={MARK_DOT.r} fill="currentColor" />
+    </svg>
+  ) : (
+    mark && (
+      <svg class:list={['brandmark', { wide: mark.wide }, className]} viewBox={mark.viewBox} fill={fill} focusable="false" {...a11y}>
+        <use href={`#mark-${name}`} />
+      </svg>
+    )
+  )
+}
+
+<style>
+  .brandmark {
+    display: inline-block;
+    flex: none;
+    width: auto;
+    height: 1em;
+    vertical-align: -0.125em;
+  }
+
+  .merge {
+    aspect-ratio: 59 / 45;
+  }
+
+  .bend {
+    width: 1em;
+    border-radius: 0.22em;
+  }
+</style>

@@ -34,14 +34,14 @@ export const inMemory: Table = buildTable(results.in_memory, {
 
 export const cli: Table = buildTable(results.cli, {
   b3sum: { label: 'b3sum', description: 'the official b3sum CLI' },
-  bend: { label: 'Bend b3sum', description: 'bend/b3sum.bend, CPU only' },
+  bend: { label: 'b3bend', description: 'the b3bend command (bend/b3sum.bend), CPU only' },
 });
 
 /** Real model weights, one shot: the case where most of the file is on disk. */
 export const models: Table | undefined = results.models
   ? buildTable(results.models, {
       b3sum: { label: 'b3sum', description: 'the official b3sum CLI' },
-      bend: { label: 'Bend b3sum', description: 'bend/b3sum.bend, streaming what is not cached' },
+      bend: { label: 'b3bend', description: 'the b3bend command, streaming what is not cached' },
     })
   : undefined;
 

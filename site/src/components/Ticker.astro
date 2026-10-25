@@ -1,0 +1,135 @@
+---
+/**
+ * A tape of the headline numbers running under the hero, like a timing screen.
+ * Built from the same headlines as the scoreboard; the second copy exists only
+ * to make the loop seamless and is hidden from assistive tech.
+ */
+import { headlines } from '../lib/page';
+import { MARK_DOT } from '../lib/brand';
+
+const items = [headlines.models, headlines.gpu, headlines.cli, headlines.perCore]
+  .filter((h) => h !== undefined)
+  .map((h) => ({ value: h.value.replace(/x$/, '×'), what: h.short, where: h.context, href: h.href }));
+---
+
+{
+  items.length > 0 && (
+    <div class="ticker" role="region" aria-label="Headline results">
+      {[0, 1].map((copy) => (
+        <ul class="tape" role="list" aria-hidden={copy === 1 ? 'true' : undefined}>
+          {items.map((it) => (
+            <li>
+              <a href={it.href} tabindex={copy === 1 ? -1 : undefined}>
+                <span class="v">{it.value}</span>
+                <span class="what">{it.what}</span>
+                <span class="where">{it.where}</span>
+              </a>
+              <svg class="sep" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+                <circle cx="6" cy="6" r={MARK_DOT.r * 0.75} />
+              </svg>
+            </li>
+          ))}
+        </ul>
+      ))}
+    </div>
+  )
+}
+
+<style>
+  .ticker {
+    position: relative;
+    display: flex;
+    overflow: hidden;
+    border-block: 1px solid var(--line);
+    background: var(--surface);
+    mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  }
+
+  .tape {
+    flex: none;
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    align-items: center;
+  }
+
+  a {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 1.05rem 1.6rem;
+    color: var(--ink-2);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .v {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 820;
+    font-stretch: 125%;
+    font-style: italic;
+    letter-spacing: -0.03em;
+    color: var(--volt);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .what {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .where {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-stretch: 90%;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  a:hover .what {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .sep {
+    width: 0.6rem;
+    height: 0.6rem;
+    fill: var(--ion);
+    opacity: 0.7;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .tape {
+      animation: tape 38s linear infinite;
+    }
+
+    .ticker:hover .tape,
+    .ticker:focus-within .tape {
+      animation-play-state: paused;
+    }
+
+    @keyframes tape {
+      to {
+        transform: translateX(-100%);
+      }
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ticker {
+      overflow-x: auto;
+      mask-image: none;
+    }
+    .tape[aria-hidden] {
+      display: none;
+    }
+  }
+</style>

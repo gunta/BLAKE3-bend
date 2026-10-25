@@ -28,8 +28,8 @@ const code = parts.length % 2 === 1;
     max-width: var(--measure);
     margin: 0 0 1.75rem;
     padding: 0.8rem 1rem;
-    border-left: 3px solid var(--axis);
-    background: var(--surface-2);
+    border-left: 2px solid var(--ion);
+    background: linear-gradient(90deg, rgb(70 227 255 / 0.06), transparent 70%), var(--surface);
     border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
     color: var(--ink-2);
     font-size: 0.9375rem;
@@ -40,6 +40,7 @@ const code = parts.length % 2 === 1;
   }
 
   .tone-caveat {
-    border-left-color: var(--ink-2);
+    border-left-color: var(--plasma);
+    background: linear-gradient(90deg, rgb(255 79 139 / 0.07), transparent 70%), var(--surface);
   }
 </style>

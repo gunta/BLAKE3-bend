@@ -1,16 +1,17 @@
-# b3sum-bend
+# b3bend
 
-`b3sum`, written in [Bend2](https://bend-lang.com): a BLAKE3 command line
-tool that prints exactly what the official
+BLAKE3, the SHA-256 replacement, bent for speed: `b3sum`, written in
+[Bend2](https://bend-lang.com). A BLAKE3 command line tool that prints exactly
+what the official
 [`b3sum`](https://crates.io/crates/b3sum) prints, but hashes many files at
 once and every big file across all cores.
 
 ```bash
-cargo install b3sum-bend
+cargo install b3bend
 ```
 
 ```bash
-b3sum-bend FILE...
+b3bend FILE...
 ```
 
 Needs clang (Apple's, or LLVM clang 19+ on Linux; set `CC` if clang is not
@@ -39,7 +40,7 @@ Benchmarks, method and the limits we hit:
 Same as `b3sum` for plain hashing: file names (or none, or `-`, for stdin);
 one `<hash>  <name>` line per file; exit status 1 if a file could not be
 read. Runtime options go between `+RTS` and `-RTS`, for example
-`b3sum-bend +RTS --threads 8 -RTS big.iso`.
+`b3bend +RTS --threads 8 -RTS big.iso`.
 
 ## License
 
