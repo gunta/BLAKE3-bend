@@ -37,3 +37,51 @@ def B3IO.load(paths: List<String>, threads: U32) -> IO(Files):
 def B3IO.emit(o: Out) -> IO(U32):
   import "./effs/emit.c"
   import "./effs/emit.js"
+
+# The XOR of every hash's words: a daemon's check, with nothing printed.
+def B3IO.fold(o: Out) -> IO(U32):
+  import "./effs/emit.c"
+  import "./effs/emit.js"
+
+# A daemon's loop: keep the paths once, load them again each round (with
+# empty names), and release the mapped files once their hashes are out.
+def B3IO.keep(paths: List<String>) -> IO(U32):
+  import "./effs/load.c"
+  import "./effs/load.js"
+
+def B3IO.again(threads: U32) -> IO(Files):
+  import "./effs/load.c"
+  import "./effs/load.js"
+
+def B3IO.release() -> IO(Unit):
+  import "./effs/load.c"
+  import "./effs/load.js"
+
+# Hashing
+# -------
+
+# A big file's parts hash in parallel, each a complete subtree but the
+# last, and merge as BLAKE3's parents; only the top one is the root.
+def segs(s: Segs, +rf: U32) -> B3.CV:
+  match s:
+    case SLeaf{a, cb, nch, last}:
+      B3.hash.at(a, cb, nch, last, rf)
+    case SNode{l, r}:
+      x y = segs(l, 0) segs(r, 0)
+      B3.parent(x, y, rf)
+
+# Every file at once: the fork over the tree runs files in parallel, and
+# each file's BLAKE3 tree is parallel too.
+def hash(t: Files) -> Out:
+  match t:
+    case FNone{}:
+      ONone{}
+    case FFile{a, len, name}:
+      OHash{B3.hash(a, len), name}
+    case FSegs{s, name}:
+      OHash{segs(s, B3.ROOT()), name}
+    case FErr{msg, name}:
+      OErr{msg, name}
+    case FPair{l, r}:
+      x y = hash(l) hash(r)
+      OPair{x, y}

@@ -110,48 +110,48 @@ static void b3_pread(int fd, char* dst, u64 off, u64 len) {
   }
 }
 
-// A fresh block of class cls whose first byte sits on a VM page, so a file
-// can be mapped over it: the heap's bump pointer moves past up to 15 KiB.
-static u64 b3_page_block(u64* H, u32 cls) {
-  u32 pages = (1u << cls) >> PAGE_BITS;
-  u32 vm = (u32)(getpagesize() / (PAGE_LEN * 8));
-  vm = vm < 1 ? 1 : vm;
-  u32 p0 = a32_add(a32_at(H, H_BUMP), pages + vm - 1);
-  u64 need = (u64)p0 + pages + vm - 1;
-  if (need > a32_load_acq(a32_at(H, H_CAP)) && !corpus_grow(H, need)) {
-    return 0;
-  }
-  for (u32 p = p0; p < p0 + vm; p += 1) {
-    u64 loc = HEAP_OFF + ((u64)p << PAGE_BITS);
-    if (((uintptr_t)(H + loc) & (uintptr_t)(getpagesize() - 1)) == 0) {
-      return loc;
-    }
-  }
-  return 0;
-}
+// Mapped files live in a zone of their own, 6 TB past the heap's start:
+// still inside the 2^40 words a Term's loc can name, far past where the
+// heap grows. A map into an empty hole is cheap; a MAP_FIXED over the
+// heap's one big reservation splits it, under the VM map's lock, per file
+// (1000 maps of 1 MiB: ~20 ms). Files take consecutive ranges, so a daemon
+// releases a whole round with one munmap. The zone is only hinted, never
+// forced: if the kernel puts the map elsewhere, the file is read instead.
+#define B3_ZONE (6ull << 40)
+#define B3_ZONE_MAX (1ull << 40)
 
-// Maps a part over its block, read-only and shared, as b3sum's memmap
-// does: no read, no copy, and no copy-on-write setup (a 1 GiB private map
-// costs 5 ms, a shared one nothing). The bytes past the part's last VM page
-// are the heap's own zero pages. A freed block takes a free-list link in
-// its first word, so a mapped block is never freed: b3_arr keeps one
-// reference to it for the life of the process.
+static u64 b3_zone_used;
+
+// Maps a part read-only and shared, as b3sum's memmap does: no read, no
+// copy, no copy-on-write set-up (a 1 GiB private map costs 5 ms, a shared
+// one nothing). The bytes past the file's end in its last VM page read as
+// zero. The array is never freed (b3_arr keeps a reference), since a free
+// writes a link into the block's first word and the zone is not heap.
 static bool b3_map(u64* H, int fd, B3Part* p) {
-  if (io_gpu || p->len < B3_MAP_MIN || p->cls < PAGE_BITS + 2) {
-    return false;
+  static u64 min;
+  if (min == 0) {
+    const char* m = getenv("B3IO_MAP_MIN");
+    min = m != NULL ? strtoull(m, NULL, 10) : B3_MAP_MIN;
   }
-  u64 loc = b3_page_block(H, blk_wcls(0, p->cls));
-  if (loc == 0) {
+  if (io_gpu || p->len < min) {
     return false;
   }
   u64 pg = (u64)getpagesize();
   u64 span = (p->len + pg - 1) & ~(pg - 1);
-  void* at = mmap((char*)(H + loc), span, PROT_READ, MAP_SHARED | MAP_FIXED, fd,
-    (off_t)p->off);
+  u64 off = __atomic_fetch_add(&b3_zone_used, span, __ATOMIC_RELAXED);
+  if (off + span > B3_ZONE_MAX) {
+    return false;
+  }
+  char* want = (char*)H + B3_ZONE + off;
+  void* at = mmap(want, span, PROT_READ, MAP_SHARED, fd, (off_t)p->off);
   if (at == MAP_FAILED) {
     return false;
   }
-  p->loc = loc;
+  if (at != want) {
+    munmap(at, span);
+    return false;
+  }
+  p->loc = (u64)(want - (char*)H) / 8;
   p->mapped = true;
   return true;
 }
@@ -340,9 +340,32 @@ static Term b3_ctr(Env e, u64 cid, u32 n, Term* v) {
   return term_ctr(cid, l);
 }
 
+// The mapped blocks handed out, each with the reference the loader keeps
+// so that Bend never frees (writes to) a read-only page. B3IO.release puts
+// zero pages back over them and drops that reference, as a daemon must.
+typedef struct {
+  Term  arr;
+  char* at;
+  u64   span;
+} B3Kept;
+
+static B3Kept* b3_kept;
+static u32     b3_nkept, b3_kcap;
+
 static Term b3_arr(Env e, B3Part* p) {
   Term arr = term_blk(0, p->cls, p->loc);
-  return p->mapped ? term_keep(e, arr, 1) : arr;
+  if (!p->mapped) {
+    return arr;
+  }
+  arr = term_keep(e, arr, 1);
+  if (b3_nkept == b3_kcap) {
+    b3_kcap = b3_kcap ? b3_kcap * 2 : 64;
+    b3_kept = io_mem(realloc(b3_kept, b3_kcap * sizeof(B3Kept)));
+  }
+  u64 pg = (u64)getpagesize();
+  b3_kept[b3_nkept++] = (B3Kept){ arr, (char*)(e.mem + p->loc),
+    (p->len + pg - 1) & ~(pg - 1) };
+  return arr;
 }
 
 // Parts lo..hi-1 as BLAKE3's left-full tree: the left side takes the
@@ -400,6 +423,8 @@ static Term b3_tree(Env e, B3File* fs, u64* pre, u32 lo, u32 hi) {
   fprintf(stderr, "b3io %-6s %8llu us\n", name, (unsigned long long)(t1 - t0)); \
   t0 = t1; }
 
+static Term b3_load(Env e, B3File* fs, u32 n, u32 threads, bool trace, u64 t0);
+
 Term b3io_load_run(Env e, Term* f, IoWork* w) {
   bool trace = getenv("B3IO_TRACE") != NULL;
   u64  t0 = b3_us();
@@ -425,11 +450,16 @@ Term b3io_load_run(Env e, Term* f, IoWork* w) {
     n += 1;
     xs = fb[1];
   }
+  B3_MARK("args")
+  return b3_load(e, fs, n, threads, trace, t0);
+}
+
+// Loads files fs[0..n-1] (paths and names set), frees fs, answers Files.
+static Term b3_load(Env e, B3File* fs, u32 n, u32 threads, bool trace, u64 t0) {
   if (n == 0) {
     free(fs);
     return term_pak(CID(FNone), 0);
   }
-  B3_MARK("args")
   B3Jobs j = { .files = fs, .nfiles = n, .heap = e.mem,
     .rows = CUBE_T + 1 - pool_size };
   b3_pool(&j, b3_file_job, n < threads ? n : threads);
@@ -479,6 +509,76 @@ Term b3io_load_run(Env e, Term* f, IoWork* w) {
   return t;
 }
 
+// The daemon's side: keep a list of paths once, then load them again and
+// again, with empty names, as a sync service re-hashes what it watches.
+
+static char** b3_saved;
+static u32    b3_nsaved;
+
+Term b3io_keep_run(Env e, Term* f, IoWork* w) {
+  for (u32 i = 0; i < b3_nsaved; i += 1) {
+    free(b3_saved[i]);
+  }
+  b3_nsaved = 0;
+  u32 cap = 64;
+  b3_saved = io_mem(realloc(b3_saved, cap * sizeof(char*)));
+  Term xs = f[0];
+  while (term_aux(xs) == CID_Con) {
+    Term fb[2];
+    spare_free(e, cls_fit(2), ctr_take(e, xs, 2, fb));
+    if (b3_nsaved == cap) {
+      cap *= 2;
+      b3_saved = io_mem(realloc(b3_saved, cap * sizeof(char*)));
+    }
+    u64 len;
+    b3_saved[b3_nsaved++] = b3_cstr(e, fb[0], &len);
+    term_sink(e, fb[0]);
+    xs = fb[1];
+  }
+  return (Term)b3_nsaved;
+}
+
+Term b3io_again_run(Env e, Term* f, IoWork* w) {
+  B3File* fs = io_mem(calloc(b3_nsaved ? b3_nsaved : 1, sizeof(B3File)));
+  for (u32 i = 0; i < b3_nsaved; i += 1) {
+    fs[i].path = strdup(b3_saved[i]);
+    fs[i].plen = strlen(fs[i].path);
+    fs[i].name = term_pak(CID_SNil, 0);
+    fs[i].fd = -1;
+  }
+  bool trace = getenv("B3IO_TRACE") != NULL;
+  return b3_load(e, fs, b3_nsaved, (u32)f[0], trace, b3_us());
+}
+
+// Every mapped file of the round goes in one munmap of the zone's used
+// range; the kept references are left as they are (a word each), since a
+// zone block must not reach the heap's free lists.
+Term b3io_release_run(Env e, Term* f, IoWork* w) {
+  u64 t0 = b3_us();
+  u32 kept = b3_nkept;
+  if (b3_zone_used > 0) {
+    munmap((char*)e.mem + B3_ZONE, b3_zone_used);
+    b3_zone_used = 0;
+  }
+  b3_nkept = 0;
+  if (getenv("B3IO_TRACE") != NULL) {
+    fprintf(stderr, "b3io release %u maps %llu us\n", kept,
+      (unsigned long long)(b3_us() - t0));
+  }
+  return term_pak(CID(Unit), 0);
+}
+
 static void __attribute__((constructor)) b3io_load_use(void) {
+#ifdef CID(B3IO.load)
   io_eff(CID(B3IO.load), b3io_load_run);
+#endif
+#ifdef CID(B3IO.keep)
+  io_eff(CID(B3IO.keep), b3io_keep_run);
+#endif
+#ifdef CID(B3IO.again)
+  io_eff(CID(B3IO.again), b3io_again_run);
+#endif
+#ifdef CID(B3IO.release)
+  io_eff(CID(B3IO.release), b3io_release_run);
+#endif
 }

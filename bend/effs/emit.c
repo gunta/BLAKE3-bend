@@ -97,6 +97,38 @@ Term b3io_emit_run(Env e, Term* f, IoWork* w) {
   return (Term)nerr;
 }
 
+// B3IO.fold: the XOR of every hash's eight words, so a daemon run can be
+// checked against another implementation without printing. Frees the tree.
+static u32 b3_fold(Env e, Term o) {
+  u64 cid = term_aux(o);
+  if (cid == CID(OPair)) {
+    u64 at = term_peek(e.mem, o);
+    return b3_fold(e, e.mem[at]) ^ b3_fold(e, e.mem[at + 1]);
+  }
+  if (cid == CID(OHash)) {
+    u64 at = term_peek(e.mem, o);
+    bool flat = cid_arity(CID(OHash)) == 9;
+    u64 cv = flat ? at : term_peek(e.mem, e.mem[at]);
+    u32 x = 0;
+    for (u32 i = 0; i < 8; i += 1) {
+      x ^= (u32)e.mem[cv + i];
+    }
+    return x;
+  }
+  return 0;
+}
+
+Term b3io_fold_run(Env e, Term* f, IoWork* w) {
+  u32 x = b3_fold(e, f[0]);
+  term_sink(e, f[0]);
+  return (Term)x;
+}
+
 static void __attribute__((constructor)) b3io_emit_use(void) {
+#ifdef CID(B3IO.emit)
   io_eff(CID(B3IO.emit), b3io_emit_run);
+#endif
+#ifdef CID(B3IO.fold)
+  io_eff(CID(B3IO.fold), b3io_fold_run);
+#endif
 }

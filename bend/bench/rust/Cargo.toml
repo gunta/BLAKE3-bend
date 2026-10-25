@@ -5,7 +5,8 @@ edition = "2021"
 publish = false
 
 [dependencies]
-blake3 = { path = "../../..", features = ["rayon", "neon"] }
+blake3 = { path = "../../..", features = ["rayon", "neon", "mmap"] }
+rayon = "1"
 
 [profile.release]
 lto = true

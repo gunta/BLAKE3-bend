@@ -4,3 +4,11 @@ function b3io_load() {
 }
 
 io_eff(CID(B3IO.load), b3io_load);
+
+function b3io_native_only() {
+  throw new Error("B3IO: build natively (bend/build.sh)");
+}
+
+io_eff(CID(B3IO.keep), b3io_native_only);
+io_eff(CID(B3IO.again), b3io_native_only);
+io_eff(CID(B3IO.release), b3io_native_only);

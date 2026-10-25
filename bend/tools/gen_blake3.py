@@ -412,10 +412,20 @@ def endf(+p: Nat) -> U32:
     case 1n+q:
       0
 
+# The step to the next block: none after the last, so the loop's one extra
+# load re-reads a block of the chunks instead of reading past them (a
+# mapped file may end right there).
+def step(+p: Nat) -> U32:
+  match p:
+    case 0n:
+      0
+    case 1n+q:
+      16
+
 # Chains eight full chunks from word w at once; n counts the blocks left.
 # The loop has one compress8, so clang inlines it and vectorizes the whole
-# loop from the word-major stores of its result. At n = 0, r holds the
-# block past the chunks, read for nothing.
+# loop from the word-major stores of its result. At n = 0, r holds a block
+# read for nothing.
 def c8.go(+n: Nat, r: Array<U32> & B128, +w: U32, cv: CV8, +ctr: U32,
   +fl: U32) -> Array<U32> & CV8:
   match n:
@@ -424,7 +434,7 @@ def c8.go(+n: Nat, r: Array<U32> & B128, +w: U32, cv: CV8, +ctr: U32,
       (a, cv)
     case 1n+p:
       (a, m) = r
-      +w2 = (w + 16 : U32)
+      +w2 = (w + step(p) : U32)
       c8.go(p, ld8(a, w2), w2, compress8(cv, m, ctr, 1, 64,
         (fl .|. endf(p) : U32)), ctr, 0)
 

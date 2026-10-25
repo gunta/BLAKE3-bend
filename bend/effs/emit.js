@@ -4,3 +4,5 @@ function b3io_emit() {
 }
 
 io_eff(CID(B3IO.emit), b3io_emit);
+
+io_eff(CID(B3IO.fold), b3io_emit);
