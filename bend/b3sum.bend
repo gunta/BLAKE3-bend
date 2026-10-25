@@ -1,0 +1,50 @@
+# b3sum in Bend2
+# ==============
+#
+# usage: b3sum FILE...
+# Prints "<hash>  <name>" per file, like the official b3sum. B3IO.load reads
+# every file in parallel into its own Array<U32>; the fork over the Files
+# tree hashes the files in parallel, and each file's BLAKE3 tree is itself
+# parallel, so one big file and ten thousand small ones both use every core.
+
+import Base
+import ./blake3.bend as B3
+import ./b3io.bend as F
+
+def hash(t: F.Files) -> F.Out:
+  match t:
+    case F.FNone{}:
+      F.ONone{}
+    case F.FFile{a, len, name}:
+      F.OHash{B3.hash(a, len), name}
+    case F.FErr{msg, name}:
+      F.OErr{msg, name}
+    case F.FPair{l, r}:
+      x y = hash(l) hash(r)
+      F.OPair{x, y}
+
+def rest(xs: List<String>) -> List<String>:
+  match xs:
+    case Nil{}:
+      Nil{}
+    case Con{h, t}:
+      t
+
+def status.ok(ok: Bool) -> IO(Unit):
+  match ok:
+    case True{}:
+      IO.pure(Unit, Unit{})
+    case False{}:
+      IO.exit(1)
+
+# b3sum exits 1 when any file failed.
+def status(+n: U32) -> IO(Unit):
+  status.ok(U32.is_eq(n, 0))
+
+def main() -> IO(Unit):
+  do IO<Unit>:
+    args : List<String> <- IO.args()
+    n : U32 <- IO.thread_count()
+    files : F.Files <- F.B3IO.load(rest(args), n)
+    bad : U32 <- F.B3IO.emit(hash(files))
+    status(bad)
