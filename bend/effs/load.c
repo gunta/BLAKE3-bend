@@ -1,40 +1,57 @@
 // B3IO.load
 // =========
 //
-// Reads every file of a list into its own Array<U32> and answers them as a
+// Reads every file of a list into Array<U32> blocks and answers them as a
 // Files tree, balanced by bytes, in list order. This is the I/O half of
-// b3sum: the hashing is Bend. Each block holds the file's bytes as
-// little-endian words, zero-padded to the end of its last 64-byte block,
-// which is what blake3.bend expects.
+// b3sum: the hashing is Bend. A block holds bytes as little-endian words,
+// zero-padded to the end of its last 64-byte block, which is what
+// blake3.bend expects.
+//
+// A file of up to 1 GiB is one block (FFile). A larger one is cut into
+// 1 GiB parts (FSegs): 2^20 chunks each, so every part but the last is a
+// complete subtree of the file's BLAKE3 tree, and the Segs tree has the
+// left-full shape of BLAKE3's own top levels. Files up to 4 TiB (2^32
+// chunk counters) work this way.
 //
 // One pass of pthreads opens, stats, allocates and reads each file. A
 // thread allocates from an ALC row of its own past the pool's (rows
 // pool_size..CUBE_T are never used on the CPU), so the per-thread heap
 // allocator is safe here; the pool itself is parked while an effect runs.
-// A file of 1 MiB or more is mapped over a page-aligned block instead of
+// A part of 1 MiB or more is mapped over a page-aligned block instead of
 // read (CPU heap only: a GPU heap is a Metal buffer). On a GPU heap a large
-// file is read in 4 MiB slices by every thread.
+// part is read in 4 MiB slices by every thread.
 
 #include <sys/stat.h>
 
 #define B3_SLICE   (4ull << 20)
 #define B3_MAP_MIN (1ull << 20)
+#define B3_SEG     (1ull << 30)
+#define B3_MAX     (1ull << 42)
 
 typedef struct {
-  char* path;
-  u64   plen;
-  Term  name;
-  int   fd;
-  int   err;
-  u64   len;
-  u64   loc;
-  u32   cls;
-  bool  late;
-  bool  mapped;
+  u64  off;
+  u64  len;
+  u64  loc;
+  u32  cls;
+  bool mapped;
+  bool late;
+} B3Part;
+
+typedef struct {
+  char*   path;
+  u64     plen;
+  Term    name;
+  int     fd;
+  int     err;
+  u64     len;
+  u32     nparts;
+  B3Part* parts;
+  B3Part  one;
 } B3File;
 
 typedef struct {
   u32 file;
+  u32 part;
   u64 off;
   u64 len;
 } B3Slice;
@@ -67,7 +84,7 @@ static void __attribute__((constructor)) b3_t_init(void) {
   b3_t_start = b3_us();
 }
 
-// 2^cls words hold the file's whole blocks: at least one block.
+// 2^cls words hold the part's whole blocks: at least one block.
 static u32 b3_cls(u64 len) {
   u64 words = ((len + 63) / 64) * 16;
   u32 c = 4;
@@ -113,30 +130,52 @@ static u64 b3_page_block(u64* H, u32 cls) {
   return 0;
 }
 
-// Maps the file over its block, read-only and shared, as b3sum's memmap
+// Maps a part over its block, read-only and shared, as b3sum's memmap
 // does: no read, no copy, and no copy-on-write setup (a 1 GiB private map
-// costs 5 ms, a shared one nothing). The bytes past the file's last VM page
+// costs 5 ms, a shared one nothing). The bytes past the part's last VM page
 // are the heap's own zero pages. A freed block takes a free-list link in
-// its first word, so a mapped block is never freed: b3_leaf keeps one
+// its first word, so a mapped block is never freed: b3_arr keeps one
 // reference to it for the life of the process.
-static bool b3_map(u64* H, B3File* f) {
-  if (io_gpu || f->len < B3_MAP_MIN || f->cls < PAGE_BITS + 2) {
+static bool b3_map(u64* H, int fd, B3Part* p) {
+  if (io_gpu || p->len < B3_MAP_MIN || p->cls < PAGE_BITS + 2) {
     return false;
   }
-  u64 loc = b3_page_block(H, blk_wcls(0, f->cls));
+  u64 loc = b3_page_block(H, blk_wcls(0, p->cls));
   if (loc == 0) {
     return false;
   }
   u64 pg = (u64)getpagesize();
-  u64 span = (f->len + pg - 1) & ~(pg - 1);
-  void* at = mmap((char*)(H + loc), span, PROT_READ, MAP_SHARED | MAP_FIXED,
-    f->fd, 0);
+  u64 span = (p->len + pg - 1) & ~(pg - 1);
+  void* at = mmap((char*)(H + loc), span, PROT_READ, MAP_SHARED | MAP_FIXED, fd,
+    (off_t)p->off);
   if (at == MAP_FAILED) {
     return false;
   }
-  f->loc = loc;
-  f->mapped = true;
+  p->loc = loc;
+  p->mapped = true;
   return true;
+}
+
+// Maps, reads, or (a large part on a GPU heap) allocates the part for the
+// slice pass.
+static int b3_part(Env e, int fd, B3Part* p) {
+  p->cls = b3_cls(p->len);
+  if (b3_map(e.mem, fd, p)) {
+    return 0;
+  }
+  p->loc = heap_alloc(e, blk_wcls(0, p->cls));
+  if (err_peek(e.mem)) {
+    return ENOMEM;
+  }
+  char* dst = (char*)(e.mem + p->loc);
+  u64 padded = p->len == 0 ? 64 : ((p->len + 63) / 64) * 64;
+  memset(dst + p->len, 0, padded - p->len);
+  if (p->len > B3_SLICE) {
+    p->late = true;
+  } else {
+    b3_pread(fd, dst, p->off, p->len);
+  }
+  return 0;
 }
 
 static void b3_file(Env e, B3File* f) {
@@ -146,33 +185,30 @@ static void b3_file(Env e, B3File* f) {
     f->err = errno;
     return;
   }
+  bool late = false;
   if (fstat(f->fd, &st) != 0) {
     f->err = errno;
   } else if (S_ISDIR(st.st_mode)) {
     f->err = EISDIR;
-  } else if ((u64)st.st_size >= 0xFFFFFC00ull) {
+  } else if ((u64)st.st_size >= B3_MAX) {
     f->err = EFBIG;
   } else {
     f->len = (u64)st.st_size;
-    f->cls = b3_cls(f->len);
-    if (!b3_map(e.mem, f)) {
-      f->loc = heap_alloc(e, blk_wcls(0, f->cls));
-      if (err_peek(e.mem)) {
-        f->err = ENOMEM;
-      } else {
-        char* dst = (char*)(e.mem + f->loc);
-        u64 padded = f->len == 0 ? 64 : ((f->len + 63) / 64) * 64;
-        memset(dst + f->len, 0, padded - f->len);
-        if (f->len > B3_SLICE) {
-          f->late = true;
-          return;
-        }
-        b3_pread(f->fd, dst, 0, f->len);
-      }
+    f->nparts = f->len <= B3_SEG ? 1 : (u32)((f->len + B3_SEG - 1) / B3_SEG);
+    f->parts = f->nparts == 1 ? &f->one
+      : io_mem(calloc(f->nparts, sizeof(B3Part)));
+    for (u32 i = 0; i < f->nparts && !f->err; i += 1) {
+      B3Part* p = &f->parts[i];
+      p->off = (u64)i * B3_SEG;
+      p->len = f->len - p->off < B3_SEG ? f->len - p->off : B3_SEG;
+      f->err = b3_part(e, f->fd, p);
+      late |= p->late;
     }
   }
-  close(f->fd);
-  f->fd = -1;
+  if (!late || f->err) {
+    close(f->fd);
+    f->fd = -1;
+  }
 }
 
 static void* b3_file_job(void* arg) {
@@ -197,7 +233,8 @@ static void* b3_slice_job(void* arg) {
     }
     B3Slice* s = &j->slices[i];
     B3File*  f = &j->files[s->file];
-    b3_pread(f->fd, (char*)(j->heap + f->loc) + s->off, s->off, s->len);
+    B3Part*  p = &f->parts[s->part];
+    b3_pread(f->fd, (char*)(j->heap + p->loc) + (s->off - p->off), s->off, s->len);
   }
 }
 
@@ -240,12 +277,35 @@ static char* b3_cstr(Env e, Term s, u64* len) {
   return buf;
 }
 
-static Term b3_ctr3(Env e, u64 cid, Term a, Term b, Term c) {
-  u64 l = heap_alloc(e, cls_fit(3));
-  e.mem[l]     = io_seal(e, a, cid);
-  e.mem[l + 1] = io_seal(e, b, cid);
-  e.mem[l + 2] = io_seal(e, c, cid);
+static Term b3_ctr(Env e, u64 cid, u32 n, Term* v) {
+  u64 l = heap_alloc(e, cls_fit(n));
+  for (u32 i = 0; i < n; i += 1) {
+    e.mem[l + i] = io_seal(e, v[i], cid);
+  }
   return term_ctr(cid, l);
+}
+
+static Term b3_arr(Env e, B3Part* p) {
+  Term arr = term_blk(0, p->cls, p->loc);
+  return p->mapped ? term_keep(e, arr, 1) : arr;
+}
+
+// Parts lo..hi-1 as BLAKE3's left-full tree: the left side takes the
+// largest power of two of parts below the count.
+static Term b3_segs(Env e, B3File* f, u32 lo, u32 hi) {
+  if (hi - lo == 1) {
+    B3Part* p = &f->parts[lo];
+    u64 nch = (p->len + 1023) / 1024;
+    Term v[4] = { b3_arr(e, p), (Term)(u32)(p->off >> 10), (Term)(u32)nch,
+      (Term)(u32)(p->len - (nch - 1) * 1024) };
+    return b3_ctr(e, CID(SLeaf), 4, v);
+  }
+  u32 left = 1;
+  while (left * 2 < hi - lo) {
+    left *= 2;
+  }
+  Term v[2] = { b3_segs(e, f, lo, lo + left), b3_segs(e, f, lo + left, hi) };
+  return b3_ctr(e, CID(SNode), 2, v);
 }
 
 static Term b3_leaf(Env e, B3File* f) {
@@ -253,11 +313,11 @@ static Term b3_leaf(Env e, B3File* f) {
     const char* msg = strerror(f->err);
     return io_node(e, CID(FErr), io_str(e, msg, strlen(msg)), f->name);
   }
-  Term arr = term_blk(0, f->cls, f->loc);
-  if (f->mapped) {
-    arr = term_keep(e, arr, 1);
+  if (f->nparts > 1) {
+    return io_node(e, CID(FSegs), b3_segs(e, f, 0, f->nparts), f->name);
   }
-  return b3_ctr3(e, CID(FFile), arr, (Term)(u32)f->len, f->name);
+  Term v[3] = { b3_arr(e, &f->parts[0]), (Term)(u32)f->len, f->name };
+  return b3_ctr(e, CID(FFile), 3, v);
 }
 
 // Files lo..hi-1 as a tree whose halves hold about the same bytes.
@@ -320,17 +380,20 @@ Term b3io_load_run(Env e, Term* f, IoWork* w) {
   b3_pool(&j, b3_file_job, n < threads ? n : threads);
   B3_MARK("files")
 
-  // large files on a GPU heap: every thread reads a slice
+  // large parts on a GPU heap: every thread reads a slice
   u32 ns = 0, scap = 16;
   B3Slice* ss = io_mem(malloc(scap * sizeof(B3Slice)));
   for (u32 i = 0; i < n; i += 1) {
-    for (u64 off = 0; fs[i].late && off < fs[i].len; off += B3_SLICE) {
-      if (ns == scap) {
-        scap *= 2;
-        ss = io_mem(realloc(ss, scap * sizeof(B3Slice)));
+    for (u32 k = 0; !fs[i].err && k < fs[i].nparts; k += 1) {
+      B3Part* p = &fs[i].parts[k];
+      for (u64 off = 0; p->late && off < p->len; off += B3_SLICE) {
+        if (ns == scap) {
+          scap *= 2;
+          ss = io_mem(realloc(ss, scap * sizeof(B3Slice)));
+        }
+        u64 left = p->len - off;
+        ss[ns++] = (B3Slice){ i, k, p->off + off, left < B3_SLICE ? left : B3_SLICE };
       }
-      u64 left = fs[i].len - off;
-      ss[ns++] = (B3Slice){ i, off, left < B3_SLICE ? left : B3_SLICE };
     }
   }
   if (ns > 0) {
@@ -349,6 +412,11 @@ Term b3io_load_run(Env e, Term* f, IoWork* w) {
     free(fs[i].path);
   }
   Term t = b3_tree(e, fs, pre, 0, n);
+  for (u32 i = 0; i < n; i += 1) {
+    if (fs[i].parts != &fs[i].one) {
+      free(fs[i].parts);
+    }
+  }
   free(fs);
   free(ss);
   free(pre);

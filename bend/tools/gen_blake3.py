@@ -286,10 +286,10 @@ def c8.go(+n: Nat, r: Array<U32> & B128, +w: U32, cv: CV8, +ctr: U32,
       c8.go(p, ld8(a, w2), w2, compress8(cv, m, ctr, 1, 64,
         (fl .|. endf(p) : U32)), ctr, 0)
 
-# The CVs of chunks c..c+7.
-def group(a: Array<U32>, +c: U32) -> Array<U32> & CV8:
+# The CVs of chunks c..c+7 of the array, whose counters start at t.
+def group(a: Array<U32>, +c: U32, +t: U32) -> Array<U32> & CV8:
   +w = (c << 8n : U32)
-  c8.go(16n, ld8(a, w), w, IV8(), c, CHUNK_START())
+  c8.go(16n, ld8(a, w), w, IV8(), t, CHUNK_START())
 
 {par8}
 {fold8}
@@ -298,28 +298,28 @@ def leaf8.fin(r: Array<U32> & CV8, +rf: U32) -> CV:
   _ = a
   fold8(x, rf)
 
-def leaf8(a: Array<U32>, +c: U32, +rf: U32) -> CV:
-  leaf8.fin(group(a, c), rf)
+def leaf8(a: Array<U32>, +c: U32, +t: U32, +rf: U32) -> CV:
+  leaf8.fin(group(a, c, t), rf)
 
 # 32 full chunks: four groups, two levels of par8, then fold8.
 def leaf32.s3(r: Array<U32> & CV8, x: CV8, g2: CV8) -> Array<U32> & CV8:
   (a, g3) = r
   (a, par8(x, par8(g2, g3)))
 
-def leaf32.s2(r: Array<U32> & CV8, +c: U32, x: CV8) -> Array<U32> & CV8:
+def leaf32.s2(r: Array<U32> & CV8, +c: U32, +t: U32, x: CV8) -> Array<U32> & CV8:
   (a, g2) = r
-  leaf32.s3(group(a, (c + 24 : U32)), x, g2)
+  leaf32.s3(group(a, (c + 24 : U32), (t + 24 : U32)), x, g2)
 
-def leaf32.s1(r: Array<U32> & CV8, +c: U32, g0: CV8) -> Array<U32> & CV8:
+def leaf32.s1(r: Array<U32> & CV8, +c: U32, +t: U32, g0: CV8) -> Array<U32> & CV8:
   (a, g1) = r
-  leaf32.s2(group(a, (c + 16 : U32)), c, par8(g0, g1))
+  leaf32.s2(group(a, (c + 16 : U32), (t + 16 : U32)), c, t, par8(g0, g1))
 
-def leaf32.s0(r: Array<U32> & CV8, +c: U32) -> Array<U32> & CV8:
+def leaf32.s0(r: Array<U32> & CV8, +c: U32, +t: U32) -> Array<U32> & CV8:
   (a, g0) = r
-  leaf32.s1(group(a, (c + 8 : U32)), c, g0)
+  leaf32.s1(group(a, (c + 8 : U32), (t + 8 : U32)), c, t, g0)
 
-def leaf32(a: Array<U32>, +c: U32, +rf: U32) -> CV:
-  leaf8.fin(leaf32.s0(group(a, c), c), rf)
+def leaf32(a: Array<U32>, +c: U32, +t: U32, +rf: U32) -> CV:
+  leaf8.fin(leaf32.s0(group(a, c, t), c, t), rf)
 
 # What a node of the CPU tree does.
 type Node is Data:
@@ -349,69 +349,96 @@ def kind.full(+k: U32, full: Bool) -> Node:
     case True{{}}:
       kind.at(U32.is_eq(k, 5), k)
 
-def kind.big(+k: U32, +n: U32, +c: U32, +len: U32, b: Bool) -> Node:
+# Whether chunks up to e (exclusive) are all full: the last chunk, nch - 1,
+# holds `last` bytes.
+def full(+e: U32, +nch: U32, +last: U32) -> Bool:
+  U32.is_lt(e, nch) || (U32.is_eq(e, nch) && U32.is_eq(last, 1024))
+
+def kind.big(+k: U32, +n: U32, +c: U32, +nch: U32, +last: U32, b: Bool) -> Node:
   match b:
     case False{{}}:
       Down{{}}
     case True{{}}:
       kind.full(k, U32.is_eq(n, U32.shln(1, U32.to_nat(k))) &&
-        U32.is_le(((c + n : U32) << 10n : U32), len))
+        full((c + n : U32), nch, last))
 
-# The kind of a node of depth k >= 1 over chunks c..c+n of a len-byte input:
-# a wide leaf needs all 2^k chunks full.
-def kind(+k: U32, +n: U32, +c: U32, +len: U32) -> Node:
-  kind.big(k, n, c, len, U32.is_gt(n, U32.shln(1, U32.to_nat((k - 1 : U32)))))
+# The kind of a node of depth k >= 1 over chunks c..c+n: a wide leaf needs
+# all 2^k chunks full.
+def kind(+k: U32, +n: U32, +c: U32, +nch: U32, +last: U32) -> Node:
+  kind.big(k, n, c, nch, last,
+    U32.is_gt(n, U32.shln(1, U32.to_nat((k - 1 : U32)))))
 
 # tree1's shape, but full 32- and 8-chunk subtrees go through compress8.
 def tree8(+k: Nat, +ku: U32, d: Node, aa: Array<U32> & Array<U32>, +c: U32,
-  +n: U32, +len: U32, +rf: U32) -> CV:
+  +n: U32, +cb: U32, +nch: U32, +last: U32, +rf: U32) -> CV:
   match k d:
     case 0n _:
       (a1, a2) = aa
       _ = a2
-      chunk(a1, c, len, rf)
+      chunk(a1, c, cb, nch, last, rf)
     case 1n+p Down{{}}:
       +kp = (ku - 1 : U32)
-      tree8(p, kp, kind(kp, n, c, len), aa, c, n, len, rf)
+      tree8(p, kp, kind(kp, n, c, nch, last), aa, c, n, cb, nch, last, rf)
     case 1n+p Leaf32{{}}:
       (a1, a2) = aa
       _ = a2
-      leaf32(a1, c, rf)
+      leaf32(a1, c, (cb + c : U32), rf)
     case 1n+p Leaf8{{}}:
       (a1, a2) = aa
       _ = a2
-      leaf8(a1, c, rf)
+      leaf8(a1, c, (cb + c : U32), rf)
     case 1n+p Split{{}}:
       (a1, a2) = aa
       +kp = (ku - 1 : U32)
       +h = U32.shln(1, p)
       +n2 = (n - h : U32)
-      l r = tree8(p, kp, kind(kp, h, c, len), Array.fork(U32, a1), c, h, len, 0) tree8(p, kp, kind(kp, n2, (c + h : U32), len), Array.fork(U32, a2), (c + h : U32), n2, len, 0)
+      +c2 = (c + h : U32)
+      l r = tree8(p, kp, kind(kp, h, c, nch, last), Array.fork(U32, a1), c, h, cb, nch, last, 0) tree8(p, kp, kind(kp, n2, c2, nch, last), Array.fork(U32, a2), c2, n2, cb, nch, last, 0)
       parent(l, r, rf)
 
 # Entry points
 # ------------
+#
+# An input is a span: nch chunks held from word 0 of an array, the last
+# holding `last` bytes (1..1024, or 0 for the empty input), with chunk
+# counters from cb. A whole input takes rf = ROOT; a span that is a
+# complete subtree of a larger input (a 1 GiB segment of a big file) takes
+# rf = 0 and gives that subtree's CV.
 
-def hash.go(+k: Nat, a: Array<U32>, +n: U32, +len: U32) -> CV:
+def hash.go(+k: Nat, a: Array<U32>, +cb: U32, +nch: U32, +last: U32,
+  +rf: U32) -> CV:
   match k:
     case 0n:
-      chunk(a, 0, len, ROOT())
+      chunk(a, 0, cb, nch, last, rf)
     case 1n+p:
       +ku = U32.from_nat(k)
-      tree8(k, ku, kind(ku, n, 0, len), Array.fork(U32, a), 0, n, len, ROOT())
+      tree8(k, ku, kind(ku, nch, 0, nch, last), Array.fork(U32, a), 0, nch, cb,
+        nch, last, rf)
+
+# The CV of a span, on the CPU's 8-lane tree.
+def hash.at(a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32) -> CV:
+  hash.go(depth(nch), a, cb, nch, last, rf)
+
+# The bytes of the last chunk of a len-byte input of n chunks.
+def tail(+len: U32, +n: U32) -> U32:
+  (len - ((n - 1 : U32) << 10n : U32) : U32)
 
 # The BLAKE3 hash (first 32 bytes) of `len` bytes held in `a`, for the CPU.
 def hash(a: Array<U32>, +len: U32) -> CV:
   +n = chunks(len)
-  hash.go(depth(n), a, n, len)
+  hash.at(a, 0, n, tail(len, n), ROOT())
 
-def hash1.go(+k: Nat, a: Array<U32>, +n: U32, +len: U32) -> CV:
-  tree1(k, big(k, n), Array.fork(U32, a), 0, n, len, ROOT())
+def hash1.go(+k: Nat, a: Array<U32>, +cb: U32, +nch: U32, +last: U32,
+  +rf: U32) -> CV:
+  tree1(k, big(k, nch), Array.fork(U32, a), 0, nch, cb, nch, last, rf)
 
-# The same hash, one lane per chunk: the shape for the GPU (call it with !).
+# The CV of a span, one lane per chunk: the shape for the GPU (call with !).
+def hash1.at(a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32) -> CV:
+  hash1.go(depth(nch), a, cb, nch, last, rf)
+
 def hash1(a: Array<U32>, +len: U32) -> CV:
   +n = chunks(len)
-  hash1.go(depth(n), a, n, len)
+  hash1.at(a, 0, n, tail(len, n), ROOT())
 """
 
 
@@ -516,14 +543,17 @@ def chunk.fin(r: Array<U32> & CV) -> CV:
   _ = a
   cv
 
-# The CV of chunk c of a `len`-byte input; `rf` is ROOT for a one-chunk input.
-def chunk(a: Array<U32>, +c: U32, +len: U32, +rf: U32) -> CV:
+# The CV of chunk c of a span (see hash.at); rf is ROOT for a one-chunk
+# input. Every chunk holds 1024 bytes but the span's last, which holds last.
+def chunk(a: Array<U32>, +c: U32, +cb: U32, +nch: U32, +last: U32,
+  +rf: U32) -> CV:
   +w = (c << 8n : U32)
-  +rem = U32.min((len - (c << 10n : U32) : U32), 1024)
+  +m = (0 - Bool.to_u32(U32.is_eq((c + 1 : U32), nch)) : U32)
+  +rem = ((last .&. m) .|. (1024 .&. U32.not(m)) : U32)
   +nb = U32.max(((rem + 63 : U32) >> 6n : U32), 1)
   +lastlen = (rem - ((nb - 1 : U32) << 6n : U32) : U32)
-  chunk.fin(chunk.go(U32.to_nat((nb - 1 : U32)), ld(a, w), w, IV(), c,
-    CHUNK_START(), (CHUNK_END() .|. rf : U32), lastlen))
+  chunk.fin(chunk.go(U32.to_nat((nb - 1 : U32)), ld(a, w), w, IV(),
+    (cb + c : U32), CHUNK_START(), (CHUNK_END() .|. rf : U32), lastlen))
 
 def parent(l: CV, r: CV, +rf: U32) -> CV:
   match l r:
@@ -543,19 +573,19 @@ def big(+k: Nat, +n: U32) -> Bool:
 # The CV of the n chunks from chunk c, n <= 2^k. Each node holds two read
 # handles of the input (an O(1) Array.fork), so both halves read it at once.
 def tree1(+k: Nat, b: Bool, aa: Array<U32> & Array<U32>, +c: U32, +n: U32,
-  +len: U32, +rf: U32) -> CV:
+  +cb: U32, +nch: U32, +last: U32, +rf: U32) -> CV:
   match k b:
     case 0n _:
       (a1, a2) = aa
       _ = a2
-      chunk(a1, c, len, rf)
+      chunk(a1, c, cb, nch, last, rf)
     case 1n+p False{}:
-      tree1(p, big(p, n), aa, c, n, len, rf)
+      tree1(p, big(p, n), aa, c, n, cb, nch, last, rf)
     case 1n+p True{}:
       (a1, a2) = aa
       +h = U32.shln(1, p)
       +n2 = (n - h : U32)
-      l r = tree1(p, big(p, h), Array.fork(U32, a1), c, h, len, 0) tree1(p, big(p, n2), Array.fork(U32, a2), (c + h : U32), n2, len, 0)
+      l r = tree1(p, big(p, h), Array.fork(U32, a1), c, h, cb, nch, last, 0) tree1(p, big(p, n2), Array.fork(U32, a2), (c + h : U32), n2, cb, nch, last, 0)
       parent(l, r, rf)
 
 def chunks(+len: U32) -> U32:
