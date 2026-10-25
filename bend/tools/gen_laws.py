@@ -1653,23 +1653,29 @@ def proof_lanes():
         "  {==}\n\n")
 
 
+def laws_file():
+    return (LAWS_HEAD + kat_laws(digests()) + lanes_section() + consts() +
+            OUTBOARDS + TREES + COUNTS + STREAM)
+
+
+def proof_file():
+    # The laws proven by {==}: the checker computes both sides.
+    computed = ([f"kat.hash.len{n}" for n in KAT_HASH] +
+                [f"kat.hash1.len{n}" for n in KAT_HASH1] +
+                ["kat.g4.len4096", "kat.segs.len2048", "tree1.digits"])
+    return (PROOF_HEAD + "# Known answers\n# -------------\n\n" +
+            "".join(f"def Laws.{n}():\n  {{==}}\n\n" for n in computed) +
+            proof_lanes() +
+            "# Constants\n# ---------\n\n"
+            "def Laws.consts.iv():\n  {==}\n\n"
+            "def Laws.consts.flags():\n  {==}\n\n" +
+            proof_outboards() + PROOF_TREES + laws_names(PROOF_COUNTS) +
+            laws_names(PROOF_STREAM))
+
+
 def main():
-    h = digests()
-    laws = (LAWS_HEAD + kat_laws(h) + lanes_section() + consts() + OUTBOARDS +
-            TREES + COUNTS + STREAM)
-    (ROOT / "LAWS.bend").write_text(laws)
-    proof = PROOF_HEAD + "# Known answers\n# -------------\n\n"
-    names = ([f"kat.hash.len{n}" for n in KAT_HASH] +
-             [f"kat.hash1.len{n}" for n in KAT_HASH1] +
-             ["kat.g4.len4096", "kat.segs.len2048", "tree1.digits"])
-    proof += "".join(f"def Laws.{n}():\n  {{==}}\n\n" for n in names)
-    proof += proof_lanes()
-    proof += ("# Constants\n# ---------\n\n"
-              "def Laws.consts.iv():\n  {==}\n\n"
-              "def Laws.consts.flags():\n  {==}\n\n")
-    proof += (proof_outboards() + PROOF_TREES + laws_names(PROOF_COUNTS) +
-              laws_names(PROOF_STREAM))
-    (ROOT / "PROOF.bend").write_text(proof)
+    (ROOT / "LAWS.bend").write_text(laws_file())
+    (ROOT / "PROOF.bend").write_text(proof_file())
     print(f"wrote {ROOT / 'LAWS.bend'} and {ROOT / 'PROOF.bend'}")
 
 
