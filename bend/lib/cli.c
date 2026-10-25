@@ -1,13 +1,20 @@
 // The test CLI for libblake3-bend, after the official c/main.c (whose CPU
 // feature loop is x86-only): hashes stdin through blake3.h and prints hex.
 //   cli [--length N] [--seek N] [--keyed HEX] [--derive-key CONTEXT] [--split N]
+//   cli --whole
 // --split N feeds the hasher N bytes per update, to cross every subtree
-// edge the hook sees; the output must not change.
+// edge the hook sees; the output must not change. --whole hands the whole
+// input (2+ chunks, any length) to the hook at once, as the Rust crate's
+// hash() does, and prints the root of its two CVs.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "blake3.h"
+#include "blake3_bend.h"
+
+void blake3_compress_in_place(uint32_t cv[8], const uint8_t block[64], uint8_t block_len,
+                              uint64_t counter, uint8_t flags);
 
 static int hexval(char c) {
   return c >= '0' && c <= '9' ? c - '0' : c >= 'a' && c <= 'f' ? c - 'a' + 10 : -1;
@@ -18,7 +25,7 @@ int main(int argc, char** argv) {
   uint64_t seek = 0;
   uint8_t key[BLAKE3_KEY_LEN];
   const char* context = NULL;
-  int keyed = 0;
+  int keyed = 0, whole = 0;
   for (int i = 1; i < argc; i += 1) {
     if (!strcmp(argv[i], "--length") && i + 1 < argc) {
       out_len = (size_t)strtoull(argv[++i], NULL, 10);
@@ -36,6 +43,8 @@ int main(int argc, char** argv) {
         key[k] = (uint8_t)(hexval(h[2 * k]) << 4 | hexval(h[2 * k + 1]));
       }
       keyed = 1;
+    } else if (!strcmp(argv[i], "--whole")) {
+      whole = 1;
     } else if (!strcmp(argv[i], "--derive-key") && i + 1 < argc) {
       context = argv[++i];
     } else {
@@ -54,6 +63,23 @@ int main(int argc, char** argv) {
       break;
     }
     len += n;
+  }
+  if (whole) {
+    static const uint32_t iv[8] = { 0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A,
+                                    0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19 };
+    uint8_t pair[64];
+    if (len <= 1024 || !blake3_bend_subtree(buf, len, iv, 0, 0, pair)) {
+      fprintf(stderr, "the hook declined\n");
+      return 1;
+    }
+    uint32_t cv[8];
+    memcpy(cv, iv, sizeof cv);
+    blake3_compress_in_place(cv, pair, 64, 0, 4 | 8);  // PARENT | ROOT
+    for (int w = 0; w < 8; w += 1) {
+      printf("%02x%02x%02x%02x", cv[w] & 255, cv[w] >> 8 & 255, cv[w] >> 16 & 255, cv[w] >> 24);
+    }
+    printf("\n");
+    return 0;
   }
   blake3_hasher h;
   if (keyed) {

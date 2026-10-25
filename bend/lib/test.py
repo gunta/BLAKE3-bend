@@ -54,17 +54,19 @@ def main():
                         print(f"MISMATCH {mode} len={n} split={split} {extra}\n  got  {got}\n  want {exp}")
     print(f"{checks - bad}/{checks} official vector checks pass")
 
-    sizes = [2048, 4096 + 1, 65536, 262144 - 1, 262144, 262144 + 1, (1 << 20) * 3 + 77,
-             (16 << 20) + 1024, 64 << 20]
+    sizes = [2048, 2049, 4096 + 1, 65536, 262144 - 1, 262144, 262144 + 1, (1 << 20) * 3 + 77,
+             (1 << 20) * 3 + 64, (16 << 20) + 1024, 64 << 20]
     if "--big" in sys.argv:
-        sizes += [(1 << 30) - 1024, 1 << 30, (1 << 30) + 1, (2 << 30) + 1]
+        sizes += [(1 << 30) - 1024, 1 << 30, (1 << 30) + 1, (1 << 30) + 1024 * 5 + 64,
+                  (2 << 30) + 1, (3 << 30) + 7]
     rnd = random.Random(7)
     for n in sizes:
-        data = b"".join(rnd.randbytes(min(n - i, 1 << 28)) for i in range(0, n, 1 << 28))
+        data = b"".join(rnd.randbytes(min(n - i, 1 << 24)) for i in range(0, n, 1 << 24))
         want = subprocess.run([str(B3SUM), "--no-names", "-"], input=data, capture_output=True,
                               check=True).stdout.decode().strip()
-        for split, env in ((0, ENV), (0, os.environ), (1 << 20, ENV), (1000, ENV)):
-            got = run(["--split", str(split)] if split else [], data, env)
+        for split, env in ((0, ENV), (0, os.environ), (1 << 20, ENV), (1000, ENV), (-1, ENV)):
+            args = ["--whole"] if split < 0 else ["--split", str(split)] if split else []
+            got = run(args, data, env)
             checks += 1
             if got != want:
                 bad += 1

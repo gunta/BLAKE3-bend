@@ -13,11 +13,11 @@ import Base
 import ../blake3.bend as B3
 import ../hash.bend as H
 
-# Complete subtrees to hash: each a span (see blake3.bend's hash.at) of
-# whole chunks; the chunk counter of its first chunk is cb.
+# Subtrees to hash: each a span (see blake3.bend's hash.at) of nch chunks,
+# the last of them `last` bytes; the chunk counter of its first is cb.
 type Spans is Type:
   SpNil{}
-  SpOne{arr: Array<U32>, cb: U32, nch: U32}
+  SpOne{arr: Array<U32>, cb: U32, nch: U32, last: U32}
   SpTwo{l: Spans, r: Spans}
 
 # Their chaining values, in the same shape.
@@ -41,8 +41,8 @@ def cvs(s: Spans) -> CVs:
   match s:
     case SpNil{}:
       CvNil{}
-    case SpOne{a, cb, nch}:
-      CvOne{H.hash.at(a, cb, nch, 1024, 0)}
+    case SpOne{a, cb, nch, last}:
+      CvOne{H.hash.at(a, cb, nch, last, 0)}
     case SpTwo{l, r}:
       x y = cvs(l) cvs(r)
       CvTwo{x, y}

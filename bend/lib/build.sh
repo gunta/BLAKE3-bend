@@ -5,16 +5,17 @@
 #                                             its subtree hook, plus the
 #                                             Bend engine (engine.bend)
 #   bin/blake3                                the test CLI (cli.c)
-# Needs clang (Apple's, or LLVM 19+) and Bend2 (~/.bend/bin/bend).
+# Needs clang (Apple's, or LLVM 19+); Bend2 (~/.bend/bin/bend) only to
+# regenerate csrc/engine.c (gen.sh).
 # PORTABLE=1 builds for the baseline CPU instead of this one.
 set -e
 here=$(cd "$(dirname "$0")" && pwd)
 root=$(cd "$here/../.." && pwd)
 out="${1:-$here/build}"
-BEND="${BEND:-$HOME/.bend/bin/bend}"
 CC="${CC:-clang}"
 arch=$(uname -m)
 src="$out/src"
+BEND="${BEND:-$HOME/.bend/bin/bend}"
 mkdir -p "$src" "$out/include" "$out/lib" "$out/bin"
 
 if [ -n "$PORTABLE" ]; then
@@ -27,18 +28,19 @@ fi
 # the engine's flags are bend/build.sh's (ADR 0002)
 TUNE="-O3 $cpu -mllvm -slp-max-reg-size=512 -mllvm -slp-recursion-max-depth=100000 -mllvm -slp-threshold=-20 -mllvm -inline-threshold=20000"
 
-# 1. the engine: Bend -> C, made fit to embed
-python3 "$root/bend/tools/gen_blake3.py" >/dev/null
-ulimit -s 65520 2>/dev/null || true
-export BUN_JSC_maxPerThreadStackUsage=60000000 JSC_maxPerThreadStackUsage=60000000
-rm -f "$src/engine.c"
-log=$("$BEND" "$here/engine.bend" -o "$src/engine.c" 2>&1) || true
-[ -f "$src/engine.c" ] || { printf '%s\n' "$log" >&2; echo "bend failed for engine.bend" >&2; exit 1; }
-if grep -q "define BANGS   [1-9]" "$src/engine.c"; then
-  echo "engine.bend has a ! call: the library builds CPU-only C" >&2
-  exit 1
+# 1. the engine's C (gen.sh makes it from engine.bend; REGEN=1 remakes it)
+stale=""
+for f in "$here/engine.bend" "$here/engine.c" "$root/bend/hash.bend" "$root/bend/tools/gen_blake3.py"; do
+  [ "$f" -nt "$here/csrc/engine.c" ] && stale=1
+done
+if [ -n "$REGEN" ] || [ -n "$stale" ] || [ ! -s "$here/csrc/engine.c" ]; then
+  if [ -x "$BEND" ] || command -v bend >/dev/null; then
+    "$here/gen.sh"
+  else
+    echo "note: csrc/engine.c is older than the engine's sources, and there is no Bend2 to remake it" >&2
+  fi
 fi
-python3 "$here/patch.py" embed "$src/engine.c"
+cp "$here/csrc/engine.c" "$src/engine.c"
 
 # 2. the official sources, with the hook
 for f in blake3.c blake3.h blake3_impl.h blake3_dispatch.c blake3_portable.c blake3_neon.c \

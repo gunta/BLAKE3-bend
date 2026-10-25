@@ -1,9 +1,10 @@
 """The drop-in packages on Linux x86-64, on Modal (CPU only: cents a run).
 
-Builds libblake3-bend (bend/lib) with Bend2 and LLVM clang on Ubuntu, runs
-its test suite (the official vectors in every mode and split, and random
-inputs against the official b3sum) and its benchmark against the official
-C library, with the engine's trace on, and prints the logs.
+Builds libblake3-bend (bend/lib) with LLVM clang on Ubuntu, runs its test
+suite (the official vectors in every mode and split, and random inputs
+against the official b3sum) and its benchmark against the official C
+library; generates the blake3-bend crate, runs upstream's own tests through
+the engine and races it against the official crate. Prints the logs.
 
     modal run bend/bench/modal_linux.py
 """
@@ -45,7 +46,7 @@ app = modal.App("blake3-bend-linux", image=image)
 
 
 @app.function(cpu=16, memory=32768, timeout=3600)
-def check(steps: str = "lib") -> str:
+def check(steps: str = "lib,rust") -> str:
     log = []
 
     def step(name, cmd, cwd="/work"):
@@ -66,9 +67,20 @@ def check(steps: str = "lib") -> str:
             step("bench", "python3 bend/lib/bench.py 9")
             step("trace 1 GiB", "for n in 1048576 67108864 1073741824; do "
                  "BLAKE3_BEND_TRACE=1 bend/lib/build/bench/bend $n 5; done")
+    if "rust" in steps:
+        step("generate blake3-bend", "bend/rust/gen.sh")
+        step("upstream tests through the engine",
+             "BLAKE3_BEND_MIN=2048 BLAKE3_BEND_TRACE=1 cargo test --release "
+             "--features rayon,mmap,traits-preview 2>&1 | grep -E '^test result|FAILED|panicked|blake3-bend:'",
+             cwd="/work/bend/rust/blake3-bend")
+        step("the same failing test, upstream's crate (gVisor has no /sys/kernel/btf)",
+             "cargo test --release --features mmap test_unmappable 2>&1 | grep -E '^test |test result'",
+             cwd="/work")
+        step("rust bench", "cargo build --release --quiet 2>/dev/null; ./target/release/blake3-bend-bench 7",
+             cwd="/work/bend/rust/bench")
     return "\n".join(log)
 
 
 @app.local_entrypoint()
-def main(steps: str = "lib"):
+def main(steps: str = "lib,rust"):
     print(check.remote(steps))

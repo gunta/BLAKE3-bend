@@ -1,0 +1,15 @@
+[package]
+name = "blake3-bend-bench"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+# Not part of the repository's workspace.
+[workspace]
+
+[dependencies]
+official = { package = "blake3", path = "../../..", features = ["rayon"] }
+bend = { package = "blake3-bend", path = "../blake3-bend", features = ["rayon"] }
+
+[profile.release]
+codegen-units = 1

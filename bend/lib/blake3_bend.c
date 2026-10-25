@@ -16,6 +16,7 @@
 //                          calibrated at the first big update)
 //   BLAKE3_BEND_THREADS=n  the engine's threads (default: every core)
 
+#define _GNU_SOURCE  // clock_gettime under -std=c11
 #include <pthread.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -29,10 +30,10 @@
 int b3e_hash(uint32_t n, const unsigned char* const* p, const uint64_t* len,
              const uint64_t* cb, unsigned char (*out)[32]);
 const void* b3e_window(void);
+int b3e_inside(const void* p, uint64_t len);
 
-#define SPANS 64
 #define SPAN_MAX (1ull << 30)
-#define STAGED 2
+#define SPAN_COPY (64ull << 20)
 
 // The smallest subtree the engine takes: BLAKE3_BEND_MIN if set, else
 // calibrated on the first subtree that might qualify. The engine costs a
@@ -114,67 +115,73 @@ static void parent_cv(const uint32_t key[8], uint8_t flags, const uint8_t l[32],
   store_cv_words(out, cv);
 }
 
-// The CVs of the n spans of `span` bytes each, from input and chunk
-// counter cb, in jobs the engine takes: every span at once when the input
-// sits in the engine's window, STAGED at a time when it must be copied.
-static int span_cvs(const uint8_t* input, uint64_t span, uint32_t n, uint64_t cb,
-                    uint8_t (*cvs)[32]) {
-  const uint8_t* lo = (const uint8_t*)b3e_window();
-  int inside = lo != NULL && input >= lo && (uintptr_t)input % 8 == 0
-            && (uint64_t)(input - lo) / 8 + (uint64_t)n * span / 8 < (1ull << 40);
-  uint32_t per = inside ? SPANS : STAGED;
-  for (uint32_t i = 0; i < n; i += per) {
-    uint32_t k = n - i < per ? n - i : per;
-    const unsigned char* p[SPANS];
-    uint64_t len[SPANS], c[SPANS];
-    for (uint32_t j = 0; j < k; j += 1) {
-      p[j] = input + (uint64_t)(i + j) * span;
-      len[j] = span;
-      c[j] = cb + (uint64_t)(i + j) * (span / BLAKE3_CHUNK_LEN);
-    }
-    if (!b3e_hash(k, p, len, c, cvs + i)) {
-      return 0;
-    }
+// BLAKE3's split: the left subtree takes the largest power of two of
+// chunks below the total (upstream's left_subtree_len).
+static uint64_t left_len(uint64_t len) {
+  uint64_t full = (len - 1) / BLAKE3_CHUNK_LEN, p = 1;
+  while (p * 2 <= full) {
+    p *= 2;
   }
-  return 1;
+  return p * BLAKE3_CHUNK_LEN;
 }
 
-// Merges n (a power of two) CVs, in place, into cvs[0].
+// Merges n span CVs, in place, into cvs[0], as BLAKE3's left-full tree.
 static void merge(const uint32_t key[8], uint8_t flags, uint8_t (*cvs)[32], uint32_t n) {
-  for (; n > 1; n /= 2) {
-    for (uint32_t i = 0; i < n / 2; i += 1) {
-      parent_cv(key, flags, cvs[2 * i], cvs[2 * i + 1], cvs[i]);
-    }
+  if (n < 2) {
+    return;
   }
+  uint32_t p = 1;
+  while (p * 2 <= n - 1) {
+    p *= 2;
+  }
+  merge(key, flags, cvs, p);
+  merge(key, flags, cvs + p, n - p);
+  parent_cv(key, flags, cvs[0], cvs[p], cvs[0]);
 }
 
 int blake3_bend_subtree(const uint8_t* input, size_t input_len, const uint32_t key[8],
                         uint64_t chunk_counter, uint8_t flags, uint8_t out[2 * BLAKE3_OUT_LEN]) {
-  if (input_len < 2 * BLAKE3_CHUNK_LEN || input_len < bend_min(input, input_len)) {
+  if (input_len <= BLAKE3_CHUNK_LEN || input_len < bend_min(input, input_len)) {
     return 0;
   }
   // The engine hashes BLAKE3's default mode, 32-bit chunk counters.
-  if (flags != 0 || memcmp(key, IV, sizeof IV) != 0
-      || chunk_counter + input_len / BLAKE3_CHUNK_LEN > (1ull << 32)) {
+  uint64_t chunks = (input_len + BLAKE3_CHUNK_LEN - 1) / BLAKE3_CHUNK_LEN;
+  if (flags != 0 || memcmp(key, IV, sizeof IV) != 0 || chunk_counter + chunks > (1ull << 32)) {
     return 0;
   }
-  uint64_t half = input_len / 2;
-  uint64_t span = half < SPAN_MAX ? half : SPAN_MAX;
-  uint32_t n = (uint32_t)(half / span);  // spans a half (a power of two)
-  if (2ull * n > 4096) {
+  // The two children: below a span, one span each; past it, the left is
+  // whole spans (a power of two of them) and the right the rest. Spans the
+  // engine reads in place are up to 1 GiB; copied ones 64 MiB, so their
+  // copies overlap the hashing of the ones before.
+  uint64_t left = left_len(input_len);
+  uint64_t most = b3e_inside(input, input_len - input_len % 64) ? SPAN_MAX : SPAN_COPY;
+  uint64_t span = left < most ? left : most;
+  uint64_t nl = left / span, n = nl + (input_len - left + span - 1) / span;
+  if (n > 1u << 16) {
     return 0;
   }
-  uint8_t (*cvs)[32] = malloc(2ull * n * 32);
-  if (cvs == NULL) {
-    return 0;
+  const unsigned char** p = malloc(n * sizeof *p);
+  uint64_t* len = malloc(n * sizeof *len);
+  uint64_t* cb = malloc(n * sizeof *cb);
+  uint8_t (*cvs)[32] = malloc(n * 32);
+  int ok = p != NULL && len != NULL && cb != NULL && cvs != NULL;
+  for (uint64_t i = 0, at = 0; ok && i < n; i += 1, at += span) {
+    p[i] = input + at;
+    len[i] = input_len - at < span ? input_len - at : span;
+    cb[i] = chunk_counter + at / BLAKE3_CHUNK_LEN;
   }
-  int ok = span_cvs(input, span, 2 * n, chunk_counter, cvs);
   if (ok) {
-    merge(key, flags, cvs, n);
-    merge(key, flags, cvs + n, n);
-    memcpy(out, cvs[0], 32);
-    memcpy(out + 32, cvs[n], 32);
+    ok = b3e_hash((uint32_t)n, p, len, cb, cvs);
   }
+  if (ok) {
+    merge(key, flags, cvs, (uint32_t)nl);
+    merge(key, flags, cvs + nl, (uint32_t)(n - nl));
+    memcpy(out, cvs[0], 32);
+    memcpy(out + 32, cvs[nl], 32);
+  }
+  free(p);
+  free(len);
+  free(cb);
   free(cvs);
   return ok;
 }
