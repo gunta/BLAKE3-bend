@@ -26,11 +26,24 @@ def files(pattern):
     return sorted(str(p) for p in DATA.glob(pattern))
 
 
+def tree(root, limit=None):
+    out = []
+    for dirpath, _, names in os.walk(os.path.expanduser(root)):
+        out += [os.path.join(dirpath, n) for n in sorted(names)]
+    out = sorted(p for p in out if os.path.isfile(p) and not os.path.islink(p))
+    return out[:limit] if limit else out
+
+
+SDK = "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"
+
 WORKLOADS = {
     "1 GiB file": lambda: [str(DATA / "big_1g.bin")],
     "64 MiB file": lambda: [str(DATA / "mid_64m.bin")],
     "10k x 4 KiB": lambda: files("small4k/*"),
     "2k x 64 KiB": lambda: files("small64k/*"),
+    "1k x 1 MiB": lambda: files("med1m/*"),
+    "SDK headers": lambda: tree(SDK),
+    "cargo src 8k": lambda: tree("~/.cargo/registry/src", 8000),
     "5 GiB file": lambda: [str(DATA / "huge_5g.bin")],
 }
 
