@@ -30,7 +30,8 @@ Against the official `b3sum` 1.8.7 on an Apple M5 Pro (medians, output
 byte-identical): a 101.5 GB DeepSeek-V4.1 model shard (bigger than RAM) in
 7.65 s against 211 s (27.6x: files not in the page cache stream at SSD
 speed); 2,000 x 64 KiB files 10.7x faster, 1,000 x 1 MiB 3.4x, 8,000 cargo
-source files 3.5x, 10,000 x 4 KiB 1.9x; cached 1 GiB and 5 GiB files 1.03x. Benchmarks, method and the limits we hit:
+source files 3.5x, 10,000 x 4 KiB 1.9x; cached 1 GiB and 5 GiB files 1.03x.
+Benchmarks, method and the limits we hit:
 [gunta.github.io/BLAKE3-bend](https://gunta.github.io/BLAKE3-bend/).
 
 ## Usage
