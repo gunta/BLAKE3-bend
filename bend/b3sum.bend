@@ -42,5 +42,6 @@ def main() -> IO(Unit):
     args : List<String> <- IO.args()
     n : U32 <- IO.thread_count()
     files : F.Files <- F.B3IO.load(rest(args), n)
-    bad : U32 <- F.B3IO.emit(F.hash(files))
+    out : F.Out <- F.fill(F.hash(files))
+    bad : U32 <- F.B3IO.emit(out)
     status(bad)

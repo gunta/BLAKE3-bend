@@ -21,10 +21,13 @@ from race import WORKLOADS  # noqa: E402
 
 RUST = HERE / "rust" / "target" / "release" / "daemon"
 BEND = HERE / "build" / "daemon"
+BEND_GPU = HERE / "build" / "daemon_gpu"
+# The GPU daemon reads into reused blocks of a 4 GB Metal heap, set up once.
 SIDES = {
     "rust seq (b3sum)": lambda r, a: [str(RUST), str(r), "seq"] + a,
     "rust par (rayon)": lambda r, a: [str(RUST), str(r), "par"] + a,
-    "bend": lambda r, a: [str(BEND), str(r)] + a,
+    "bend cpu": lambda r, a: [str(BEND), str(r)] + a,
+    "bend gpu": lambda r, a: [str(BEND_GPU), "+RTS", "--gpu", "4GB", "-RTS", str(r)] + a,
 }
 WARM = 2
 
@@ -48,9 +51,9 @@ def race(name, args, rounds):
     med = {k: statistics.median(v) for k, v in times.items()}
     best = med["rust par (rayon)"]
     cells = " | ".join(f"{med[k]:8.1f}" for k in SIDES)
-    ratio = best / med["bend"]
+    ratio = best / min(med["bend cpu"], med["bend gpu"])
     verdict = f"{ratio:.2f}x faster" if ratio >= 1 else f"{1 / ratio:.2f}x slower"
-    print(f"| {name:<14} | {cells} | bend vs rayon: {verdict} |", flush=True)
+    print(f"| {name:<14} | {cells} | best bend vs rayon: {verdict} |", flush=True)
 
 
 def main():

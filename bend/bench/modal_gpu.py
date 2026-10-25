@@ -26,8 +26,11 @@ import time
 
 import modal
 
-REPO = pathlib.Path(__file__).resolve().parents[2]
-CUDA_IMAGE = "nvidia/cuda:13.4.3-devel-ubuntu24.04"
+# The repository on the machine running `modal run`; inside the container
+# this file is /root/modal_gpu.py and the repository is mounted at /repo.
+_HERE = pathlib.Path(__file__).resolve()
+REPO = _HERE.parents[2] if modal.is_local() else pathlib.Path("/repo")
+CUDA_IMAGE = os.environ.get("BEND_CUDA_IMAGE", "nvidia/cuda:13.4.3-devel-ubuntu24.04")
 LLVM = 20
 # The CPU flags of bend/build.sh (ADR 0002), with -march=native for x86.
 TUNE = ("-O3 -march=native -mllvm -slp-max-reg-size=512 "
@@ -138,8 +141,81 @@ def bench(max_log: int = 28, reps: int = 6) -> dict:
                     "memory moves the pages to the GPU on first touch)"}
 
 
+# Managed memory, the way Bend's CUDA runtime uses it: the host writes, a
+# kernel reads and writes, the host reads after a sync.
+MANAGED = r"""
+#include <cuda_runtime.h>
+#include <stdio.h>
+__global__ void bump(volatile int* p) { p[1] = p[0] + 1; }
+int main() {
+  int concurrent = 0;
+  cudaDeviceGetAttribute(&concurrent, cudaDevAttrConcurrentManagedAccess, 0);
+  int* p; cudaMallocManaged(&p, 2 * sizeof(int), cudaMemAttachGlobal);
+  p[0] = 41; p[1] = 0;
+  bump<<<1, 1>>>(p);
+  cudaError_t e = cudaDeviceSynchronize();
+  printf("concurrentManagedAccess=%d sync=%s host reads %d (want 42)\n", concurrent,
+         cudaGetErrorString(e), p[1]);
+  return p[1] == 42 ? 0 : 1;
+}
+"""
+
+POW2 = """import Base
+
+def pow2(+n: Nat) -> U32:
+  match n:
+    case 0n:
+      1
+    case 1n+p:
+      a b = pow2(p) pow2(p)
+      (a + b : U32)
+
+def main() -> IO(Unit):
+  IO.print(U32.show(pow2!(20n)))
+"""
+
+
+@app.function(gpu="L4", cpu=8, memory=32768, timeout=1200)
+def debug() -> str:
+    """Small GPU steps, each under a timeout, to find where a run hangs."""
+    log = []
+
+    def step(name, cmd, cwd="/work/bend", env=None, limit=120):
+        t = time.time()
+        try:
+            r = subprocess.run(["bash", "-lc", f"ulimit -s 65520 2>/dev/null; {cmd}"], cwd=cwd,
+                               env={**os.environ, **(env or {})}, capture_output=True,
+                               text=True, timeout=limit)
+            out = f"exit {r.returncode}\n{r.stdout[-1500:]}\n{r.stderr[-1500:]}"
+        except subprocess.TimeoutExpired as e:
+            out = f"TIMEOUT after {limit}s\n{(e.stdout or b'')[-1500:]!r}\n{(e.stderr or b'')[-1500:]!r}"
+        log.append(f"== {name} ({time.time() - t:.1f}s)\n{out}")
+        print(log[-1], flush=True)
+        return out.startswith("exit 0")
+
+    subprocess.run("rm -rf /work && cp -r /repo /work && mkdir -p /work/bend/bench/build",
+                   shell=True, check=True)
+    pathlib.Path("/work/pow2.bend").write_text(POW2)
+    pathlib.Path("/work/managed.cu").write_text(MANAGED)
+    step("CUDA managed memory", "nvcc -O2 managed.cu -o managed && ./managed", cwd="/work", limit=60)
+    step("pow2! plain build", "bend pow2.bend -o pow2 && ls -la pow2*", cwd="/work")
+    step("nvidia-smi", "nvidia-smi --query-gpu=name,driver_version,compute_cap --format=csv", cwd="/work")
+    ok = step("pow2! run", "./pow2", cwd="/work", limit=45)
+    step("pow2 on CPU", "./pow2 +RTS --gpu off -RTS", cwd="/work", limit=60)
+    if not ok:
+        return "\n".join(log)
+    step("mem plain build", "python3 tools/gen_blake3.py && bend bench/mem.bend -o bench/build/mem_plain")
+    step("mem plain cpu d=16", "bench/build/mem_plain +RTS --gpu off -RTS 16 2 0", limit=60)
+    step("mem plain gpu d=16", "bench/build/mem_plain 16 2 1", limit=120)
+    step("mem plain gpu d=20 4GB", "bench/build/mem_plain +RTS --gpu 4GB -RTS 20 2 1", limit=120)
+    return "\n".join(log)
+
+
 @app.local_entrypoint()
-def main(gpu: str = "L4", max_log: int = 28, reps: int = 6):
+def main(gpu: str = "L4", max_log: int = 28, reps: int = 6, debug_only: bool = False):
+    if debug_only:
+        print(debug.with_options(gpu=gpu).remote())
+        return
     t = time.time()
     res = bench.with_options(gpu=gpu).remote(max_log, reps)
     res["requested_gpu"] = gpu

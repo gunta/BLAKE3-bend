@@ -20,14 +20,25 @@ type Files is Type:
   FNone{}
   FFile{arr: Array<U32>, len: U32, name: String}
   FSegs{segs: Segs, name: String}
+  FStream{id: U32, nseg: U32, name: String}
   FErr{msg: String, name: String}
   FPair{l: Files, r: Files}
 
 type Out is Data:
   ONone{}
   OHash{cv: B3.CV, name: String}
+  OStream{id: U32, nseg: U32, name: String}
   OErr{msg: String, name: String}
   OPair{l: Out, r: Out}
+
+# One segment of a streamed file: a span (see blake3.bend's hash.at).
+type Part is Type:
+  Part{arr: Array<U32>, cb: U32, nch: U32, last: U32}
+
+# Segment k of stream id, once read; the read of k + 1 starts at once.
+def B3IO.seg(id: U32, k: U32) -> IO(Part):
+  import "./effs/load.c"
+  import "./effs/load.js"
 
 def B3IO.load(paths: List<String>, threads: U32) -> IO(Files):
   import "./effs/load.c"
@@ -99,6 +110,8 @@ def hash(t: Files) -> Out:
       OHash{B3.hash(a, len), name}
     case FSegs{s, name}:
       OHash{segs(s, B3.ROOT()), name}
+    case FStream{id, nseg, name}:
+      OStream{id, nseg, name}
     case FErr{msg, name}:
       OErr{msg, name}
     case FPair{l, r}:
@@ -126,8 +139,138 @@ def hash_ob(t: Files) -> Obo:
       hash_ob.leaf(B3.hash.ob(a, len), name)
     case FSegs{s, name}:
       hash_ob.leaf(segs.o(s, B3.ROOT()), name)
+    case FStream{id, nseg, name}:
+      BErr{"no outboard for a streamed file yet (it is not in the page cache)", name}
     case FErr{msg, name}:
       BErr{msg, name}
     case FPair{l, r}:
       x y = hash_ob(l) hash_ob(r)
       BPair{x, y}
+
+# The GPU's hashing: the same fork over files and segments, with
+# hash1.at, the tree shaped for the GPU's lanes. Call it with a bang
+# (hashg!), from a pure def: the whole tree runs on the GPU.
+def segs.g(s: Segs, +rf: U32) -> B3.CV:
+  match s:
+    case SLeaf{a, cb, nch, last}:
+      B3.hash1.at(a, cb, nch, last, rf)
+    case SNode{l, r}:
+      x y = segs.g(l, 0) segs.g(r, 0)
+      B3.parent(x, y, rf)
+
+def hashg(t: Files) -> Out:
+  match t:
+    case FNone{}:
+      ONone{}
+    case FFile{a, len, name}:
+      OHash{B3.hash1(a, len), name}
+    case FSegs{s, name}:
+      OHash{segs.g(s, B3.ROOT()), name}
+    case FStream{id, nseg, name}:
+      OStream{id, nseg, name}
+    case FErr{msg, name}:
+      OErr{msg, name}
+    case FPair{l, r}:
+      x y = hashg(l) hashg(r)
+      OPair{x, y}
+
+# Streaming
+# ---------
+# A file mostly not in the page cache comes as FStream: its 1 GiB segments
+# are hashed one after another (each on every core) while the SSD reads the
+# next, and their CVs merge as BLAKE3's Hasher merges chunks: lazily, a
+# stack of complete subtrees, so the last merge knows it is the root.
+
+type Stk is Data:
+  KNil{}
+  KCon{cv: B3.CV, rest: Stk}
+
+def stk.pop2(s: Stk) -> Stk:
+  match s:
+    case KCon{r, KCon{l, rest}}:
+      KCon{B3.parent(l, r, 0), rest}
+    case KCon{r, KNil{}}:
+      KCon{r, KNil{}}
+    case KNil{}:
+      KNil{}
+
+def stk.even(+n: U32) -> Bool:
+  U32.is_eq((n .&. 1 : U32), 0) && U32.is_ne(n, 0)
+
+# Before segment n joins: merge while n (the segments so far) is even.
+def stk.lazy(fuel: Nat, s: Stk, +n: U32, b: Bool) -> Stk:
+  match fuel b:
+    case 0n _:
+      s
+    case 1n+f True{}:
+      +m = (n >> 1n : U32)
+      stk.lazy(f, stk.pop2(s), m, stk.even(m))
+    case 1n+f False{}:
+      s
+
+def stk.fin(s: Stk, r: B3.CV) -> B3.CV:
+  match s:
+    case KNil{}:
+      r
+    case KCon{l, KNil{}}:
+      B3.parent(l, r, B3.ROOT())
+    case KCon{l, rest}:
+      stk.fin(rest, B3.parent(l, r, 0))
+
+def stk.root(s: Stk) -> B3.CV:
+  match s:
+    case KCon{top, rest}:
+      stk.fin(rest, top)
+    case KNil{}:
+      B3.IV()
+
+def part.cv(p: Part, +rf: U32) -> B3.CV:
+  match p:
+    case Part{a, cb, nch, last}:
+      B3.hash.at(a, cb, nch, last, rf)
+
+def stream.go(n: Nat, +id: U32, +k: U32, s: Stk) -> IO(B3.CV):
+  match n:
+    case 0n:
+      IO.pure(B3.CV, stk.root(s))
+    case 1n+p:
+      do IO<B3.CV>:
+        part : Part <- B3IO.seg(id, k)
+        cv : B3.CV = part.cv(part, 0)
+        stream.go(p, id, (k + 1 : U32), KCon{cv, stk.lazy(32n, s, k, stk.even(k))})
+
+def stream.one(+id: U32) -> IO(B3.CV):
+  do IO<B3.CV>:
+    part : Part <- B3IO.seg(id, 0)
+    IO.pure(B3.CV, part.cv(part, B3.ROOT()))
+
+def stream.pick(b: Bool, +id: U32, +nseg: U32) -> IO(B3.CV):
+  match b:
+    case True{}:
+      stream.one(id)
+    case False{}:
+      stream.go(U32.to_nat(nseg), id, 0, KNil{})
+
+# The hash of a streamed file: one segment is the root itself.
+def stream(+id: U32, +nseg: U32) -> IO(B3.CV):
+  stream.pick(U32.is_eq(nseg, 1), id, nseg)
+
+def fill.k(cv: B3.CV, name: String) -> IO(Out):
+  IO.pure(Out, OHash{cv, name})
+
+# Resolves every OStream of a hashed tree, one streamed file at a time.
+def fill(o: Out) -> IO(Out):
+  match o:
+    case OStream{+id, +nseg, name}:
+      IO.bind(B3.CV, Out, stream(id, nseg), cv => fill.k(cv, name))
+    case OPair{l, r}:
+      do IO<Out>:
+        a : Out <- fill(l)
+        b : Out <- fill(r)
+        IO.pure(Out, OPair{a, b})
+    case ONone{}:
+      IO.pure(Out, ONone{})
+    case OHash{cv, name}:
+      IO.pure(Out, OHash{cv, name})
+    case OErr{msg, name}:
+      IO.pure(Out, OErr{msg, name})

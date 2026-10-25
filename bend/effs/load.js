@@ -12,3 +12,4 @@ function b3io_native_only() {
 io_eff(CID(B3IO.keep), b3io_native_only);
 io_eff(CID(B3IO.again), b3io_native_only);
 io_eff(CID(B3IO.release), b3io_native_only);
+io_eff(CID(B3IO.seg), b3io_native_only);

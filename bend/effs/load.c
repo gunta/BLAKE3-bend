@@ -24,22 +24,27 @@
 #include <sys/stat.h>
 
 #define B3_SLICE   (4ull << 20)
+
+static u64* b3_heap;
 #define B3_MAP_MIN (1ull << 20)
 #define B3_SEG     (1ull << 30)
 #define B3_MAX     (1ull << 42)
 
 typedef struct {
-  u64  off;
-  u64  len;
-  u64  loc;
-  u32  cls;
-  bool mapped;
-  bool late;
+  u64   off;
+  u64   len;
+  u64   loc;
+  u32   cls;
+  bool  mapped;
+  bool  late;
+  void* kept;  // the daemon's reused block (B3Keep), if any
 } B3Part;
 
 typedef struct {
   char*   path;
   u64     plen;
+  u32     slot;  // 1 + its index among B3IO.keep's paths, or 0
+  bool    stream;  // not in the page cache: hashed segment by segment
   Term    name;
   int     fd;
   int     err;
@@ -156,16 +161,46 @@ static bool b3_map(u64* H, int fd, B3Part* p) {
   return true;
 }
 
+// A daemon on a GPU heap keeps one block per (kept path, part) across
+// rounds and reads each round's bytes into it: the pages are already there,
+// so a parallel pread runs at ~40 GB/s instead of faulting fresh heap pages
+// in. Each block holds one reference of the loader's, so Bend never frees
+// it; each round's array is that term with one more.
+#define B3_PARTS_MAX 4096
+
+typedef struct {
+  Term arr;
+  u64  loc;
+  u32  cls;
+} B3Keep;
+
+static B3Keep* b3_reuse;   // [slot][part]
+static u32     b3_reuse_slots;
+
+static B3Keep* b3_reuse_at(u32 slot, u32 part) {
+  if (slot == 0 || slot > b3_reuse_slots || part >= B3_PARTS_MAX) {
+    return NULL;
+  }
+  return &b3_reuse[(u64)(slot - 1) * B3_PARTS_MAX + part];
+}
+
 // Maps, reads, or (a large part on a GPU heap) allocates the part for the
 // slice pass.
-static int b3_part(Env e, int fd, B3Part* p) {
+static int b3_part(Env e, int fd, B3Part* p, B3Keep* keep) {
   p->cls = b3_cls(p->len);
-  if (b3_map(e.mem, fd, p)) {
+  if (keep == NULL && b3_map(e.mem, fd, p)) {
     return 0;
   }
-  p->loc = heap_alloc(e, blk_wcls(0, p->cls));
-  if (err_peek(e.mem)) {
-    return ENOMEM;
+  if (keep != NULL && keep->arr != 0 && keep->cls == p->cls) {
+    p->loc = keep->loc;
+  } else {
+    p->loc = heap_alloc(e, blk_wcls(0, p->cls));
+    if (err_peek(e.mem)) {
+      return ENOMEM;
+    }
+    if (keep != NULL) {
+      *keep = (B3Keep){ term_keep(e, term_blk(0, p->cls, p->loc), 0), p->loc, p->cls };
+    }
   }
   char* dst = (char*)(e.mem + p->loc);
   u64 padded = p->len == 0 ? 64 : ((p->len + 63) / 64) * 64;
@@ -229,6 +264,119 @@ static void b3_stdin(Env e, B3File* f) {
   free(buf);
 }
 
+// Streaming
+// ---------
+// A big file that is mostly not in the page cache streams instead of
+// mapping: page faults on a mapping read the SSD in 16 KiB pieces (b3sum
+// gets 0.75 GB/s that way here), while 16 threads of 8 MiB F_NOCACHE preads
+// read it at 10-14 GB/s. B3IO.seg(id, k) hands Bend segment k (1 GiB, a
+// complete subtree but the last) in one of two reused heap blocks, and
+// starts reading k + 1 into the other before it returns, so the SSD and the
+// hashing run at once.
+
+#define B3_STREAM_MIN (256ull << 20)
+#define B3_READERS 16
+#define B3_RBLK (8ull << 20)
+
+// The fraction of the file's pages in the page cache, from 4096 samples.
+static double b3_resident(int fd, u64 len) {
+  u64 pg = (u64)getpagesize();
+  char* at = mmap(NULL, len, PROT_READ, MAP_SHARED, fd, 0);
+  if (at == MAP_FAILED) {
+    return 1.0;
+  }
+  u64 pages = (len + pg - 1) / pg, hit = 0, n = pages < 4096 ? pages : 4096;
+  for (u64 i = 0; i < n; i += 1) {
+    char v = 0;
+    u64 page = i * pages / n;
+    if (mincore(at + page * pg, pg, &v) == 0 && (v & MINCORE_INCORE)) {
+      hit += 1;
+    }
+  }
+  munmap(at, len);
+  return (double)hit / (double)n;
+}
+
+// Whether to stream a big file: when under 90% of it is cached.
+// B3IO_STREAM=always or =never overrides it, for tests.
+static bool b3_stream_pick(int fd, u64 len) {
+  const char* force = getenv("B3IO_STREAM");
+  if (force != NULL && strcmp(force, "always") == 0) {
+    return true;
+  }
+  if (force != NULL && strcmp(force, "never") == 0) {
+    return false;
+  }
+  return b3_resident(fd, len) < 0.9;
+}
+
+typedef struct {
+  int       fd;
+  u64       len;
+  u32       nseg;
+  Term      arr[2];   // the two reused blocks (loader's references), 0 = none
+  u64       loc[2];
+  pthread_t reader;   // the read of `ahead` into block ahead % 2, if running
+  bool      busy;
+  u32       ahead;
+  // the running read
+  char*     dst;
+  u64       off;
+  u64       left;
+  u64       next;
+} B3Stream;
+
+static B3Stream* b3_streams;
+static u32       b3_nstreams, b3_scap;
+
+static void* b3_read_slice(void* arg) {
+  B3Stream* st = arg;
+  for (;;) {
+    u64 i = __atomic_fetch_add(&st->next, B3_RBLK, __ATOMIC_RELAXED);
+    if (i >= st->left) {
+      return NULL;
+    }
+    u64 n = st->left - i < B3_RBLK ? st->left - i : B3_RBLK;
+    b3_pread(st->fd, st->dst + i, st->off + i, n);
+  }
+}
+
+// Reads [off, off + len) into dst on B3_READERS threads, and waits.
+static void* b3_read_all(void* arg) {
+  B3Stream* st = arg;
+  pthread_t tid[B3_READERS];
+  u32 n = 1;
+  st->next = 0;
+  for (; n < B3_READERS; n += 1) {
+    if (pthread_create(&tid[n], NULL, b3_read_slice, st) != 0) {
+      break;
+    }
+  }
+  b3_read_slice(st);
+  for (u32 t = 1; t < n; t += 1) {
+    pthread_join(tid[t], NULL);
+  }
+  return NULL;
+}
+
+static void b3_seg_geom(B3Stream* st, u32 k, u64* off, u64* len) {
+  *off = (u64)k * B3_SEG;
+  *len = st->len - *off < B3_SEG ? st->len - *off : B3_SEG;
+}
+
+static void b3_seg_start(B3Stream* st, u32 k) {
+  u64 off, len;
+  b3_seg_geom(st, k, &off, &len);
+  st->dst = (char*)(b3_heap + st->loc[k % 2]);
+  st->off = off;
+  st->left = len;
+  st->ahead = k;
+  st->busy = pthread_create(&st->reader, NULL, b3_read_all, st) == 0;
+  if (!st->busy) {
+    b3_read_all(st);
+  }
+}
+
 static void b3_file(Env e, B3File* f) {
   struct stat st;
   if (f->plen == 1 && f->path[0] == '-') {
@@ -247,6 +395,12 @@ static void b3_file(Env e, B3File* f) {
     f->err = EISDIR;
   } else if ((u64)st.st_size >= B3_MAX) {
     f->err = EFBIG;
+  } else if (!io_gpu && f->slot == 0 && (u64)st.st_size >= B3_STREAM_MIN
+      && b3_stream_pick(f->fd, (u64)st.st_size)) {
+    // mostly on disk: B3IO.seg streams it (fd stays open)
+    f->len = (u64)st.st_size;
+    f->stream = true;
+    return;
   } else {
     f->len = (u64)st.st_size;
     f->nparts = f->len <= B3_SEG ? 1 : (u32)((f->len + B3_SEG - 1) / B3_SEG);
@@ -256,7 +410,9 @@ static void b3_file(Env e, B3File* f) {
       B3Part* p = &f->parts[i];
       p->off = (u64)i * B3_SEG;
       p->len = f->len - p->off < B3_SEG ? f->len - p->off : B3_SEG;
-      f->err = b3_part(e, f->fd, p);
+      B3Keep* keep = io_gpu ? b3_reuse_at(f->slot, i) : NULL;
+      f->err = b3_part(e, f->fd, p, keep);
+      p->kept = keep;
       late |= p->late;
     }
   }
@@ -353,6 +509,10 @@ static B3Kept* b3_kept;
 static u32     b3_nkept, b3_kcap;
 
 static Term b3_arr(Env e, B3Part* p) {
+  if (p->kept != NULL) {
+    // the reused block's own term, one reference more for this round
+    return term_keep(e, ((B3Keep*)p->kept)->arr, 1);
+  }
   Term arr = term_blk(0, p->cls, p->loc);
   if (!p->mapped) {
     return arr;
@@ -387,6 +547,22 @@ static Term b3_segs(Env e, B3File* f, u32 lo, u32 hi) {
 }
 
 static Term b3_leaf(Env e, B3File* f) {
+  if (f->stream && !f->err) {
+    if (b3_nstreams == b3_scap) {
+      b3_scap = b3_scap ? b3_scap * 2 : 8;
+      b3_streams = io_mem(realloc(b3_streams, b3_scap * sizeof(B3Stream)));
+    }
+    u32 id = b3_nstreams++;
+    B3Stream* st = &b3_streams[id];
+    memset(st, 0, sizeof(B3Stream));
+    st->fd = f->fd;
+    st->len = f->len;
+    st->nseg = (u32)((f->len + B3_SEG - 1) / B3_SEG);
+    fcntl(st->fd, F_NOCACHE, 1);
+    f->fd = -1;
+    Term v[3] = { (Term)id, (Term)st->nseg, f->name };
+    return b3_ctr(e, CID(FStream), 3, v);
+  }
   if (f->err) {
     const char* msg = strerror(f->err);
     return io_node(e, CID(FErr), io_str(e, msg, strlen(msg)), f->name);
@@ -434,6 +610,7 @@ Term b3io_load_run(Env e, Term* f, IoWork* w) {
   }
   u32  threads = (u32)f[1];
   u32  cap = 64, n = 0;
+  b3_heap = e.mem;
   B3File* fs = io_mem(malloc(cap * sizeof(B3File)));
   Term xs = f[0];
   while (term_aux(xs) == CID_Con) {
@@ -490,10 +667,12 @@ static Term b3_load(Env e, B3File* fs, u32 n, u32 threads, bool trace, u64 t0) {
   u64* pre = io_mem(malloc((n + 1) * sizeof(u64)));
   pre[0] = 0;
   for (u32 i = 0; i < n; i += 1) {
-    if (fs[i].fd >= 0) {
+    if (fs[i].fd >= 0 && !fs[i].stream) {
       close(fs[i].fd);
+      fs[i].fd = -1;
     }
-    pre[i + 1] = pre[i] + fs[i].len + 64;
+    // a streamed file is hashed later, apart: it weighs nothing here
+    pre[i + 1] = pre[i] + (fs[i].stream ? 0 : fs[i].len) + 64;
     free(fs[i].path);
   }
   Term t = b3_tree(e, fs, pre, 0, n);
@@ -508,6 +687,53 @@ static Term b3_load(Env e, B3File* fs, u32 n, u32 threads, bool trace, u64 t0) {
   B3_MARK("tree")
   return t;
 }
+
+#ifdef CID(B3IO.seg)
+
+// B3IO.seg(id, k): segment k of stream id, read by now; reading k + 1
+// into the other block starts before this returns.
+Term b3io_seg_run(Env e, Term* f, IoWork* w) {
+  B3Stream* st = &b3_streams[(u32)f[0]];
+  u32 k = (u32)f[1];
+  u32 cls = b3_cls(B3_SEG);
+  for (u32 b = 0; b < 2; b += 1) {
+    if (st->arr[b] == 0) {
+      st->loc[b] = heap_alloc(e, blk_wcls(0, cls));
+      st->arr[b] = term_keep(e, term_blk(0, cls, st->loc[b]), 0);
+    }
+  }
+  if (st->busy) {
+    pthread_join(st->reader, NULL);
+    st->busy = false;
+  }
+  if (st->ahead != k || st->left == 0) {
+    u64 off, len;
+    b3_seg_geom(st, k, &off, &len);
+    st->dst = (char*)(e.mem + st->loc[k % 2]);
+    st->off = off;
+    st->left = len;
+    st->ahead = k;
+    b3_read_all(st);
+  }
+  u64 off, len;
+  b3_seg_geom(st, k, &off, &len);
+  char* dst = (char*)(e.mem + st->loc[k % 2]);
+  u64 padded = len == 0 ? 64 : ((len + 63) / 64) * 64;
+  memset(dst + len, 0, padded - len);
+  if (k + 1 < st->nseg) {
+    b3_seg_start(st, k + 1);
+  } else {
+    close(st->fd);
+    st->fd = -1;
+  }
+  u64 nch = (len + 1023) / 1024;
+  nch = nch ? nch : 1;
+  Term v[4] = { term_keep(e, st->arr[k % 2], 1), (Term)(u32)(off >> 10),
+    (Term)(u32)nch, (Term)(u32)(len - (nch - 1) * 1024) };
+  return b3_ctr(e, CID(Part), 4, v);
+}
+
+#endif
 
 // The daemon's side: keep a list of paths once, then load them again and
 // again, with empty names, as a sync service re-hashes what it watches.
@@ -539,8 +765,14 @@ Term b3io_keep_run(Env e, Term* f, IoWork* w) {
 }
 
 Term b3io_again_run(Env e, Term* f, IoWork* w) {
+  if (io_gpu && b3_reuse_slots != b3_nsaved) {
+    free(b3_reuse);
+    b3_reuse = io_mem(calloc((u64)(b3_nsaved ? b3_nsaved : 1) * B3_PARTS_MAX, sizeof(B3Keep)));
+    b3_reuse_slots = b3_nsaved;
+  }
   B3File* fs = io_mem(calloc(b3_nsaved ? b3_nsaved : 1, sizeof(B3File)));
   for (u32 i = 0; i < b3_nsaved; i += 1) {
+    fs[i].slot = i + 1;
     fs[i].path = strdup(b3_saved[i]);
     fs[i].plen = strlen(fs[i].path);
     fs[i].name = term_pak(CID_SNil, 0);
@@ -571,6 +803,9 @@ Term b3io_release_run(Env e, Term* f, IoWork* w) {
 static void __attribute__((constructor)) b3io_load_use(void) {
 #ifdef CID(B3IO.load)
   io_eff(CID(B3IO.load), b3io_load_run);
+#endif
+#ifdef CID(B3IO.seg)
+  io_eff(CID(B3IO.seg), b3io_seg_run);
 #endif
 #ifdef CID(B3IO.keep)
   io_eff(CID(B3IO.keep), b3io_keep_run);

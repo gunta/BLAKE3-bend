@@ -14,8 +14,9 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 REF = ROOT / "b3sum" / "target" / "release" / "b3sum"
 BEND = ROOT / "bend" / "build" / "b3sum"
 G = 1 << 30
-SIZES = [G - 1, G, G + 1, G + 1024, 2 * G - 1, 2 * G, 2 * G + 1, 3 * G + 5000,
-         4 * G - 1, 4 * G, 4 * G + 1, 5 * G + 1023, 8 * G + 12345]
+SIZES = [256 << 20, 300 << 20, G - 1, G, G + 1, G + 1024, 2 * G - 1, 2 * G,
+         2 * G + 1, 3 * G + 5000, 4 * G - 1, 4 * G, 4 * G + 1, 5 * G + 1023,
+         8 * G + 12345]
 
 d = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else "/tmp/b3big")
 d.mkdir(parents=True, exist_ok=True)
@@ -32,9 +33,13 @@ for n in SIZES:
                     f.write(os.urandom(min(64, n - off)))
     paths.append(str(p))
 want = subprocess.run([str(REF)] + paths, capture_output=True, check=True).stdout
-got = subprocess.run([str(BEND)] + paths, capture_output=True, check=True).stdout
-if got != want:
-    for a, b in zip(want.decode().splitlines(), got.decode().splitlines()):
-        print(("ok  " if a == b else "BAD ") + b)
-    sys.exit(1)
-print(f"{len(paths)}/{len(paths)} big files match ({SIZES[0]} .. {SIZES[-1]} bytes)")
+# both of Bend's paths for big files: mapped, and streamed from disk
+for mode in ("never", "always"):
+    env = {**os.environ, "B3IO_STREAM": mode}
+    got = subprocess.run([str(BEND)] + paths, capture_output=True, check=True, env=env).stdout
+    if got != want:
+        for a, b in zip(want.decode().splitlines(), got.decode().splitlines()):
+            print(("ok  " if a == b else "BAD ") + b)
+        sys.exit(f"stream={mode}: mismatch")
+    print(f"{len(paths)}/{len(paths)} big files match, {'streamed' if mode == 'always' else 'mapped'} "
+          f"({SIZES[0]} .. {SIZES[-1]} bytes)")
