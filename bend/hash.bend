@@ -44,3 +44,11 @@ def side.g(j: Nat, a: Array<U32>, +nch: U32, +last: U32, +plan: U32,
 def side.c(j: Nat, a: Array<U32>, +nch: U32, +last: U32, +plan: U32) ->
   List<B3.CV>:
   S.side.c(~fork, j, a, nch, last, plan)
+
+# The same split by slices (see split.bend): the GPU's first g of 16 slices
+# of a whole input of 2^(k+6) chunks (call with !), and the CPU's rest.
+def slice.g(+k: Nat, a: Array<U32>, +g: Nat) -> List<B3.CV>:
+  S.slice.g(~fork, k, a, g)
+
+def slice.c(+k: Nat, a: Array<U32>, +g: U32) -> List<B3.CV>:
+  S.slice.c(~fork, k, a, g)

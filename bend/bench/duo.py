@@ -6,9 +6,11 @@ each plan, and prints the median round with its digest. A plan is
 "j:bits": bit i of bits (from the low end) gives the left child at spine
 depth i to the GPU (1) or the CPU (0), bit j the remainder; j >= 1, so the
 root is a parent the leader folds. "1:3" is all GPU, "1:0" all CPU, "2:3"
-gives the GPU 3/4 of a power-of-two input.
+gives the GPU 3/4 of a power-of-two input. "0:G" splits by slices instead:
+the GPU takes the first G of 16 (1..15) on all its lanes.
 
 usage: bend/bench/duo.py [d=28] [reps=15] [lv=6] [threads] plan...
+env:   DUO_GPU_HEAP=6GB  the GPU side's heap (+RTS --gpu), for d >= 29
 """
 import os
 import statistics
@@ -27,7 +29,9 @@ def run(d, reps, plan, lv, threads, blk):
     rts = ["+RTS", "--gpu", "off"] + (["--threads", str(threads)] if threads else []) + ["-RTS"]
     lead = subprocess.Popen([DUO] + rts + args + ["0"], env=env,
                             stdout=subprocess.PIPE, text=True)
-    follow = subprocess.Popen([DUO] + args + ["1"], env=env,
+    heap = os.environ.get("DUO_GPU_HEAP")
+    grts = ["+RTS", "--gpu", heap, "-RTS"] if heap else []
+    follow = subprocess.Popen([DUO] + grts + args + ["1"], env=env,
                               stdout=subprocess.PIPE, text=True)
     out, _ = lead.communicate()
     fout, _ = follow.communicate()

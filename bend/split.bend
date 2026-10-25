@@ -180,3 +180,125 @@ def side.c(~dup: Array<U32> -> Array<U32> & Array<U32>,
 def root(j: Nat, +nch: U32, +plan: U32, g: List<B3.CV>, c: List<B3.CV>) ->
   B3.CV:
   merge(j, U32.is_le(nch, 1), nch, plan, take(mine(plan, 1), g, c), B3.ROOT())
+
+# Slices
+# ------
+# A spine share costs the GPU as much as the whole input: its smaller
+# subtrees get fewer lanes, and a lane that is not one of ~16384 runs at its
+# own latency, not at the memory's bandwidth (ADR 0010). Slices keep every
+# lane. A whole input of 2^(k+6) chunks is 16 slices, each a whole subtree
+# of 2^(k+2) chunks; lane l of 2^k hashes the 4-chunk group l of each of the
+# GPU's first G slices (g4), so the GPU's share is G/16 of the input, still
+# on all 2^k lanes and one balanced tree. A join zips its halves' lists of G
+# CVs group for group (blake3.bend's GQuad does the same with four), so
+# after k levels the list holds slices 0..G-1. The CPU hashes slices G..15
+# with tree8, one after another, and slice.root folds the 16.
+
+# The lane's last g CVs, newest first in acc.
+def lane.go(n: Nat, r: Array<U32> & B3.CV, +c: U32, +t: U32, +st: U32,
+  acc: List<B3.CV>) -> List<B3.CV>:
+  match n:
+    case 0n:
+      (a, x) = r
+      _ = a
+      x <> acc
+    case 1n+p:
+      (a, x) = r
+      +c2 = (c + st : U32)
+      +t2 = (t + st : U32)
+      lane.go(p, B3.g4(a, c2, t2, 0), c2, t2, st, x <> acc)
+
+# One lane: g 4-chunk groups from array chunk c (counter t), st chunks
+# apart, as a list from the last group to the first.
+def lane(n: Nat, a: Array<U32>, +c: U32, +t: U32, +st: U32) -> List<B3.CV>:
+  match n:
+    case 0n:
+      _ = a
+      []
+    case 1n+p:
+      lane.go(p, B3.g4(a, c, t, 0), c, t, st, [])
+
+# Parents of two lists, element by element, in reverse order.
+def zip.go(x: List<B3.CV>, y: List<B3.CV>, acc: List<B3.CV>) -> List<B3.CV> :
+  match x y:
+    case Con{a, xs} Con{b, ys}:
+      zip.go(xs, ys, B3.parent(a, b, 0) <> acc)
+    case _ _:
+      acc
+
+def rev.go(xs: List<B3.CV>, acc: List<B3.CV>) -> List<B3.CV>:
+  match xs:
+    case Nil{}:
+      acc
+    case Con{h, t}:
+      rev.go(t, h <> acc)
+
+# The lanes' lists, slice 0 first: they start last-first and every level of
+# zips reverses them.
+def orient(b: Bool, xs: List<B3.CV>) -> List<B3.CV>:
+  match b:
+    case True{}:
+      rev.go(xs, [])
+    case False{}:
+      xs
+
+# 2^k lanes from the one whose first group is at array chunk c (counter t).
+def qtreel(~dup: Array<U32> -> Array<U32> & Array<U32>,
+  +k: Nat, aa: Array<U32> & Array<U32>, +c: U32, +t: U32, +st: U32,
+  +g: Nat) -> List<B3.CV>:
+  match k:
+    case 0n:
+      (a1, a2) = aa
+      _ = a2
+      lane(g, a1, c, t, st)
+    case 1n+p:
+      (a1, a2) = aa
+      +h = U32.shln(4, p)
+      l r = qtreel(~dup, p, dup(a1), c, t, st, g) qtreel(~dup, p, dup(a2), (c + h : U32), (t + h : U32), st, g)
+      zip.go(l, r, [])
+
+# The GPU's share of a whole input of 2^(k+6) chunks: the CVs of slices
+# 0..g-1 (call with !).
+def slice.g(~dup: Array<U32> -> Array<U32> & Array<U32>,
+  +k: Nat, a: Array<U32>, +g: Nat) -> List<B3.CV>:
+  orient(U32.is_eq((U32.from_nat(k) .&. 1 : U32), 0),
+    qtreel(~dup, k, dup(a), 0, 0, U32.shln(4, k), g))
+
+def slice.c.go(~dup: Array<U32> -> Array<U32> & Array<U32>,
+  n: Nat, aa: Array<U32> & Array<U32>, +s: U32, +k2: Nat, +sz: U32,
+  +nch: U32) -> List<B3.CV>:
+  match n:
+    case 0n:
+      (a1, a2) = aa
+      _ = a1
+      _ = a2
+      []
+    case 1n+p:
+      (a1, a2) = aa
+      x = sub8(~dup, k2, a1, (s * sz : U32), sz, nch, 1024, 0)
+      x <> slice.c.go(~dup, p, dup(a2), (s + 1 : U32), k2, sz, nch)
+
+# The CPU's share: the CVs of slices g..15, each on the whole pool in turn.
+def slice.c(~dup: Array<U32> -> Array<U32> & Array<U32>,
+  +k: Nat, a: Array<U32>, +g: U32) -> List<B3.CV>:
+  +sz = U32.shln(4, k)
+  slice.c.go(~dup, U32.to_nat((16 - g : U32)), dup(a), g, 2n+k, sz,
+    (sz << 4n : U32))
+
+def pairs(xs: List<B3.CV>) -> List<B3.CV>:
+  match xs:
+    case Con{a, Con{b, rest}}:
+      B3.parent(a, b, 0) <> pairs(rest)
+    case _:
+      []
+
+def top(xs: List<B3.CV>) -> B3.CV:
+  match xs:
+    case Con{a, Con{b, _}}:
+      B3.parent(a, b, B3.ROOT())
+    case _:
+      B3.IV()
+
+# The root CV from the GPU's slices g and the CPU's c, 16 in all.
+def slice.root(g: List<B3.CV>, c: List<B3.CV>) -> B3.CV:
+  top(pairs(pairs(pairs(cat(g, c)))))

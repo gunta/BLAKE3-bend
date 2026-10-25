@@ -4,7 +4,7 @@
 # "len hash" line per case; test/check.py compares them with the JSON. Then
 # bigger inputs, past the vectors, where the GPU's share at leaf level 6
 # takes strided lanes (blake3.bend's GQuad): each split is compared with the
-# CPU tree, "same len" or "DIFF len".
+# CPU tree, "same len" or "DIFF len"; and the split by slices the same way.
 import Base
 import ../blake3.bend as B3
 import ../hash.bend as H
@@ -97,8 +97,27 @@ def run.vectors(u: Unit) -> IO(Unit):
   run([1025, 2048, 2049, 3072, 3073, 4096, 4097, 5120, 5121, 6144, 6145, 7168,
     7169, 8192, 8193, 16384, 31744, 102400])
 
+# A whole input of 2^(k+6) chunks split by slices, the GPU's first g of 16
+# (its tree run here on the CPU pool), against the CPU tree.
+def slices(+k: U32, +g: U32) -> String:
+  +len = (65536 << U32.to_nat(k) : U32)
+  +kn = U32.to_nat(k)
+  same.show(cv.eq(S.slice.root(H.slice.g(kn, input.big(len), U32.to_nat(g)),
+    H.slice.c(kn, input.big(len), g)), H.hash(input.big(len), len))) ++
+    U32.show(len) ++ " slices " ++ U32.show(g)
+
+def slicess(xs: List<&2, U32>) -> IO(Unit):
+  match xs:
+    case Con{k, Con{g, rest}}:
+      do IO<Unit>:
+        IO.print(slices(k, g))
+        slicess(rest)
+    case _:
+      IO.pure(Unit, Unit{})
+
 def main() -> IO(Unit):
   do IO<Unit>:
     run.vectors(Unit{})
+    slicess([0, 1, 0, 15, 1, 8, 2, 13, 3, 3, 3, 12, 4, 1, 4, 13, 4, 15])
     bigs([131072, 1, 1, 131072, 1, 3, 132096, 1, 1, 262144, 2, 3, 263169, 2, 5,
       524288, 3, 7, 589825, 3, 5, 1048576, 2, 3, 1048575, 4, 13, 917504, 3, 3])
