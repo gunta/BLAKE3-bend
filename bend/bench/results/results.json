@@ -41,13 +41,13 @@
         "input": "1 GiB, all cores",
         "rust": 27.8,
         "bend_cpu": 26.9,
-        "bend_gpu": 11.6
+        "bend_gpu": 9.43
       }
     ]
   },
   "gpu_reference": {
     "unit": "ms",
-    "note": "Bend's GPU path (hash1!) against hand-written Metal (bend/ref, ADR 0006), warm, in memory, same digest; medians of 6 interleaved rounds on a loaded machine (+-10%). metal_bend_leaves runs the native kernel in hash1!'s shape: one thread per leaf, ~16,384 leaves.",
+    "note": "Bend's GPU path (hash1!) against hand-written Metal (bend/ref, ADR 0006), warm, in memory, same digest; medians of 6 interleaved rounds on a loaded machine (+-10%); the 1 GiB row is from ADR 0010, after Bend's lanes began reading interleaved groups. metal_bend_leaves runs the native kernel in hash1!'s shape: one thread per leaf, ~16,384 leaves.",
     "rows": [
       {
         "input": "16 MiB",
@@ -69,9 +69,9 @@
       },
       {
         "input": "1 GiB",
-        "bend_gpu": 12.82,
-        "metal_bend_leaves": 8.95,
-        "metal": 6.04
+        "bend_gpu": 9.43,
+        "metal_bend_leaves": 9.19,
+        "metal": 6.69
       }
     ]
   },
@@ -248,6 +248,11 @@
       "adr": "0009",
       "title": "Streaming and a GPU daemon",
       "summary": "Files not in the page cache stream in 1 GiB segments with 16 F_NOCACHE readers while Bend hashes (101.5 GB in ~7.6 s); a daemon refills reused GPU-heap blocks and hashes in one bang."
+    },
+    {
+      "adr": "0010",
+      "title": "Strided GPU lanes; CPU + GPU on one input",
+      "summary": "Past 512 MiB, lane l hashes 16-chunk groups l, l + S, l + 2S, l + 3S, so lanes running together read neighbouring memory: 1 GiB 13.2 -> 9.4 ms on the GPU. split.bend gives each left child of BLAKE3's right spine to the CPU or the GPU and folds both CV lists back up."
     }
   ],
   "models": {

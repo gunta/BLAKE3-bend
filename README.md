@@ -12,7 +12,7 @@ Site with every chart: **[gunta.github.io/BLAKE3-bend](https://gunta.github.io/B
 | on an Apple M5 Pro (6 Super + 12 Performance cores, 20-core GPU) | official BLAKE3 1.8.7 | BLAKE3 in Bend2 |
 |---|---|---|
 | `b3sum` a 101.5 GB DeepSeek-V4.1 shard (bigger than RAM) | 211 s (526 s first run) | **7.65 s** (27.6x, ~13 GB/s off the SSD) |
-| hash 1 GiB in memory, GPU | (no GPU path) | **11.6 ms (~93 GB/s)**, 2.4x the fastest CPU path |
+| hash 1 GiB in memory, GPU | (no GPU path) | **9.4 ms (~114 GB/s)**, 2.9x the fastest CPU path |
 | hash 1 GiB in memory, all CPU cores | 27.8 ms (NEON + rayon) | 26.9 ms |
 | hash 1 GiB, one CPU core | 448 ms (NEON) | **377 ms** (1.2x) |
 | `b3sum` 2,000 x 64 KiB files | 275 ms | **25.7 ms** (10.7x) |
@@ -101,7 +101,7 @@ Apple M5 Pro, macOS, Bend2 2.0.39, official BLAKE3 1.8.7 (`b3sum`, and the
 | 16 MiB, all cores | 1.13 ms | **0.50 ms** | 0.88 ms |
 | 64 MiB, all cores | 1.95 ms | 1.74 ms | **1.21 ms** |
 | 256 MiB, all cores | 6.9 ms | 6.6 ms | **2.43 ms** |
-| 1 GiB, all cores | 27.8 ms | 26.9 ms | **11.6 ms** |
+| 1 GiB, all cores | 27.8 ms | 26.9 ms | **9.4 ms** |
 
 **One-shot `b3sum FILE...`**, process start included, output byte-identical:
 
