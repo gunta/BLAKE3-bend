@@ -190,12 +190,14 @@ static int mem(int d, int reps, uint32_t k) {
 // One dispatch of p over nch threads (one per chunk), timed like hash().
 static id<MTLBuffer> cells;  // roof_redir's per-thread redirect cells
 
+static uint32_t group = 1;  // roof_group's chunks per group (B3_G)
+
 static void time1(id<MTLComputePipelineState> p, id<MTLBuffer> in, uint32_t nch,
                   uint32_t k, double *wall, double *gpu) {
   double t0 = now_us();
   id<MTLCommandBuffer> cb = [que commandBufferWithUnretainedReferences];
   id<MTLComputeCommandEncoder> e = [cb computeCommandEncoder];
-  Span s = {nch, 1024, 0, 0};
+  Span s = {nch, 1024, group, 0};
   [e setBuffer:cells offset:0 atIndex:3];
   dispatch(e, p, in, cv_a, s, nch / k);
   [e endEncoding];
@@ -216,20 +218,26 @@ static int roof(int d, int reps, uint32_t k) {
   // The same bytes in a buffer Metal allocates itself.
   id<MTLBuffer> own = [dev newBufferWithBytes:p length:sz options:MTLResourceStorageModeShared];
   id<MTLComputePipelineState> rd = pso_k(@"roof_read", k), st = pso_k(@"roof_stride", k),
-                              alu = pso_k(@"roof_alu", k), rr = pso_k(@"roof_redir", k);
+                              alu = pso_k(@"roof_alu", k), rr = pso_k(@"roof_redir", k),
+                              gr = pso_k(@"roof_group", k), gh = pso_k(@"roof_ghash", k);
+  if (getenv("B3_G")) group = (uint32_t)atoi(getenv("B3_G"));
+  if (group == 0 || k % group != 0) { fprintf(stderr, "B3_G must divide K\n"); return 2; }
   uint32_t nch = (uint32_t)(len / 1024);
   cells = [dev newBufferWithLength:(nch / k) * 8 options:MTLResourceStorageModeShared];
   uint64_t *cp = cells.contents;
   for (uint32_t i = 0; i < nch / k; i++) cp[i] = ((uint64_t)i * k * 256) << 24 | 1;
   for (int r = 0; r < reps; r++) {
-    double w1, g1, w2, g2, w3, g3, w4, g4, w5, g5;
+    double w1, g1, w2, g2, w3, g3, w4, g4, w5, g5, w6, g6, w7, g7;
+    time1(gr, b, nch, k, &w6, &g6);
+    time1(gh, b, nch, k, &w7, &g7);
     time1(rd, b, nch, k, &w1, &g1);
     time1(st, b, nch, k, &w3, &g3);
     time1(rd, own, nch, k, &w4, &g4);
     time1(rr, b, nch, k, &w5, &g5);
     time1(alu, b, nch, k, &w2, &g2);
-    printf("us: read %.0f  stride %.0f  read-own %.0f  redir %.0f  alu %.0f  K %u  bytes %llu\n",
-           w1, w3, w4, w5, w2, k, (unsigned long long)len);
+    printf("us: read %.0f  stride %.0f  read-own %.0f  redir %.0f  alu %.0f  group %.0f  ghash %.0f"
+           "  K %u  G %u  bytes %llu\n",
+           w1, w3, w4, w5, w2, w6, w7, k, group, (unsigned long long)len);
   }
   return 0;
 }

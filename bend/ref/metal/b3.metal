@@ -231,6 +231,48 @@ kernel void roof_stride(IN_PTR uint4 *in [[buffer(0)]],
   out[tid] = x;
 }
 
+// roof_group: K chunks per thread as G-chunk groups (G divides K; sp.n
+// holds G): thread t reads group t, t + T, t + 2T, ... (T threads), each
+// group's G chunks in order. G = 1 is roof_stride, G = K is roof_read.
+kernel void roof_group(IN_PTR uint4 *in [[buffer(0)]],
+                       device uint *out [[buffer(1)]],
+                       constant Span &sp [[buffer(2)]],
+                       uint tid [[thread_position_in_grid]]) {
+  uint nth = sp.nch / K, g = sp.n;
+  if (tid >= nth) return;
+  uint x = 0;
+  for (uint s = 0; s < K / g; s++) {
+    IN_PTR uint4 *p = in + (tid + s * nth) * g * 64;
+    for (uint b = 0; b < 16 * g; b++) {
+      uint m[16];
+      load16(m, p + 4 * b);
+      for (int i = 0; i < 16; i++) x ^= m[i];
+    }
+  }
+  out[tid] = x;
+}
+
+// roof_ghash: roof_group's reads with every chunk's 16 compressions (its
+// CV, counter and flags as in the hash), the CVs folded by xor: the cost
+// of a lane's leaf work in that order, without the tree.
+kernel void roof_ghash(IN_PTR uint4 *in [[buffer(0)]],
+                       device uint *out [[buffer(1)]],
+                       constant Span &sp [[buffer(2)]],
+                       uint tid [[thread_position_in_grid]]) {
+  uint nth = sp.nch / K, g = sp.n;
+  if (tid >= nth) return;
+  uint x = 0;
+  for (uint s = 0; s < K / g; s++) {
+    uint c0 = (tid + s * nth) * g;
+    for (uint j = 0; j < g; j++) {
+      uint cv[8];
+      chunk_cv(cv, in, c0 + j, 16, 64, 0u);
+      x ^= cv[0] ^ cv[7];
+    }
+  }
+  out[tid] = x;
+}
+
 // roof_redir: roof_read through an array handle the way a Bend lane holds
 // a forked array, a redirect cell in the heap: every word's address first
 // loads the cell (volatile, so nothing hoists it), then the word.
