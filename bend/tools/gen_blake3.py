@@ -250,6 +250,148 @@ def gen_fold8():
     )
 
 
+def gen_quad(name, sub, size):
+    """name(a, c, t, rf): four sub-leaves of `size` chunks each, in order,
+    then two levels of parents (the last takes rf). No forks: one GPU lane
+    runs it start to end."""
+    S = size
+    return f"""def {name}.s3(r: Array<U32> & CV, y: CV, x2: CV, +rf: U32) -> Array<U32> & CV:
+  (a, x3) = r
+  (a, parent(y, parent(x2, x3, 0), rf))
+
+def {name}.s2(r: Array<U32> & CV, +c: U32, +t: U32, y: CV, +rf: U32) -> Array<U32> & CV:
+  (a, x2) = r
+  {name}.s3({sub}(a, (c + {3 * S} : U32), (t + {3 * S} : U32), 0), y, x2, rf)
+
+def {name}.s1(r: Array<U32> & CV, +c: U32, +t: U32, x0: CV, +rf: U32) -> Array<U32> & CV:
+  (a, x1) = r
+  {name}.s2({sub}(a, (c + {2 * S} : U32), (t + {2 * S} : U32), 0), c, t, parent(x0, x1, 0), rf)
+
+def {name}.s0(r: Array<U32> & CV, +c: U32, +t: U32, +rf: U32) -> Array<U32> & CV:
+  (a, x0) = r
+  {name}.s1({sub}(a, (c + {S} : U32), (t + {S} : U32), 0), c, t, x0, rf)
+
+def {name}(a: Array<U32>, +c: U32, +t: U32, +rf: U32) -> Array<U32> & CV:
+  {name}.s0({sub}(a, c, t, 0), c, t, rf)
+"""
+
+
+GPU_LEAVES = """
+# GPU leaves
+# ----------
+# One full chunk, then 4, 16 and 64 full chunks in order, each a chain with
+# no fork: the GPU tree forks down to 64-chunk subtrees and every lane hashes
+# one start to end, the shape the shaders guide asks for (one flat task per
+# lane), instead of a task per chunk.
+
+# A full chunk at array chunk c, counter t; rf ignored (a quad's leaf).
+def gch(a: Array<U32>, +c: U32, +t: U32, +rf: U32) -> Array<U32> & CV:
+  +w = (c << 8n : U32)
+  chunk.go(15n, ld(a, w), w, IV(), t, CHUNK_START(), CHUNK_END(), 64)
+
+""" + gen_quad("g4", "gch", 1) + "\n" + gen_quad("g16", "g4", 4) + "\n" + \
+    gen_quad("g64", "g16", 16) + """
+def g.fin(r: Array<U32> & CV) -> CV:
+  (a, cv) = r
+  _ = a
+  cv
+
+# Whether chunks up to e (exclusive) are all full: the last chunk, nch - 1,
+# holds `last` bytes.
+def full(+e: U32, +nch: U32, +last: U32) -> Bool:
+  U32.is_lt(e, nch) || (U32.is_eq(e, nch) && U32.is_eq(last, 1024))
+
+type Node1 is Data:
+  GDown{}
+  GSplit{}
+  G4{}
+  G16{}
+  G64{}
+
+def kind1.at4(b: Bool) -> Node1:
+  match b:
+    case True{}:
+      G4{}
+    case False{}:
+      GSplit{}
+
+def kind1.at16(b: Bool, +k: U32) -> Node1:
+  match b:
+    case True{}:
+      G16{}
+    case False{}:
+      kind1.at4(U32.is_eq(k, 2))
+
+def kind1.at64(b: Bool, +k: U32) -> Node1:
+  match b:
+    case True{}:
+      G64{}
+    case False{}:
+      kind1.at16(U32.is_eq(k, 4), k)
+
+def kind1.full(+k: U32, full: Bool) -> Node1:
+  match full:
+    case False{}:
+      GSplit{}
+    case True{}:
+      kind1.at64(U32.is_eq(k, 6), k)
+
+def kind1.big(+k: U32, +n: U32, +c: U32, +nch: U32, +last: U32, +lv: U32,
+  b: Bool) -> Node1:
+  match b:
+    case False{}:
+      GDown{}
+    case True{}:
+      kind1.full(k, U32.is_eq(n, U32.shln(1, U32.to_nat(k))) &&
+        U32.is_le(k, lv) && full((c + n : U32), nch, last))
+
+# The kind of a node of depth k >= 1 of the GPU tree: a full subtree of
+# 4, 16 or 64 chunks, no deeper than the leaf level lv, is one lane's leaf.
+def kind1(+k: U32, +n: U32, +c: U32, +nch: U32, +last: U32, +lv: U32) -> Node1:
+  kind1.big(k, n, c, nch, last, lv,
+    U32.is_gt(n, U32.shln(1, U32.to_nat((k - 1 : U32)))))
+
+# The leaf level for an input of depth k: the GPU runs 2^14 lanes, so
+# leaves of 2^(k - 14) chunks (rounded down to 4^j, at most 64) keep every
+# lane busy without a task per chunk.
+def level(+k: U32) -> U32:
+  +l = U32.min(U32.max(k, 14), 20)
+  (((l - 14 : U32) >> 1n : U32) << 1n : U32)
+
+# The GPU tree: forks to full 64-, 16- or 4-chunk subtrees, one lane each.
+def treeg(+k: Nat, +ku: U32, d: Node1, aa: Array<U32> & Array<U32>, +c: U32,
+  +n: U32, +cb: U32, +nch: U32, +last: U32, +lv: U32, +rf: U32) -> CV:
+  match k d:
+    case 0n _:
+      (a1, a2) = aa
+      _ = a2
+      chunk(a1, c, cb, nch, last, rf)
+    case 1n+p GDown{}:
+      +kp = (ku - 1 : U32)
+      treeg(p, kp, kind1(kp, n, c, nch, last, lv), aa, c, n, cb, nch, last, lv, rf)
+    case 1n+p G64{}:
+      (a1, a2) = aa
+      _ = a2
+      g.fin(g64(a1, c, (cb + c : U32), rf))
+    case 1n+p G16{}:
+      (a1, a2) = aa
+      _ = a2
+      g.fin(g16(a1, c, (cb + c : U32), rf))
+    case 1n+p G4{}:
+      (a1, a2) = aa
+      _ = a2
+      g.fin(g4(a1, c, (cb + c : U32), rf))
+    case 1n+p GSplit{}:
+      (a1, a2) = aa
+      +kp = (ku - 1 : U32)
+      +h = U32.shln(1, p)
+      +n2 = (n - h : U32)
+      +c2 = (c + h : U32)
+      l r = treeg(p, kp, kind1(kp, h, c, nch, last, lv), Array.fork(U32, a1), c, h, cb, nch, last, lv, 0) treeg(p, kp, kind1(kp, n2, c2, nch, last, lv), Array.fork(U32, a2), c2, n2, cb, nch, last, lv, 0)
+      parent(l, r, rf)
+"""
+
+
 WIDE = """
 type CV8 is Data:
   CV8{{{cv8}}}
@@ -349,11 +491,6 @@ def kind.full(+k: U32, full: Bool) -> Node:
     case True{{}}:
       kind.at(U32.is_eq(k, 5), k)
 
-# Whether chunks up to e (exclusive) are all full: the last chunk, nch - 1,
-# holds `last` bytes.
-def full(+e: U32, +nch: U32, +last: U32) -> Bool:
-  U32.is_lt(e, nch) || (U32.is_eq(e, nch) && U32.is_eq(last, 1024))
-
 def kind.big(+k: U32, +n: U32, +c: U32, +nch: U32, +last: U32, b: Bool) -> Node:
   match b:
     case False{{}}:
@@ -430,7 +567,14 @@ def hash(a: Array<U32>, +len: U32) -> CV:
 
 def hash1.go(+k: Nat, a: Array<U32>, +cb: U32, +nch: U32, +last: U32,
   +rf: U32) -> CV:
-  tree1(k, big(k, nch), Array.fork(U32, a), 0, nch, cb, nch, last, rf)
+  match k:
+    case 0n:
+      chunk(a, 0, cb, nch, last, rf)
+    case 1n+p:
+      +ku = U32.from_nat(k)
+      +lv = level(ku)
+      treeg(k, ku, kind1(ku, nch, 0, nch, last, lv), Array.fork(U32, a), 0,
+        nch, cb, nch, last, lv, rf)
 
 # The CV of a span, one lane per chunk: the shape for the GPU (call with !).
 def hash1.at(a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32) -> CV:
@@ -657,7 +801,7 @@ def main():
         ld8=gen_ld8(), compress8=gen_compress8(),
         compress8p=gen_compress8("compress8.p", parent=True), par8=gen_par8(),
         fold8=gen_fold8())
-    src += TREE.replace("@@WIDE@@", wide)
+    src += TREE.replace("@@WIDE@@", GPU_LEAVES + wide)
     OUT.write_text(src)
     print(f"wrote {OUT}")
 
