@@ -8,6 +8,7 @@ target
 /bend/test/*.gpu
 /bend/*.gpu
 /bend/bench/data/
+/bend/bench/iroh/target/
 /bend/bench/rust/target/
 /bend/bench/rust/Cargo.lock
 /bend/build/
