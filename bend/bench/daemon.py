@@ -30,6 +30,9 @@ SIDES = {
     "bend gpu": lambda r, a: [str(BEND_GPU), "+RTS", "--gpu", "4GB", "-RTS", str(r)] + a,
 }
 WARM = 2
+# The GPU daemon's heap is 4 GB: the multi-GB sets stay in bench/race.py.
+DEFAULT = ["1 GiB file", "64 MiB file", "10k x 4 KiB", "2k x 64 KiB", "1k x 1 MiB",
+           "SDK headers", "cargo src 8k"]
 
 
 def rounds_of(cmd):
@@ -58,7 +61,7 @@ def race(name, args, rounds):
 
 def main():
     rounds = int(sys.argv[1]) if len(sys.argv) > 1 else 7
-    names = sys.argv[2:] or [n for n in WORKLOADS if n != "5 GiB file"]
+    names = sys.argv[2:] or DEFAULT
     print(f"daemon rounds: {rounds} per process x 3 (after {WARM} warm-up), "
           f"median ms per round (load avg {os.getloadavg()[0]:.1f})\n")
     print("| workload       | " + " | ".join(f"{k:>8}" for k in SIDES) + " | result |")

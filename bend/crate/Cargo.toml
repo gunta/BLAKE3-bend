@@ -1,0 +1,24 @@
+[package]
+name = "b3sum-bend"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "b3sum written in Bend2: a BLAKE3 CLI that hashes many files and big files in parallel, byte-identical to the official b3sum"
+repository = "https://github.com/gunta/BLAKE3-bend"
+homepage = "https://gunta.github.io/BLAKE3-bend/"
+documentation = "https://github.com/gunta/BLAKE3-bend/tree/master/bend"
+readme = "README.md"
+license = "CC0-1.0 OR Apache-2.0 OR Apache-2.0 WITH LLVM-exception"
+keywords = ["blake3", "b3sum", "hash", "bend", "parallel"]
+categories = ["command-line-utilities", "cryptography"]
+include = ["src/**", "csrc/**", "build.rs", "README.md", "LICENSE_*"]
+build = "build.rs"
+
+[[bin]]
+name = "b3sum-bend"
+path = "src/main.rs"
+
+[build-dependencies]
+cc = "1.2"
+
+[workspace]
