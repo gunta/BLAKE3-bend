@@ -142,6 +142,68 @@ predicts ~7 ms. Measuring it needs the machine to ourselves.
 `test/split.bend`: the official vectors under 11 plans (198/198), plans
 deeper than the input included, GPU leaf levels 0 to 6.
 
+## Addendum: the split by slices (same day)
+
+Re-run with the emulator still holding ~12 cores (load 16-25; the user's
+pause did not stop its qemu process). Three findings:
+
+- **The GPU clocks down when idle.** The same bang, hot or after a pause
+  (`IO.sleep` between bangs, one process): half of 1 GiB 4.9 ms hot,
+  6.6 ms after 100 ms idle, 13.9 ms after 300 ms; the whole GiB 8.4, 9.0
+  and 17.1. A split whose CPU side is slow leaves the GPU idle each round,
+  which is why the one-thread "GPU share alone" runs above looked worse
+  than they are.
+- **A spine share costs the GPU as much as the whole input.** Hot, in one
+  process, no CPU work: the whole GiB 8.7-9.3 ms, one 512 MiB subtree
+  5.2-5.9, but 3/4 (512 + 256 MiB) 8.7-9.9 and 7/8 8.7-11.1. A quarter
+  alone (256 MiB on 4096 strided lanes) takes 5.0-7.7 ms. Every lane does
+  64 chunks, and with fewer than ~16384 lanes the GPU runs at lane latency,
+  not bandwidth. 16- or 4-chunk leaves were worse (more cube iterations:
+  3/4 at 10.7-11.6 ms). At 2 GiB too, a 3/4 share (19.4-20.2 ms, while the
+  CPU hashed its quarter) is no cheaper than the whole (19.2-20.0).
+- **Contention is minor.** A hot whole-GiB bang next to a CPU process
+  hashing on 18, 8 or 4 threads: 8.9, 9.1, 8.6 ms against 8.6 alone (a
+  half-GiB bang did slow beside 18 threads, 10.9 against 5.3, but not beside
+  8 or 4).
+
+So the split now cuts by **slices** (`split.bend`: `slice.g`, `slice.c`,
+`slice.root`). A whole input of 2^(k+6) chunks is 16 slices, each a whole
+subtree. Lane l of 2^k hashes the 4-chunk group l of each of the GPU's first
+G slices, so the GPU's share is G/16 of the input on all its lanes, one
+balanced tree; joins zip the halves' lists of G CVs group for group, as
+`GQuad`'s do. The CPU hashes the other slices with `tree8`, and
+`slice.root` folds the 16. Plan `0:G` in `bench/duo.py`.
+
+1 GiB in memory, three interleaved passes of 15 rounds, medians, digests
+equal (the GPU share is measured while the CPU hashes its own):
+
+| plan | round | CPU share | GPU share |
+|------|-------|-----------|-----------|
+| GPU alone (`1:3`) | 8.54-8.85 ms | | 8.54-8.84 |
+| 12/16 GPU (`0:12`) | 9.49-11.10 | 9.47-11.09 | 7.62-8.59 |
+| **13/16 GPU (`0:13`)** | **7.93-8.06** | 6.64-7.72 | 7.84-8.04 |
+| 14/16 GPU (`0:14`) | 8.16-8.29 | 5.10-5.27 | 8.15-8.28 |
+| 15/16 GPU (`0:15`) | 8.63-8.78 | 2.53-3.30 | 8.62-8.76 |
+| spine 3/4 (`2:3`), for comparison | 11.9-16.3 | | |
+
+The CPU + GPU split beats the GPU alone in every pass, by 1.06-1.12x, with
+the CPU at about half its quiet speed (CPU alone 57-64 ms a GiB). A quiet
+machine should let the CPU take 4-5 slices.
+
+Still the GPU share does not shrink with its bytes: 13/16 of the input
+costs 7.9 ms against 8.6 for all of it. Its lanes do 52 chunks instead of
+64, and some cost does not scale (the ~0.9 ms per bang, ADR 0006).
+
+`test/split.bend` adds nine slice splits of 64 KiB to 1 MiB (1 to 16 lanes,
+G from 1 to 15), each equal to the CPU tree; `bench/duo` matched the CPU's
+digest at 4, 8, 64 and 128 MiB and 1 GiB (odd and even lane depths).
+
+**The CPU flag lead, re-run: refuted.** Rebuilt from the same C (baseline,
+`-mllvm -enable-post-misched=false`, `-mllvm -misched-prera-direction=bottomup`,
+both), five interleaved rounds on one core: 441-450, 437-458, 443-451 and
+443-461 ms, the fastest a different build from round to round; four rounds
+on all cores: 34.7-41.3 ms, the same. The earlier 3-19% was load.
+
 ## The CPU core (measured, not changed)
 
 One-thread 1 GiB: 384 ms (2.8 GB/s) with the machine lighter. A profile puts
@@ -153,10 +215,7 @@ block's 128 words into lanes. Eight lanes need 16 x 2 registers for the
 state alone, so the message words spill. Four NEON pipes would run the 1937
 ops in ~485 cycles; a block takes ~750 in the spin (183 ns at ~4.5 GHz,
 less the 10% elsewhere). An interleaved sweep of LLVM
-scheduler flags on one core: post-RA scheduling off
-(`-mllvm -enable-post-misched=false`) won every round, by 3-19%, but
-the baseline itself swung 550-628 ms at load 22, so it stays a lead for a
-quiet machine.
+scheduler flags found nothing (see the addendum).
 
 ## Not pursued
 

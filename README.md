@@ -13,6 +13,7 @@ Site with every chart: **[gunta.github.io/BLAKE3-bend](https://gunta.github.io/B
 |---|---|---|
 | `b3sum` a 101.5 GB DeepSeek-V4.1 shard (bigger than RAM) | 211 s (526 s first run) | **7.65 s** (27.6x, ~13 GB/s off the SSD) |
 | hash 1 GiB in memory, GPU | (no GPU path) | **9.4 ms (~114 GB/s)**, 2.9x the fastest CPU path |
+| hash 1 GiB in memory, CPU and GPU at once | (no GPU path) | **8.0 ms** (13/16 on the GPU), 1.06-1.12x the GPU alone |
 | hash 1 GiB in memory, all CPU cores | 27.8 ms (NEON + rayon) | 26.9 ms |
 | hash 1 GiB, one CPU core | 448 ms (NEON) | **377 ms** (1.2x) |
 | `b3sum` 2,000 x 64 KiB files | 275 ms | **25.7 ms** (10.7x) |

@@ -13,4 +13,4 @@ How the Bend2 BLAKE3 got fast, and what we measured on the way.
 | [0007](0007-laws-and-proofs.md) | LAWS.bend / PROOF.bend: known answers, lane laws, tree theorems; Array.fork moved to hash.bend |
 | [0008](0008-daemon-map-zone-and-iroh-outboards.md) | daemon race, a zone for mapped files, iroh-blobs outboards, a progressive load |
 | [0009](0009-streaming-uncached-files-and-gpu-daemon.md) | files not in the page cache streamed at SSD speed; a GPU daemon |
-| [0010](0010-strided-gpu-lanes-and-cpu-gpu-split.md) | strided GPU lanes past 512 MiB (1 GiB 13.2 -> 9.4 ms); the CPU and the GPU on one input (split.bend, two processes) |
+| [0010](0010-strided-gpu-lanes-and-cpu-gpu-split.md) | strided GPU lanes past 512 MiB (1 GiB 13.2 -> 9.4 ms); the CPU and the GPU on one input, split by slices (8.0 ms, 1.06-1.12x the GPU alone) |

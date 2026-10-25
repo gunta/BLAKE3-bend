@@ -97,6 +97,10 @@ rounds, medians, `bench/race.py`; output byte-identical):
 | SDK headers (3460 files)   | 129.1 ms | 37.5 ms    | 3.45x faster  |
 | cargo sources (8000 files) | 259.5 ms | 73.5 ms    | 3.53x faster  |
 
+The CPU and the GPU can share one input (`split.bend`, two processes,
+ADR 0010): with 13 of 16 slices on the GPU, 1 GiB takes 7.93-8.06 ms
+against 8.54-8.85 for the GPU alone in the same runs (`bench/duo.py`).
+
 Hand-written Metal (`ref/`, ADR 0006) hashes the same 1 GiB in 6-6.7 ms,
 and 256 MiB in 1.7-1.9 ms. The GPU hash is bound by reads, in Bend too (its
 compressions alone run at native speed). Past 512 MiB, Bend's lanes read

@@ -252,7 +252,7 @@
     {
       "adr": "0010",
       "title": "Strided GPU lanes; CPU + GPU on one input",
-      "summary": "Past 512 MiB, lane l hashes 16-chunk groups l, l + S, l + 2S, l + 3S, so lanes running together read neighbouring memory: 1 GiB 13.2 -> 9.4 ms on the GPU. split.bend gives each left child of BLAKE3's right spine to the CPU or the GPU and folds both CV lists back up."
+      "summary": "Past 512 MiB, lane l hashes 16-chunk groups l, l + S, l + 2S, l + 3S, so lanes running together read neighbouring memory: 1 GiB 13.2 -> 9.4 ms on the GPU. split.bend lets the CPU and the GPU hash one input at once by slices (13 of 16 on the GPU: 1 GiB in 8.0 ms, 1.06-1.12x the GPU alone)."
     }
   ],
   "models": {
