@@ -5,13 +5,15 @@
 # power-of-two subtree, the part of an update that hashes in parallel, is
 # handed to this program instead of the C SIMD loop (see blake3_bend.c).
 # It runs on a thread of its own inside the host process, forever: each
-# Eng.next waits for a caller's spans, Bend hashes them all at once (every
-# span's tree in parallel), and Eng.done hands their CVs back. The CV
-# stack, keys, flags, finalization and extended output stay in C.
+# Eng.next waits for a caller's job, Bend hashes it all at once (every
+# span's tree in parallel), and Eng.done hands the CVs back. The CV stack,
+# keys, flags, finalization and extended output stay in C. A job can also
+# be a list of files (b3bend's fast path), hashed as bend/b3sum.bend does.
 
 import Base
 import ../blake3.bend as B3
 import ../hash.bend as H
+import ../b3io.bend as F
 
 # Subtrees to hash: each a span (see blake3.bend's hash.at) of nch chunks,
 # the last of them `last` bytes; the chunk counter of its first is cb.
@@ -26,8 +28,14 @@ type CVs is Data:
   CvOne{cv: B3.CV}
   CvTwo{l: CVs, r: CVs}
 
-# Waits for the next spans (effects in engine.c).
-def Eng.next() -> IO(Spans):
+# A job: spans of memory, or files (a caller's paths, loaded by
+# B3IO.take as b3sum loads its arguments: in parallel, mapped, streamed).
+type Job is Type:
+  JSpans{s: Spans}
+  JFiles{}
+
+# Waits for the next job (effects in engine.c).
+def Eng.next() -> IO(Job):
   import "./engine.c"
   import "./engine.js"
 
@@ -47,25 +55,43 @@ def cvs(s: Spans) -> CVs:
       x y = cvs(l) cvs(r)
       CvTwo{x, y}
 
-def serve(n: Nat) -> IO(Unit):
+# Every file at once (b3io.bend's hash), the streamed ones after; the
+# hashes and errors go back in order, and the mapped files are let go.
+def files(+threads: U32) -> IO(Unit):
+  do IO<Unit>:
+    fs : F.Files <- F.B3IO.take(threads)
+    out : F.Out <- F.fill(F.hash(fs))
+    n : U32 <- F.B3IO.give(out)
+    F.B3IO.release()
+
+def work(j: Job, +threads: U32) -> IO(Unit):
+  match j:
+    case JSpans{s}:
+      Eng.done(cvs(s))
+    case JFiles{}:
+      files(threads)
+
+def serve(n: Nat, +threads: U32) -> IO(Unit):
   match n:
     case 0n:
       IO.pure(Unit, Unit{})
     case 1n+p:
       do IO<Unit>:
-        s : Spans <- Eng.next()
-        Eng.done(cvs(s))
-        serve(p)
+        j : Job <- Eng.next()
+        work(j, threads)
+        serve(p, threads)
 
 # 2^32 jobs a lap, and laps without end: the host's exit stops it.
-def laps(n: Nat) -> IO(Unit):
+def laps(n: Nat, +threads: U32) -> IO(Unit):
   match n:
     case 0n:
       IO.pure(Unit, Unit{})
     case 1n+p:
       do IO<Unit>:
-        serve(U32.to_nat(4294967295))
-        laps(p)
+        serve(U32.to_nat(4294967295), threads)
+        laps(p, threads)
 
 def main() -> IO(Unit):
-  laps(U32.to_nat(4294967295))
+  do IO<Unit>:
+    n : U32 <- IO.thread_count()
+    laps(U32.to_nat(4294967295), n)

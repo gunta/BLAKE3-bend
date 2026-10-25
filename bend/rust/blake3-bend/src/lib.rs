@@ -139,8 +139,8 @@ pub mod traits;
 mod io;
 mod join;
 
-#[cfg(all(blake3_bend, feature = "std"))]
-mod bend;
+#[cfg(feature = "std")]
+pub mod bend;
 
 use arrayvec::{ArrayString, ArrayVec};
 use core::cmp;

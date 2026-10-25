@@ -1,24 +1,38 @@
 [package]
 name = "b3bend"
-version = "0.1.0"
-edition = "2024"
-rust-version = "1.85"
-description = "b3sum written in Bend2: a BLAKE3 CLI that hashes many files and big files in parallel, byte-identical to the official b3sum"
+version = "1.8.7"
+authors = ["Jack O'Connor <oconnor663@gmail.com>"]
+description = "b3sum, with many files and big ones hashed at once by a Bend2 engine: a drop-in for b3sum"
 repository = "https://github.com/gunta/BLAKE3-bend"
 homepage = "https://gunta.github.io/BLAKE3-bend/"
-documentation = "https://github.com/gunta/BLAKE3-bend/tree/master/bend"
-readme = "README.md"
 license = "CC0-1.0 OR Apache-2.0 OR Apache-2.0 WITH LLVM-exception"
-keywords = ["blake3", "b3sum", "hash", "bend", "parallel"]
-categories = ["command-line-utilities", "cryptography"]
-include = ["src/**", "csrc/**", "build.rs", "README.md", "LICENSE_*"]
-build = "build.rs"
+readme = "README.md"
+edition = "2024"
 
+# `cargo install b3bend --features replace` also installs it as `b3sum`.
 [[bin]]
 name = "b3bend"
 path = "src/main.rs"
 
-[build-dependencies]
-cc = "1.2"
+[[bin]]
+name = "b3sum"
+path = "src/replace.rs"
+required-features = ["replace"]
 
-[workspace]
+[features]
+replace = []
+neon = ["blake3/neon"]
+prefer_intrinsics = ["blake3/prefer_intrinsics"]
+pure = ["blake3/pure"]
+
+[dependencies]
+anyhow = "1.0.25"
+blake3 = { package = "blake3-bend", version = "1.8.7", path = "../rust/blake3-bend", features = ["mmap", "rayon"] }
+clap = { version = "4.0.8", features = ["derive", "wrap_help"] }
+hex = "0.4.0"
+rayon-core = "1.12.1"
+wild = "2.0.3"
+
+[dev-dependencies]
+duct = "1.0.0"
+tempfile = "3.1.0"

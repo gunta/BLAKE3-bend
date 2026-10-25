@@ -80,6 +80,17 @@ def B3IO.again_take(k: U32) -> IO(Files):
   import "./effs/load.c"
   import "./effs/load.js"
 
+# The library engine's file jobs (bend/lib/engine.bend): take loads the
+# paths a caller posted, as B3IO.load loads its list; give hands the
+# hashes and errors, in order, back to that caller.
+def B3IO.take(threads: U32) -> IO(Files):
+  import "./effs/load.c"
+  import "./effs/load.js"
+
+def B3IO.give(o: Out) -> IO(U32):
+  import "./effs/emit.c"
+  import "./effs/emit.js"
+
 # Outboards: a hash with its bao outboard pairs (see blake3.bend's OB).
 type Obo is Data:
   BNone{}

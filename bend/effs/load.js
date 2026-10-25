@@ -15,3 +15,4 @@ io_eff(CID(B3IO.release), b3io_native_only);
 io_eff(CID(B3IO.seg), b3io_native_only);
 io_eff(CID(B3IO.again_start), b3io_native_only);
 io_eff(CID(B3IO.again_take), b3io_native_only);
+io_eff(CID(B3IO.take), b3io_native_only);

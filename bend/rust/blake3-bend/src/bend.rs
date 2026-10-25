@@ -3,7 +3,7 @@
 //! This crate is the official `blake3` crate with one hook:
 //! `compress_subtree_to_parent_node`, the work `Hasher::update` (and
 //! `hash`, and `update_rayon`) does for a subtree of two chunks or more,
-//! asks [`subtree`] first. A subtree big enough to beat the trip goes to the
+//! asks this module first. A subtree big enough to beat the trip goes to the
 //! Bend engine (bend/lib/engine.bend, compiled from `csrc/engine.c`), which
 //! runs on a thread of its own for the life of the process and hashes it on
 //! every core. Everything else is upstream's code.
@@ -13,11 +13,63 @@
 //! into the two child CVs upstream expects, exactly as `blake3_bend.c` does
 //! for the C library.
 //!
+//! [`hash_files`] is the engine's other job, b3bend's fast path.
+//!
 //! Environment: `BLAKE3_BEND=0` turns it off, `BLAKE3_BEND_MIN=<bytes>` sets
 //! the smallest subtree it takes (otherwise calibrated at the first big
 //! one), `BLAKE3_BEND_THREADS=<n>` caps its threads, `BLAKE3_BEND_TRACE=1`
 //! prints what it did.
 
+use crate::Hash;
+use std::io;
+use std::path::Path;
+
+/// Hashes many files at once, as `b3bend` does: opened, mapped or read
+/// in parallel, files not in the page cache streamed at SSD speed, every
+/// file's tree hashed by the Bend engine at the same time. Each answer is
+/// the file's `blake3::hash`, or the error opening or reading it. `None`
+/// when this build has no engine (no clang, or not Unix): hash them one by
+/// one then. A pipe or device comes back as an `Unsupported` error ("not a
+/// regular file"), unread: read it with `Hasher::update_reader`.
+pub fn hash_files(paths: &[&Path]) -> Option<Vec<io::Result<Hash>>> {
+    #[cfg(all(blake3_bend, unix))]
+    {
+        use std::ffi::CString;
+        use std::os::unix::ffi::OsStrExt;
+        let c: Vec<CString> = paths
+            .iter()
+            .map(|p| CString::new(p.as_os_str().as_bytes()).ok())
+            .collect::<Option<_>>()?;
+        let ptrs: Vec<*const core::ffi::c_char> = c.iter().map(|s| s.as_ptr()).collect();
+        let mut out = vec![[0u8; 32]; paths.len()];
+        let mut err = vec![0i32; paths.len()];
+        let ok = unsafe { engine::b3e_files(paths.len() as u32, ptrs.as_ptr(), out.as_mut_ptr(), err.as_mut_ptr()) };
+        if ok != 1 {
+            return None;
+        }
+        Some(
+            out.into_iter()
+                .zip(err)
+                .map(|(h, e)| match e {
+                    0 => Ok(Hash::from_bytes(h)),
+                    -1 => Err(io::Error::new(io::ErrorKind::Unsupported, "not a regular file")),
+                    e => Err(io::Error::from_raw_os_error(e)),
+                })
+                .collect(),
+        )
+    }
+    #[cfg(not(all(blake3_bend, unix)))]
+    {
+        let _ = paths;
+        None
+    }
+}
+
+#[cfg(blake3_bend)]
+pub(crate) use engine::subtree;
+
+#[cfg(blake3_bend)]
+mod engine {
 use crate::platform::Platform;
 use crate::{BLOCK_LEN, CHUNK_LEN, CVWords, IV, OUT_LEN, PARENT};
 use core::sync::atomic::{AtomicUsize, Ordering};
@@ -27,6 +79,7 @@ use std::time::Instant;
 unsafe extern "C" {
     fn b3e_hash(n: u32, p: *const *const u8, len: *const u64, cb: *const u64, out: *mut [u8; 32]) -> i32;
     fn b3e_inside(p: *const u8, len: u64) -> i32;
+    pub(super) fn b3e_files(n: u32, paths: *const *const core::ffi::c_char, out: *mut [u8; 32], err: *mut i32) -> i32;
 }
 
 const SPAN_MAX: usize = 1 << 30;
@@ -169,4 +222,5 @@ pub(crate) fn subtree(
     out[..32].copy_from_slice(&merge(key, flags, &cvs[..nl], platform));
     out[32..].copy_from_slice(&merge(key, flags, &cvs[nl..], platform));
     Some(out)
+}
 }

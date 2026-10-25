@@ -29,6 +29,7 @@ static u64* b3_heap;
 #define B3_MAP_MIN (1ull << 20)
 #define B3_SEG     (1ull << 30)
 #define B3_MAX     (1ull << 42)
+#define B3_NOTREG  (-1)  // f->err of a pipe or device
 
 typedef struct {
   u64   off;
@@ -393,7 +394,9 @@ static void b3_file(Env e, B3File* f) {
     b3_stdin(e, f);
     return;
   }
-  f->fd = open(f->path, O_RDONLY);
+  // O_NONBLOCK: a FIFO's open must not wait for a writer (it is refused
+  // below); regular files read as they always do
+  f->fd = open(f->path, O_RDONLY | O_NONBLOCK);
   if (f->fd < 0) {
     f->err = errno;
     return;
@@ -403,6 +406,9 @@ static void b3_file(Env e, B3File* f) {
     f->err = errno;
   } else if (S_ISDIR(st.st_mode)) {
     f->err = EISDIR;
+  } else if (!S_ISREG(st.st_mode)) {
+    // pipes and devices have no size to map or read up to
+    f->err = B3_NOTREG;
   } else if ((u64)st.st_size >= B3_MAX) {
     f->err = EFBIG;
   } else if (!io_gpu && f->slot == 0 && (u64)st.st_size >= B3_STREAM_MIN
@@ -583,7 +589,7 @@ static Term b3_leaf(Env e, B3File* f) {
     return b3_ctr(e, CID(FStream), 3, v);
   }
   if (f->err) {
-    const char* msg = strerror(f->err);
+    const char* msg = f->err == B3_NOTREG ? "not a regular file" : strerror(f->err);
     return io_node(e, CID(FErr), io_str(e, msg, strlen(msg)), f->name);
   }
   if (f->nparts > 1) {
@@ -620,6 +626,8 @@ static Term b3_tree(Env e, B3File* fs, u64* pre, u32 lo, u32 hi) {
 
 static Term b3_load(Env e, B3File* fs, u32 n, u32 threads, bool trace, u64 t0);
 
+#ifdef CID(B3IO.load)
+
 Term b3io_load_run(Env e, Term* f, IoWork* w) {
   bool trace = getenv("B3IO_TRACE") != NULL;
   u64  t0 = b3_us();
@@ -649,6 +657,8 @@ Term b3io_load_run(Env e, Term* f, IoWork* w) {
   B3_MARK("args")
   return b3_load(e, fs, n, threads, trace, t0);
 }
+
+#endif
 
 // Loads files fs[0..n-1] (paths and names set), frees fs, answers Files.
 static Term b3_load(Env e, B3File* fs, u32 n, u32 threads, bool trace, u64 t0) {
@@ -760,6 +770,8 @@ Term b3io_seg_run(Env e, Term* f, IoWork* w) {
 static char** b3_saved;
 static u32    b3_nsaved;
 
+#ifdef CID(B3IO.keep)
+
 Term b3io_keep_run(Env e, Term* f, IoWork* w) {
   for (u32 i = 0; i < b3_nsaved; i += 1) {
     free(b3_saved[i]);
@@ -783,6 +795,8 @@ Term b3io_keep_run(Env e, Term* f, IoWork* w) {
   return (Term)b3_nsaved;
 }
 
+#endif
+
 Term b3io_again_run(Env e, Term* f, IoWork* w) {
   if (io_gpu && b3_reuse_slots != b3_nsaved) {
     free(b3_reuse);
@@ -800,6 +814,28 @@ Term b3io_again_run(Env e, Term* f, IoWork* w) {
   bool trace = getenv("B3IO_TRACE") != NULL;
   return b3_load(e, fs, b3_nsaved, (u32)f[0], trace, b3_us());
 }
+
+#ifdef CID(B3IO.take)
+
+// B3IO.take(threads): the current file job's paths (bend/lib/engine.c),
+// loaded as B3IO.load loads its list, with empty names.
+const char* const* b3e_file_paths(u32* n);
+
+Term b3io_take_run(Env e, Term* f, IoWork* w) {
+  u32 n = 0;
+  const char* const* paths = b3e_file_paths(&n);
+  B3File* fs = io_mem(calloc(n ? n : 1, sizeof(B3File)));
+  for (u32 i = 0; i < n; i += 1) {
+    fs[i].path = strdup(paths[i]);
+    fs[i].plen = strlen(fs[i].path);
+    fs[i].name = term_pak(CID_SNil, 0);
+    fs[i].fd = -1;
+  }
+  b3_heap = e.mem;
+  return b3_load(e, fs, n, (u32)f[0], getenv("B3IO_TRACE") != NULL, b3_us());
+}
+
+#endif
 
 // Every mapped file of the round goes in one munmap of the zone's used
 // range; the kept references are left as they are (a word each), since a
@@ -960,5 +996,8 @@ static void __attribute__((constructor)) b3io_load_use(void) {
 #endif
 #ifdef CID(B3IO.again_take)
   io_eff(CID(B3IO.again_take), b3io_again_take_run);
+#endif
+#ifdef CID(B3IO.take)
+  io_eff(CID(B3IO.take), b3io_take_run);
 #endif
 }

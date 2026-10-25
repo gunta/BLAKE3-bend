@@ -89,7 +89,7 @@ PATCHES = {
     ],
     "src/lib.rs": [
         ('mod io;\nmod join;\n',
-         'mod io;\nmod join;\n\n#[cfg(all(blake3_bend, feature = "std"))]\nmod bend;\n'),
+         'mod io;\nmod join;\n\n#[cfg(feature = "std")]\npub mod bend;\n'),
         (HOOK, HOOK.replace("    let mut cv_array",
                             "    // blake3-bend: a big subtree goes to the Bend engine, on every core\n"
                             "    #[cfg(all(blake3_bend, feature = \"std\"))]\n"

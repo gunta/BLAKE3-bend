@@ -18,6 +18,7 @@
 // a block: a free would write a link into the caller's memory, or recycle
 // a block we reuse.
 
+#include <errno.h>
 #include <pthread.h>
 
 #define B3E_SPANS 64  // spans a job, read in place
@@ -44,6 +45,19 @@ static B3EJob* b3e_tail;
 static B3EJob* b3e_cur;   // taken, being hashed
 static u64*    b3e_heap;  // the heap's base, once the engine runs
 static int     b3e_state; // 0 not started, 1 running, -1 failed
+
+// A file job: paths for B3IO.take, and where B3IO.give puts each file's
+// hash (out) or errno (err). One at a time.
+typedef struct {
+  const char* const* paths;
+  u32  n;
+  unsigned char (*out)[32];
+  int* err;
+  bool done;
+} B3EFiles;
+
+static B3EFiles* b3e_fjob;  // posted, not yet taken
+static B3EFiles* b3e_fcur;  // taken
 
 // What Eng.next lent Bend for the current job: zero-copy redirect cells to
 // release once its CVs are out.
@@ -324,15 +338,21 @@ static Term b3e_spans(Env e, B3EJob* j, u32 lo, u32 hi, u32* k) {
   return b3e_ctr(e, CID(SpTwo), 2, v);
 }
 
-// Eng.next: the next job's spans, once a caller posts one; the copy of the
-// job after it starts before Bend sees these.
+// Eng.next: the next job, once a caller posts one. For spans, the copy of
+// the job after it starts before Bend sees these.
 Term eng_next_run(Env e, Term* f, IoWork* w) {
   static int set;
   pthread_mutex_lock(&b3e_mu);
   b3e_heap = e.mem;
   pthread_cond_broadcast(&b3e_finished);  // b3e_start waits for the first
-  while (b3e_head == NULL) {
+  while (b3e_head == NULL && b3e_fjob == NULL) {
     pthread_cond_wait(&b3e_posted, &b3e_mu);
+  }
+  if (b3e_fjob != NULL) {
+    b3e_fcur = b3e_fjob;
+    b3e_fjob = NULL;
+    pthread_mutex_unlock(&b3e_mu);
+    return term_pak(CID(JFiles), 0);
   }
   B3EJob* j = b3e_head;
   b3e_head = j->next;
@@ -356,7 +376,48 @@ Term eng_next_run(Env e, Term* f, IoWork* w) {
   u32 k = 0;
   Term t = j->n == 0 ? term_pak(CID(SpNil), 0) : b3e_spans(e, j, 0, j->n, &k);
   b3e_t_next = b3e_ns();
-  return t;
+  return b3e_ctr(e, CID(JSpans), 1, &t);
+}
+
+// The file job's side of B3IO.take and B3IO.give (b3io.bend, effs/).
+const char* const* b3e_file_paths(u32* n) {
+  *n = b3e_fcur->n;
+  return b3e_fcur->paths;
+}
+
+void b3e_file_hash(u32 i, const u64* words) {
+  if (i < b3e_fcur->n) {
+    for (u32 w = 0; w < 8; w += 1) {
+      u32 x = (u32)words[w];
+      for (u32 b = 0; b < 4; b += 1) {
+        b3e_fcur->out[i][4 * w + b] = (unsigned char)(x >> (8 * b));
+      }
+    }
+    b3e_fcur->err[i] = 0;
+  }
+}
+
+// The loader reports strerror's text; the caller wants the errno back
+// (-1: not a regular file, for the caller to read itself).
+void b3e_file_err(u32 i, const char* msg) {
+  int code = strcmp(msg, "not a regular file") ? EIO : -1;
+  for (int c = 1; c < 256 && code != -1; c += 1) {
+    if (!strcmp(strerror(c), msg)) {
+      code = c;
+      break;
+    }
+  }
+  if (i < b3e_fcur->n) {
+    b3e_fcur->err[i] = code;
+  }
+}
+
+void b3e_files_done(void) {
+  pthread_mutex_lock(&b3e_mu);
+  b3e_fcur->done = true;
+  b3e_fcur = NULL;
+  pthread_cond_broadcast(&b3e_finished);
+  pthread_mutex_unlock(&b3e_mu);
 }
 
 static void b3e_put(Env e, Term c, unsigned char (*out)[32], u32* i) {
@@ -543,4 +604,33 @@ int b3e_hash(uint32_t n, const unsigned char* const* p, const uint64_t* len,
     free(jobs);
   }
   return left == 0 && !failed;
+}
+
+static pthread_mutex_t b3e_fcall = PTHREAD_MUTEX_INITIALIZER;
+
+// Hashes n files as b3sum.bend does, all at once: out[i] gets file i's
+// BLAKE3 hash and err[i] 0; or err[i] its errno, or -1 for a pipe or device
+// (the caller reads those itself). 1 on success, 0 if the engine is not
+// running.
+int b3e_files(uint32_t n, const char* const* paths, unsigned char (*out)[32], int* err) {
+  if (n == 0) {
+    return 1;
+  }
+  if (!b3e_start()) {
+    return 0;
+  }
+  B3EFiles j = { paths, n, out, err, false };
+  for (u32 i = 0; i < n; i += 1) {
+    err[i] = EIO;
+  }
+  pthread_mutex_lock(&b3e_fcall);
+  pthread_mutex_lock(&b3e_mu);
+  b3e_fjob = &j;
+  pthread_cond_signal(&b3e_posted);
+  while (!j.done && b3e_state == 1) {
+    pthread_cond_wait(&b3e_finished, &b3e_mu);
+  }
+  pthread_mutex_unlock(&b3e_mu);
+  pthread_mutex_unlock(&b3e_fcall);
+  return j.done;
 }

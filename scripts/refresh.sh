@@ -29,7 +29,9 @@ for p in test/vectors.bend bench/mem.bend bench/daemon.bend bench/obao.bend; do
   bend/build.sh "bend/$p" >/dev/null
 done
 bend/build.sh bend/b3sum.bend bend/build/b3sum >/dev/null
-bend/crate/gen.sh
+bend/lib/gen.sh
+bend/lib/build.sh >/dev/null
+bend/rust/gen.sh
 (cd bend/crate && cargo build --release --quiet)
 
 step "official test vectors (CPU and GPU-shape paths)"

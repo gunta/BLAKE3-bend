@@ -101,6 +101,44 @@ Term b3io_emit_run(Env e, Term* f, IoWork* w) {
 
 #endif
 
+#ifdef CID(B3IO.give)
+
+// B3IO.give: each hash (eight words) or error message, in tree order, to
+// the library engine's current file job (bend/lib/engine.c). Frees the tree.
+void b3e_file_hash(u32 i, const u64* words);
+void b3e_file_err(u32 i, const char* msg);
+void b3e_files_done(void);
+
+static void b3_give(Env e, Term o, u32* i) {
+  u64 cid = term_aux(o);
+  if (cid == CID(OPair)) {
+    u64 at = term_peek(e.mem, o);
+    b3_give(e, e.mem[at], i);
+    b3_give(e, e.mem[at + 1], i);
+  } else if (cid == CID(OHash)) {
+    u64 at = term_peek(e.mem, o);
+    bool flat = cid_arity(CID(OHash)) == 9;
+    b3e_file_hash((*i)++, &e.mem[flat ? at : term_peek(e.mem, e.mem[at])]);
+  } else if (cid == CID(OErr)) {
+    u64 at = term_peek(e.mem, o);
+    B3Buf m = { 0 };
+    b3_put_str(e, &m, e.mem[at]);
+    b3_put(&m, "", 1);
+    b3e_file_err((*i)++, m.p);
+    free(m.p);
+  }
+}
+
+Term b3io_give_run(Env e, Term* f, IoWork* w) {
+  u32 i = 0;
+  b3_give(e, f[0], &i);
+  term_sink(e, f[0]);
+  b3e_files_done();
+  return (Term)i;
+}
+
+#endif
+
 #ifdef CID(B3IO.fold)
 
 // B3IO.fold: the XOR of every hash's eight words, so a daemon run can be
@@ -295,5 +333,8 @@ static void __attribute__((constructor)) b3io_emit_use(void) {
 #endif
 #ifdef CID(B3IO.fold)
   io_eff(CID(B3IO.fold), b3io_fold_run);
+#endif
+#ifdef CID(B3IO.give)
+  io_eff(CID(B3IO.give), b3io_give_run);
 #endif
 }

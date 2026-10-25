@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
-"""End-to-end race: official b3sum vs the Bend b3sum, file workloads.
+"""End-to-end race: official b3sum vs the Bend b3sums, file workloads.
 
 Runs every command of a workload once per round, in an order that flips each
-round, so drift on a busy machine hits both sides alike; reports the median
-and the minimum wall time. Checks that both print the same bytes first.
+round, so drift on a busy machine hits every side alike; reports the median
+and the minimum wall time. Checks that all print the same bytes first.
 
 usage: bench/race.py [rounds] [workload ...]
+B3RACE_SIDES=name=path,... picks the sides (the first is the baseline);
+the default is the official b3sum and bend/build/b3sum (bend/b3sum.bend),
+plus b3bend (bend/crate: the official b3sum with the engine) when built.
 """
 
 import os
@@ -20,6 +23,17 @@ ROOT = HERE.parents[1]
 DATA = HERE / "data"
 REF = ROOT / "b3sum" / "target" / "release" / "b3sum"
 BEND = ROOT / "bend" / "build" / "b3sum"
+RUST = ROOT / "bend" / "crate" / "target" / "release" / "b3bend"
+
+
+def sides_of():
+    spec = os.environ.get("B3RACE_SIDES")
+    if spec:
+        return dict(kv.split("=", 1) for kv in spec.split(","))
+    sides = {"b3sum": str(REF), "bend": str(BEND)}
+    if RUST.exists():
+        sides["b3bend"] = str(RUST)
+    return sides
 
 
 def files(pattern):
@@ -57,11 +71,13 @@ def run(cmd):
     return (time.perf_counter() - t) * 1000
 
 
-def race(name, args, rounds):
-    sides = {"b3sum": [str(REF)] + args, "bend": [str(BEND)] + args}
+def race(name, args, rounds, bins):
+    sides = {k: [b] + args for k, b in bins.items()}
     outs = {k: subprocess.run(v, capture_output=True).stdout for k, v in sides.items()}
-    if outs["b3sum"] != outs["bend"]:
-        sys.exit(f"{name}: outputs differ")
+    base = next(iter(sides))
+    for k in sides:
+        if outs[k] != outs[base]:
+            sys.exit(f"{name}: {k}'s output differs from {base}'s")
     for cmd in sides.values():
         for _ in range(2):
             run(cmd)
@@ -73,21 +89,25 @@ def race(name, args, rounds):
         order.reverse()
     med = {k: statistics.median(v) for k, v in times.items()}
     lo = {k: min(v) for k, v in times.items()}
-    ratio = med["b3sum"] / med["bend"]
-    verdict = f"bend {ratio:.2f}x faster" if ratio >= 1 else f"bend {1 / ratio:.2f}x slower"
-    print(f"| {name:<12} | {med['b3sum']:8.1f} | {lo['b3sum']:8.1f} | "
-          f"{med['bend']:8.1f} | {lo['bend']:8.1f} | {verdict} |", flush=True)
+    cells = " | ".join(f"{med[k]:8.1f} | {lo[k]:8.1f}" for k in sides)
+    verdicts = []
+    for k in list(sides)[1:]:
+        ratio = med[base] / med[k]
+        verdicts.append(f"{k} {ratio:.2f}x faster" if ratio >= 1 else f"{k} {1 / ratio:.2f}x slower")
+    print(f"| {name:<12} | {cells} | {'; '.join(verdicts)} |", flush=True)
 
 
 def main():
     rounds = int(sys.argv[1]) if len(sys.argv) > 1 else 15
     names = sys.argv[2:] or [n for n in WORKLOADS if n != "5 GiB file"]
+    bins = sides_of()
     print(f"{rounds} interleaved rounds, wall ms "
           f"(load avg {os.getloadavg()[0]:.1f})\n")
-    print("| workload     | b3sum md | b3sum lo |  bend md |  bend lo | result |")
-    print("|--------------|----------|----------|----------|----------|--------|")
+    head = " | ".join(f"{k} md | {k} lo" for k in bins)
+    print(f"| workload     | {head} | result |")
+    print("|--------------|" + "----------|----------|" * len(bins) + "--------|")
     for n in names:
-        race(n, WORKLOADS[n](), rounds)
+        race(n, WORKLOADS[n](), rounds, bins)
 
 
 if __name__ == "__main__":

@@ -2,16 +2,21 @@
 // feature loop is x86-only): hashes stdin through blake3.h and prints hex.
 //   cli [--length N] [--seek N] [--keyed HEX] [--derive-key CONTEXT] [--split N]
 //   cli --whole
+//   cli --files PATH...
 // --split N feeds the hasher N bytes per update, to cross every subtree
 // edge the hook sees; the output must not change. --whole hands the whole
 // input (2+ chunks, any length) to the hook at once, as the Rust crate's
-// hash() does, and prints the root of its two CVs.
+// hash() does, and prints the root of its two CVs. --files hashes the
+// paths as one engine file job (b3bend's fast path) and prints them as
+// b3sum does.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "blake3.h"
 #include "blake3_bend.h"
+
+int b3e_files(uint32_t n, const char* const* paths, unsigned char (*out)[32], int* err);
 
 void blake3_compress_in_place(uint32_t cv[8], const uint8_t block[64], uint8_t block_len,
                               uint64_t counter, uint8_t flags);
@@ -20,7 +25,32 @@ static int hexval(char c) {
   return c >= '0' && c <= '9' ? c - '0' : c >= 'a' && c <= 'f' ? c - 'a' + 10 : -1;
 }
 
+static int files(int n, char** paths) {
+  unsigned char (*out)[32] = malloc((size_t)(n ? n : 1) * 32);
+  int* err = malloc((size_t)(n ? n : 1) * sizeof(int));
+  if (!b3e_files((uint32_t)n, (const char* const*)paths, out, err)) {
+    fprintf(stderr, "no engine\n");
+    return 1;
+  }
+  int bad = 0;
+  for (int i = 0; i < n; i += 1) {
+    if (err[i] != 0) {
+      fprintf(stderr, "b3sum: %s: %s (os error %d)\n", paths[i], strerror(err[i]), err[i]);
+      bad = 1;
+      continue;
+    }
+    for (int b = 0; b < 32; b += 1) {
+      printf("%02x", out[i][b]);
+    }
+    printf("  %s\n", paths[i]);
+  }
+  return bad;
+}
+
 int main(int argc, char** argv) {
+  if (argc > 1 && !strcmp(argv[1], "--files")) {
+    return files(argc - 2, argv + 2);
+  }
   size_t out_len = BLAKE3_OUT_LEN, split = 0;
   uint64_t seek = 0;
   uint8_t key[BLAKE3_KEY_LEN];
