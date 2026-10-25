@@ -165,7 +165,7 @@ def hash_ob(t: Files) -> Obo:
 def segs.g(s: Segs, +rf: U32) -> B3.CV:
   match s:
     case SLeaf{a, cb, nch, last}:
-      B3.hash1.at(a, cb, nch, last, rf)
+      H.hash1.at(a, cb, nch, last, rf)
     case SNode{l, r}:
       x y = segs.g(l, 0) segs.g(r, 0)
       B3.parent(x, y, rf)
@@ -175,7 +175,7 @@ def hashg(t: Files) -> Out:
     case FNone{}:
       ONone{}
     case FFile{a, len, name}:
-      OHash{B3.hash1(a, len), name}
+      OHash{H.hash1(a, len), name}
     case FSegs{s, name}:
       OHash{segs.g(s, B3.ROOT()), name}
     case FStream{id, nseg, name}:
@@ -239,7 +239,7 @@ def stk.root(s: Stk) -> B3.CV:
 def part.cv(p: Part, +rf: U32) -> B3.CV:
   match p:
     case Part{a, cb, nch, last}:
-      B3.hash.at(a, cb, nch, last, rf)
+      H.hash.at(a, cb, nch, last, rf)
 
 def stream.go(n: Nat, +id: U32, +k: U32, s: Stk) -> IO(B3.CV):
   match n:
