@@ -1,0 +1,369 @@
+{
+  "info": {
+    "python": "3.13.17",
+    "load_avg": 18.5712890625,
+    "digests_agree": true
+  },
+  "rows": [
+    {
+      "impl": "blake3 (PyPI)",
+      "bytes": 1024,
+      "ms": 0.0015000005078036338,
+      "digest": "8214d8245d795ade"
+    },
+    {
+      "impl": "blake3 (PyPI), max_threads=AUTO",
+      "bytes": 1024,
+      "ms": 0.001541502570034936,
+      "digest": "8214d8245d795ade"
+    },
+    {
+      "impl": "blake3 (PyPI)",
+      "bytes": 65536,
+      "ms": 0.029375001759035513,
+      "digest": "bb790298334ebf43"
+    },
+    {
+      "impl": "blake3 (PyPI), max_threads=AUTO",
+      "bytes": 65536,
+      "ms": 0.1448955008527264,
+      "digest": "bb790298334ebf43"
+    },
+    {
+      "impl": "blake3 (PyPI)",
+      "bytes": 1048576,
+      "ms": 0.45402050091070123,
+      "digest": "3f5f9f8a1401a03f"
+    },
+    {
+      "impl": "blake3 (PyPI), max_threads=AUTO",
+      "bytes": 1048576,
+      "ms": 0.37150000207475387,
+      "digest": "3f5f9f8a1401a03f"
+    },
+    {
+      "impl": "blake3 (PyPI)",
+      "bytes": 16777216,
+      "ms": 7.452313002431765,
+      "digest": "4365009dfd70c8f3"
+    },
+    {
+      "impl": "blake3 (PyPI), max_threads=AUTO",
+      "bytes": 16777216,
+      "ms": 1.7542709974804893,
+      "digest": "4365009dfd70c8f3"
+    },
+    {
+      "impl": "blake3 (PyPI)",
+      "bytes": 268435456,
+      "ms": 117.07737499818904,
+      "digest": "6a7898caee5971ec"
+    },
+    {
+      "impl": "blake3 (PyPI), max_threads=AUTO",
+      "bytes": 268435456,
+      "ms": 9.710541999083944,
+      "digest": "6a7898caee5971ec"
+    },
+    {
+      "impl": "blake3 (PyPI)",
+      "bytes": 1073741824,
+      "ms": 485.61762499593897,
+      "digest": "14ae58b9cabbc4c2"
+    },
+    {
+      "impl": "blake3 (PyPI), max_threads=AUTO",
+      "bytes": 1073741824,
+      "ms": 34.44658299849834,
+      "digest": "14ae58b9cabbc4c2"
+    },
+    {
+      "impl": "blake3-bend",
+      "bytes": 1024,
+      "ms": 0.0010205003491137177,
+      "digest": "8214d8245d795ade"
+    },
+    {
+      "impl": "hashlib.sha256",
+      "bytes": 1024,
+      "ms": 0.0007079979695845395,
+      "digest": "447fb7c94f4e9091"
+    },
+    {
+      "impl": "hashlib.sha512",
+      "bytes": 1024,
+      "ms": 0.0010000003385357559,
+      "digest": "0836548ddc3a2b77"
+    },
+    {
+      "impl": "hashlib.sha1",
+      "bytes": 1024,
+      "ms": 0.0006874979590065777,
+      "digest": "a37fb4c68177df13"
+    },
+    {
+      "impl": "hashlib.md5",
+      "bytes": 1024,
+      "ms": 0.0015830009942874312,
+      "digest": "57b49e462481dbca"
+    },
+    {
+      "impl": "hashlib.blake2b",
+      "bytes": 1024,
+      "ms": 0.0009170034900307655,
+      "digest": "17595db39b16a052"
+    },
+    {
+      "impl": "hashlib.blake2s",
+      "bytes": 1024,
+      "ms": 0.0014170000213198364,
+      "digest": "a0d717911968a92c"
+    },
+    {
+      "impl": "hashlib.sha3_256",
+      "bytes": 1024,
+      "ms": 0.0014590041246265173,
+      "digest": "51e451262e11cb30"
+    },
+    {
+      "impl": "blake3-bend",
+      "bytes": 65536,
+      "ms": 0.02897899685194716,
+      "digest": "bb790298334ebf43"
+    },
+    {
+      "impl": "hashlib.sha256",
+      "bytes": 65536,
+      "ms": 0.021750005544163287,
+      "digest": "3a43a35d764c0aa8"
+    },
+    {
+      "impl": "hashlib.sha512",
+      "bytes": 65536,
+      "ms": 0.038875001337146387,
+      "digest": "7d5936195c43be7b"
+    },
+    {
+      "impl": "hashlib.sha1",
+      "bytes": 65536,
+      "ms": 0.021832995116710663,
+      "digest": "edcc2b89e8bc3ddc"
+    },
+    {
+      "impl": "hashlib.md5",
+      "bytes": 65536,
+      "ms": 0.07508300041081384,
+      "digest": "70bdf8b670064914"
+    },
+    {
+      "impl": "hashlib.blake2b",
+      "bytes": 65536,
+      "ms": 0.04731199805974029,
+      "digest": "df2316883255077b"
+    },
+    {
+      "impl": "hashlib.blake2s",
+      "bytes": 65536,
+      "ms": 0.07962500239955261,
+      "digest": "650a2f7f30855be8"
+    },
+    {
+      "impl": "hashlib.sha3_256",
+      "bytes": 65536,
+      "ms": 0.0649585017526988,
+      "digest": "84e690f9961ac8a4"
+    },
+    {
+      "impl": "blake3-bend",
+      "bytes": 1048576,
+      "ms": 0.22497950340039097,
+      "digest": "3f5f9f8a1401a03f"
+    },
+    {
+      "impl": "hashlib.sha256",
+      "bytes": 1048576,
+      "ms": 0.3544585015333723,
+      "digest": "4050cc092c340145"
+    },
+    {
+      "impl": "hashlib.sha512",
+      "bytes": 1048576,
+      "ms": 0.6337289996736217,
+      "digest": "7fdae00fad822c9b"
+    },
+    {
+      "impl": "hashlib.sha1",
+      "bytes": 1048576,
+      "ms": 0.3506460016069468,
+      "digest": "526eba61d31aa5d1"
+    },
+    {
+      "impl": "hashlib.md5",
+      "bytes": 1048576,
+      "ms": 1.2174170005891938,
+      "digest": "e48a5f9f901839dc"
+    },
+    {
+      "impl": "hashlib.blake2b",
+      "bytes": 1048576,
+      "ms": 0.8451869980490301,
+      "digest": "c852de23cb754a1b"
+    },
+    {
+      "impl": "hashlib.blake2s",
+      "bytes": 1048576,
+      "ms": 1.413707996107405,
+      "digest": "a504bf77aaeb484f"
+    },
+    {
+      "impl": "hashlib.sha3_256",
+      "bytes": 1048576,
+      "ms": 1.110291497752769,
+      "digest": "ccb613da15190328"
+    },
+    {
+      "impl": "blake3-bend",
+      "bytes": 16777216,
+      "ms": 1.0732919981819578,
+      "digest": "4365009dfd70c8f3"
+    },
+    {
+      "impl": "hashlib.sha256",
+      "bytes": 16777216,
+      "ms": 5.447458497656044,
+      "digest": "605517809c87df0a"
+    },
+    {
+      "impl": "hashlib.sha512",
+      "bytes": 16777216,
+      "ms": 9.477208499447443,
+      "digest": "77822778806975b2"
+    },
+    {
+      "impl": "hashlib.sha1",
+      "bytes": 16777216,
+      "ms": 5.410353998740902,
+      "digest": "f03de26dd211b5de"
+    },
+    {
+      "impl": "hashlib.md5",
+      "bytes": 16777216,
+      "ms": 19.068562498432584,
+      "digest": "89c82da8a7371dbc"
+    },
+    {
+      "impl": "hashlib.blake2b",
+      "bytes": 16777216,
+      "ms": 13.167333498131484,
+      "digest": "de9f19b46fb95202"
+    },
+    {
+      "impl": "hashlib.blake2s",
+      "bytes": 16777216,
+      "ms": 22.48464549847995,
+      "digest": "f777362f60675399"
+    },
+    {
+      "impl": "hashlib.sha3_256",
+      "bytes": 16777216,
+      "ms": 20.188832997519057,
+      "digest": "9d8f53f26ca0ff61"
+    },
+    {
+      "impl": "blake3-bend",
+      "bytes": 268435456,
+      "ms": 12.861458002589643,
+      "digest": "6a7898caee5971ec"
+    },
+    {
+      "impl": "hashlib.sha256",
+      "bytes": 268435456,
+      "ms": 88.63991699763574,
+      "digest": "373a87f24199805b"
+    },
+    {
+      "impl": "hashlib.sha512",
+      "bytes": 268435456,
+      "ms": 150.42887500021607,
+      "digest": "1159e858b598a36d"
+    },
+    {
+      "impl": "hashlib.sha1",
+      "bytes": 268435456,
+      "ms": 87.04825000313576,
+      "digest": "851d07ed86dba19d"
+    },
+    {
+      "impl": "hashlib.md5",
+      "bytes": 268435456,
+      "ms": 303.03591700067045,
+      "digest": "78f5783de74aa70c"
+    },
+    {
+      "impl": "hashlib.blake2b",
+      "bytes": 268435456,
+      "ms": 208.7442080010078,
+      "digest": "fb22483df11873fb"
+    },
+    {
+      "impl": "hashlib.blake2s",
+      "bytes": 268435456,
+      "ms": 361.31249999743886,
+      "digest": "d3d63497fa6cab87"
+    },
+    {
+      "impl": "hashlib.sha3_256",
+      "bytes": 268435456,
+      "ms": 326.9526250005583,
+      "digest": "05b97fa01cb7a49e"
+    },
+    {
+      "impl": "blake3-bend",
+      "bytes": 1073741824,
+      "ms": 49.65629200160038,
+      "digest": "14ae58b9cabbc4c2"
+    },
+    {
+      "impl": "hashlib.sha256",
+      "bytes": 1073741824,
+      "ms": 353.49845799646573,
+      "digest": "1eeaa0b6ed50e873"
+    },
+    {
+      "impl": "hashlib.sha512",
+      "bytes": 1073741824,
+      "ms": 595.1469159990666,
+      "digest": "67a70299a09d1a2e"
+    },
+    {
+      "impl": "hashlib.sha1",
+      "bytes": 1073741824,
+      "ms": 349.03666700120084,
+      "digest": "5d46db743be78966"
+    },
+    {
+      "impl": "hashlib.md5",
+      "bytes": 1073741824,
+      "ms": 1211.412458003906,
+      "digest": "d48f8f783f6c9c18"
+    },
+    {
+      "impl": "hashlib.blake2b",
+      "bytes": 1073741824,
+      "ms": 870.3950000053737,
+      "digest": "35e88c43975f454c"
+    },
+    {
+      "impl": "hashlib.blake2s",
+      "bytes": 1073741824,
+      "ms": 1517.0344590005698,
+      "digest": "2a775c4de49f27b5"
+    },
+    {
+      "impl": "hashlib.sha3_256",
+      "bytes": 1073741824,
+      "ms": 1366.8653329950757,
+      "digest": "6881b432b30f4634"
+    }
+  ]
+}

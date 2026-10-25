@@ -28,28 +28,21 @@ fi
 # the engine's flags are bend/build.sh's (ADR 0002)
 TUNE="-O3 $cpu -mllvm -slp-max-reg-size=512 -mllvm -slp-recursion-max-depth=100000 -mllvm -slp-threshold=-20 -mllvm -inline-threshold=20000"
 
-# 1. the engine's C (gen.sh makes it from engine.bend; REGEN=1 remakes it)
+# 1. the C (gen.sh makes csrc from engine.bend and c/; REGEN=1 remakes it)
 stale=""
-for f in "$here/engine.bend" "$here/engine.c" "$root/bend/hash.bend" "$root/bend/tools/gen_blake3.py"; do
+for f in "$here/engine.bend" "$here/engine.c" "$here/blake3_bend.c" "$here/blake3_bend.h" \
+         "$here/patch.py" "$root/bend/hash.bend" "$root/bend/b3io.bend" "$root/bend/effs/load.c" \
+         "$root/bend/effs/emit.c" "$root/bend/tools/gen_blake3.py"; do
   [ "$f" -nt "$here/csrc/engine.c" ] && stale=1
 done
 if [ -n "$REGEN" ] || [ -n "$stale" ] || [ ! -s "$here/csrc/engine.c" ]; then
   if [ -x "$BEND" ] || command -v bend >/dev/null; then
     "$here/gen.sh"
   else
-    echo "note: csrc/engine.c is older than the engine's sources, and there is no Bend2 to remake it" >&2
+    echo "note: csrc is older than its sources, and there is no Bend2 to remake it" >&2
   fi
 fi
-cp "$here/csrc/engine.c" "$src/engine.c"
-
-# 2. the official sources, with the hook
-for f in blake3.c blake3.h blake3_impl.h blake3_dispatch.c blake3_portable.c blake3_neon.c \
-         blake3_sse2_x86-64_unix.S blake3_sse41_x86-64_unix.S \
-         blake3_avx2_x86-64_unix.S blake3_avx512_x86-64_unix.S; do
-  cp "$root/c/$f" "$src/$f"
-done
-cp "$here/blake3_bend.c" "$here/blake3_bend.h" "$src/"
-python3 "$here/patch.py" hook "$src/blake3.c"
+cp "$here"/csrc/* "$src/"
 
 # 3. objects
 C="-O3 -std=c11 -fPIC -fvisibility=default -DBLAKE3_BEND -I$src"

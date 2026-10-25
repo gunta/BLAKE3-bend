@@ -1,9 +1,9 @@
 #!/bin/sh
-# Regenerates the engine's C, the one file every drop-in package compiles
-# (the Bend runtime, blake3.bend and engine.c, as Bend emits them, patched
-# to embed): bend/lib/csrc/engine.c, and the copy in each package that
-# ships it. Run it after any change to the .bend or engine sources, then
-# commit the copies with them. Needs Bend2 (~/.bend/bin/bend).
+# Regenerates bend/lib/csrc, the C every drop-in package compiles: the
+# engine (the Bend runtime, blake3.bend and engine.c, as Bend emits them,
+# patched to embed), the official C library with its hook, and the glue.
+# Run it after any change to the .bend, engine or glue sources, then commit
+# csrc with them. Needs Bend2 (~/.bend/bin/bend).
 set -e
 here=$(cd "$(dirname "$0")" && pwd)
 root=$(cd "$here/../.." && pwd)
@@ -21,9 +21,14 @@ if grep -q "define BANGS   [1-9]" "$out"; then
   exit 1
 fi
 python3 "$here/patch.py" embed "$out"
-for pkg in rust; do
-  if [ -d "$root/bend/$pkg/csrc" ]; then
-    cp "$out" "$root/bend/$pkg/csrc/engine.c"
-  fi
+# The rest of the C library, beside it: the official sources with the hook,
+# and the glue. Every binding builds from this one directory.
+for f in blake3.c blake3.h blake3_impl.h blake3_dispatch.c blake3_portable.c blake3_neon.c \
+         blake3_sse2_x86-64_unix.S blake3_sse41_x86-64_unix.S \
+         blake3_avx2_x86-64_unix.S blake3_avx512_x86-64_unix.S; do
+  cp "$root/c/$f" "$here/csrc/$f"
 done
-echo "wrote $out ($(wc -c < "$out") bytes, $("$BEND" version))"
+cp "$here/blake3_bend.c" "$here/blake3_bend.h" "$here/csrc/"
+python3 "$here/patch.py" hook "$here/csrc/blake3.c"
+cp "$out" "$root/bend/rust/blake3-bend/csrc/engine.c" 2>/dev/null || true
+echo "wrote $here/csrc ($(wc -c < "$out") bytes of engine, $("$BEND" version))"
