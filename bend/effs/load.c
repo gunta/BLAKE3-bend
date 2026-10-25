@@ -30,6 +30,7 @@ typedef struct {
   u64   loc;
   u32   cls;
   bool  late;
+  bool  mapped;
 } B3File;
 
 typedef struct {
@@ -57,6 +58,13 @@ static u64 b3_us(void) {
   struct timespec t;
   clock_gettime(CLOCK_MONOTONIC, &t);
   return (u64)t.tv_sec * 1000000ull + (u64)t.tv_nsec / 1000ull;
+}
+
+// When the process started, for B3IO_TRACE's timeline.
+static u64 b3_t_start;
+
+static void __attribute__((constructor)) b3_t_init(void) {
+  b3_t_start = b3_us();
 }
 
 // 2^cls words hold the file's whole blocks: at least one block.
@@ -105,8 +113,12 @@ static u64 b3_page_block(u64* H, u32 cls) {
   return 0;
 }
 
-// Maps the file over its block, copy-on-write: no read, no copy. The bytes
-// past the file's last VM page are the heap's own zero pages.
+// Maps the file over its block, read-only and shared, as b3sum's memmap
+// does: no read, no copy, and no copy-on-write setup (a 1 GiB private map
+// costs 5 ms, a shared one nothing). The bytes past the file's last VM page
+// are the heap's own zero pages. A freed block takes a free-list link in
+// its first word, so a mapped block is never freed: b3_leaf keeps one
+// reference to it for the life of the process.
 static bool b3_map(u64* H, B3File* f) {
   if (io_gpu || f->len < B3_MAP_MIN || f->cls < PAGE_BITS + 2) {
     return false;
@@ -117,12 +129,13 @@ static bool b3_map(u64* H, B3File* f) {
   }
   u64 pg = (u64)getpagesize();
   u64 span = (f->len + pg - 1) & ~(pg - 1);
-  void* at = mmap((char*)(H + loc), span, PROT_READ | PROT_WRITE,
-    MAP_PRIVATE | MAP_FIXED, f->fd, 0);
+  void* at = mmap((char*)(H + loc), span, PROT_READ, MAP_SHARED | MAP_FIXED,
+    f->fd, 0);
   if (at == MAP_FAILED) {
     return false;
   }
   f->loc = loc;
+  f->mapped = true;
   return true;
 }
 
@@ -240,8 +253,11 @@ static Term b3_leaf(Env e, B3File* f) {
     const char* msg = strerror(f->err);
     return io_node(e, CID(FErr), io_str(e, msg, strlen(msg)), f->name);
   }
-  return b3_ctr3(e, CID(FFile), term_blk(0, f->cls, f->loc), (Term)(u32)f->len,
-    f->name);
+  Term arr = term_blk(0, f->cls, f->loc);
+  if (f->mapped) {
+    arr = term_keep(e, arr, 1);
+  }
+  return b3_ctr3(e, CID(FFile), arr, (Term)(u32)f->len, f->name);
 }
 
 // Files lo..hi-1 as a tree whose halves hold about the same bytes.
@@ -272,6 +288,10 @@ static Term b3_tree(Env e, B3File* fs, u64* pre, u32 lo, u32 hi) {
 Term b3io_load_run(Env e, Term* f, IoWork* w) {
   bool trace = getenv("B3IO_TRACE") != NULL;
   u64  t0 = b3_us();
+  if (trace) {
+    fprintf(stderr, "b3io start  %8llu us after exec\n",
+      (unsigned long long)(t0 - b3_t_start));
+  }
   u32  threads = (u32)f[1];
   u32  cap = 64, n = 0;
   B3File* fs = io_mem(malloc(cap * sizeof(B3File)));

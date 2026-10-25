@@ -78,6 +78,10 @@ static void b3_emit(Env e, Term o, B3Buf* out, B3Buf* err, u32* nerr) {
 }
 
 Term b3io_emit_run(Env e, Term* f, IoWork* w) {
+  if (getenv("B3IO_TRACE") != NULL) {
+    fprintf(stderr, "b3io hashed %8llu us after exec\n",
+      (unsigned long long)(b3_us() - b3_t_start));
+  }
   B3Buf out = { 0 }, err = { 0 };
   u32   nerr = 0;
   b3_emit(e, f[0], &out, &err, &nerr);

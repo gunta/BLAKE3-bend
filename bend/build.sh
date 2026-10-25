@@ -18,9 +18,13 @@ export BUN_JSC_maxPerThreadStackUsage=60000000 JSC_maxPerThreadStackUsage=600000
 rm -f "$out.c"
 log=$("$BEND" "$src" -o "$out.c" 2>&1) || true
 [ -f "$out.c" ] || { printf '%s\n' "$log" >&2; echo "bend failed for $src" >&2; exit 1; }
-clang -DBEND_METAL=1 -x objective-c -fobjc-arc -fmodules -std=c11 $CFLAGS "$@" \
-  "$out.c" -lpthread -lm -o "$out"
 if grep -q "define BANGS   [1-9]" "$out.c"; then
+  clang -DBEND_METAL=1 -x objective-c -fobjc-arc -fmodules -std=c11 $CFLAGS "$@" \
+    "$out.c" -lpthread -lm -o "$out"
   "$out" +RTS --gpu-build -RTS >/dev/null
+else
+  # No ! call: a plain C build links only libSystem, so dyld does not load
+  # Metal and Foundation at every start (2.7 ms -> 1.4 ms for b3sum).
+  clang -x c -std=c11 $CFLAGS "$@" "$out.c" -lpthread -lm -o "$out"
 fi
 echo "built $out"
