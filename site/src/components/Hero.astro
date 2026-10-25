@@ -10,6 +10,7 @@
 import { blake3Hex } from '../lib/blake3';
 import { treePaths } from '../lib/tree';
 import { machineName } from '../lib/page';
+import { lawCount, universalCount } from '../lib/proofs';
 import { INSTALL, REPO_URL, UPSTREAM_URL } from '../lib/site';
 import BrandMark from './BrandMark.astro';
 
@@ -63,7 +64,8 @@ const { edges, root } = treePaths({ x0: -0.05 * W, rootX: 0.745 * W, y: 0.53 * H
       <p class="lead" data-reveal style="--i: 3">
         <strong class="name">b3<span class="ext">bend</span></strong> is BLAKE3, <a href={UPSTREAM_README}>the hash that replaces SHA-256</a>, rewritten in Bend2 and
         raced against the official Rust/C on {machineName}. Every compression runs in Bend, C only moves bytes, and it prints the same digests as
-        <code>b3sum</code>. Below: where it wins, where it only ties, and the floors that stop both.
+        <code>b3sum</code>. Bend's own checker proves {lawCount} laws about it, {universalCount} of them for every input or every size. Below: where it wins,
+        where it only ties, what is <a href="#proofs">proven</a>, and the floors that stop both.
       </p>
 
       <p class="actions" data-reveal style="--i: 4">

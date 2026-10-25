@@ -7,7 +7,7 @@ import Race from '../components/Race.astro';
 import Lineup from '../components/Lineup.astro';
 import BrandMark from '../components/BrandMark.astro';
 import Icon from '../components/Icon.astro';
-import { CircleCheck, Cpu, FileStack, FileText, Flag, FolderOpen, Gauge, Gpu, HardDrive, Laptop, MemoryStick, Monitor, Timer } from 'lucide-static';
+import { CircleCheck, Cpu, FileStack, FileText, Flag, FolderOpen, Gauge, Gpu, HardDrive, Laptop, MemoryStick, Monitor, ShieldCheck, Timer } from 'lucide-static';
 import type { MarkName } from '../lib/brands';
 import SiteFooter from '../components/SiteFooter.astro';
 import Section from '../components/Section.astro';
@@ -15,7 +15,9 @@ import BarChart from '../components/BarChart.astro';
 import DataTable from '../components/DataTable.astro';
 import Scorecard from '../components/Scorecard.astro';
 import Note from '../components/Note.astro';
+import Proofs from '../components/Proofs.astro';
 import { adr, ADR_INDEX_URL } from '../lib/adr';
+import { lawCount } from '../lib/proofs';
 import { fmtList, fmtRange } from '../lib/format';
 import { TIE_TEXT, tableView, fmtSpeedup } from '../lib/model';
 import {
@@ -49,6 +51,7 @@ const links = [
   ...(models ? [{ href: '#models', label: 'Models' }] : []),
   ...(daemon ? [{ href: '#daemon', label: 'Daemon' }] : []),
   ...(iroh ? [{ href: '#iroh', label: 'iroh-blobs' }] : []),
+  { href: '#proofs', label: 'Proofs' },
   { href: '#floors', label: 'Floors' },
   { href: '#techniques', label: 'Techniques' },
   { href: '#reproduce', label: 'Reproduce' },
@@ -77,7 +80,7 @@ const SPEC_ICONS: Record<string, StepIcon> = {
 };
 
 // Every section is a lap; the optional ones shift the numbers after them.
-const laps = ['in-memory', 'cli', ...(models ? ['models'] : []), ...(daemon ? ['daemon'] : []), ...(iroh ? ['iroh'] : []), 'floors', 'techniques', 'reproduce', 'machine'];
+const laps = ['in-memory', 'cli', ...(models ? ['models'] : []), ...(daemon ? ['daemon'] : []), ...(iroh ? ['iroh'] : []), 'proofs', 'floors', 'techniques', 'reproduce', 'machine'];
 const lap = (id: string) => laps.indexOf(id) + 1;
 
 // CLI prose: which workloads win and which tie, straight from the tally.
@@ -118,6 +121,12 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
     icon: { svg: CircleCheck },
     body: 'Both paths, against test_vectors/test_vectors.json.',
     code: 'bend/build.sh bend/test/vectors.bend && bend/test/build/vectors | python3 bend/test/check.py',
+  },
+  {
+    title: 'Check the proofs',
+    icon: { svg: ShieldCheck },
+    body: `Bend's checker proves the ${lawCount} laws of bend/LAWS.bend and prints ALL PROOFS CHECK, in about four minutes (nearly all of it the known answers).`,
+    code: 'bend/prove.sh',
   },
   {
     title: 'Check big files against the official b3sum',
@@ -261,6 +270,8 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
       </Section>
     )
   }
+
+  <Proofs lap={lap('proofs')} />
 
   <Section id="floors" lap={lap('floors')} kicker="Honest limits" title="The floors">
     <Fragment slot="lede">

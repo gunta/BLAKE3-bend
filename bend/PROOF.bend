@@ -6,7 +6,8 @@
 # `bend PROOF.bend` checks every law of LAWS.bend: ALL PROOFS CHECK.
 # Known answers are {==}: the checker evaluates both sides. The lane laws
 # open every record into its fields and are {==} on the symbolic terms. The
-# tree laws are inductions with rewrites (`%e : P`), on lemmas proven here.
+# outboard, tree and stream laws are inductions with rewrites (`%e : P`),
+# on lemmas proven here.
 
 import Base
 import ./blake3.bend as B3
@@ -100,6 +101,131 @@ def Laws.par8.lane(l, x, y):
 
 def Laws.schedule(m0, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15):
   {==}
+
+# Constants
+# ---------
+
+def Laws.consts.iv():
+  {==}
+
+def Laws.consts.flags():
+  {==}
+
+# Outboards
+# ---------
+#
+# By induction on tree8o: it is (tree8, its pairs), stated as an equation of
+# pairs so that each node's input is read once (arrays are affine, and
+# pairs have no eta).
+
+law fin.eta:
+  for r: Array<U32> & B3.CV8
+  for +rf: U32
+  {(B3.leaf8.fin(r, rf), Pair.snd(B3.CV, B3.OB, B3.leaf32o.fin(r, rf))) ==
+    B3.leaf32o.fin(r, rf) : B3.CV & B3.OB}
+
+def fin.eta(r, rf):
+  match r:
+    case (a, x):
+      match x:
+        case B3.CV8{h0_0, h1_0, h2_0, h3_0, h4_0, h5_0, h6_0, h7_0, h0_1, h1_1, h2_1, h3_1, h4_1, h5_1, h6_1, h7_1, h0_2, h1_2, h2_2, h3_2, h4_2, h5_2, h6_2, h7_2, h0_3, h1_3, h2_3, h3_3, h4_3, h5_3, h6_3, h7_3, h0_4, h1_4, h2_4, h3_4, h4_4, h5_4, h6_4, h7_4, h0_5, h1_5, h2_5, h3_5, h4_5, h5_5, h6_5, h7_5, h0_6, h1_6, h2_6, h3_6, h4_6, h5_6, h6_6, h7_6, h0_7, h1_7, h2_7, h3_7, h4_7, h5_7, h6_7, h7_7}:
+          {==}
+
+law pick.eta:
+  for rec: Bool
+  for -l: B3.CV
+  for -r: B3.CV
+  for -a: B3.OB
+  for -b: B3.OB
+  for +rf: U32
+  {(B3.parent(l, r, rf), Pair.snd(B3.CV, B3.OB, B3.join.pick(rec, l, r, a, b, rf))) ==
+    B3.join.pick(rec, l, r, a, b, rf) : B3.CV & B3.OB}
+
+def pick.eta(rec, l, r, a, b, rf):
+  match rec:
+    case True{}:
+      {==}
+    case False{}:
+      {==}
+
+law tree8o.eta:
+  for +k: Nat
+  for +ku: U32
+  for d: B3.Node
+  for aa: Array<U32> & Array<U32>
+  for +c: U32
+  for +n: U32
+  for +cb: U32
+  for +nch: U32
+  for +last: U32
+  for +rf: U32
+  {(B3.tree8(~Laws.share, k, ku, d, aa, c, n, cb, nch, last, rf), Pair.snd(B3.CV, B3.OB, B3.tree8o(~Laws.share, k, ku, d, aa, c, n, cb, nch, last, rf))) ==
+    B3.tree8o(~Laws.share, k, ku, d, aa, c, n, cb, nch, last, rf) : B3.CV & B3.OB}
+
+def tree8o.eta(k, ku, d, aa, c, n, cb, nch, last, rf):
+  match k d:
+    case 0n _:
+      match aa:
+        case (a1, a2):
+          {==}
+    case 1n+p B3.Down{}:
+      tree8o.eta(p, (ku - 1 : U32), B3.kind((ku - 1 : U32), n, c, nch, last), aa, c, n,
+        cb, nch, last, rf)
+    case 1n+p B3.Leaf32{}:
+      match aa:
+        case (a1, a2):
+          fin.eta(B3.leaf32.s0(B3.group(a1, c, (cb + c : U32)), c, (cb + c : U32)), rf)
+    case 1n+p B3.Leaf8{}:
+      match aa:
+        case (a1, a2):
+          {==}
+    case 1n+p B3.Split{}:
+      match aa:
+        case (a1, a2):
+          +kp = (ku - 1 : U32)
+          +h = U32.shln(1, p)
+          +n2 = (n - h : U32)
+          +c2 = (c + h : U32)
+          %tree8o.eta(p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, nch, last, 0) :
+            {(B3.parent(B3.tree8(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, nch, last, 0), B3.tree8(~Laws.share, p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, nch, last, 0), rf), Pair.snd(B3.CV, B3.OB, B3.join.o(_, B3.tree8o(~Laws.share, p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, nch, last, 0), rf,
+              U32.is_ge(ku, 5)))) == B3.join.o(_, B3.tree8o(~Laws.share, p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, nch, last, 0), rf, U32.is_ge(ku, 5)) :
+              B3.CV & B3.OB}
+          %tree8o.eta(p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, nch, last, 0) :
+            {(B3.parent(B3.tree8(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, nch, last, 0), B3.tree8(~Laws.share, p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, nch, last, 0), rf), Pair.snd(B3.CV, B3.OB, B3.join.o((B3.tree8(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, nch, last, 0),
+              Pair.snd(B3.CV, B3.OB, B3.tree8o(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, nch, last, 0))), _, rf, U32.is_ge(ku, 5)))) ==
+              B3.join.o((B3.tree8(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, nch, last, 0), Pair.snd(B3.CV, B3.OB, B3.tree8o(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, nch, last, 0))), _, rf, U32.is_ge(ku, 5)) :
+              B3.CV & B3.OB}
+          pick.eta(U32.is_ge(ku, 5), B3.tree8(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, nch, last, 0), B3.tree8(~Laws.share, p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, nch, last, 0), Pair.snd(B3.CV, B3.OB, B3.tree8o(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, nch, last, 0)),
+            Pair.snd(B3.CV, B3.OB, B3.tree8o(~Laws.share, p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, nch, last, 0)), rf)
+
+law ob.go:
+  for +k: Nat
+  for a: Array<U32>
+  for +cb: U32
+  for +nch: U32
+  for +last: U32
+  for +rf: U32
+  {Pair.fst(B3.CV, B3.OB, B3.hash.ob.go(~Laws.share, k, a, cb, nch, last, rf)) ==
+    B3.hash.go(~Laws.share, k, a, cb, nch, last, rf) : B3.CV}
+
+def ob.go(k, a, cb, nch, last, rf):
+  match k:
+    case 0n:
+      {==}
+    case 1n+p:
+      +ku = U32.from_nat(1n+p)
+      +d = B3.kind(ku, nch, 0, nch, last)
+      Equal.sym(B3.CV, B3.tree8(~Laws.share, 1n+p, ku, d, Laws.share(a), 0, nch, cb, nch, last, rf), Pair.fst(B3.CV, B3.OB, B3.tree8o(~Laws.share, 1n+p, ku, d, Laws.share(a), 0, nch, cb, nch, last, rf)),
+        Equal.cong(B3.CV & B3.OB, B3.CV, x => Pair.fst(B3.CV, B3.OB, x),
+          (B3.tree8(~Laws.share, 1n+p, ku, d, Laws.share(a), 0, nch, cb, nch, last, rf), Pair.snd(B3.CV, B3.OB, B3.tree8o(~Laws.share, 1n+p, ku, d, Laws.share(a), 0, nch, cb, nch, last, rf))), B3.tree8o(~Laws.share, 1n+p, ku, d, Laws.share(a), 0, nch, cb, nch, last, rf),
+          tree8o.eta(1n+p, ku, d, Laws.share(a), 0, nch, cb, nch, last, rf)))
+
+def Laws.ob.hash(a, len):
+  ob.go(B3.depth(B3.chunks(len)), a, 0, B3.chunks(len), B3.tail(len, B3.chunks(len)),
+    B3.ROOT())
+
+def Laws.ob.at(a, cb, nch, last, rf):
+  ob.go(B3.depth(nch), a, cb, nch, last, rf)
 
 # Tree shapes
 # -----------
@@ -289,3 +415,628 @@ def Laws.levels.root(k, r, e):
   Equal.trans(List<&2, Laws.Shape>, Laws.reduce(k, Laws.leaves(r)),
     Laws.row(Laws.shr(k, r), Laws.digits(k, r, [])), [Laws.tree(Laws.digits(k, r, []))],
     Laws.levels(k, r), row_zero(Laws.shr(k, r), Laws.digits(k, r, []), e))
+
+# Counts
+# ------
+#
+# Pairing never drops or adds a leaf, so `levels.root` counts the tree's
+# leaves; a tree has one parent fewer than leaves.
+
+def total(+xs: List<&2, Laws.Shape>) -> Nat:
+  match xs:
+    case Nil{}:
+      0n
+    case Con{x, rest}:
+      Nat.add(Laws.tips(x), total(rest))
+
+def pred(n: Nat) -> Nat:
+  match n:
+    case 0n:
+      0n
+    case 1n+p:
+      p
+
+law add_zero:
+  for +a: Nat
+  {a == Nat.add(a, 0n) : Nat}
+
+def add_zero(a):
+  match a:
+    case 0n:
+      {==}
+    case 1n+p:
+      %add_zero(p) : {1n+p == 1n+_ : Nat}
+      {==}
+
+law add_succ:
+  for +a: Nat
+  for +b: Nat
+  {1n+Nat.add(a, b) == Nat.add(a, 1n+b) : Nat}
+
+def add_succ(a, b):
+  match a:
+    case 0n:
+      {==}
+    case 1n+p:
+      %add_succ(p, b) : {1n+1n+Nat.add(p, b) == 1n+_ : Nat}
+      {==}
+
+law add_assoc:
+  for +a: Nat
+  for +b: Nat
+  for +c: Nat
+  {Nat.add(Nat.add(a, b), c) == Nat.add(a, Nat.add(b, c)) : Nat}
+
+def add_assoc(a, b, c):
+  match a:
+    case 0n:
+      {==}
+    case 1n+p:
+      %add_assoc(p, b, c) : {1n+Nat.add(Nat.add(p, b), c) == 1n+_ : Nat}
+      {==}
+
+law tips_forks:
+  for +t: Laws.Shape
+  {1n+Laws.forks(t) == Laws.tips(t) : Nat}
+
+def tips_forks(t):
+  match t:
+    case Laws.Tip{}:
+      {==}
+    case Laws.Fork{l, r}:
+      %tips_forks(l) : {1n+1n+Nat.add(Laws.forks(l), Laws.forks(r)) == Nat.add(_, Laws.tips(r)) : Nat}
+      %tips_forks(r) : {1n+1n+Nat.add(Laws.forks(l), Laws.forks(r)) == 1n+Nat.add(Laws.forks(l), _) : Nat}
+      %add_succ(Laws.forks(l), Laws.forks(r)) : {1n+1n+Nat.add(Laws.forks(l), Laws.forks(r)) == 1n+_ : Nat}
+      {==}
+
+law pairs_total:
+  for +xs: List<&2, Laws.Shape>
+  {total(Laws.pairs(xs)) == total(xs) : Nat}
+
+def pairs_total(xs):
+  match xs:
+    case Nil{}:
+      {==}
+    case Con{x, rest}:
+      match rest:
+        case Nil{}:
+          {==}
+        case Con{y, more}:
+          %pairs_total(more) : {Nat.add(Nat.add(Laws.tips(x), Laws.tips(y)), total(Laws.pairs(more))) ==
+            Nat.add(Laws.tips(x), Nat.add(Laws.tips(y), _)) : Nat}
+          add_assoc(Laws.tips(x), Laws.tips(y), total(Laws.pairs(more)))
+
+law reduce_total:
+  for +k: Nat
+  for +xs: List<&2, Laws.Shape>
+  {total(Laws.reduce(k, xs)) == total(xs) : Nat}
+
+def reduce_total(k, xs):
+  match k:
+    case 0n:
+      {==}
+    case 1n+p:
+      %pairs_total(xs) : {total(Laws.reduce(p, Laws.pairs(xs))) == _ : Nat}
+      reduce_total(p, Laws.pairs(xs))
+
+law leaves_total:
+  for +r: Nat
+  {total(Laws.leaves(r)) == 1n+r : Nat}
+
+def leaves_total(r):
+  match r:
+    case 0n:
+      {==}
+    case 1n+p:
+      %leaves_total(p) : {1n+total(Laws.leaves(p)) == 1n+_ : Nat}
+      {==}
+
+def Laws.tree.leaves(k, r, e):
+  %leaves_total(r) : {Laws.tips(Laws.tree(Laws.digits(k, r, []))) == _ : Nat}
+  %reduce_total(k, Laws.leaves(r)) : {Laws.tips(Laws.tree(Laws.digits(k, r, []))) == _ : Nat}
+  %Equal.sym(List<&2, Laws.Shape>, Laws.reduce(k, Laws.leaves(r)), [Laws.tree(Laws.digits(k, r, []))],
+    Laws.levels.root(k, r, e)) : {Laws.tips(Laws.tree(Laws.digits(k, r, []))) == total(_) : Nat}
+  add_zero(Laws.tips(Laws.tree(Laws.digits(k, r, []))))
+
+def Laws.tree.parents(k, r, e):
+  Equal.cong(Nat, Nat, pred, 1n+Laws.forks(Laws.tree(Laws.digits(k, r, []))), 1n+r,
+    Equal.trans(Nat, 1n+Laws.forks(Laws.tree(Laws.digits(k, r, []))), Laws.tips(Laws.tree(Laws.digits(k, r, []))), 1n+r,
+      tips_forks(Laws.tree(Laws.digits(k, r, []))), Laws.tree.leaves(k, r, e)))
+
+# Streaming
+# ---------
+#
+# The stack's shapes (sh.*: stk.* on Shapes). After segments 0..v the
+# stack is Tip over bits(f, 0, v): v's 1 digits, lowest on top, each the
+# complete tree of its level (bits keeps an overflow as a pile, so the
+# merge lemma needs no bound). The merges before segment 1 + v carry v's
+# trailing 1s like a binary increment (lazy.inc), and the last fold reads
+# the digits from the top (fold), as `tree` does.
+
+def sh.pop2(s: List<&2, Laws.Shape>) -> List<&2, Laws.Shape>:
+  match s:
+    case Con{r, rest}:
+      match rest:
+        case Con{l, more}:
+          Laws.Fork{l, r} <> more
+        case Nil{}:
+          [r]
+    case Nil{}:
+      []
+
+def sh.lazy(fuel: Nat, s: List<&2, Laws.Shape>, +n: Nat, b: Bool) -> List<&2, Laws.Shape>:
+  match fuel b:
+    case 0n _:
+      s
+    case 1n+f True{}:
+      +m = Laws.half(n)
+      sh.lazy(f, sh.pop2(s), m, Laws.stk.even(m))
+    case 1n+f False{}:
+      s
+
+def sh.fin(s: List<&2, Laws.Shape>, r: Laws.Shape) -> Laws.Shape:
+  match s:
+    case Nil{}:
+      r
+    case Con{l, rest}:
+      sh.fin(rest, Laws.Fork{l, r})
+
+def sh.root(s: List<&2, Laws.Shape>) -> Laws.Shape:
+  match s:
+    case Con{top, rest}:
+      sh.fin(rest, top)
+    case Nil{}:
+      Laws.Tip{}
+
+def sh.go(n: Nat, +fuel: Nat, +k: Nat, s: List<&2, Laws.Shape>) -> Laws.Shape:
+  match n:
+    case 0n:
+      sh.root(s)
+    case 1n+p:
+      sh.go(p, fuel, 1n+k, Laws.Tip{} <> sh.lazy(fuel, s, k, Laws.stk.even(k)))
+
+def push.if(b: Bool, x: Laws.Shape, xs: List<&2, Laws.Shape>) -> List<&2, Laws.Shape>:
+  match b:
+    case True{}:
+      x <> xs
+    case False{}:
+      xs
+
+def bits(+j: Nat, +i: Nat, +v: Nat) -> List<&2, Laws.Shape>:
+  match j:
+    case 0n:
+      List.replicate(Laws.Shape, v, Laws.full(i))
+    case 1n+p:
+      push.if(Laws.odd(v), Laws.full(i), bits(p, 1n+i, Laws.half(v)))
+
+def disc.b(b: Bool) -> Type:
+  match b:
+    case True{}:
+      Unit
+    case False{}:
+      Empty
+
+law absurd.tf:
+  for e: {True{} == False{} : Bool}
+  Empty
+
+def absurd.tf(e):
+  %e : disc.b(_)
+  Unit{}
+
+law absurd.ft:
+  for e: {False{} == True{} : Bool}
+  Empty
+
+def absurd.ft(e):
+  absurd.tf(Equal.sym(Bool, False{}, True{}, e))
+
+law par.even:
+  for +w: Nat
+  for +eo: {Laws.odd(w) == False{} : Bool}
+  {True{} == Laws.odd(1n+w) : Bool}
+
+def par.even(w, eo):
+  match w:
+    case 0n:
+      {==}
+    case 1n+u:
+      match u:
+        case 0n:
+          Empty.absurd({True{} == Laws.odd(1n+1n+0n) : Bool}, absurd.tf(eo))
+        case 1n+t:
+          par.even(t, eo)
+
+law half.even:
+  for +w: Nat
+  for +eo: {Laws.odd(w) == False{} : Bool}
+  {Laws.half(w) == Laws.half(1n+w) : Nat}
+
+def half.even(w, eo):
+  match w:
+    case 0n:
+      {==}
+    case 1n+u:
+      match u:
+        case 0n:
+          Empty.absurd({Laws.half(1n+0n) == Laws.half(1n+1n+0n) : Nat}, absurd.tf(eo))
+        case 1n+t:
+          %half.even(t, eo) : {1n+Laws.half(t) == 1n+_ : Nat}
+          {==}
+
+law par.odd:
+  for +w: Nat
+  for +eo: {Laws.odd(w) == True{} : Bool}
+  {False{} == Laws.odd(1n+w) : Bool}
+
+def par.odd(w, eo):
+  match w:
+    case 0n:
+      Empty.absurd({False{} == Laws.odd(1n+0n) : Bool}, absurd.ft(eo))
+    case 1n+u:
+      match u:
+        case 0n:
+          {==}
+        case 1n+t:
+          par.odd(t, eo)
+
+law half.odd:
+  for +w: Nat
+  for +eo: {Laws.odd(w) == True{} : Bool}
+  {1n+Laws.half(w) == Laws.half(1n+w) : Nat}
+
+def half.odd(w, eo):
+  match w:
+    case 0n:
+      Empty.absurd({1n+Laws.half(0n) == Laws.half(1n+0n) : Nat}, absurd.ft(eo))
+    case 1n+u:
+      match u:
+        case 0n:
+          {==}
+        case 1n+t:
+          %half.odd(t, eo) : {1n+1n+Laws.half(t) == 1n+_ : Nat}
+          {==}
+
+# Before segment 1 + w joins, a carry full(i) over the trees of w's digits
+# from level i merges into the trees of 1 + w's.
+law lazy.inc:
+  for +q: Nat
+  for +i: Nat
+  for +w: Nat
+  for +b: Bool
+  for +eo: {Laws.odd(w) == b : Bool}
+  {sh.lazy(q, Laws.full(i) <> bits(q, i, w), 1n+w, Laws.stk.even(1n+w)) == bits(q, i, 1n+w) :
+    List<&2, Laws.Shape>}
+
+def lazy.inc(q, i, w, b, eo):
+  match q:
+    case 0n:
+      {==}
+    case 1n+p:
+      match b:
+        case False{}:
+          %Equal.sym(Bool, Laws.odd(w), False{}, eo) : {sh.lazy(1n+p, Laws.full(i) <> push.if(_,
+            Laws.full(i), bits(p, 1n+i, Laws.half(w))), 1n+w, _) == push.if(Laws.odd(1n+w), Laws.full(i),
+            bits(p, 1n+i, Laws.half(1n+w))) : List<&2, Laws.Shape>}
+          %par.even(w, eo) : {Laws.full(i) <> bits(p, 1n+i, Laws.half(w)) == push.if(_, Laws.full(i),
+            bits(p, 1n+i, Laws.half(1n+w))) : List<&2, Laws.Shape>}
+          %half.even(w, eo) : {Laws.full(i) <> bits(p, 1n+i, Laws.half(w)) ==
+            Laws.full(i) <> bits(p, 1n+i, _) : List<&2, Laws.Shape>}
+          {==}
+        case True{}:
+          %Equal.sym(Bool, Laws.odd(w), True{}, eo) : {sh.lazy(1n+p, Laws.full(i) <> push.if(_,
+            Laws.full(i), bits(p, 1n+i, Laws.half(w))), 1n+w, _) == push.if(Laws.odd(1n+w), Laws.full(i),
+            bits(p, 1n+i, Laws.half(1n+w))) : List<&2, Laws.Shape>}
+          %par.odd(w, eo) : {sh.lazy(p, Laws.full(1n+i) <> bits(p, 1n+i, Laws.half(w)), Laws.half(1n+w),
+            Laws.stk.even(Laws.half(1n+w))) == push.if(_, Laws.full(i), bits(p, 1n+i, Laws.half(1n+w))) :
+            List<&2, Laws.Shape>}
+          %half.odd(w, eo) : {sh.lazy(p, Laws.full(1n+i) <> bits(p, 1n+i, Laws.half(w)), _,
+            Laws.stk.even(_)) == bits(p, 1n+i, _) : List<&2, Laws.Shape>}
+          lazy.inc(p, 1n+i, Laws.half(w), Laws.odd(Laws.half(w)), {==})
+
+law push.fin:
+  for +b: Bool
+  for +acc: List<&2, Bool>
+  for +xs: List<&2, Laws.Shape>
+  {sh.fin(push.if(b, Laws.full(List.length(&2, Bool, acc)), xs), Laws.tree(acc)) ==
+    sh.fin(xs, Laws.tree(b <> acc)) : Laws.Shape}
+
+def push.fin(b, acc, xs):
+  match b:
+    case True{}:
+      {==}
+    case False{}:
+      {==}
+
+# Folding the trees of v's digits onto the tree of the lower digits acc
+# builds BLAKE3's tree over v's digits, then acc.
+law fold:
+  for +j: Nat
+  for +v: Nat
+  for +acc: List<&2, Bool>
+  for e: {Laws.shr(j, v) == 0n : Nat}
+  {sh.fin(bits(j, List.length(&2, Bool, acc), v), Laws.tree(acc)) == Laws.tree(Laws.digits(j, v, acc)) :
+    Laws.Shape}
+
+def fold(j, v, acc, e):
+  match j:
+    case 0n:
+      %Equal.sym(Nat, v, 0n, e) : {sh.fin(List.replicate(Laws.Shape, _,
+        Laws.full(List.length(&2, Bool, acc))), Laws.tree(acc)) == Laws.tree(acc) : Laws.Shape}
+      {==}
+    case 1n+p:
+      Equal.trans(Laws.Shape, sh.fin(push.if(Laws.odd(v), Laws.full(List.length(&2, Bool, acc)),
+        bits(p, 1n+List.length(&2, Bool, acc), Laws.half(v))), Laws.tree(acc)),
+        sh.fin(bits(p, 1n+List.length(&2, Bool, acc), Laws.half(v)), Laws.tree(Laws.odd(v) <> acc)),
+        Laws.tree(Laws.digits(p, Laws.half(v), Laws.odd(v) <> acc)),
+        push.fin(Laws.odd(v), acc, bits(p, 1n+List.length(&2, Bool, acc), Laws.half(v))),
+        fold(p, Laws.half(v), Laws.odd(v) <> acc, e))
+
+# m segments to go after segments 0..v.
+law sh.go.tree:
+  for +m: Nat
+  for +f: Nat
+  for +v: Nat
+  for e: {Laws.shr(f, Nat.add(v, m)) == 0n : Nat}
+  {sh.go(m, f, 1n+v, Laws.Tip{} <> bits(f, 0n, v)) == Laws.tree(Laws.digits(f, Nat.add(v, m), [])) :
+    Laws.Shape}
+
+def sh.go.tree(m, f, v, e):
+  match m:
+    case 0n:
+      %add_zero(v) : {sh.fin(bits(f, 0n, v), Laws.Tip{}) == Laws.tree(Laws.digits(f, _, [])) : Laws.Shape}
+      fold(f, v, [], Equal.trans(Nat, Laws.shr(f, v), Laws.shr(f, Nat.add(v, 0n)), 0n,
+        Equal.cong(Nat, Nat, x => Laws.shr(f, x), v, Nat.add(v, 0n), add_zero(v)), e))
+    case 1n+p:
+      %Equal.sym(List<&2, Laws.Shape>, sh.lazy(f, Laws.Tip{} <> bits(f, 0n, v), 1n+v, Laws.stk.even(1n+v)),
+        bits(f, 0n, 1n+v), lazy.inc(f, 0n, v, Laws.odd(v), {==})) :
+        {sh.go(p, f, 1n+1n+v, Laws.Tip{} <> _) == Laws.tree(Laws.digits(f, Nat.add(v, 1n+p), [])) : Laws.Shape}
+      %add_succ(v, p) : {sh.go(p, f, 1n+1n+v, Laws.Tip{} <> bits(f, 0n, 1n+v)) ==
+        Laws.tree(Laws.digits(f, _, [])) : Laws.Shape}
+      sh.go.tree(p, f, 1n+v, Equal.trans(Nat, Laws.shr(f, 1n+Nat.add(v, p)),
+        Laws.shr(f, Nat.add(v, 1n+p)), 0n, Equal.cong(Nat, Nat, x => Laws.shr(f, x),
+        1n+Nat.add(v, p), Nat.add(v, 1n+p), add_succ(v, p)), e))
+
+law sh.lazy.none:
+  for +fuel: Nat
+  for s: List<&2, Laws.Shape>
+  for +n: Nat
+  {sh.lazy(fuel, s, n, False{}) == s : List<&2, Laws.Shape>}
+
+def sh.lazy.none(fuel, s, n):
+  match fuel:
+    case 0n:
+      {==}
+    case 1n+f:
+      {==}
+
+law bits.zero:
+  for +j: Nat
+  for +i: Nat
+  {[] == bits(j, i, 0n) : List<&2, Laws.Shape>}
+
+def bits.zero(j, i):
+  match j:
+    case 0n:
+      {==}
+    case 1n+p:
+      bits.zero(p, 1n+i)
+
+law sh.tree:
+  for +f: Nat
+  for +r: Nat
+  for e: {Laws.shr(f, r) == 0n : Nat}
+  {sh.go(1n+r, f, 0n, []) == Laws.tree(Laws.digits(f, r, [])) : Laws.Shape}
+
+def sh.tree(f, r, e):
+  %Equal.sym(List<&2, Laws.Shape>, sh.lazy(f, [], 0n, False{}), [], sh.lazy.none(f, [], 0n)) :
+    {sh.go(r, f, 1n, Laws.Tip{} <> _) == Laws.tree(Laws.digits(f, r, [])) : Laws.Shape}
+  %Equal.sym(List<&2, Laws.Shape>, [], bits(f, 0n, 0n), bits.zero(f, 0n)) :
+    {sh.go(r, f, 1n, Laws.Tip{} <> _) == Laws.tree(Laws.digits(f, r, [])) : Laws.Shape}
+  sh.go.tree(r, f, 0n, e)
+
+# Erasing the segment numbers: the stack of Trees is the stack of Shapes.
+def shapes(+s: List<&2, Laws.Tree>) -> List<&2, Laws.Shape>:
+  match s:
+    case Nil{}:
+      []
+    case Con{x, rest}:
+      Laws.shape(x) <> shapes(rest)
+
+law pop2.shape:
+  for +s: List<&2, Laws.Tree>
+  {shapes(Laws.stk.pop2(s)) == sh.pop2(shapes(s)) : List<&2, Laws.Shape>}
+
+def pop2.shape(s):
+  match s:
+    case Con{r, rest}:
+      match rest:
+        case Con{l, more}:
+          {==}
+        case Nil{}:
+          {==}
+    case Nil{}:
+      {==}
+
+law lazy.shape:
+  for +fuel: Nat
+  for +s: List<&2, Laws.Tree>
+  for +n: Nat
+  for +b: Bool
+  {shapes(Laws.stk.lazy(fuel, s, n, b)) == sh.lazy(fuel, shapes(s), n, b) : List<&2, Laws.Shape>}
+
+def lazy.shape(fuel, s, n, b):
+  match fuel b:
+    case 0n _:
+      {==}
+    case 1n+f True{}:
+      %pop2.shape(s) : {shapes(Laws.stk.lazy(f, Laws.stk.pop2(s), Laws.half(n), Laws.stk.even(Laws.half(n)))) ==
+        sh.lazy(f, _, Laws.half(n), Laws.stk.even(Laws.half(n))) : List<&2, Laws.Shape>}
+      lazy.shape(f, Laws.stk.pop2(s), Laws.half(n), Laws.stk.even(Laws.half(n)))
+    case 1n+f False{}:
+      {==}
+
+law fin.shape:
+  for +s: List<&2, Laws.Tree>
+  for +r: Laws.Tree
+  {Laws.shape(Laws.stk.fin(s, r)) == sh.fin(shapes(s), Laws.shape(r)) : Laws.Shape}
+
+def fin.shape(s, r):
+  match s:
+    case Nil{}:
+      {==}
+    case Con{l, rest}:
+      fin.shape(rest, Laws.Par{l, r})
+
+law go.shape:
+  for +n: Nat
+  for +f: Nat
+  for +k: Nat
+  for +s: List<&2, Laws.Tree>
+  {Laws.shape(Laws.stream.go(n, f, k, s)) == sh.go(n, f, k, shapes(s)) : Laws.Shape}
+
+def go.shape(n, f, k, s):
+  match n:
+    case 0n:
+      match s:
+        case Con{top, rest}:
+          fin.shape(rest, top)
+        case Nil{}:
+          {==}
+    case 1n+p:
+      %lazy.shape(f, s, k, Laws.stk.even(k)) : {Laws.shape(Laws.stream.go(p, f, 1n+k,
+        Laws.Seg{k} <> Laws.stk.lazy(f, s, k, Laws.stk.even(k)))) == sh.go(p, f, 1n+k, Laws.Tip{} <> _) : Laws.Shape}
+      go.shape(p, f, 1n+k, Laws.Seg{k} <> Laws.stk.lazy(f, s, k, Laws.stk.even(k)))
+
+def Laws.stream.shape(f, r, e):
+  Equal.trans(Laws.Shape, Laws.shape(Laws.stream.go(1n+r, f, 0n, [])), sh.go(1n+r, f, 0n, []),
+    Laws.tree(Laws.digits(f, r, [])), go.shape(1n+r, f, 0n, []), sh.tree(f, r, e))
+
+# Order: a merge joins neighbours, so the segments read bottom to top stay
+# in order through every merge and the final fold.
+def flat(+s: List<&2, Laws.Tree>) -> List<&2, Nat>:
+  match s:
+    case Nil{}:
+      []
+    case Con{x, rest}:
+      List.append(&2, Nat, flat(rest), Laws.order(x))
+
+law append_assoc.n:
+  for +xs: List<&2, Nat>
+  for +ys: List<&2, Nat>
+  for +zs: List<&2, Nat>
+  {List.append(&2, Nat, List.append(&2, Nat, xs, ys), zs) ==
+    List.append(&2, Nat, xs, List.append(&2, Nat, ys, zs)) : List<&2, Nat>}
+
+def append_assoc.n(xs, ys, zs):
+  match xs:
+    case Nil{}:
+      {==}
+    case Con{x, t}:
+      %append_assoc.n(t, ys, zs) : {x <> List.append(&2, Nat, List.append(&2, Nat, t, ys),
+        zs) == x <> _ : List<&2, Nat>}
+      {==}
+
+law append_nil.n:
+  for +xs: List<&2, Nat>
+  {xs == List.append(&2, Nat, xs, []) : List<&2, Nat>}
+
+def append_nil.n(xs):
+  match xs:
+    case Nil{}:
+      {==}
+    case Con{x, t}:
+      %append_nil.n(t) : {x <> t == x <> _ : List<&2, Nat>}
+      {==}
+
+law pop2.flat:
+  for +s: List<&2, Laws.Tree>
+  {flat(Laws.stk.pop2(s)) == flat(s) : List<&2, Nat>}
+
+def pop2.flat(s):
+  match s:
+    case Con{r, rest}:
+      match rest:
+        case Con{l, more}:
+          Equal.sym(List<&2, Nat>, List.append(&2, Nat, List.append(&2, Nat, flat(more),
+            Laws.order(l)), Laws.order(r)), List.append(&2, Nat, flat(more), List.append(&2, Nat,
+            Laws.order(l), Laws.order(r))), append_assoc.n(flat(more), Laws.order(l), Laws.order(r)))
+        case Nil{}:
+          {==}
+    case Nil{}:
+      {==}
+
+law lazy.flat:
+  for +fuel: Nat
+  for +s: List<&2, Laws.Tree>
+  for +n: Nat
+  for +b: Bool
+  {flat(Laws.stk.lazy(fuel, s, n, b)) == flat(s) : List<&2, Nat>}
+
+def lazy.flat(fuel, s, n, b):
+  match fuel b:
+    case 0n _:
+      {==}
+    case 1n+f True{}:
+      Equal.trans(List<&2, Nat>, flat(Laws.stk.lazy(f, Laws.stk.pop2(s), Laws.half(n), Laws.stk.even(Laws.half(n)))),
+        flat(Laws.stk.pop2(s)), flat(s), lazy.flat(f, Laws.stk.pop2(s), Laws.half(n), Laws.stk.even(Laws.half(n))),
+        pop2.flat(s))
+    case 1n+f False{}:
+      {==}
+
+law fin.flat:
+  for +s: List<&2, Laws.Tree>
+  for +r: Laws.Tree
+  {Laws.order(Laws.stk.fin(s, r)) == List.append(&2, Nat, flat(s), Laws.order(r)) : List<&2, Nat>}
+
+def fin.flat(s, r):
+  match s:
+    case Nil{}:
+      {==}
+    case Con{l, rest}:
+      %Equal.sym(List<&2, Nat>, List.append(&2, Nat, List.append(&2, Nat, flat(rest),
+        Laws.order(l)), Laws.order(r)), List.append(&2, Nat, flat(rest), List.append(&2, Nat, Laws.order(l),
+        Laws.order(r))), append_assoc.n(flat(rest), Laws.order(l), Laws.order(r))) :
+        {Laws.order(Laws.stk.fin(rest, Laws.Par{l, r})) == _ : List<&2, Nat>}
+      fin.flat(rest, Laws.Par{l, r})
+
+law go.flat:
+  for +n: Nat
+  for +f: Nat
+  for +k: Nat
+  for +x: Laws.Tree
+  for +rest: List<&2, Laws.Tree>
+  {Laws.order(Laws.stream.go(n, f, k, x <> rest)) == List.append(&2, Nat, flat(x <> rest),
+    Laws.range(n, k)) : List<&2, Nat>}
+
+def go.flat(n, f, k, x, rest):
+  match n:
+    case 0n:
+      %append_nil.n(flat(x <> rest)) : {Laws.order(Laws.stk.fin(rest, x)) == _ : List<&2, Nat>}
+      fin.flat(rest, x)
+    case 1n+p:
+      %lazy.flat(f, x <> rest, k, Laws.stk.even(k)) : {Laws.order(Laws.stream.go(p, f, 1n+k,
+        Laws.Seg{k} <> Laws.stk.lazy(f, x <> rest, k, Laws.stk.even(k)))) ==
+        List.append(&2, Nat, _, k <> Laws.range(p, 1n+k)) : List<&2, Nat>}
+      %append_assoc.n(flat(Laws.stk.lazy(f, x <> rest, k, Laws.stk.even(k))), [k], Laws.range(p, 1n+k)) :
+        {Laws.order(Laws.stream.go(p, f, 1n+k, Laws.Seg{k} <> Laws.stk.lazy(f, x <> rest, k, Laws.stk.even(k)))) ==
+        _ : List<&2, Nat>}
+      go.flat(p, f, 1n+k, Laws.Seg{k}, Laws.stk.lazy(f, x <> rest, k, Laws.stk.even(k)))
+
+law lazy.none:
+  for +fuel: Nat
+  for +s: List<&2, Laws.Tree>
+  for +n: Nat
+  {Laws.stk.lazy(fuel, s, n, False{}) == s : List<&2, Laws.Tree>}
+
+def lazy.none(fuel, s, n):
+  match fuel:
+    case 0n:
+      {==}
+    case 1n+f:
+      {==}
+
+def Laws.stream.order(f, r):
+  %Equal.sym(List<&2, Laws.Tree>, Laws.stk.lazy(f, [], 0n, False{}), [], lazy.none(f, [], 0n)) :
+    {Laws.order(Laws.stream.go(r, f, 1n, Laws.Seg{0n} <> _)) == Laws.range(1n+r, 0n) : List<&2, Nat>}
+  go.flat(r, f, 1n, Laws.Seg{0n}, [])

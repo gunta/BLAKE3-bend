@@ -8,6 +8,7 @@ Bend kept verbatim in the templates below. `bend PROOF.bend` is the gate.
 
 import json
 import pathlib
+import re
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 VECTORS = ROOT.parent / "test_vectors" / "test_vectors.json"
@@ -72,11 +73,17 @@ LAWS_HEAD = '''\
 # - The 8-lane path: for every input, each lane of compress8 and of par8 is
 #   the scalar compress or parent of that lane.
 # - The message schedule: perm iterated is the C code's MSG_SCHEDULE.
+# - Constants: the IV and the flags are the C code's.
+# - Outboards: for every input, the tree that writes iroh's bao outboard
+#   gives the plain tree's hash.
 # - Tree shapes, for any compression function: BLAKE3's left-full tree over
 #   n chunks splits into its 2^k-chunk segments (ADR 0004), and pairing
 #   neighbours level by level, the odd one carried up (a GPU reduction),
-#   builds that same tree. tree1's split rule (n > 2^p) matches the digit
-#   form these use for every input up to 1024 chunks.
+#   builds that same tree, with n leaves and n - 1 parents. tree1's split
+#   rule (n > 2^p) matches the digit form these use for every input up to
+#   1024 chunks.
+# - Streaming: the lazy merge stack that hashes a streamed file's segments
+#   builds that tree, every segment once and in order, for any count.
 
 import Base
 import ./blake3.bend as B3
@@ -386,7 +393,8 @@ PROOF_HEAD = '''\
 # `bend PROOF.bend` checks every law of LAWS.bend: ALL PROOFS CHECK.
 # Known answers are {==}: the checker evaluates both sides. The lane laws
 # open every record into its fields and are {==} on the symbolic terms. The
-# tree laws are inductions with rewrites (`%e : P`), on lemmas proven here.
+# outboard, tree and stream laws are inductions with rewrites (`%e : P`),
+# on lemmas proven here.
 
 import Base
 import ./blake3.bend as B3
@@ -586,6 +594,990 @@ def Laws.levels.root(k, r, e):
 '''
 
 
+CONSTS = '''\
+# Constants
+# ---------
+#
+# The IV and the four domain flags, against the official C code's
+# (c/blake3_impl.h, read by the generator like MSG_SCHEDULE). The flags are
+# distinct bits: a chunk's blocks, a parent and the root never compress
+# alike.
+
+law consts.iv:
+  {B3.IV() == B3.CV{@IV@} : B3.CV}
+
+law consts.flags:
+  {[B3.CHUNK_START(), B3.CHUNK_END(), B3.PARENT(), B3.ROOT()] == [@FLAGS@] :
+    List<&2, U32>}
+
+'''
+
+OUTBOARDS = '''\
+# Outboards
+# ---------
+#
+# iroh-blobs' bao outboard comes from tree8o (hash.ob, hash.ob.at): the CPU
+# tree that also keeps the pairs above every 16-chunk group. For every input
+# array, every length and every span, its CV is the plain tree's, so writing
+# an outboard never changes the hash. The proof never reads the array: both
+# trees make the same reads, node for node.
+
+law ob.hash:
+  for a: Array<U32>
+  for +len: U32
+  {Pair.fst(B3.CV, B3.OB, B3.hash.ob(~share, a, len)) == B3.hash(~share, a, len) :
+    B3.CV}
+
+law ob.at:
+  for a: Array<U32>
+  for +cb: U32
+  for +nch: U32
+  for +last: U32
+  for +rf: U32
+  {Pair.fst(B3.CV, B3.OB, B3.hash.ob.at(~share, a, cb, nch, last, rf)) ==
+    B3.hash.at(~share, a, cb, nch, last, rf) : B3.CV}
+
+'''
+
+COUNTS = '''
+# Counts: the leaves and the parents of a tree.
+def tips(+t: Shape) -> Nat:
+  match t:
+    case Tip{}:
+      1n
+    case Fork{l, r}:
+      Nat.add(tips(l), tips(r))
+
+def forks(+t: Shape) -> Nat:
+  match t:
+    case Tip{}:
+      0n
+    case Fork{l, r}:
+      1n+Nat.add(forks(l), forks(r))
+
+# BLAKE3's tree over chunks 0..r has r + 1 leaves, for every r < 2^k: no
+# chunk is dropped or hashed twice...
+law tree.leaves:
+  for +k: Nat
+  for +r: Nat
+  for e: {shr(k, r) == 0n : Nat}
+  {tips(tree(digits(k, r, []))) == 1n+r : Nat}
+
+# ...and r parents: n chunks cost n - 1 parent compressions, and the tree
+# above a blob's g chunk groups (by `segments`, with k = 4) has g - 1
+# parents, the pairs of its bao outboard.
+law tree.parents:
+  for +k: Nat
+  for +r: Nat
+  for e: {shr(k, r) == 0n : Nat}
+  {forks(tree(digits(k, r, []))) == r : Nat}
+'''
+
+STREAM = '''
+# Streaming
+# ---------
+#
+# A file the page cache cannot hold streams (b3io.bend's stream.go): its
+# 1 GiB segments are hashed one after another, and their CVs merge on a
+# stack as BLAKE3's Hasher merges chunks, lazily: before segment k joins,
+# the top two merge while k is even, so the last merge knows it is the
+# root. These defs are b3io's stk.pop2, stk.even, stk.lazy, stk.fin,
+# stk.root and stream.go with a Tree for a CV (Seg{k} is segment k's, Par
+# a parent; the ROOT flag is not modelled) and a Nat for the U32 count;
+# `fuel` bounds the merges, 32 in b3io.
+
+type Tree is Data:
+  Seg{k: Nat}
+  Par{l: Tree, r: Tree}
+
+def stk.pop2(s: List<&2, Tree>) -> List<&2, Tree>:
+  match s:
+    case Con{r, rest}:
+      match rest:
+        case Con{l, more}:
+          Par{l, r} <> more
+        case Nil{}:
+          [r]
+    case Nil{}:
+      []
+
+# n is even and not 0.
+def stk.even(+n: Nat) -> Bool:
+  match n:
+    case 0n:
+      False{}
+    case 1n+p:
+      odd(p)
+
+def stk.lazy(fuel: Nat, s: List<&2, Tree>, +n: Nat, b: Bool) -> List<&2, Tree>:
+  match fuel b:
+    case 0n _:
+      s
+    case 1n+f True{}:
+      +m = half(n)
+      stk.lazy(f, stk.pop2(s), m, stk.even(m))
+    case 1n+f False{}:
+      s
+
+def stk.fin(s: List<&2, Tree>, r: Tree) -> Tree:
+  match s:
+    case Nil{}:
+      r
+    case Con{l, rest}:
+      stk.fin(rest, Par{l, r})
+
+def stk.root(s: List<&2, Tree>) -> Tree:
+  match s:
+    case Con{top, rest}:
+      stk.fin(rest, top)
+    case Nil{}:
+      Seg{0n}
+
+# n segments to go, from segment k.
+def stream.go(n: Nat, +fuel: Nat, +k: Nat, s: List<&2, Tree>) -> Tree:
+  match n:
+    case 0n:
+      stk.root(s)
+    case 1n+p:
+      stream.go(p, fuel, 1n+k, Seg{k} <> stk.lazy(fuel, s, k, stk.even(k)))
+
+# A Tree's shape, and its segments left to right.
+def shape(+t: Tree) -> Shape:
+  match t:
+    case Seg{k}:
+      Tip{}
+    case Par{l, r}:
+      Fork{shape(l), shape(r)}
+
+def order(+t: Tree) -> List<&2, Nat>:
+  match t:
+    case Seg{k}:
+      [k]
+    case Par{l, r}:
+      List.append(&2, Nat, order(l), order(r))
+
+# The n numbers from k.
+def range(+n: Nat, +k: Nat) -> List<&2, Nat>:
+  match n:
+    case 0n:
+      []
+    case 1n+p:
+      k <> range(p, 1n+k)
+
+# The stack builds BLAKE3's tree over r + 1 segments, for every r < 2^fuel...
+law stream.shape:
+  for +f: Nat
+  for +r: Nat
+  for e: {shr(f, r) == 0n : Nat}
+  {shape(stream.go(1n+r, f, 0n, [])) == tree(digits(f, r, [])) : Shape}
+
+# ...with every segment once, in order, whatever the fuel. A shape and its
+# leaves in order are the whole tree: the streamed hash is the mapped one.
+law stream.order:
+  for +f: Nat
+  for +r: Nat
+  {order(stream.go(1n+r, f, 0n, [])) == range(1n+r, 0n) : List<&2, Nat>}
+'''
+
+# Proofs of the sections above, written with LAWS.bend's names bare;
+# laws_names() prefixes them with `Laws.`.
+LAWS_NAMES = [
+    "share", "Shape", "Tip", "Fork", "full", "tree", "half", "odd", "shr",
+    "digits", "leaves", "pairs", "reduce", "levels.root", "tips", "forks",
+    "tree.leaves", "tree.parents", "Tree", "Seg", "Par", "stk.pop2",
+    "stk.even", "stk.lazy", "stk.fin", "stk.root", "stream.go", "shape",
+    "order", "range", "stream.shape", "stream.order", "ob.hash", "ob.at",
+]
+
+PROOF_OUTBOARDS = '''\
+# Outboards
+# ---------
+#
+# By induction on tree8o: it is (tree8, its pairs), stated as an equation of
+# pairs so that each node's input is read once (arrays are affine, and
+# pairs have no eta).
+
+law fin.eta:
+  for r: Array<U32> & B3.CV8
+  for +rf: U32
+  {(B3.leaf8.fin(r, rf), Pair.snd(B3.CV, B3.OB, B3.leaf32o.fin(r, rf))) ==
+    B3.leaf32o.fin(r, rf) : B3.CV & B3.OB}
+
+def fin.eta(r, rf):
+  match r:
+    case (a, x):
+      match x:
+        case B3.CV8{@CV8@}:
+          {==}
+
+law pick.eta:
+  for rec: Bool
+  for -l: B3.CV
+  for -r: B3.CV
+  for -a: B3.OB
+  for -b: B3.OB
+  for +rf: U32
+  {(B3.parent(l, r, rf), Pair.snd(B3.CV, B3.OB, B3.join.pick(rec, l, r, a, b, rf))) ==
+    B3.join.pick(rec, l, r, a, b, rf) : B3.CV & B3.OB}
+
+def pick.eta(rec, l, r, a, b, rf):
+  match rec:
+    case True{}:
+      {==}
+    case False{}:
+      {==}
+
+law tree8o.eta:
+  for +k: Nat
+  for +ku: U32
+  for d: B3.Node
+  for aa: Array<U32> & Array<U32>
+  for +c: U32
+  for +n: U32
+  for +cb: U32
+  for +nch: U32
+  for +last: U32
+  for +rf: U32
+  {(@T8(k, ku, d, aa, c, n, rf)@, Pair.snd(B3.CV, B3.OB, @T8O(k, ku, d, aa, c, n, rf)@)) ==
+    @T8O(k, ku, d, aa, c, n, rf)@ : B3.CV & B3.OB}
+
+def tree8o.eta(k, ku, d, aa, c, n, cb, nch, last, rf):
+  match k d:
+    case 0n _:
+      match aa:
+        case (a1, a2):
+          {==}
+    case 1n+p B3.Down{}:
+      tree8o.eta(p, (ku - 1 : U32), B3.kind((ku - 1 : U32), n, c, nch, last), aa, c, n,
+        cb, nch, last, rf)
+    case 1n+p B3.Leaf32{}:
+      match aa:
+        case (a1, a2):
+          fin.eta(B3.leaf32.s0(B3.group(a1, c, (cb + c : U32)), c, (cb + c : U32)), rf)
+    case 1n+p B3.Leaf8{}:
+      match aa:
+        case (a1, a2):
+          {==}
+    case 1n+p B3.Split{}:
+      match aa:
+        case (a1, a2):
+          +kp = (ku - 1 : U32)
+          +h = U32.shln(1, p)
+          +n2 = (n - h : U32)
+          +c2 = (c + h : U32)
+          %tree8o.eta(p, kp, B3.kind(kp, h, c, nch, last), share(a1), c, h, cb, nch, last, 0) :
+            {(B3.parent(@TL@, @TR@, rf), Pair.snd(B3.CV, B3.OB, B3.join.o(_, @Y@, rf,
+              U32.is_ge(ku, 5)))) == B3.join.o(_, @Y@, rf, U32.is_ge(ku, 5)) :
+              B3.CV & B3.OB}
+          %tree8o.eta(p, kp, B3.kind(kp, n2, c2, nch, last), share(a2), c2, n2, cb, nch, last, 0) :
+            {(B3.parent(@TL@, @TR@, rf), Pair.snd(B3.CV, B3.OB, B3.join.o((@TL@,
+              Pair.snd(B3.CV, B3.OB, @X@)), _, rf, U32.is_ge(ku, 5)))) ==
+              B3.join.o((@TL@, Pair.snd(B3.CV, B3.OB, @X@)), _, rf, U32.is_ge(ku, 5)) :
+              B3.CV & B3.OB}
+          pick.eta(U32.is_ge(ku, 5), @TL@, @TR@, Pair.snd(B3.CV, B3.OB, @X@),
+            Pair.snd(B3.CV, B3.OB, @Y@), rf)
+
+law ob.go:
+  for +k: Nat
+  for a: Array<U32>
+  for +cb: U32
+  for +nch: U32
+  for +last: U32
+  for +rf: U32
+  {Pair.fst(B3.CV, B3.OB, B3.hash.ob.go(~share, k, a, cb, nch, last, rf)) ==
+    B3.hash.go(~share, k, a, cb, nch, last, rf) : B3.CV}
+
+def ob.go(k, a, cb, nch, last, rf):
+  match k:
+    case 0n:
+      {==}
+    case 1n+p:
+      +ku = U32.from_nat(1n+p)
+      +d = B3.kind(ku, nch, 0, nch, last)
+      Equal.sym(B3.CV, @T8TOP@, Pair.fst(B3.CV, B3.OB, @T8OTOP@),
+        Equal.cong(B3.CV & B3.OB, B3.CV, x => Pair.fst(B3.CV, B3.OB, x),
+          (@T8TOP@, Pair.snd(B3.CV, B3.OB, @T8OTOP@)), @T8OTOP@,
+          tree8o.eta(1n+p, ku, d, share(a), 0, nch, cb, nch, last, rf)))
+
+def ob.hash(a, len):
+  ob.go(B3.depth(B3.chunks(len)), a, 0, B3.chunks(len), B3.tail(len, B3.chunks(len)),
+    B3.ROOT())
+
+def ob.at(a, cb, nch, last, rf):
+  ob.go(B3.depth(nch), a, cb, nch, last, rf)
+
+'''
+
+PROOF_COUNTS = '''
+# Counts
+# ------
+#
+# Pairing never drops or adds a leaf, so `levels.root` counts the tree's
+# leaves; a tree has one parent fewer than leaves.
+
+def total(+xs: List<&2, Shape>) -> Nat:
+  match xs:
+    case Nil{}:
+      0n
+    case Con{x, rest}:
+      Nat.add(tips(x), total(rest))
+
+def pred(n: Nat) -> Nat:
+  match n:
+    case 0n:
+      0n
+    case 1n+p:
+      p
+
+law add_zero:
+  for +a: Nat
+  {a == Nat.add(a, 0n) : Nat}
+
+def add_zero(a):
+  match a:
+    case 0n:
+      {==}
+    case 1n+p:
+      %add_zero(p) : {1n+p == 1n+_ : Nat}
+      {==}
+
+law add_succ:
+  for +a: Nat
+  for +b: Nat
+  {1n+Nat.add(a, b) == Nat.add(a, 1n+b) : Nat}
+
+def add_succ(a, b):
+  match a:
+    case 0n:
+      {==}
+    case 1n+p:
+      %add_succ(p, b) : {1n+1n+Nat.add(p, b) == 1n+_ : Nat}
+      {==}
+
+law add_assoc:
+  for +a: Nat
+  for +b: Nat
+  for +c: Nat
+  {Nat.add(Nat.add(a, b), c) == Nat.add(a, Nat.add(b, c)) : Nat}
+
+def add_assoc(a, b, c):
+  match a:
+    case 0n:
+      {==}
+    case 1n+p:
+      %add_assoc(p, b, c) : {1n+Nat.add(Nat.add(p, b), c) == 1n+_ : Nat}
+      {==}
+
+law tips_forks:
+  for +t: Shape
+  {1n+forks(t) == tips(t) : Nat}
+
+def tips_forks(t):
+  match t:
+    case Tip{}:
+      {==}
+    case Fork{l, r}:
+      %tips_forks(l) : {1n+1n+Nat.add(forks(l), forks(r)) == Nat.add(_, tips(r)) : Nat}
+      %tips_forks(r) : {1n+1n+Nat.add(forks(l), forks(r)) == 1n+Nat.add(forks(l), _) : Nat}
+      %add_succ(forks(l), forks(r)) : {1n+1n+Nat.add(forks(l), forks(r)) == 1n+_ : Nat}
+      {==}
+
+law pairs_total:
+  for +xs: List<&2, Shape>
+  {total(pairs(xs)) == total(xs) : Nat}
+
+def pairs_total(xs):
+  match xs:
+    case Nil{}:
+      {==}
+    case Con{x, rest}:
+      match rest:
+        case Nil{}:
+          {==}
+        case Con{y, more}:
+          %pairs_total(more) : {Nat.add(Nat.add(tips(x), tips(y)), total(pairs(more))) ==
+            Nat.add(tips(x), Nat.add(tips(y), _)) : Nat}
+          add_assoc(tips(x), tips(y), total(pairs(more)))
+
+law reduce_total:
+  for +k: Nat
+  for +xs: List<&2, Shape>
+  {total(reduce(k, xs)) == total(xs) : Nat}
+
+def reduce_total(k, xs):
+  match k:
+    case 0n:
+      {==}
+    case 1n+p:
+      %pairs_total(xs) : {total(reduce(p, pairs(xs))) == _ : Nat}
+      reduce_total(p, pairs(xs))
+
+law leaves_total:
+  for +r: Nat
+  {total(leaves(r)) == 1n+r : Nat}
+
+def leaves_total(r):
+  match r:
+    case 0n:
+      {==}
+    case 1n+p:
+      %leaves_total(p) : {1n+total(leaves(p)) == 1n+_ : Nat}
+      {==}
+
+def tree.leaves(k, r, e):
+  %leaves_total(r) : {tips(tree(digits(k, r, []))) == _ : Nat}
+  %reduce_total(k, leaves(r)) : {tips(tree(digits(k, r, []))) == _ : Nat}
+  %Equal.sym(List<&2, Shape>, reduce(k, leaves(r)), [tree(digits(k, r, []))],
+    levels.root(k, r, e)) : {tips(tree(digits(k, r, []))) == total(_) : Nat}
+  add_zero(tips(tree(digits(k, r, []))))
+
+def tree.parents(k, r, e):
+  Equal.cong(Nat, Nat, pred, 1n+forks(tree(digits(k, r, []))), 1n+r,
+    Equal.trans(Nat, 1n+forks(tree(digits(k, r, []))), tips(tree(digits(k, r, []))), 1n+r,
+      tips_forks(tree(digits(k, r, []))), tree.leaves(k, r, e)))
+'''
+
+PROOF_STREAM = '''
+# Streaming
+# ---------
+#
+# The stack's shapes (sh.*: stk.* on Shapes). After segments 0..v the
+# stack is Tip over bits(f, 0, v): v's 1 digits, lowest on top, each the
+# complete tree of its level (bits keeps an overflow as a pile, so the
+# merge lemma needs no bound). The merges before segment 1 + v carry v's
+# trailing 1s like a binary increment (lazy.inc), and the last fold reads
+# the digits from the top (fold), as `tree` does.
+
+def sh.pop2(s: List<&2, Shape>) -> List<&2, Shape>:
+  match s:
+    case Con{r, rest}:
+      match rest:
+        case Con{l, more}:
+          Fork{l, r} <> more
+        case Nil{}:
+          [r]
+    case Nil{}:
+      []
+
+def sh.lazy(fuel: Nat, s: List<&2, Shape>, +n: Nat, b: Bool) -> List<&2, Shape>:
+  match fuel b:
+    case 0n _:
+      s
+    case 1n+f True{}:
+      +m = half(n)
+      sh.lazy(f, sh.pop2(s), m, stk.even(m))
+    case 1n+f False{}:
+      s
+
+def sh.fin(s: List<&2, Shape>, r: Shape) -> Shape:
+  match s:
+    case Nil{}:
+      r
+    case Con{l, rest}:
+      sh.fin(rest, Fork{l, r})
+
+def sh.root(s: List<&2, Shape>) -> Shape:
+  match s:
+    case Con{top, rest}:
+      sh.fin(rest, top)
+    case Nil{}:
+      Tip{}
+
+def sh.go(n: Nat, +fuel: Nat, +k: Nat, s: List<&2, Shape>) -> Shape:
+  match n:
+    case 0n:
+      sh.root(s)
+    case 1n+p:
+      sh.go(p, fuel, 1n+k, Tip{} <> sh.lazy(fuel, s, k, stk.even(k)))
+
+def push.if(b: Bool, x: Shape, xs: List<&2, Shape>) -> List<&2, Shape>:
+  match b:
+    case True{}:
+      x <> xs
+    case False{}:
+      xs
+
+def bits(+j: Nat, +i: Nat, +v: Nat) -> List<&2, Shape>:
+  match j:
+    case 0n:
+      List.replicate(Shape, v, full(i))
+    case 1n+p:
+      push.if(odd(v), full(i), bits(p, 1n+i, half(v)))
+
+def disc.b(b: Bool) -> Type:
+  match b:
+    case True{}:
+      Unit
+    case False{}:
+      Empty
+
+law absurd.tf:
+  for e: {True{} == False{} : Bool}
+  Empty
+
+def absurd.tf(e):
+  %e : disc.b(_)
+  Unit{}
+
+law absurd.ft:
+  for e: {False{} == True{} : Bool}
+  Empty
+
+def absurd.ft(e):
+  absurd.tf(Equal.sym(Bool, False{}, True{}, e))
+
+law par.even:
+  for +w: Nat
+  for +eo: {odd(w) == False{} : Bool}
+  {True{} == odd(1n+w) : Bool}
+
+def par.even(w, eo):
+  match w:
+    case 0n:
+      {==}
+    case 1n+u:
+      match u:
+        case 0n:
+          Empty.absurd({True{} == odd(1n+1n+0n) : Bool}, absurd.tf(eo))
+        case 1n+t:
+          par.even(t, eo)
+
+law half.even:
+  for +w: Nat
+  for +eo: {odd(w) == False{} : Bool}
+  {half(w) == half(1n+w) : Nat}
+
+def half.even(w, eo):
+  match w:
+    case 0n:
+      {==}
+    case 1n+u:
+      match u:
+        case 0n:
+          Empty.absurd({half(1n+0n) == half(1n+1n+0n) : Nat}, absurd.tf(eo))
+        case 1n+t:
+          %half.even(t, eo) : {1n+half(t) == 1n+_ : Nat}
+          {==}
+
+law par.odd:
+  for +w: Nat
+  for +eo: {odd(w) == True{} : Bool}
+  {False{} == odd(1n+w) : Bool}
+
+def par.odd(w, eo):
+  match w:
+    case 0n:
+      Empty.absurd({False{} == odd(1n+0n) : Bool}, absurd.ft(eo))
+    case 1n+u:
+      match u:
+        case 0n:
+          {==}
+        case 1n+t:
+          par.odd(t, eo)
+
+law half.odd:
+  for +w: Nat
+  for +eo: {odd(w) == True{} : Bool}
+  {1n+half(w) == half(1n+w) : Nat}
+
+def half.odd(w, eo):
+  match w:
+    case 0n:
+      Empty.absurd({1n+half(0n) == half(1n+0n) : Nat}, absurd.ft(eo))
+    case 1n+u:
+      match u:
+        case 0n:
+          {==}
+        case 1n+t:
+          %half.odd(t, eo) : {1n+1n+half(t) == 1n+_ : Nat}
+          {==}
+
+# Before segment 1 + w joins, a carry full(i) over the trees of w's digits
+# from level i merges into the trees of 1 + w's.
+law lazy.inc:
+  for +q: Nat
+  for +i: Nat
+  for +w: Nat
+  for +b: Bool
+  for +eo: {odd(w) == b : Bool}
+  {sh.lazy(q, full(i) <> bits(q, i, w), 1n+w, stk.even(1n+w)) == bits(q, i, 1n+w) :
+    List<&2, Shape>}
+
+def lazy.inc(q, i, w, b, eo):
+  match q:
+    case 0n:
+      {==}
+    case 1n+p:
+      match b:
+        case False{}:
+          %Equal.sym(Bool, odd(w), False{}, eo) : {sh.lazy(1n+p, full(i) <> push.if(_,
+            full(i), bits(p, 1n+i, half(w))), 1n+w, _) == push.if(odd(1n+w), full(i),
+            bits(p, 1n+i, half(1n+w))) : List<&2, Shape>}
+          %par.even(w, eo) : {full(i) <> bits(p, 1n+i, half(w)) == push.if(_, full(i),
+            bits(p, 1n+i, half(1n+w))) : List<&2, Shape>}
+          %half.even(w, eo) : {full(i) <> bits(p, 1n+i, half(w)) ==
+            full(i) <> bits(p, 1n+i, _) : List<&2, Shape>}
+          {==}
+        case True{}:
+          %Equal.sym(Bool, odd(w), True{}, eo) : {sh.lazy(1n+p, full(i) <> push.if(_,
+            full(i), bits(p, 1n+i, half(w))), 1n+w, _) == push.if(odd(1n+w), full(i),
+            bits(p, 1n+i, half(1n+w))) : List<&2, Shape>}
+          %par.odd(w, eo) : {sh.lazy(p, full(1n+i) <> bits(p, 1n+i, half(w)), half(1n+w),
+            stk.even(half(1n+w))) == push.if(_, full(i), bits(p, 1n+i, half(1n+w))) :
+            List<&2, Shape>}
+          %half.odd(w, eo) : {sh.lazy(p, full(1n+i) <> bits(p, 1n+i, half(w)), _,
+            stk.even(_)) == bits(p, 1n+i, _) : List<&2, Shape>}
+          lazy.inc(p, 1n+i, half(w), odd(half(w)), {==})
+
+law push.fin:
+  for +b: Bool
+  for +acc: List<&2, Bool>
+  for +xs: List<&2, Shape>
+  {sh.fin(push.if(b, full(List.length(&2, Bool, acc)), xs), tree(acc)) ==
+    sh.fin(xs, tree(b <> acc)) : Shape}
+
+def push.fin(b, acc, xs):
+  match b:
+    case True{}:
+      {==}
+    case False{}:
+      {==}
+
+# Folding the trees of v's digits onto the tree of the lower digits acc
+# builds BLAKE3's tree over v's digits, then acc.
+law fold:
+  for +j: Nat
+  for +v: Nat
+  for +acc: List<&2, Bool>
+  for e: {shr(j, v) == 0n : Nat}
+  {sh.fin(bits(j, List.length(&2, Bool, acc), v), tree(acc)) == tree(digits(j, v, acc)) :
+    Shape}
+
+def fold(j, v, acc, e):
+  match j:
+    case 0n:
+      %Equal.sym(Nat, v, 0n, e) : {sh.fin(List.replicate(Shape, _,
+        full(List.length(&2, Bool, acc))), tree(acc)) == tree(acc) : Shape}
+      {==}
+    case 1n+p:
+      Equal.trans(Shape, sh.fin(push.if(odd(v), full(List.length(&2, Bool, acc)),
+        bits(p, 1n+List.length(&2, Bool, acc), half(v))), tree(acc)),
+        sh.fin(bits(p, 1n+List.length(&2, Bool, acc), half(v)), tree(odd(v) <> acc)),
+        tree(digits(p, half(v), odd(v) <> acc)),
+        push.fin(odd(v), acc, bits(p, 1n+List.length(&2, Bool, acc), half(v))),
+        fold(p, half(v), odd(v) <> acc, e))
+
+# m segments to go after segments 0..v.
+law sh.go.tree:
+  for +m: Nat
+  for +f: Nat
+  for +v: Nat
+  for e: {shr(f, Nat.add(v, m)) == 0n : Nat}
+  {sh.go(m, f, 1n+v, Tip{} <> bits(f, 0n, v)) == tree(digits(f, Nat.add(v, m), [])) :
+    Shape}
+
+def sh.go.tree(m, f, v, e):
+  match m:
+    case 0n:
+      %add_zero(v) : {sh.fin(bits(f, 0n, v), Tip{}) == tree(digits(f, _, [])) : Shape}
+      fold(f, v, [], Equal.trans(Nat, shr(f, v), shr(f, Nat.add(v, 0n)), 0n,
+        Equal.cong(Nat, Nat, x => shr(f, x), v, Nat.add(v, 0n), add_zero(v)), e))
+    case 1n+p:
+      %Equal.sym(List<&2, Shape>, sh.lazy(f, Tip{} <> bits(f, 0n, v), 1n+v, stk.even(1n+v)),
+        bits(f, 0n, 1n+v), lazy.inc(f, 0n, v, odd(v), {==})) :
+        {sh.go(p, f, 1n+1n+v, Tip{} <> _) == tree(digits(f, Nat.add(v, 1n+p), [])) : Shape}
+      %add_succ(v, p) : {sh.go(p, f, 1n+1n+v, Tip{} <> bits(f, 0n, 1n+v)) ==
+        tree(digits(f, _, [])) : Shape}
+      sh.go.tree(p, f, 1n+v, Equal.trans(Nat, shr(f, 1n+Nat.add(v, p)),
+        shr(f, Nat.add(v, 1n+p)), 0n, Equal.cong(Nat, Nat, x => shr(f, x),
+        1n+Nat.add(v, p), Nat.add(v, 1n+p), add_succ(v, p)), e))
+
+law sh.lazy.none:
+  for +fuel: Nat
+  for s: List<&2, Shape>
+  for +n: Nat
+  {sh.lazy(fuel, s, n, False{}) == s : List<&2, Shape>}
+
+def sh.lazy.none(fuel, s, n):
+  match fuel:
+    case 0n:
+      {==}
+    case 1n+f:
+      {==}
+
+law bits.zero:
+  for +j: Nat
+  for +i: Nat
+  {[] == bits(j, i, 0n) : List<&2, Shape>}
+
+def bits.zero(j, i):
+  match j:
+    case 0n:
+      {==}
+    case 1n+p:
+      bits.zero(p, 1n+i)
+
+law sh.tree:
+  for +f: Nat
+  for +r: Nat
+  for e: {shr(f, r) == 0n : Nat}
+  {sh.go(1n+r, f, 0n, []) == tree(digits(f, r, [])) : Shape}
+
+def sh.tree(f, r, e):
+  %Equal.sym(List<&2, Shape>, sh.lazy(f, [], 0n, False{}), [], sh.lazy.none(f, [], 0n)) :
+    {sh.go(r, f, 1n, Tip{} <> _) == tree(digits(f, r, [])) : Shape}
+  %Equal.sym(List<&2, Shape>, [], bits(f, 0n, 0n), bits.zero(f, 0n)) :
+    {sh.go(r, f, 1n, Tip{} <> _) == tree(digits(f, r, [])) : Shape}
+  sh.go.tree(r, f, 0n, e)
+
+# Erasing the segment numbers: the stack of Trees is the stack of Shapes.
+def shapes(+s: List<&2, Tree>) -> List<&2, Shape>:
+  match s:
+    case Nil{}:
+      []
+    case Con{x, rest}:
+      shape(x) <> shapes(rest)
+
+law pop2.shape:
+  for +s: List<&2, Tree>
+  {shapes(stk.pop2(s)) == sh.pop2(shapes(s)) : List<&2, Shape>}
+
+def pop2.shape(s):
+  match s:
+    case Con{r, rest}:
+      match rest:
+        case Con{l, more}:
+          {==}
+        case Nil{}:
+          {==}
+    case Nil{}:
+      {==}
+
+law lazy.shape:
+  for +fuel: Nat
+  for +s: List<&2, Tree>
+  for +n: Nat
+  for +b: Bool
+  {shapes(stk.lazy(fuel, s, n, b)) == sh.lazy(fuel, shapes(s), n, b) : List<&2, Shape>}
+
+def lazy.shape(fuel, s, n, b):
+  match fuel b:
+    case 0n _:
+      {==}
+    case 1n+f True{}:
+      %pop2.shape(s) : {shapes(stk.lazy(f, stk.pop2(s), half(n), stk.even(half(n)))) ==
+        sh.lazy(f, _, half(n), stk.even(half(n))) : List<&2, Shape>}
+      lazy.shape(f, stk.pop2(s), half(n), stk.even(half(n)))
+    case 1n+f False{}:
+      {==}
+
+law fin.shape:
+  for +s: List<&2, Tree>
+  for +r: Tree
+  {shape(stk.fin(s, r)) == sh.fin(shapes(s), shape(r)) : Shape}
+
+def fin.shape(s, r):
+  match s:
+    case Nil{}:
+      {==}
+    case Con{l, rest}:
+      fin.shape(rest, Par{l, r})
+
+law go.shape:
+  for +n: Nat
+  for +f: Nat
+  for +k: Nat
+  for +s: List<&2, Tree>
+  {shape(stream.go(n, f, k, s)) == sh.go(n, f, k, shapes(s)) : Shape}
+
+def go.shape(n, f, k, s):
+  match n:
+    case 0n:
+      match s:
+        case Con{top, rest}:
+          fin.shape(rest, top)
+        case Nil{}:
+          {==}
+    case 1n+p:
+      %lazy.shape(f, s, k, stk.even(k)) : {shape(stream.go(p, f, 1n+k,
+        Seg{k} <> stk.lazy(f, s, k, stk.even(k)))) == sh.go(p, f, 1n+k, Tip{} <> _) : Shape}
+      go.shape(p, f, 1n+k, Seg{k} <> stk.lazy(f, s, k, stk.even(k)))
+
+def stream.shape(f, r, e):
+  Equal.trans(Shape, shape(stream.go(1n+r, f, 0n, [])), sh.go(1n+r, f, 0n, []),
+    tree(digits(f, r, [])), go.shape(1n+r, f, 0n, []), sh.tree(f, r, e))
+
+# Order: a merge joins neighbours, so the segments read bottom to top stay
+# in order through every merge and the final fold.
+def flat(+s: List<&2, Tree>) -> List<&2, Nat>:
+  match s:
+    case Nil{}:
+      []
+    case Con{x, rest}:
+      List.append(&2, Nat, flat(rest), order(x))
+
+law append_assoc.n:
+  for +xs: List<&2, Nat>
+  for +ys: List<&2, Nat>
+  for +zs: List<&2, Nat>
+  {List.append(&2, Nat, List.append(&2, Nat, xs, ys), zs) ==
+    List.append(&2, Nat, xs, List.append(&2, Nat, ys, zs)) : List<&2, Nat>}
+
+def append_assoc.n(xs, ys, zs):
+  match xs:
+    case Nil{}:
+      {==}
+    case Con{x, t}:
+      %append_assoc.n(t, ys, zs) : {x <> List.append(&2, Nat, List.append(&2, Nat, t, ys),
+        zs) == x <> _ : List<&2, Nat>}
+      {==}
+
+law append_nil.n:
+  for +xs: List<&2, Nat>
+  {xs == List.append(&2, Nat, xs, []) : List<&2, Nat>}
+
+def append_nil.n(xs):
+  match xs:
+    case Nil{}:
+      {==}
+    case Con{x, t}:
+      %append_nil.n(t) : {x <> t == x <> _ : List<&2, Nat>}
+      {==}
+
+law pop2.flat:
+  for +s: List<&2, Tree>
+  {flat(stk.pop2(s)) == flat(s) : List<&2, Nat>}
+
+def pop2.flat(s):
+  match s:
+    case Con{r, rest}:
+      match rest:
+        case Con{l, more}:
+          Equal.sym(List<&2, Nat>, List.append(&2, Nat, List.append(&2, Nat, flat(more),
+            order(l)), order(r)), List.append(&2, Nat, flat(more), List.append(&2, Nat,
+            order(l), order(r))), append_assoc.n(flat(more), order(l), order(r)))
+        case Nil{}:
+          {==}
+    case Nil{}:
+      {==}
+
+law lazy.flat:
+  for +fuel: Nat
+  for +s: List<&2, Tree>
+  for +n: Nat
+  for +b: Bool
+  {flat(stk.lazy(fuel, s, n, b)) == flat(s) : List<&2, Nat>}
+
+def lazy.flat(fuel, s, n, b):
+  match fuel b:
+    case 0n _:
+      {==}
+    case 1n+f True{}:
+      Equal.trans(List<&2, Nat>, flat(stk.lazy(f, stk.pop2(s), half(n), stk.even(half(n)))),
+        flat(stk.pop2(s)), flat(s), lazy.flat(f, stk.pop2(s), half(n), stk.even(half(n))),
+        pop2.flat(s))
+    case 1n+f False{}:
+      {==}
+
+law fin.flat:
+  for +s: List<&2, Tree>
+  for +r: Tree
+  {order(stk.fin(s, r)) == List.append(&2, Nat, flat(s), order(r)) : List<&2, Nat>}
+
+def fin.flat(s, r):
+  match s:
+    case Nil{}:
+      {==}
+    case Con{l, rest}:
+      %Equal.sym(List<&2, Nat>, List.append(&2, Nat, List.append(&2, Nat, flat(rest),
+        order(l)), order(r)), List.append(&2, Nat, flat(rest), List.append(&2, Nat, order(l),
+        order(r))), append_assoc.n(flat(rest), order(l), order(r))) :
+        {order(stk.fin(rest, Par{l, r})) == _ : List<&2, Nat>}
+      fin.flat(rest, Par{l, r})
+
+law go.flat:
+  for +n: Nat
+  for +f: Nat
+  for +k: Nat
+  for +x: Tree
+  for +rest: List<&2, Tree>
+  {order(stream.go(n, f, k, x <> rest)) == List.append(&2, Nat, flat(x <> rest),
+    range(n, k)) : List<&2, Nat>}
+
+def go.flat(n, f, k, x, rest):
+  match n:
+    case 0n:
+      %append_nil.n(flat(x <> rest)) : {order(stk.fin(rest, x)) == _ : List<&2, Nat>}
+      fin.flat(rest, x)
+    case 1n+p:
+      %lazy.flat(f, x <> rest, k, stk.even(k)) : {order(stream.go(p, f, 1n+k,
+        Seg{k} <> stk.lazy(f, x <> rest, k, stk.even(k)))) ==
+        List.append(&2, Nat, _, k <> range(p, 1n+k)) : List<&2, Nat>}
+      %append_assoc.n(flat(stk.lazy(f, x <> rest, k, stk.even(k))), [k], range(p, 1n+k)) :
+        {order(stream.go(p, f, 1n+k, Seg{k} <> stk.lazy(f, x <> rest, k, stk.even(k)))) ==
+        _ : List<&2, Nat>}
+      go.flat(p, f, 1n+k, Seg{k}, stk.lazy(f, x <> rest, k, stk.even(k)))
+
+law lazy.none:
+  for +fuel: Nat
+  for +s: List<&2, Tree>
+  for +n: Nat
+  {stk.lazy(fuel, s, n, False{}) == s : List<&2, Tree>}
+
+def lazy.none(fuel, s, n):
+  match fuel:
+    case 0n:
+      {==}
+    case 1n+f:
+      {==}
+
+def stream.order(f, r):
+  %Equal.sym(List<&2, Tree>, stk.lazy(f, [], 0n, False{}), [], lazy.none(f, [], 0n)) :
+    {order(stream.go(r, f, 1n, Seg{0n} <> _)) == range(1n+r, 0n) : List<&2, Nat>}
+  go.flat(r, f, 1n, Seg{0n}, [])
+'''
+
+
+def consts():
+    """The IV and the four flags, read from the official C code."""
+    src = (ROOT.parent / "c" / "blake3_impl.h").read_text()
+    body = src[src.index("IV[8] = {"):]
+    body = body[body.index("{") + 1:body.index("}")]
+    iv = [int(x.strip().rstrip("UL"), 16) for x in body.split(",")]
+    assert len(iv) == 8
+    flags = []
+    for name in ["CHUNK_START", "CHUNK_END", "PARENT", "ROOT"]:
+        m = re.search(rf"\b{name}\s*=\s*1 << (\d+),", src)
+        flags.append(1 << int(m.group(1)))
+    return CONSTS.replace("@IV@", ", ".join(map(str, iv))).replace(
+        "@FLAGS@", ", ".join(map(str, flags)))
+
+
+def laws_names(text):
+    """Prefixes LAWS.bend's names with `Laws.` outside comments."""
+    pat = re.compile(r"(?<![\w.])(" + "|".join(
+        re.escape(n) for n in sorted(LAWS_NAMES, key=len, reverse=True)) + r")(?![\w.])")
+    return "".join(l if l.lstrip().startswith("#") else pat.sub(r"Laws.\1", l)
+                   for l in text.splitlines(keepends=True))
+
+
+def proof_outboards():
+    def t8(name, k, ku, d, aa, c, n, rf):
+        return f"B3.{name}(~share, {k}, {ku}, {d}, {aa}, {c}, {n}, cb, nch, last, {rf})"
+    left = ("p", "kp", "B3.kind(kp, h, c, nch, last)", "share(a1)", "c", "h", "0")
+    right = ("p", "kp", "B3.kind(kp, n2, c2, nch, last)", "share(a2)", "c2", "n2", "0")
+    top = ("1n+p", "ku", "d", "share(a)", "0", "nch", "rf")
+    every = ("k", "ku", "d", "aa", "c", "n", "rf")
+    text = PROOF_OUTBOARDS.replace("@CV8@", cv8_pat())
+    for key, val in [("@T8(k, ku, d, aa, c, n, rf)@", t8("tree8", *every)),
+                     ("@T8O(k, ku, d, aa, c, n, rf)@", t8("tree8o", *every)),
+                     ("@TL@", t8("tree8", *left)), ("@TR@", t8("tree8", *right)),
+                     ("@X@", t8("tree8o", *left)), ("@Y@", t8("tree8o", *right)),
+                     ("@T8TOP@", t8("tree8", *top)), ("@T8OTOP@", t8("tree8o", *top))]:
+        text = text.replace(key, val)
+    return laws_names(text)
+
+
 def kat_laws(h):
     out = []
     out.append("# The CPU tree (8-lane leaves; hash.bend's H.hash).")
@@ -661,17 +1653,29 @@ def proof_lanes():
         "  {==}\n\n")
 
 
+def laws_file():
+    return (LAWS_HEAD + kat_laws(digests()) + lanes_section() + consts() +
+            OUTBOARDS + TREES + COUNTS + STREAM)
+
+
+def proof_file():
+    # The laws proven by {==}: the checker computes both sides.
+    computed = ([f"kat.hash.len{n}" for n in KAT_HASH] +
+                [f"kat.hash1.len{n}" for n in KAT_HASH1] +
+                ["kat.g4.len4096", "kat.segs.len2048", "tree1.digits"])
+    return (PROOF_HEAD + "# Known answers\n# -------------\n\n" +
+            "".join(f"def Laws.{n}():\n  {{==}}\n\n" for n in computed) +
+            proof_lanes() +
+            "# Constants\n# ---------\n\n"
+            "def Laws.consts.iv():\n  {==}\n\n"
+            "def Laws.consts.flags():\n  {==}\n\n" +
+            proof_outboards() + PROOF_TREES + laws_names(PROOF_COUNTS) +
+            laws_names(PROOF_STREAM))
+
+
 def main():
-    h = digests()
-    laws = LAWS_HEAD + kat_laws(h) + lanes_section() + TREES
-    (ROOT / "LAWS.bend").write_text(laws)
-    proof = PROOF_HEAD + "# Known answers\n# -------------\n\n"
-    names = ([f"kat.hash.len{n}" for n in KAT_HASH] +
-             [f"kat.hash1.len{n}" for n in KAT_HASH1] +
-             ["kat.g4.len4096", "kat.segs.len2048", "tree1.digits"])
-    proof += "".join(f"def Laws.{n}():\n  {{==}}\n\n" for n in names)
-    proof += proof_lanes() + PROOF_TREES
-    (ROOT / "PROOF.bend").write_text(proof)
+    (ROOT / "LAWS.bend").write_text(laws_file())
+    (ROOT / "PROOF.bend").write_text(proof_file())
     print(f"wrote {ROOT / 'LAWS.bend'} and {ROOT / 'PROOF.bend'}")
 
 

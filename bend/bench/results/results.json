@@ -203,6 +203,10 @@
     "NVIDIA GPUs: Bend 2.0.39's CUDA runtime hangs inside Modal's sandbox, even for the guide's pow2! example, while plain CUDA managed memory works there; NVIDIA numbers wait on that.",
     "GPU reads: ~5.5-6.8 ms per GiB natively; BLAKE3's compressions fit under them, natively and in Bend, so the GPU hash is read-bound."
   ],
+  "proofs": {
+    "seconds": 229,
+    "note": "bend/prove.sh (bend PROOF.bend with a deep stack), one run on the M5 Pro under outside load: ALL PROOFS CHECK for 28 laws and 45 lemmas. The known answers take nearly all of it; the other laws check in ~36 s."
+  },
   "techniques": [
     {
       "adr": "0001",
@@ -248,6 +252,11 @@
       "adr": "0009",
       "title": "Streaming and a GPU daemon",
       "summary": "Files not in the page cache stream in 1 GiB segments with 16 F_NOCACHE readers while Bend hashes (101.5 GB in ~7.6 s); a daemon refills reused GPU-heap blocks and hashes in one bang."
+    },
+    {
+      "adr": "0010",
+      "title": "More laws: outboards, counts, streaming",
+      "summary": "28 laws now: the outboard tree gives the plain hash for every input, the tree over n chunks has n leaves and n - 1 parents, and the streaming merge stack builds BLAKE3's tree, every segment once and in order."
     }
   ],
   "models": {

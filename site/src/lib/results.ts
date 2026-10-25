@@ -21,6 +21,11 @@ const technique = z.object({
   summary: z.string().min(1),
 });
 
+const proofs = z.object({
+  seconds: z.number().positive(),
+  note: z.string().optional(),
+});
+
 const schema = z.looseObject({
   machine: z.record(z.string(), z.string()),
   status_note: z.string().optional(),
@@ -30,6 +35,7 @@ const schema = z.looseObject({
   daemon: table.optional(),
   iroh: table.optional(),
   floors: z.array(z.string()).default([]),
+  proofs: proofs.optional(),
   techniques: z.array(technique).default([]),
 });
 
