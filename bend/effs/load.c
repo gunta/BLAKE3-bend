@@ -178,8 +178,63 @@ static int b3_part(Env e, int fd, B3Part* p) {
   return 0;
 }
 
+// "-" is standard input, read to its end and copied into parts (no
+// mapping: a pipe has no pages to map, and a terminal no size).
+static void b3_stdin(Env e, B3File* f) {
+  u64 cap = 1 << 20, n = 0;
+  char* buf = io_mem(malloc(cap));
+  for (;;) {
+    if (n == cap) {
+      cap *= 2;
+      buf = io_mem(realloc(buf, cap));
+    }
+    // macOS refuses a read of more than INT_MAX bytes
+    u64 want = cap - n < B3_SEG ? cap - n : B3_SEG;
+    ssize_t r = read(0, buf + n, want);
+    if (r < 0 && errno == EINTR) {
+      continue;
+    }
+    if (r <= 0) {
+      if (r < 0) {
+        f->err = errno;
+      }
+      break;
+    }
+    n += (u64)r;
+  }
+  if (!f->err && n >= B3_MAX) {
+    f->err = EFBIG;
+  }
+  if (!f->err) {
+    f->len = n;
+    f->nparts = n <= B3_SEG ? 1 : (u32)((n + B3_SEG - 1) / B3_SEG);
+    f->parts = f->nparts == 1 ? &f->one
+      : io_mem(calloc(f->nparts, sizeof(B3Part)));
+    for (u32 i = 0; i < f->nparts && !f->err; i += 1) {
+      B3Part* p = &f->parts[i];
+      p->off = (u64)i * B3_SEG;
+      p->len = n - p->off < B3_SEG ? n - p->off : B3_SEG;
+      p->cls = b3_cls(p->len);
+      p->loc = heap_alloc(e, blk_wcls(0, p->cls));
+      if (err_peek(e.mem)) {
+        f->err = ENOMEM;
+        break;
+      }
+      char* dst = (char*)(e.mem + p->loc);
+      u64 padded = p->len == 0 ? 64 : ((p->len + 63) / 64) * 64;
+      memcpy(dst, buf + p->off, p->len);
+      memset(dst + p->len, 0, padded - p->len);
+    }
+  }
+  free(buf);
+}
+
 static void b3_file(Env e, B3File* f) {
   struct stat st;
+  if (f->plen == 1 && f->path[0] == '-') {
+    b3_stdin(e, f);
+    return;
+  }
   f->fd = open(f->path, O_RDONLY);
   if (f->fd < 0) {
     f->err = errno;

@@ -1,7 +1,7 @@
 # b3sum in Bend2
 # ==============
 #
-# usage: b3sum FILE...   (any size up to 4 TiB)
+# usage: b3sum [FILE]...   (any size up to 4 TiB; none, or "-", is stdin)
 # Prints "<hash>  <name>" per file, like the official b3sum. B3IO.load reads
 # every file in parallel into its own Array<U32>; the fork over the Files
 # tree hashes the files in parallel, and each file's BLAKE3 tree is itself
@@ -35,12 +35,20 @@ def hash(t: F.Files) -> F.Out:
       x y = hash(l) hash(r)
       F.OPair{x, y}
 
+def files(xs: List<String>) -> List<String>:
+  match xs:
+    case Nil{}:
+      ["-"]
+    case Con{x, rest}:
+      Con{x, rest}
+
+# The arguments after the program: no file names means stdin.
 def rest(xs: List<String>) -> List<String>:
   match xs:
     case Nil{}:
-      Nil{}
+      ["-"]
     case Con{h, t}:
-      t
+      files(t)
 
 def status.ok(ok: Bool) -> IO(Unit):
   match ok:
