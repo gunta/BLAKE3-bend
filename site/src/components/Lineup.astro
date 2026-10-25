@@ -1,0 +1,215 @@
+---
+/**
+ * Who is on the grid, with their official marks: the challenger, the
+ * reference, the track and the real-world workloads. The text comes from
+ * results.json's machine block where it can.
+ */
+import { Cpu } from 'lucide-static';
+import BrandMark from './BrandMark.astro';
+import Icon from './Icon.astro';
+import Logo from './Logo.astro';
+import { iroh, models, results } from '../lib/page';
+import { BEND_URL, UPSTREAM_URL } from '../lib/site';
+
+const m = results.machine;
+---
+
+<section class="lineup" aria-labelledby="lineup-title">
+  <div class="wrap">
+    <h2 id="lineup-title" class="kicker" data-reveal>On the grid</h2>
+    <ul class="slots" role="list">
+      <li class="slot card is-bend" data-reveal style="--i: 1">
+        <p class="role kicker">The challenger</p>
+        <p class="who">
+          <Logo wordmark class="b3nd" />
+        </p>
+        <p class="what">BLAKE3 with every compression written in Bend; the C it emits only moves bytes in and out.</p>
+        <p class="decals" aria-label="Written in">
+          <a href={BEND_URL}><BrandMark name="bend" /> {m['bend'] ?? 'Bend2'}</a>
+        </p>
+      </li>
+      <li class="slot card" data-reveal style="--i: 2">
+        <p class="role kicker">The reference</p>
+        <a class="who" href={UPSTREAM_URL}>
+          <BrandMark name="blake3" class="wordmark" label="BLAKE3" />
+        </a>
+        <p class="what">{m['reference'] ?? 'The official BLAKE3.'}</p>
+        <p class="decals" aria-label="Built with">
+          <span><BrandMark name="rust" /> Rust</span>
+          <span><BrandMark name="c" /> C</span>
+        </p>
+      </li>
+      <li class="slot card" data-reveal style="--i: 3">
+        <p class="role kicker">The track</p>
+        <p class="who">
+          <Icon svg={Cpu} class="big" />
+          <span class="name">{m['name'] ?? 'One machine'}</span>
+        </p>
+        <p class="what">{[m['cpu'], m['gpu'], m['memory']].filter(Boolean).join(' · ')}</p>
+      </li>
+      {
+        (models || iroh) && (
+          <li class="slot card" data-reveal style="--i: 4">
+            <p class="role kicker">Real-world laps</p>
+            <p class="who decals-big">
+              {models && <BrandMark name="deepseek" class="ds" label="DeepSeek" />}
+              {models && <BrandMark name="huggingface" class="hf" label="Hugging Face" />}
+              {iroh && <BrandMark name="iroh" class="wordmark ir" label="iroh" />}
+            </p>
+            <p class="what">
+              {models && <>DeepSeek model weights as downloaded from Hugging Face</>}
+              {models && iroh && '; '}
+              {iroh && <>content-addressed ingest into iroh-blobs</>}.
+            </p>
+          </li>
+        )
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .lineup {
+    padding-block: clamp(2.5rem, 2rem + 2vw, 4rem) 0;
+  }
+
+  .slots {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15.5rem), 1fr));
+    gap: 1rem;
+    margin: 1.25rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .slot {
+    display: grid;
+    align-content: start;
+    gap: 0.9rem;
+    padding: 1.25rem 1.3rem 1.35rem;
+  }
+
+  .is-bend {
+    border-color: rgb(212 255 58 / 0.3);
+    background: linear-gradient(160deg, rgb(212 255 58 / 0.06), transparent 55%), var(--surface);
+  }
+
+  .is-bend .role {
+    color: var(--volt);
+  }
+
+  .who {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    min-height: 2.75rem;
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 2.25rem;
+  }
+
+  a.who:hover {
+    color: var(--volt);
+  }
+
+  .name {
+    font-family: var(--font-display);
+    font-size: 1.375rem;
+    font-weight: 780;
+    font-stretch: 115%;
+    letter-spacing: -0.02em;
+  }
+
+  .who :global(.wordmark) {
+    height: 0.62em;
+  }
+
+  .what {
+    color: var(--ink-2);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+  }
+
+  .decals {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1rem;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-stretch: 90%;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .decals span,
+  .decals a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .decals a {
+    min-height: 32px;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .decals a:hover {
+    color: var(--ink);
+  }
+
+  .who :global(.b3nd) {
+    font-size: 1.35rem;
+  }
+
+  .decals :global(.brandmark) {
+    height: 1.15rem;
+    color: var(--ink-2);
+  }
+
+  .decals-big {
+    gap: 1.1rem;
+    color: var(--ink-2);
+    font-size: 2rem;
+  }
+
+  .decals-big :global(.wordmark) {
+    height: 0.8em;
+  }
+
+  /* Marks light up in their owners' colors on hover. */
+  .slot :global(.brandmark),
+  .slot :global(svg.icon) {
+    transition:
+      color var(--t-med) var(--ease-out),
+      filter var(--t-med) var(--ease-out);
+  }
+
+  .slot:hover :global(.ds) {
+    color: #5786fe;
+  }
+  .slot:hover :global(.hf) {
+    color: #ffd21e;
+  }
+  .slot:hover :global(.ir) {
+    color: #7c7cff;
+  }
+  .slot:hover .decals :global(.brandmark) {
+    color: var(--ink);
+  }
+
+  .slot :global(img.bend) {
+    box-shadow: 0 0 0 1px var(--line-strong);
+  }
+
+  .slot :global(.big) {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .slot :global(svg.icon.big) {
+    color: var(--ion);
+    stroke-width: 1.5;
+  }
+</style>

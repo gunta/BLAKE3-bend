@@ -5,9 +5,11 @@ export const REPO_BRANCH = 'master';
 export const UPSTREAM_URL = 'https://github.com/BLAKE3-team/BLAKE3';
 export const BEND_URL = 'https://bend-lang.com';
 
-export const SITE_TITLE = 'BLAKE3 in Bend2';
+/** The name, said "bend": Bend spelled with BLAKE3's 3. BRAND.md has the reasoning. */
+export const SITE_NAME = 'B3ND';
+export const SITE_TITLE = 'B3ND · BLAKE3 in Bend2';
 export const SITE_DESCRIPTION =
-  'A BLAKE3 hash and a byte-identical b3sum written in Bend2, raced against the official Rust/C BLAKE3: where it wins, where it ties, and the floors it hits.';
+  'B3ND is BLAKE3 and a byte-identical b3sum written in Bend2, raced against the official Rust/C BLAKE3: where it wins, where it ties, and the floors it hits.';
 
 /** A file in the repository on GitHub, e.g. blobUrl('adr/0002-….md'). */
 export function blobUrl(path: string): string {

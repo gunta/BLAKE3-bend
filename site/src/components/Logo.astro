@@ -1,0 +1,114 @@
+---
+/**
+ * The Merge: BLAKE3's tree drawn sideways. Four leaves (speed lines of uneven
+ * length) merge in two levels into one root, and the root lands on a dot, the
+ * digest. The lines lean forward 10 degrees; the dot stays round. Strokes thicken
+ * toward the root, the way work piles up as the tree merges.
+ *
+ * The wordmark is B3ND, said "bend": Bend, spelled with BLAKE3's 3. The 3
+ * is the only part in volt. `tagline` adds what it is, for places that
+ * introduce the name.
+ *
+ * Geometry lives in src/lib/brand.ts so the favicon, the Open Graph card and
+ * the hero's fallback draw the same mark.
+ */
+import { MARK_DOT, MARK_PATHS, MARK_SKEW, MARK_VIEWBOX } from '../lib/brand';
+
+interface Props {
+  /** gradient: ion to volt, for dark grounds. solid: one color (currentColor). */
+  variant?: 'gradient' | 'solid';
+  wordmark?: boolean;
+  tagline?: boolean;
+  class?: string;
+}
+
+const { variant = 'gradient', wordmark = false, tagline = false, class: className } = Astro.props;
+// Unique per instance: several logos share the page.
+const gid = `merge-${Math.random().toString(36).slice(2, 8)}`;
+const paint = variant === 'gradient' ? `url(#${gid})` : 'currentColor';
+---
+
+<span class:list={['logo', className]}>
+  <svg class="mark" viewBox={MARK_VIEWBOX} aria-hidden="true" focusable="false">
+    {
+      variant === 'gradient' && (
+        <defs>
+          <linearGradient id={gid} x1="4" y1="0" x2="60" y2="0" gradientUnits="userSpaceOnUse">
+            <stop offset="0" style="stop-color: var(--ion)" />
+            <stop offset="0.62" style="stop-color: var(--volt)" />
+            <stop offset="1" stop-color="#f1ffc2" />
+          </linearGradient>
+        </defs>
+      )
+    }
+    <g fill="none" stroke={paint} stroke-linecap="round" stroke-linejoin="round" transform={MARK_SKEW}>
+      {MARK_PATHS.map((p) => <path d={p.d} stroke-width={p.w} />)}
+    </g>
+    <circle cx={MARK_DOT.cx} cy={MARK_DOT.cy} r={MARK_DOT.r} fill={paint} />
+  </svg>
+  {
+    wordmark && (
+      <span class="word">
+        B<span class="w-3">3</span>ND
+      </span>
+    )
+  }
+  {
+    tagline && (
+      <span class="tagline">
+        BLAKE3 in Bend2
+      </span>
+    )
+  }
+</span>
+
+<style>
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    line-height: 1;
+  }
+
+  .mark {
+    width: 1.9em;
+    height: auto;
+    flex: none;
+    overflow: visible;
+  }
+
+  .word {
+    display: inline-flex;
+    align-items: baseline;
+    font-family: var(--font-display);
+    font-stretch: 125%;
+    font-weight: 850;
+    font-style: italic;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .word {
+    color: var(--ink);
+    font-size: 1.15em;
+    letter-spacing: -0.01em;
+  }
+
+  .w-3 {
+    color: var(--volt);
+  }
+
+  .tagline {
+    padding-left: 0.7em;
+    border-left: 1px solid var(--line-strong);
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.68em;
+    font-stretch: 90%;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+</style>

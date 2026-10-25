@@ -1,13 +1,20 @@
 ---
 import Base from '../layouts/Base.astro';
 import SiteHeader from '../components/SiteHeader.astro';
+import Hero from '../components/Hero.astro';
+import Ticker from '../components/Ticker.astro';
+import Race from '../components/Race.astro';
+import Lineup from '../components/Lineup.astro';
+import BrandMark from '../components/BrandMark.astro';
+import Icon from '../components/Icon.astro';
+import { CircleCheck, Cpu, FileStack, FileText, Flag, FolderOpen, Gauge, Gpu, HardDrive, Laptop, MemoryStick, Monitor, Timer } from 'lucide-static';
+import type { MarkName } from '../lib/brands';
 import SiteFooter from '../components/SiteFooter.astro';
 import Section from '../components/Section.astro';
 import BarChart from '../components/BarChart.astro';
 import DataTable from '../components/DataTable.astro';
 import Scorecard from '../components/Scorecard.astro';
 import Note from '../components/Note.astro';
-import MiniCompare from '../components/MiniCompare.astro';
 import { adr, ADR_INDEX_URL } from '../lib/adr';
 import { fmtList, fmtRange } from '../lib/format';
 import { TIE_TEXT, tableView, fmtSpeedup } from '../lib/model';
@@ -19,7 +26,6 @@ import {
   daemonChart,
   daemonTallies,
   floors,
-  headlines,
   inMemory,
   inMemoryCharts,
   inMemoryTallies,
@@ -32,24 +38,47 @@ import {
   irohTallies,
   levelWording,
   machine,
-  machineName,
   results,
 } from '../lib/page';
 import { BEND_URL, REPO_URL, blobUrl, treeUrl } from '../lib/site';
 
 const links = [
+  { href: '#race', label: 'Race' },
   { href: '#in-memory', label: 'In memory' },
-  { href: '#cli', label: 'CLI race' },
+  { href: '#cli', label: 'CLI' },
   ...(models ? [{ href: '#models', label: 'Models' }] : []),
   ...(daemon ? [{ href: '#daemon', label: 'Daemon' }] : []),
   ...(iroh ? [{ href: '#iroh', label: 'iroh-blobs' }] : []),
   { href: '#floors', label: 'Floors' },
   { href: '#techniques', label: 'Techniques' },
   { href: '#reproduce', label: 'Reproduce' },
-  { href: '#machine', label: 'Machine' },
 ];
 
-const { models: modelsHead, gpu, cli: cliHead, perCore, ties } = headlines;
+/** An icon for each floor, from what it is about; NVIDIA gets its own mark. */
+function floorIcon(title: string): StepIcon {
+  if (/nvidia/i.test(title)) return { mark: 'nvidia' };
+  if (/page fault/i.test(title)) return { svg: MemoryStick };
+  if (/cpu/i.test(title)) return { svg: Cpu };
+  if (/open\(/i.test(title)) return { svg: FolderOpen };
+  if (/start-?up/i.test(title)) return { svg: Timer };
+  if (/ssd|uncached|disk/i.test(title)) return { svg: HardDrive };
+  if (/gpu/i.test(title)) return { svg: Gpu };
+  return { svg: Gauge };
+}
+
+const SPEC_ICONS: Record<string, StepIcon> = {
+  Machine: { svg: Laptop },
+  CPU: { svg: Cpu },
+  GPU: { svg: Gpu },
+  Memory: { svg: MemoryStick },
+  OS: { svg: Monitor },
+  Bend: { mark: 'bend' },
+  Reference: { mark: 'b3' },
+};
+
+// Every section is a lap; the optional ones shift the numbers after them.
+const laps = ['in-memory', 'cli', ...(models ? ['models'] : []), ...(daemon ? ['daemon'] : []), ...(iroh ? ['iroh'] : []), 'floors', 'techniques', 'reproduce', 'machine'];
+const lap = (id: string) => laps.indexOf(id) + 1;
 
 // CLI prose: which workloads win and which tie, straight from the tally.
 const cliTally = cliTallies[0];
@@ -63,34 +92,42 @@ const daemonLevel = levelWording(daemonStrongest);
 
 const irohCaveat = irohHashOnly;
 
-const reproduce = [
+type StepIcon = { mark?: MarkName | 'bend'; svg?: string };
+
+const reproduce: { title: string; icon: StepIcon; body: string; code: string }[] = [
   {
     title: 'Get the code',
+    icon: { mark: 'github' },
     body: 'The fork keeps the official BLAKE3 tree next to bend/, so both sides of every race build from one checkout.',
     code: `git clone ${REPO_URL}.git\ncd BLAKE3-bend`,
   },
   {
     title: 'Build the official b3sum to race against',
+    icon: { mark: 'rust' },
     body: 'NEON on, as the reference runs.',
     code: '(cd b3sum && cargo build --release --features neon)',
   },
   {
     title: 'Build the Bend b3sum',
+    icon: { mark: 'bend' },
     body: 'build.sh runs bend, then clang with the tuned flags. It needs ~/.bend/bin/bend and Apple clang.',
     code: 'bend/build.sh bend/b3sum.bend bend/build/b3sum',
   },
   {
     title: 'Check the official test vectors',
+    icon: { svg: CircleCheck },
     body: 'Both paths, against test_vectors/test_vectors.json.',
     code: 'bend/build.sh bend/test/vectors.bend && bend/test/build/vectors | python3 bend/test/check.py',
   },
   {
     title: 'Check big files against the official b3sum',
+    icon: { svg: FileStack },
     body: 'Sparse files past the 4 GiB mark with random bytes at every segment edge, hashed by both tools and compared.',
     code: 'python3 bend/test/big.py',
   },
   {
     title: 'Race',
+    icon: { svg: Flag },
     body: 'Interleaved rounds against the official b3sum; the argument is the round count.',
     code: 'python3 bend/bench/race.py 15',
   },
@@ -100,113 +137,12 @@ const reproduce = [
 <Base>
   <SiteHeader slot="header" links={links} />
 
-  <section class="hero" aria-labelledby="hero-title">
-    <div class="wrap">
-      <p class="eyebrow">Bend2 · BLAKE3 · {machineName}</p>
-      <h1 id="hero-title">BLAKE3, written in Bend2, raced against the official Rust/C.</h1>
-      <p class="lead">
-        A full BLAKE3 hash and a <code>b3sum</code> whose output is byte-identical to the official one, written in <a href={BEND_URL}>Bend2</a>.
-        Every compression runs in Bend; C only moves bytes in and out. This page shows where it wins, where it only ties, and the floors that stop both.
-      </p>
+  <Hero />
+  <Ticker />
+  <Lineup />
+  <Race />
 
-      <div class="tiles">
-        {
-          modelsHead && (
-            <div class="tile tile-hero card">
-              <div class="tile-top">
-                <a class="tile-label stretched" href={modelsHead.href}>
-                  {modelsHead.label}
-                </a>
-                <p class="hero-figure">{modelsHead.value}</p>
-              </div>
-              <div class="tile-bottom">
-                <MiniCompare comparison={modelsHead.comparison} unit="s" />
-                <p class="tile-detail">{modelsHead.detail}</p>
-              </div>
-            </div>
-          )
-        }
-        {
-          gpu && (
-            <div class="tile tile-hero card">
-              <div class="tile-top">
-                <a class="tile-label stretched" href={gpu.href}>
-                  {gpu.label}
-                </a>
-                <p class="hero-figure">{gpu.value}</p>
-              </div>
-              <div class="tile-bottom">
-                <MiniCompare comparison={gpu.comparison} unit="ms" />
-                <p class="tile-detail">{gpu.detail}</p>
-              </div>
-            </div>
-          )
-        }
-        {
-          cliHead && (
-            <div class="tile card">
-              <div class="tile-top">
-                <a class="tile-label stretched" href={cliHead.href}>
-                  {cliHead.label}
-                </a>
-                <p class="tile-figure">{cliHead.value}</p>
-              </div>
-              <div class="tile-bottom">
-                <MiniCompare comparison={cliHead.comparison} unit="ms" />
-                <p class="tile-detail">{cliHead.detail}</p>
-              </div>
-            </div>
-          )
-        }
-        {
-          perCore && (
-            <div class="tile card">
-              <div class="tile-top">
-                <a class="tile-label stretched" href={perCore.href}>
-                  {perCore.label}
-                </a>
-                <p class="tile-figure">{perCore.value}</p>
-              </div>
-              <div class="tile-bottom">
-                <MiniCompare comparison={perCore.comparison} unit="ms" />
-                <p class="tile-detail">{perCore.detail}</p>
-              </div>
-            </div>
-          )
-        }
-        {
-          ties && (
-            <div class="tile tile-ties card">
-              <div class="tile-top">
-                <p class="tile-label">Where it only ties</p>
-                <p class="tile-figure">
-                  <span aria-hidden="true">≈&#8239;1x</span>
-                  <span class="sr-only">about 1x</span>
-                </p>
-              </div>
-              <ul class="tie-lines" role="list">
-                {ties.lines.map((l) => (
-                  <li>
-                    <a href={l.href}>{l.text}</a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )
-        }
-      </div>
-
-      {results.status_note && <p class="status"><strong>Status.</strong> {results.status_note}</p>}
-
-      <p class="actions">
-        <a class="button primary" href={REPO_URL}>Source on GitHub</a>
-        <a class="button" href="#techniques">How it got fast</a>
-        <a class="button" href="#reproduce">Reproduce</a>
-      </p>
-    </div>
-  </section>
-
-  <Section id="in-memory" kicker="Hashing in memory" title="Throughput: Bend CPU and GPU vs the official crate">
+  <Section id="in-memory" lap={lap('in-memory')} kicker="Hashing in memory" title="Throughput: Bend CPU and GPU vs the official crate">
     <Fragment slot="lede">
       <p>
         Warm data already in memory, the same bytes and the same digest on every side. Bars are GB/s, computed from the input size and the measured time, so
@@ -225,7 +161,7 @@ const reproduce = [
     <DataTable id="in-memory-table" view={tableView(inMemory, `In-memory hashing, times in ${inMemory.unit} with GB/s below each time.`, { throughput: true })} />
   </Section>
 
-  <Section id="cli" kicker="End to end" title="One-shot b3sum race" tone="alt">
+  <Section id="cli" lap={lap('cli')} kicker="End to end" title="One-shot b3sum race" tone="alt">
     <Fragment slot="lede">
       <p>
         <code>b3sum FILE...</code> against the official <code>b3sum</code>, process start included, output byte for byte the same.
@@ -256,7 +192,7 @@ const reproduce = [
 
   {
     models && modelsChart && (
-      <Section id="models" kicker="Real model weights" title="Hashing a DeepSeek model">
+      <Section id="models" lap={lap('models')} kicker="Real model weights" title="Hashing a DeepSeek model">
         <Fragment slot="lede">
           <p>
             Shards of <a href="https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017">DeepSeek-V4.1-Flash</a>, the kind of file people hash after a
@@ -265,6 +201,12 @@ const reproduce = [
             reads while every core hashes the segment before.
           </p>
         </Fragment>
+        {/deepseek/i.test(models.note ?? '') && (
+          <p class="sources" data-reveal>
+            <span><BrandMark name="deepseek" tone="brand" /> DeepSeek-V4.1-Flash</span>
+            <span><BrandMark name="huggingface" tone="brand" /> from Hugging Face</span>
+          </p>
+        )}
         <Note text={models.note} />
         <Scorecard tallies={modelsTallies} />
         <BarChart chart={modelsChart} />
@@ -275,7 +217,7 @@ const reproduce = [
 
   {
     daemon && daemonChart && (
-      <Section id="daemon" kicker="Start-up excluded" title="Daemon race: against the strongest baseline">
+      <Section id="daemon" lap={lap('daemon')} kicker="Start-up excluded" title="Daemon race: against the strongest baseline">
         <Fragment slot="lede">
           <p>
             A long-running process re-opens, re-maps and re-hashes the files every round, so process start drops out. Rust runs two ways: one file at a time,
@@ -299,7 +241,7 @@ const reproduce = [
 
   {
     iroh && irohChart && (
-      <Section id="iroh" kicker="Content-addressed storage" title="iroh-blobs ingest" tone="alt">
+      <Section id="iroh" lap={lap('iroh')} kicker="Content-addressed storage" title="iroh-blobs ingest" tone="alt">
         <Fragment slot="lede">
           <p>
             <a href="https://github.com/n0-computer/iroh-blobs">iroh-blobs</a> adds a file by hashing it with BLAKE3 and writing a bao outboard, the tree of
@@ -307,6 +249,9 @@ const reproduce = [
             place.
           </p>
         </Fragment>
+        <p class="sources" data-reveal>
+          <span><BrandMark name="iroh" tone="brand" class="wordmark" label="iroh" /> iroh-blobs, by n0</span>
+        </p>
         <Note label={irohCaveat ? 'Not like for like yet' : 'How it was measured'} tone={irohCaveat ? 'caveat' : 'info'} text={iroh.note}>
           {irohCaveat && <p class="note-more">Read these speedups as an upper bound until the Bend side writes the outboard too.</p>}
         </Note>
@@ -317,7 +262,7 @@ const reproduce = [
     )
   }
 
-  <Section id="floors" kicker="Honest limits" title="The floors">
+  <Section id="floors" lap={lap('floors')} kicker="Honest limits" title="The floors">
     <Fragment slot="lede">
       <p>
         Where the time goes once Bend stops pulling ahead. These limits come from the kernel, the chip and the GPU runtime rather than from either
@@ -327,9 +272,14 @@ const reproduce = [
     <ol class="floors" role="list">
       {
         floors.map((f, i) => (
-          <li class="card">
-            <span class="floor-n" aria-hidden="true">
-              {String(i + 1).padStart(2, '0')}
+          <li class="card" data-reveal style={`--i: ${i}`}>
+            <span class="floor-top">
+              <span class="floor-n" aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <span class="floor-icon">
+                {floorIcon(f.title).mark ? <BrandMark name={floorIcon(f.title).mark!} /> : <Icon svg={floorIcon(f.title).svg!} />}
+              </span>
             </span>
             <h3>{f.title}</h3>
             {f.body && <p>{f.body}</p>}
@@ -339,7 +289,7 @@ const reproduce = [
     </ol>
   </Section>
 
-  <Section id="techniques" kicker="How it got fast" title="Techniques, one decision record each" tone="alt">
+  <Section id="techniques" lap={lap('techniques')} kicker="How it got fast" title="Techniques, one decision record each" tone="alt">
     <Fragment slot="lede">
       <p>
         Each step is written up as an architecture decision record: what the emitted C looked like, what was tried, what was measured, and what was
@@ -348,10 +298,10 @@ const reproduce = [
     </Fragment>
     <ol class="techniques" role="list">
       {
-        results.techniques.map((t) => {
+        results.techniques.map((t, i) => {
           const record = adr(t.adr);
           return (
-            <li class="card technique">
+            <li class="card technique" data-reveal style={`--i: ${i % 3}`}>
               <p class="adr-meta">
                 <span class="adr-n">ADR {t.adr}</span>
                 {record.status && <span>{record.status}</span>}
@@ -360,6 +310,7 @@ const reproduce = [
               <h3>{t.title}</h3>
               <p class="technique-summary">{t.summary}</p>
               <a class="adr-link" href={record.url}>
+                <Icon svg={FileText} />
                 Read ADR {t.adr}
                 <span class="sr-only">: {record.title ?? t.title}</span>
                 <span class="arrow" aria-hidden="true">→</span>
@@ -371,7 +322,7 @@ const reproduce = [
     </ol>
   </Section>
 
-  <Section id="reproduce" kicker="Run it yourself" title="Reproduce">
+  <Section id="reproduce" lap={lap('reproduce')} kicker="Run it yourself" title="Reproduce">
     <Fragment slot="lede">
       <p>
         On an Apple Silicon Mac with <a href={BEND_URL}>Bend2</a> installed at <code>~/.bend/bin/bend</code>, Apple clang, Rust and Python 3. The commands come
@@ -381,14 +332,23 @@ const reproduce = [
     <ol class="steps" role="list">
       {
         reproduce.map((s, i) => (
-          <li>
+          <li data-reveal>
             <span class="step-n" aria-hidden="true">
               {i + 1}
             </span>
             <div class="step-body">
-              <h3>{s.title}</h3>
+              <h3>
+                <span class="step-icon">{s.icon.mark ? <BrandMark name={s.icon.mark} /> : <Icon svg={s.icon.svg!} />}</span>
+                {s.title}
+              </h3>
               <p>{s.body}</p>
-              <pre><code>{s.code}</code></pre>
+              <div class="term">
+                <pre><code>{s.code}</code></pre>
+                <button class="copy" type="button" data-copy>
+                  <span data-copy-label>Copy</span>
+                  <span class="sr-only">: {s.title}</span>
+                </button>
+              </div>
             </div>
           </li>
         ))
@@ -401,7 +361,7 @@ const reproduce = [
     </p>
   </Section>
 
-  <Section id="machine" kicker="Where it ran" title="Test machine" tone="alt">
+  <Section id="machine" lap={lap('machine')} kicker="Where it ran" title="Test machine" tone="alt">
     <Fragment slot="lede">
       <p>Every result above comes from this one machine. Other hardware will move the numbers, and maybe the verdicts.</p>
     </Fragment>
@@ -409,7 +369,10 @@ const reproduce = [
       {
         machine.map((m) => (
           <div>
-            <dt>{m.label}</dt>
+            <dt>
+              {SPEC_ICONS[m.label]?.mark ? <BrandMark name={SPEC_ICONS[m.label]!.mark!} /> : SPEC_ICONS[m.label]?.svg && <Icon svg={SPEC_ICONS[m.label]!.svg!} />}
+              {m.label}
+            </dt>
             <dd>{m.value}</dd>
           </div>
         ))
@@ -420,190 +383,31 @@ const reproduce = [
   <SiteFooter slot="footer" />
 </Base>
 
+<script>
+  // Copy buttons on the reproduce steps.
+  for (const button of document.querySelectorAll<HTMLButtonElement>('[data-copy]')) {
+    const label = button.querySelector<HTMLElement>('[data-copy-label]');
+    button.addEventListener('click', async () => {
+      const code = button.parentElement?.querySelector('code')?.textContent ?? '';
+      try {
+        await navigator.clipboard.writeText(code);
+        if (label) label.textContent = 'Copied';
+        button.classList.add('done');
+      } catch {
+        if (label) label.textContent = 'Select it';
+      }
+      setTimeout(() => {
+        if (label) label.textContent = 'Copy';
+        button.classList.remove('done');
+      }, 1500);
+    });
+  }
+</script>
+
 <style>
-  /* Hero */
-  .hero {
-    padding-block: clamp(2.5rem, 1.5rem + 4vw, 5rem) clamp(3rem, 2rem + 4vw, 5rem);
-  }
-
-  .eyebrow {
-    font-size: 0.8125rem;
-    font-weight: 650;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-    margin-bottom: 1rem;
-  }
-
-  h1 {
-    max-width: 20ch;
-    font-size: clamp(2.25rem, 1.4rem + 4.2vw, 4.25rem);
-    font-weight: 750;
-    letter-spacing: -0.035em;
-    line-height: 1.03;
-  }
-
-  .lead {
-    max-width: 62ch;
-    margin-top: 1.25rem;
-    font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem);
-    color: var(--ink-2);
-  }
-
-  .tiles {
-    display: grid;
-    gap: 1rem;
-    margin-top: 2.5rem;
-  }
-
-  .tile {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: 1.25rem;
-    padding: 1.25rem 1.25rem 1.35rem;
-  }
-
-  .tile:has(.stretched:hover) {
-    border-color: var(--line-strong);
-  }
-
-  .tile:has(.stretched:focus-visible) {
-    outline: 2px solid var(--focus);
-    outline-offset: 3px;
-  }
-
-  .tile-top,
-  .tile-bottom {
-    display: grid;
-    gap: 0.75rem;
-  }
-
-  .tile-label {
-    font-size: 0.9375rem;
-    font-weight: 600;
-    color: var(--ink);
-    text-decoration: none;
-  }
-
-  a.tile-label:hover {
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-  }
-
-  .stretched::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-  }
-
-  .stretched:focus-visible {
-    outline: none;
-  }
-
-  .hero-figure,
-  .tile-figure {
-    font-weight: 750;
-    letter-spacing: -0.04em;
-    line-height: 1;
-  }
-
-  .hero-figure {
-    font-size: clamp(3.5rem, 2.5rem + 5vw, 6.5rem);
-  }
-
-  .tile-figure {
-    font-size: clamp(2.25rem, 1.8rem + 2vw, 3rem);
-  }
-
-  .tile-detail {
-    color: var(--ink-2);
-    font-size: 0.9375rem;
-  }
-
-  .tie-lines {
-    display: grid;
-    gap: 0.5rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    font-size: 0.9375rem;
-  }
-
-  .tie-lines a {
-    color: var(--ink-2);
-  }
-
-  @media (min-width: 40rem) {
-    .tiles {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .tile-hero,
-    .tile-ties {
-      grid-column: 1 / -1;
-    }
-
-    .tile-hero {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      grid-template-rows: auto 1fr;
-      column-gap: 2rem;
-      row-gap: 1rem;
-    }
-
-    .tile-hero .tile-top {
-      display: contents;
-    }
-
-    .tile-hero .tile-label {
-      grid-column: 1 / -1;
-    }
-
-    .tile-hero .hero-figure {
-      grid-column: 1;
-      align-self: end;
-    }
-
-    .tile-hero .tile-bottom {
-      grid-column: 2;
-      align-self: end;
-    }
-  }
-
-  @media (min-width: 64rem) {
-    .tiles {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
-    .tile-hero {
-      grid-column: span 2;
-    }
-
-    .tile-ties {
-      grid-column: span 2;
-    }
-  }
-
-  .status {
-    margin-top: 1.25rem;
-    color: var(--ink-3);
-    font-size: 0.9375rem;
-  }
-
-  .actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-top: 1.75rem;
-  }
-
-  /* Sections */
   .charts {
     display: grid;
-    gap: 2.5rem;
+    gap: 3rem;
   }
 
   .aside {
@@ -615,28 +419,60 @@ const reproduce = [
     margin-top: 0.5rem;
   }
 
-  /* Floors */
+  /* Floors: the pit wall. Big numerals, short facts. */
   .floors {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
     gap: 1rem;
     margin: 0;
     padding: 0;
     list-style: none;
+    counter-reset: floor;
   }
 
   .floors li {
     display: grid;
     align-content: start;
-    gap: 0.5rem;
-    padding: 1.25rem;
+    gap: 0.6rem;
+    padding: 1.4rem 1.35rem 1.5rem;
+  }
+
+  .floor-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .floor-icon {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 10px;
+    background: var(--surface-2);
+    color: var(--ion);
+    font-size: 1.25rem;
+  }
+
+  .floors li:hover .floor-icon {
+    color: var(--volt);
   }
 
   .floor-n {
-    font-size: 0.8125rem;
-    font-weight: 700;
-    color: var(--ink-3);
+    font-family: var(--font-display);
+    font-size: 2.75rem;
+    font-weight: 820;
+    font-stretch: 125%;
+    font-style: italic;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--ink-3);
     font-variant-numeric: tabular-nums;
+  }
+
+  .floors li:hover .floor-n {
+    -webkit-text-stroke-color: var(--volt);
   }
 
   .floors h3 {
@@ -649,10 +485,10 @@ const reproduce = [
     font-size: 0.9375rem;
   }
 
-  /* Techniques */
+  /* Techniques: one card per decision record. */
   .techniques {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
     gap: 1rem;
     margin: 0;
     padding: 0;
@@ -662,21 +498,37 @@ const reproduce = [
   .technique {
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
-    padding: 1.25rem;
+    gap: 0.7rem;
+    padding: 1.4rem 1.35rem 1.25rem;
+    transition:
+      transform var(--t-med) var(--ease-out),
+      border-color var(--t-med) var(--ease-out);
+  }
+
+  .technique:hover {
+    transform: translateY(-3px);
+    border-color: var(--line-strong);
   }
 
   .adr-meta {
     display: flex;
     flex-wrap: wrap;
+    align-items: baseline;
     gap: 0.25rem 0.75rem;
-    font-size: 0.8125rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-stretch: 90%;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
     color: var(--ink-3);
   }
 
   .adr-n {
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    background: var(--volt);
+    color: var(--volt-ink);
     font-weight: 700;
-    color: var(--ink);
     font-variant-numeric: tabular-nums;
   }
 
@@ -688,21 +540,37 @@ const reproduce = [
 
   .adr-link {
     align-self: flex-start;
+    gap: 0.45rem;
     display: inline-flex;
     align-items: center;
     min-height: 44px;
-    font-weight: 600;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-stretch: 90%;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+
+  .adr-link:hover {
+    text-decoration: underline;
   }
 
   .arrow {
-    margin-left: 0.35em;
+    margin-left: 0.4em;
+    transition: transform var(--t-fast) var(--ease-out);
   }
 
-  /* Reproduce */
+  .adr-link:hover .arrow {
+    transform: translateX(4px);
+  }
+
+  /* Reproduce: numbered steps with a terminal each. */
   .steps {
     display: grid;
-    gap: 1.5rem;
-    max-width: 52rem;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2rem;
+    max-width: 56rem;
     margin: 0;
     padding: 0;
     list-style: none;
@@ -710,31 +578,47 @@ const reproduce = [
 
   .steps li {
     display: grid;
-    grid-template-columns: 2rem minmax(0, 1fr);
+    grid-template-columns: 2.5rem minmax(0, 1fr);
     gap: 1rem;
   }
 
   .step-n {
     display: grid;
     place-items: center;
-    width: 2rem;
-    height: 2rem;
-    border-radius: 50%;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 8px;
+    transform: skewX(var(--skew));
     border: 1px solid var(--line-strong);
-    font-weight: 700;
-    font-size: 0.875rem;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-stretch: 125%;
+    font-style: italic;
     font-variant-numeric: tabular-nums;
+    color: var(--volt);
   }
 
   .step-body {
     display: grid;
-    gap: 0.4rem;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.45rem;
     min-width: 0;
   }
 
   .step-body h3 {
-    font-size: 1.0625rem;
-    line-height: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 1.125rem;
+    line-height: 1.3;
+    min-height: 2.5rem;
+  }
+
+  .step-icon {
+    display: inline-grid;
+    place-items: center;
+    color: var(--ink-2);
+    font-size: 1.15rem;
   }
 
   .step-body p {
@@ -742,8 +626,52 @@ const reproduce = [
     font-size: 0.9375rem;
   }
 
-  .step-body pre {
-    margin-top: 0.25rem;
+  .term {
+    position: relative;
+    margin-top: 0.35rem;
+  }
+
+  .term pre {
+    padding-right: 5.5rem;
+    border-left: 2px solid var(--volt);
+  }
+
+  .term pre::before {
+    content: '$ ';
+    color: var(--volt);
+  }
+
+  .copy {
+    position: absolute;
+    top: 0.55rem;
+    right: 0.55rem;
+    min-height: 32px;
+    padding: 0.3rem 0.7rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 6px;
+    background: var(--surface-3);
+    color: var(--ink-2);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-stretch: 90%;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition:
+      color var(--t-fast),
+      border-color var(--t-fast),
+      background var(--t-fast);
+  }
+
+  .copy:hover {
+    color: var(--ink);
+    border-color: var(--ink-3);
+  }
+
+  .copy.done {
+    background: var(--volt);
+    border-color: var(--volt);
+    color: var(--volt-ink);
   }
 
   /* Machine */
@@ -752,25 +680,60 @@ const reproduce = [
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
     column-gap: 1.5rem;
     margin: 0;
-    padding: 0 1.25rem;
+    padding: 0 1.35rem;
     overflow: hidden;
   }
 
   .specs div {
-    padding-block: 0.9rem;
+    padding-block: 1rem;
     border-bottom: 1px solid var(--line);
     margin-bottom: -1px;
   }
 
   .specs dt {
-    font-size: 0.8125rem;
-    font-weight: 650;
-    letter-spacing: 0.04em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-stretch: 90%;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--ink-3);
   }
 
+  .specs dt :global(svg),
+  .specs dt :global(img) {
+    font-size: 1rem;
+    color: var(--ion);
+  }
+
   .specs dd {
-    margin: 0.15rem 0 0;
+    margin: 0.35rem 0 0;
+    font-weight: 600;
+  }
+
+  /* Where a workload comes from, with the owners' marks. */
+  .sources {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    margin: -0.5rem 0 1.5rem;
+    color: var(--ink-2);
+    font-size: 0.9375rem;
+  }
+
+  .sources span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .sources :global(.brandmark) {
+    font-size: 1.35rem;
+  }
+
+  .sources :global(.wordmark) {
+    font-size: 1.1rem;
   }
 </style>
