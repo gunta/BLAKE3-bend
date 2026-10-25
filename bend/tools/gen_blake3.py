@@ -359,7 +359,8 @@ def level(+k: U32) -> U32:
   (((l - 14 : U32) >> 1n : U32) << 1n : U32)
 
 # The GPU tree: forks to full 64-, 16- or 4-chunk subtrees, one lane each.
-def treeg(+k: Nat, +ku: U32, d: Node1, aa: Array<U32> & Array<U32>, +c: U32,
+def treeg(~dup: Array<U32> -> Array<U32> & Array<U32>,
+  +k: Nat, +ku: U32, d: Node1, aa: Array<U32> & Array<U32>, +c: U32,
   +n: U32, +cb: U32, +nch: U32, +last: U32, +lv: U32, +rf: U32) -> CV:
   match k d:
     case 0n _:
@@ -368,7 +369,7 @@ def treeg(+k: Nat, +ku: U32, d: Node1, aa: Array<U32> & Array<U32>, +c: U32,
       chunk(a1, c, cb, nch, last, rf)
     case 1n+p GDown{}:
       +kp = (ku - 1 : U32)
-      treeg(p, kp, kind1(kp, n, c, nch, last, lv), aa, c, n, cb, nch, last, lv, rf)
+      treeg(~dup, p, kp, kind1(kp, n, c, nch, last, lv), aa, c, n, cb, nch, last, lv, rf)
     case 1n+p G64{}:
       (a1, a2) = aa
       _ = a2
@@ -387,7 +388,7 @@ def treeg(+k: Nat, +ku: U32, d: Node1, aa: Array<U32> & Array<U32>, +c: U32,
       +h = U32.shln(1, p)
       +n2 = (n - h : U32)
       +c2 = (c + h : U32)
-      l r = treeg(p, kp, kind1(kp, h, c, nch, last, lv), Array.fork(U32, a1), c, h, cb, nch, last, lv, 0) treeg(p, kp, kind1(kp, n2, c2, nch, last, lv), Array.fork(U32, a2), c2, n2, cb, nch, last, lv, 0)
+      l r = treeg(~dup, p, kp, kind1(kp, h, c, nch, last, lv), dup(a1), c, h, cb, nch, last, lv, 0) treeg(~dup, p, kp, kind1(kp, n2, c2, nch, last, lv), dup(a2), c2, n2, cb, nch, last, lv, 0)
       parent(l, r, rf)
 """
 
@@ -516,7 +517,8 @@ def kind(+k: U32, +n: U32, +c: U32, +nch: U32, +last: U32) -> Node:
     U32.is_gt(n, U32.shln(1, U32.to_nat((k - 1 : U32)))))
 
 # tree1's shape, but full 32- and 8-chunk subtrees go through compress8.
-def tree8(+k: Nat, +ku: U32, d: Node, aa: Array<U32> & Array<U32>, +c: U32,
+def tree8(~dup: Array<U32> -> Array<U32> & Array<U32>,
+  +k: Nat, +ku: U32, d: Node, aa: Array<U32> & Array<U32>, +c: U32,
   +n: U32, +cb: U32, +nch: U32, +last: U32, +rf: U32) -> CV:
   match k d:
     case 0n _:
@@ -525,7 +527,7 @@ def tree8(+k: Nat, +ku: U32, d: Node, aa: Array<U32> & Array<U32>, +c: U32,
       chunk(a1, c, cb, nch, last, rf)
     case 1n+p Down{{}}:
       +kp = (ku - 1 : U32)
-      tree8(p, kp, kind(kp, n, c, nch, last), aa, c, n, cb, nch, last, rf)
+      tree8(~dup, p, kp, kind(kp, n, c, nch, last), aa, c, n, cb, nch, last, rf)
     case 1n+p Leaf32{{}}:
       (a1, a2) = aa
       _ = a2
@@ -540,7 +542,7 @@ def tree8(+k: Nat, +ku: U32, d: Node, aa: Array<U32> & Array<U32>, +c: U32,
       +h = U32.shln(1, p)
       +n2 = (n - h : U32)
       +c2 = (c + h : U32)
-      l r = tree8(p, kp, kind(kp, h, c, nch, last), Array.fork(U32, a1), c, h, cb, nch, last, 0) tree8(p, kp, kind(kp, n2, c2, nch, last), Array.fork(U32, a2), c2, n2, cb, nch, last, 0)
+      l r = tree8(~dup, p, kp, kind(kp, h, c, nch, last), dup(a1), c, h, cb, nch, last, 0) tree8(~dup, p, kp, kind(kp, n2, c2, nch, last), dup(a2), c2, n2, cb, nch, last, 0)
       parent(l, r, rf)
 
 # Entry points
@@ -551,29 +553,37 @@ def tree8(+k: Nat, +ku: U32, d: Node, aa: Array<U32> & Array<U32>, +c: U32,
 # counters from cb. A whole input takes rf = ROOT; a span that is a
 # complete subtree of a larger input (a 1 GiB segment of a big file) takes
 # rf = 0 and gives that subtree's CV.
+#
+# The trees and entry points take `~dup`, which hands a tree node two read
+# handles of the input. hash.bend passes Array.fork (O(1), the fast path,
+# but @unsafe in Base); the laws pass Array.clone, so every def in this file
+# is proof-safe and LAWS.bend states facts about the code that runs.
 
-def hash.go(+k: Nat, a: Array<U32>, +cb: U32, +nch: U32, +last: U32,
+def hash.go(~dup: Array<U32> -> Array<U32> & Array<U32>,
+  +k: Nat, a: Array<U32>, +cb: U32, +nch: U32, +last: U32,
   +rf: U32) -> CV:
   match k:
     case 0n:
       chunk(a, 0, cb, nch, last, rf)
     case 1n+p:
       +ku = U32.from_nat(k)
-      tree8(k, ku, kind(ku, nch, 0, nch, last), Array.fork(U32, a), 0, nch, cb,
+      tree8(~dup, k, ku, kind(ku, nch, 0, nch, last), dup(a), 0, nch, cb,
         nch, last, rf)
 
 # The CV of a span, on the CPU's 8-lane tree.
-def hash.at(a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32) -> CV:
-  hash.go(depth(nch), a, cb, nch, last, rf)
+def hash.at(~dup: Array<U32> -> Array<U32> & Array<U32>,
+  a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32) -> CV:
+  hash.go(~dup, depth(nch), a, cb, nch, last, rf)
 
 # The bytes of the last chunk of a len-byte input of n chunks.
 def tail(+len: U32, +n: U32) -> U32:
   (len - ((n - 1 : U32) << 10n : U32) : U32)
 
 # The BLAKE3 hash (first 32 bytes) of `len` bytes held in `a`, for the CPU.
-def hash(a: Array<U32>, +len: U32) -> CV:
+def hash(~dup: Array<U32> -> Array<U32> & Array<U32>,
+  a: Array<U32>, +len: U32) -> CV:
   +n = chunks(len)
-  hash.at(a, 0, n, tail(len, n), ROOT())
+  hash.at(~dup, a, 0, n, tail(len, n), ROOT())
 
 # Bao outboards
 # -------------
@@ -620,7 +630,8 @@ def leaf32o.fin(r: Array<U32> & CV8, +rf: U32) -> CV & OB:
 def leaf32o(a: Array<U32>, +c: U32, +t: U32, +rf: U32) -> CV & OB:
   leaf32o.fin(leaf32.s0(group(a, c, t), c, t), rf)
 
-def tree8o(+k: Nat, +ku: U32, d: Node, aa: Array<U32> & Array<U32>, +c: U32,
+def tree8o(~dup: Array<U32> -> Array<U32> & Array<U32>,
+  +k: Nat, +ku: U32, d: Node, aa: Array<U32> & Array<U32>, +c: U32,
   +n: U32, +cb: U32, +nch: U32, +last: U32, +rf: U32) -> CV & OB:
   match k d:
     case 0n _:
@@ -629,7 +640,7 @@ def tree8o(+k: Nat, +ku: U32, d: Node, aa: Array<U32> & Array<U32>, +c: U32,
       (chunk(a1, c, cb, nch, last, rf), ONil{{}})
     case 1n+p Down{{}}:
       +kp = (ku - 1 : U32)
-      tree8o(p, kp, kind(kp, n, c, nch, last), aa, c, n, cb, nch, last, rf)
+      tree8o(~dup, p, kp, kind(kp, n, c, nch, last), aa, c, n, cb, nch, last, rf)
     case 1n+p Leaf32{{}}:
       (a1, a2) = aa
       _ = a2
@@ -644,29 +655,32 @@ def tree8o(+k: Nat, +ku: U32, d: Node, aa: Array<U32> & Array<U32>, +c: U32,
       +h = U32.shln(1, p)
       +n2 = (n - h : U32)
       +c2 = (c + h : U32)
-      x y = tree8o(p, kp, kind(kp, h, c, nch, last), Array.fork(U32, a1), c, h, cb, nch, last, 0) tree8o(p, kp, kind(kp, n2, c2, nch, last), Array.fork(U32, a2), c2, n2, cb, nch, last, 0)
+      x y = tree8o(~dup, p, kp, kind(kp, h, c, nch, last), dup(a1), c, h, cb, nch, last, 0) tree8o(~dup, p, kp, kind(kp, n2, c2, nch, last), dup(a2), c2, n2, cb, nch, last, 0)
       join.o(x, y, rf, U32.is_ge(ku, 5))
 
-def hash.ob.go(+k: Nat, a: Array<U32>, +cb: U32, +nch: U32, +last: U32,
+def hash.ob.go(~dup: Array<U32> -> Array<U32> & Array<U32>,
+  +k: Nat, a: Array<U32>, +cb: U32, +nch: U32, +last: U32,
   +rf: U32) -> CV & OB:
   match k:
     case 0n:
       (chunk(a, 0, cb, nch, last, rf), ONil{{}})
     case 1n+p:
       +ku = U32.from_nat(k)
-      tree8o(k, ku, kind(ku, nch, 0, nch, last), Array.fork(U32, a), 0, nch,
+      tree8o(~dup, k, ku, kind(ku, nch, 0, nch, last), dup(a), 0, nch,
         cb, nch, last, rf)
 
 # The CV of a span, with its outboard pairs (see above).
-def hash.ob.at(a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32) ->
-  CV & OB:
-  hash.ob.go(depth(nch), a, cb, nch, last, rf)
+def hash.ob.at(~dup: Array<U32> -> Array<U32> & Array<U32>,
+  a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32) -> CV & OB:
+  hash.ob.go(~dup, depth(nch), a, cb, nch, last, rf)
 
-def hash.ob(a: Array<U32>, +len: U32) -> CV & OB:
+def hash.ob(~dup: Array<U32> -> Array<U32> & Array<U32>,
+  a: Array<U32>, +len: U32) -> CV & OB:
   +n = chunks(len)
-  hash.ob.at(a, 0, n, tail(len, n), ROOT())
+  hash.ob.at(~dup, a, 0, n, tail(len, n), ROOT())
 
-def hash1.go(+k: Nat, a: Array<U32>, +cb: U32, +nch: U32, +last: U32,
+def hash1.go(~dup: Array<U32> -> Array<U32> & Array<U32>,
+  +k: Nat, a: Array<U32>, +cb: U32, +nch: U32, +last: U32,
   +rf: U32) -> CV:
   match k:
     case 0n:
@@ -674,16 +688,18 @@ def hash1.go(+k: Nat, a: Array<U32>, +cb: U32, +nch: U32, +last: U32,
     case 1n+p:
       +ku = U32.from_nat(k)
       +lv = level(ku)
-      treeg(k, ku, kind1(ku, nch, 0, nch, last, lv), Array.fork(U32, a), 0,
+      treeg(~dup, k, ku, kind1(ku, nch, 0, nch, last, lv), dup(a), 0,
         nch, cb, nch, last, lv, rf)
 
 # The CV of a span, one lane per chunk: the shape for the GPU (call with !).
-def hash1.at(a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32) -> CV:
-  hash1.go(depth(nch), a, cb, nch, last, rf)
+def hash1.at(~dup: Array<U32> -> Array<U32> & Array<U32>,
+  a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32) -> CV:
+  hash1.go(~dup, depth(nch), a, cb, nch, last, rf)
 
-def hash1(a: Array<U32>, +len: U32) -> CV:
+def hash1(~dup: Array<U32> -> Array<U32> & Array<U32>,
+  a: Array<U32>, +len: U32) -> CV:
   +n = chunks(len)
-  hash1.at(a, 0, n, tail(len, n), ROOT())
+  hash1.at(~dup, a, 0, n, tail(len, n), ROOT())
 """
 
 
@@ -697,7 +713,8 @@ HEADER = '''\
 # up to the end of its last 64-byte block. The hash is the BLAKE3 tree: every
 # 1024-byte chunk is chained through its 16 blocks, then chunk CVs merge
 # pairwise up a left-full binary tree. The tree's two halves are a parallel
-# let, so `B3.hash` runs on every CPU core and `B3.hash!` on the GPU.
+# let, so `H.hash` (hash.bend) runs on every CPU core and `H.hash1!` on the
+# GPU.
 
 import Base
 
@@ -816,8 +833,10 @@ def big(+k: Nat, +n: U32) -> Bool:
       U32.is_gt(n, U32.shln(1, p))
 
 # The CV of the n chunks from chunk c, n <= 2^k. Each node holds two read
-# handles of the input (an O(1) Array.fork), so both halves read it at once.
-def tree1(+k: Nat, b: Bool, aa: Array<U32> & Array<U32>, +c: U32, +n: U32,
+# handles of the input (dup: an O(1) Array.fork in hash.bend), so both
+# halves read it at once.
+def tree1(~dup: Array<U32> -> Array<U32> & Array<U32>,
+  +k: Nat, b: Bool, aa: Array<U32> & Array<U32>, +c: U32, +n: U32,
   +cb: U32, +nch: U32, +last: U32, +rf: U32) -> CV:
   match k b:
     case 0n _:
@@ -825,12 +844,12 @@ def tree1(+k: Nat, b: Bool, aa: Array<U32> & Array<U32>, +c: U32, +n: U32,
       _ = a2
       chunk(a1, c, cb, nch, last, rf)
     case 1n+p False{}:
-      tree1(p, big(p, n), aa, c, n, cb, nch, last, rf)
+      tree1(~dup, p, big(p, n), aa, c, n, cb, nch, last, rf)
     case 1n+p True{}:
       (a1, a2) = aa
       +h = U32.shln(1, p)
       +n2 = (n - h : U32)
-      l r = tree1(p, big(p, h), Array.fork(U32, a1), c, h, cb, nch, last, 0) tree1(p, big(p, n2), Array.fork(U32, a2), (c + h : U32), n2, cb, nch, last, 0)
+      l r = tree1(~dup, p, big(p, h), dup(a1), c, h, cb, nch, last, 0) tree1(~dup, p, big(p, n2), dup(a2), (c + h : U32), n2, cb, nch, last, 0)
       parent(l, r, rf)
 
 def chunks(+len: U32) -> U32:

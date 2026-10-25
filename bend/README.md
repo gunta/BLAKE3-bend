@@ -10,8 +10,10 @@ appears only in the effects that move bytes in and out (`effs/`).
 
 | path                    | what                                                  |
 |-------------------------|-------------------------------------------------------|
-| `blake3.bend`           | the hash: compress, compress8, the trees, entry points (generated) |
+| `blake3.bend`           | the hash: compress, compress8, the trees (generated; no `@unsafe` def) |
+| `hash.bend`             | the entry points that run: the trees with Array.fork   |
 | `tools/gen_blake3.py`   | generates `blake3.bend` (unrolled rounds and loaders)  |
+| `LAWS.bend`, `PROOF.bend` | the laws and their proofs (`tools/gen_laws.py`); `prove.sh` is the gate |
 | `b3sum.bend`            | the CLI                                               |
 | `b3io.bend`, `effs/`    | `B3IO.load` (parallel, mmap) and `B3IO.emit` effects  |
 | `build.sh`              | bend -> C -> clang with the tuned flags (ADR 0002)    |
@@ -39,6 +41,32 @@ python3 bend/bench/race.py 15
 
 `build.sh` needs `~/.bend/bin/bend` and Apple clang. The official `b3sum`
 for comparison: `cargo build --release --features neon` in `../b3sum`.
+
+## Laws
+
+`LAWS.bend` states what the code must satisfy and `PROOF.bend` proves it
+(ADR 0007). The gate, about four minutes, almost all of it the checker
+computing BLAKE3 itself:
+
+```bash
+bend/prove.sh
+```
+
+It prints ALL PROOFS CHECK when every law holds:
+
+- **Known answers**: official vectors through the CPU tree (`hash`, 0 to
+  8193 bytes, Leaf8 included), the GPU tree (`hash1`), the GPU flat leaf
+  `g4`, and two spans merged as b3sum merges a big file's parts.
+- **The 8-lane path, for every input**: each lane of `compress8` and
+  `par8` is the scalar `compress` or `parent` of that lane; `perm` gives the
+  C code's `MSG_SCHEDULE`.
+- **Tree shapes, for any compression function**: BLAKE3's tree splits into
+  its 2^k-chunk segments (what b3sum's 1 GiB parts rely on), and a
+  level-by-level reduction (pair neighbours, carry the odd one) builds the
+  same tree; `tree1`'s split rule matches the digit form for every input up
+  to 1024 chunks.
+
+`python3 bend/tools/gen_laws.py` regenerates both files.
 
 ## Scoreboard (Apple M5 Pro, 6 Super + 12 Performance cores, 20-core GPU)
 

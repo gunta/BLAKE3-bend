@@ -3,6 +3,7 @@
 # usage: ./mem +RTS ... -RTS <d> <reps> <mode>
 import Base
 import ../blake3.bend as B3
+import ../hash.bend as H
 
 def Clock.us() -> IO(Nat):
   import "../effs/clock.c"
@@ -30,10 +31,10 @@ def cfg(xs: List<String>) -> Cfg:
       Cfg{28, 3, 0}
 
 def cpu(a: Array<U32>, +len: U32) -> B3.CV:
-  B3.hash(a, len)
+  H.hash(a, len)
 
 def gpu(a: Array<U32>, +len: U32) -> B3.CV:
-  B3.hash1!(a, len)
+  H.hash1!(a, len)
 
 def run(b: Bool, a: Array<U32>, +len: U32) -> B3.CV:
   match b:

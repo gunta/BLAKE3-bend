@@ -9,6 +9,7 @@
 
 import Base
 import ./blake3.bend as B3
+import ./hash.bend as H
 
 # The 1 GiB parts of a big file, in BLAKE3's left-full shape: a leaf is a
 # span (see blake3.bend's hash.at) of 2^20 chunks, or fewer for the last.
@@ -106,7 +107,7 @@ def B3IO.ob_fold(o: Obo) -> IO(U32):
 def segs(s: Segs, +rf: U32) -> B3.CV:
   match s:
     case SLeaf{a, cb, nch, last}:
-      B3.hash.at(a, cb, nch, last, rf)
+      H.hash.at(a, cb, nch, last, rf)
     case SNode{l, r}:
       x y = segs(l, 0) segs(r, 0)
       B3.parent(x, y, rf)
@@ -118,7 +119,7 @@ def hash(t: Files) -> Out:
     case FNone{}:
       ONone{}
     case FFile{a, len, name}:
-      OHash{B3.hash(a, len), name}
+      OHash{H.hash(a, len), name}
     case FSegs{s, name}:
       OHash{segs(s, B3.ROOT()), name}
     case FStream{id, nseg, name}:
@@ -132,7 +133,7 @@ def hash(t: Files) -> Out:
 def segs.o(s: Segs, +rf: U32) -> B3.CV & B3.OB:
   match s:
     case SLeaf{a, cb, nch, last}:
-      B3.hash.ob.at(a, cb, nch, last, rf)
+      H.hash.ob.at(a, cb, nch, last, rf)
     case SNode{l, r}:
       x y = segs.o(l, 0) segs.o(r, 0)
       B3.join.o(x, y, rf, True{})
@@ -147,7 +148,7 @@ def hash_ob(t: Files) -> Obo:
     case FNone{}:
       BNone{}
     case FFile{a, len, name}:
-      hash_ob.leaf(B3.hash.ob(a, len), name)
+      hash_ob.leaf(H.hash.ob(a, len), name)
     case FSegs{s, name}:
       hash_ob.leaf(segs.o(s, B3.ROOT()), name)
     case FStream{id, nseg, name}:

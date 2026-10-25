@@ -3,6 +3,7 @@
 # usage: ./file <path> <reps>
 import Base
 import ../blake3.bend as B3
+import ../hash.bend as H
 import ../b3io.bend as F
 
 def Clock.us() -> IO(Nat):
@@ -17,7 +18,7 @@ def rep(n: Nat, aa: Array<U32> & Array<U32>, +len: U32) -> IO(Unit):
       (a, b) = aa
       do IO<Unit>:
         t0 : Nat <- Clock.us()
-        h : B3.CV = B3.hash(a, len)
+        h : B3.CV = H.hash(a, len)
         t1 : Nat <- Clock.us()
         IO.print("us " ++ Nat.show(Nat.sub(t1, t0)) ++ " " ++ B3.hex(h))
         rep(p, Array.fork(U32, b), len)

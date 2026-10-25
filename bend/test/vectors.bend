@@ -2,6 +2,7 @@
 # "len hash" line per case; test/check.py compares them with the JSON.
 import Base
 import ../blake3.bend as B3
+import ../hash.bend as H
 
 def byte(+i: U32, +len: U32) -> U32:
   ((i % 251 : U32) .&. (0 - Bool.to_u32(U32.is_lt(i, len)) : U32) : U32)
@@ -25,8 +26,8 @@ def input(+len: U32) -> Array<U32>:
 
 # Both paths: the CPU's 8-lane tree and the GPU's 1-lane tree.
 def one(+len: U32) -> String:
-  U32.show(len) ++ " " ++ B3.hex(B3.hash(input(len), len)) ++ "\n" ++
-    U32.show(len) ++ " " ++ B3.hex(B3.hash1(input(len), len))
+  U32.show(len) ++ " " ++ B3.hex(H.hash(input(len), len)) ++ "\n" ++
+    U32.show(len) ++ " " ++ B3.hex(H.hash1(input(len), len))
 
 def run(xs: List<&2, U32>) -> IO(Unit):
   match xs:
