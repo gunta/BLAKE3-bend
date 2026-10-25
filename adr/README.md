@@ -11,3 +11,5 @@ How the Bend2 BLAKE3 got fast, and what we measured on the way.
 | [0005](0005-gpu-flat-leaves.md) | flat GPU leaves sized to the 16384-lane cube |
 | [0006](0006-native-gpu-references.md) | native Metal and CUDA references; where Bend's GPU time goes (read-bound) |
 | [0007](0007-laws-and-proofs.md) | LAWS.bend / PROOF.bend: known answers, lane laws, tree theorems; Array.fork moved to hash.bend |
+| [0008](0008-daemon-map-zone-and-iroh-outboards.md) | daemon race, a zone for mapped files, iroh-blobs outboards, a progressive load |
+| [0009](0009-streaming-uncached-files-and-gpu-daemon.md) | files not in the page cache streamed at SSD speed; a GPU daemon |
