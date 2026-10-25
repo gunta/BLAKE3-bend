@@ -1,22 +1,38 @@
-# B3ND brand
+# b3bend brand
 
 The landing page's identity, and why each piece is the way it is. Tokens live in
 `src/styles/global.css` and `src/lib/brand.ts`; this file is the reasoning.
 
 ## Name
 
-**B3ND**, said "bend". It is Bend, spelled with BLAKE3's 3: the same "b3" as
-`b3sum`. One four-letter word puts the language first and still names the hash.
-The descriptor always travels with it on first mention: **BLAKE3 in Bend2**.
+**b3bend**: the name, the crate and the command are one word.
 
-- Write it `B3ND`, all caps, the 3 a digit. In running text, introduce it once
-  as "B3ND (say “bend”)".
-- In the wordmark only the 3 is volt; the rest is ink.
-- The repository (`BLAKE3-bend`) and the crate (`b3sum-bend`) keep their names.
+```bash
+cargo install b3bend
+b3bend FILE...
+```
 
-## Voice
+- **BLAKE3 first.** `b3` is BLAKE3's own shorthand, as in the official `b3sum`;
+  "bend" comes second, as the way it got faster. The subject is BLAKE3, the hash
+  that replaces SHA-256, not the language.
+- **Easy to type.** Six lowercase keys: no shift, no dot, no hyphen. It prints
+  the same lines as `b3sum`.
+- **Write it** `b3bend`, always lowercase (it is a command). The wordmark sets
+  "b3" in ink and "bend" in volt.
+- Passed over: BLAKE3b (BLAKE2b and BLAKE2s are variants with different
+  digests, and these digests are byte-identical to BLAKE3's), blake3.bend (a dot
+  cannot be a crate name), B3ND (reads as if Bend were the product).
+- The repository stays `BLAKE3-bend`; the crate was renamed from `b3sum-bend`
+  before its first release.
 
-Fast and honest. The page says where B3ND wins, where it only ties, and which
+## Promise and voice
+
+**The SHA-256 replacement, bent for speed.** The SHA-256 half is BLAKE3's own
+claim (much faster than SHA-2, and safe from length extension, unlike SHA-2;
+see the upstream README) and the page links to it rather than measuring it. The
+speed half is what this page measures: b3bend against the official BLAKE3.
+
+Fast and honest. The page says where it wins, where it only ties, and which
 floors stop both sides; the brand never rounds a tie up to a win. Racing
 language is seasoning, not the meal: laps for sections, a finish line at the
 end, numbers first.

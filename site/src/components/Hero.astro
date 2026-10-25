@@ -9,15 +9,14 @@
  */
 import { blake3Hex } from '../lib/blake3';
 import { treePaths } from '../lib/tree';
-import { machineName, results } from '../lib/page';
-import { REPO_URL } from '../lib/site';
-import { Cpu } from 'lucide-static';
+import { machineName } from '../lib/page';
+import { INSTALL, REPO_URL, UPSTREAM_URL } from '../lib/site';
 import BrandMark from './BrandMark.astro';
-import Icon from './Icon.astro';
 
 const SEED = 'hello, bend';
 const seedDigest = blake3Hex(SEED);
-const bendVersion = results.machine['bend'];
+// The upstream claim behind "replaces SHA-256": much faster than SHA-2, and safe from length extension.
+const UPSTREAM_README = `${UPSTREAM_URL}#readme`;
 
 // The fallback tree: merge.wgsl's layout, frozen, in a 1600 x 900 box.
 const W = 1600;
@@ -52,8 +51,8 @@ const { edges, root } = treePaths({ x0: -0.05 * W, rootX: 0.745 * W, y: 0.53 * H
   <div class="wrap content">
     <p class="kicker live" data-reveal>
       <span class="pip" aria-hidden="true"></span>
-      <Icon svg={Cpu} />
-      Benchmarked on {machineName}{bendVersion && <> · {bendVersion}</>}
+      <BrandMark name="b3" />
+      The SHA-256 replacement, bent for speed
     </p>
     <h1 id="hero-title" class="display">
       <span class="l1" data-reveal style="--i: 1">Bend the tree.</span>
@@ -62,9 +61,9 @@ const { edges, root } = treePaths({ x0: -0.05 * W, rootX: 0.745 * W, y: 0.53 * H
 
     <div class="lower">
       <p class="lead" data-reveal style="--i: 3">
-        <strong class="name">B3ND</strong> <span class="say">(say “bend”)</span> is a full BLAKE3 and a byte-identical <code>b3sum</code>, written in
-        Bend2 and raced against the official Rust/C. Every compression runs in Bend; C only moves bytes. Below: where it wins, where it only ties,
-        and the floors that stop both.
+        <strong class="name">b3<span class="ext">bend</span></strong> is BLAKE3, <a href={UPSTREAM_README}>the hash that replaces SHA-256</a>, rewritten in Bend2 and
+        raced against the official Rust/C on {machineName}. Every compression runs in Bend, C only moves bytes, and it prints the same digests as
+        <code>b3sum</code>. Below: where it wins, where it only ties, and the floors that stop both.
       </p>
 
       <p class="actions" data-reveal style="--i: 4">
@@ -72,7 +71,14 @@ const { edges, root } = treePaths({ x0: -0.05 * W, rootX: 0.745 * W, y: 0.53 * H
         <a class="button" href="#race"><span>Watch the race <span class="arrow" aria-hidden="true">↓</span></span></a>
       </p>
 
-      <form class="hashbox" data-hashbox data-reveal style="--i: 5" action="#" aria-labelledby="hb-title">
+      <div class="install" data-reveal style="--i: 5">
+        <code><span class="prompt" aria-hidden="true">$</span> <span data-install>{INSTALL}</span></code>
+        <button class="install-copy" type="button" data-install-copy>
+          <span data-install-label>Copy</span><span class="sr-only"> the install command</span>
+        </button>
+      </div>
+
+      <form class="hashbox" data-hashbox data-reveal style="--i: 6" action="#" aria-labelledby="hb-title">
         <p class="hb-head">
           <span id="hb-title" class="kicker"><BrandMark name="b3" /> Try it: BLAKE3, live</span>
           <span class="hb-tip" data-hb-tip aria-hidden="true">click the digest to copy</span>
@@ -85,8 +91,8 @@ const { edges, root } = treePaths({ x0: -0.05 * W, rootX: 0.745 * W, y: 0.53 * H
         <button class="hb-out" type="button" data-digest aria-describedby="hb-note" title="Copy the digest">{seedDigest}</button>
         <p class="sr-only" aria-live="polite" data-hb-live></p>
         <p id="hb-note" class="hb-note">
-          The same 32 bytes as <code>printf '%s' 'hello, bend' | b3sum</code>, hashed in this tab. Each keystroke runs down the tree; the beam carries
-          the bits.
+          The same 32 bytes as <code>printf '%s' 'hello, bend' | b3bend</code>, hashed in this tab: use it wherever you reach for
+          <code class="plain">sha256sum</code>. Each keystroke runs down the tree; the beam carries the bits.
         </p>
       </form>
     </div>
@@ -110,7 +116,7 @@ const { edges, root } = treePaths({ x0: -0.05 * W, rootX: 0.745 * W, y: 0.53 * H
   const out = form?.querySelector<HTMLButtonElement>('[data-digest]');
   const live = form?.querySelector<HTMLElement>('[data-hb-live]');
   const tip = form?.querySelector<HTMLElement>('[data-hb-tip]');
-  const note = form?.querySelector<HTMLElement>('#hb-note code');
+  const note = form?.querySelector<HTMLElement>('#hb-note code:not(.plain)');
   const encoder = new TextEncoder();
   let hero: HeroHandle | undefined;
 
@@ -142,7 +148,7 @@ const { edges, root } = treePaths({ x0: -0.05 * W, rootX: 0.745 * W, y: 0.53 * H
     const hex = toHex(bytes);
     out.dataset.value = hex;
     show(out, hex);
-    if (note) note.textContent = `printf '%s' '${input.value.replace(/'/g, `'\\''`)}' | b3sum`;
+    if (note) note.textContent = `printf '%s' '${input.value.replace(/'/g, `'\\''`)}' | b3bend`;
     clearTimeout(liveTimer);
     liveTimer = window.setTimeout(() => {
       if (live) live.textContent = `Digest: ${hex}`;
@@ -170,6 +176,23 @@ const { edges, root } = treePaths({ x0: -0.05 * W, rootX: 0.745 * W, y: 0.53 * H
     } catch {
       // Clipboard can be blocked; the digest is still selectable text.
     }
+  });
+
+  const installCopy = host?.querySelector<HTMLButtonElement>('[data-install-copy]');
+  installCopy?.addEventListener('click', async () => {
+    const label = installCopy.querySelector<HTMLElement>('[data-install-label]');
+    const text = host?.querySelector('[data-install]')?.textContent ?? '';
+    try {
+      await navigator.clipboard.writeText(text);
+      if (label) label.textContent = 'Copied';
+      installCopy.classList.add('done');
+    } catch {
+      if (label) label.textContent = 'Select it';
+    }
+    setTimeout(() => {
+      if (label) label.textContent = 'Copy';
+      installCopy.classList.remove('done');
+    }, 1500);
   });
 
   // Click anywhere on the hero that is not a control: floor it.
@@ -366,10 +389,21 @@ const { edges, root } = treePaths({ x0: -0.05 * W, rootX: 0.745 * W, y: 0.53 * H
     font-style: italic;
     font-weight: 820;
     color: var(--ink);
+    white-space: nowrap;
   }
 
-  .lead .say {
-    color: var(--ink-3);
+  .lead .ext {
+    color: var(--volt);
+  }
+
+  .lead a {
+    color: var(--ink);
+    text-decoration-color: var(--volt);
+  }
+
+  .live :global(.brandmark) {
+    height: 0.85em;
+    color: var(--ink);
   }
 
   .actions {
@@ -377,6 +411,62 @@ const { edges, root } = treePaths({ x0: -0.05 * W, rootX: 0.745 * W, y: 0.53 * H
     flex-wrap: wrap;
     gap: 0.9rem 1.1rem;
     padding-left: 0.3rem;
+  }
+
+  /* The install line: one command, one click to copy. */
+  .install {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    width: fit-content;
+    max-width: 100%;
+    padding: 0.35rem 0.4rem 0.35rem 1rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 10px;
+    background: rgb(6 6 8 / 0.7);
+  }
+
+  .install code {
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--ink);
+    font-size: 0.9375rem;
+    white-space: nowrap;
+    overflow-x: auto;
+  }
+
+  .prompt {
+    color: var(--volt);
+  }
+
+  .install-copy {
+    flex: none;
+    min-height: 36px;
+    padding: 0.3rem 0.75rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 7px;
+    background: var(--surface-3);
+    color: var(--ink-2);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-stretch: 90%;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .install-copy:hover {
+    color: var(--ink);
+    border-color: var(--ink-3);
+  }
+
+  .install-copy:global(.done) {
+    background: var(--volt);
+    border-color: var(--volt);
+    color: var(--volt-ink);
   }
 
   /* The live hash box. */

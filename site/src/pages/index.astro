@@ -108,7 +108,7 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
     code: '(cd b3sum && cargo build --release --features neon)',
   },
   {
-    title: 'Build the Bend b3sum',
+    title: 'Build b3bend from its Bend source',
     icon: { mark: 'bend' },
     body: 'build.sh runs bend, then clang with the tuned flags. It needs ~/.bend/bin/bend and Apple clang.',
     code: 'bend/build.sh bend/b3sum.bend bend/build/b3sum',

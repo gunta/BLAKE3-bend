@@ -9,7 +9,7 @@ import BrandMark from './BrandMark.astro';
 import Icon from './Icon.astro';
 import Logo from './Logo.astro';
 import { iroh, models, results } from '../lib/page';
-import { BEND_URL, UPSTREAM_URL } from '../lib/site';
+import { BEND_URL, INSTALL, UPSTREAM_URL } from '../lib/site';
 
 const m = results.machine;
 ---
@@ -23,7 +23,8 @@ const m = results.machine;
         <p class="who">
           <Logo wordmark class="b3nd" />
         </p>
-        <p class="what">BLAKE3 with every compression written in Bend; the C it emits only moves bytes in and out.</p>
+        <p class="what">The same BLAKE3, bent: every compression is written in Bend, and the C it emits only moves bytes in and out.</p>
+        <p class="cmd"><code><span aria-hidden="true">$ </span>{INSTALL}</code></p>
         <p class="decals" aria-label="Written in">
           <a href={BEND_URL}><BrandMark name="bend" /> {m['bend'] ?? 'Bend2'}</a>
         </p>
@@ -34,6 +35,9 @@ const m = results.machine;
           <BrandMark name="blake3" class="wordmark" label="BLAKE3" />
         </a>
         <p class="what">{m['reference'] ?? 'The official BLAKE3.'}</p>
+        <p class="why">
+          Why BLAKE3: much faster than SHA-2, and safe from length extension, unlike SHA-2 (<a href={`${UPSTREAM_URL}#readme`}>its authors</a>).
+        </p>
         <p class="decals" aria-label="Built with">
           <span><BrandMark name="rust" /> Rust</span>
           <span><BrandMark name="c" /> C</span>
@@ -127,6 +131,23 @@ const m = results.machine;
   .what {
     color: var(--ink-2);
     font-size: 0.9375rem;
+    line-height: 1.5;
+  }
+
+  .cmd code {
+    display: inline-block;
+    padding: 0.35em 0.6em;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+
+  .cmd span {
+    color: var(--volt);
+  }
+
+  .why {
+    color: var(--ink-3);
+    font-size: 0.8125rem;
     line-height: 1.5;
   }
 

@@ -9,6 +9,7 @@ import { COLORS, markSvg } from '../lib/brand';
 import { headlines, machineName, type Headline } from '../lib/page';
 import { outline } from '../lib/outline';
 import { treePaths } from '../lib/tree';
+import { INSTALL } from '../lib/site';
 
 const W = 1200;
 const H = 630;
@@ -25,18 +26,17 @@ async function card(): Promise<string> {
   const lead = headlines.models ?? headlines.gpu ?? headlines.cli;
   const rest = [headlines.gpu, headlines.cli, headlines.perCore].filter((h): h is Headline => h !== undefined && h !== lead).slice(0, 3);
 
-  // B3ND, with the 3 in volt: three runs so the middle one can take its own color.
-  const wordOpts = { face: 'italic', size: 40, wdth: 125, wght: 850 } as const;
-  const w1 = await outline('B', wordOpts);
-  const w2 = await outline('3', wordOpts);
-  const w3 = await outline('ND', wordOpts);
-  const tag = await outline('BLAKE3 IN BEND2', { face: 'mono', size: 15, wdth: 90, wght: 400, tracking: 0.06 });
-
+  // The wordmark, lowercase like the command: "b3" in ink, "bend" in volt.
+  const wordOpts = { face: 'italic', size: 44, wdth: 125, wght: 850, tracking: -0.03 } as const;
+  const w1 = await outline('b3', wordOpts);
+  const w2 = await outline('bend', wordOpts);
+  const tag = await outline('BLAKE3, THE SHA-256 REPLACEMENT, BENT FOR SPEED', { face: 'mono', size: 14, wdth: 90, wght: 400, tracking: 0.04 });
+  const cmd = await outline(`$ ${INSTALL}`, { face: 'mono', size: 20, wdth: 90, wght: 500 });
   const big = lead ? await fitted(lead.value.replace(/^up to /, '').replace(/x$/, '×'), 640, { face: 'italic', size: 200, wdth: 125, wght: 840, tracking: -0.03 }) : undefined;
   const what = lead ? await fitted(lead.short, 560, { size: 34, wdth: 112, wght: 700 }) : undefined;
   const where = lead ? await fitted(lead.context, 600, { size: 24, wdth: 100, wght: 500 }) : undefined;
   const site = await outline('gunta.github.io/BLAKE3-bend', { face: 'mono', size: 18, wdth: 90, wght: 400 });
-  const ran = await fitted(`Raced against the official Rust/C on ${machineName}`, 520, { face: 'mono', size: 15, wdth: 90, wght: 400 });
+  const ran = await fitted(`BLAKE3 written in Bend2, raced against the official Rust/C on ${machineName}`, 560, { face: 'mono', size: 15, wdth: 90, wght: 400 });
 
   const cols = await Promise.all(
     rest.map(async (h) => {
@@ -87,13 +87,11 @@ async function card(): Promise<string> {
   <rect width="${W}" height="${H}" fill="url(#fadeL)"/>
 
   <g transform="translate(${PAD} ${PAD - 8}) scale(0.86)">${markSvg({ stroke: 'url(#markheat)' })}</g>
-  <g transform="translate(${PAD + 66} ${PAD + 27})">
+  <g transform="translate(${PAD + 66} ${PAD + 30})">
     <path d="${w1.d}" fill="${COLORS.ink}"/>
     <path transform="translate(${w1.width} 0)" d="${w2.d}" fill="${COLORS.volt}"/>
-    <path transform="translate(${w1.width + w2.width} 0)" d="${w3.d}" fill="${COLORS.ink}"/>
-    <rect x="${w1.width + w2.width + w3.width + 18}" y="-26" width="1" height="28" fill="${COLORS.ink}" fill-opacity="0.2"/>
-    <path transform="translate(${w1.width + w2.width + w3.width + 34} -7)" d="${tag.d}" fill="${COLORS.ink3}"/>
   </g>
+  <path transform="translate(${W - PAD - tag.width} ${PAD + 16})" d="${tag.d}" fill="${COLORS.ink2}"/>
   <path transform="translate(${PAD} ${PAD + 62})" d="${ran.d}" fill="${COLORS.ink3}"/>
 
   ${big ? `<path transform="translate(${PAD - 6} 352)" d="${big.d}" fill="${COLORS.volt}"/>` : ''}
@@ -102,7 +100,8 @@ async function card(): Promise<string> {
 
   <rect x="${PAD}" y="484" width="${W - PAD * 2}" height="1" fill="${COLORS.ink}" fill-opacity="0.12"/>
   ${stats}
-  <path transform="translate(${W - PAD - site.width} ${PAD + 16})" d="${site.d}" fill="${COLORS.ink3}"/>
+  <path transform="translate(${W - PAD - cmd.width} ${PAD + 46})" d="${cmd.d}" fill="${COLORS.volt}"/>
+  <path transform="translate(${W - PAD - site.width} ${H - 26})" d="${site.d}" fill="${COLORS.ink3}"/>
 </svg>`;
 }
 

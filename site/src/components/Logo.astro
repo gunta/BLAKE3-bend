@@ -5,9 +5,9 @@
  * digest. The lines lean forward 10 degrees; the dot stays round. Strokes thicken
  * toward the root, the way work piles up as the tree merges.
  *
- * The wordmark is B3ND, said "bend": Bend, spelled with BLAKE3's 3. The 3
- * is the only part in volt. `tagline` adds what it is, for places that
- * introduce the name.
+ * The wordmark is b3bend, lowercase because it is also the command you type:
+ * "b3" (BLAKE3's own shorthand, as in b3sum) in ink, "bend" in volt.
+ * `tagline` adds the promise, for places that introduce the name.
  *
  * Geometry lives in src/lib/brand.ts so the favicon, the Open Graph card and
  * the hero's fallback draw the same mark.
@@ -49,14 +49,14 @@ const paint = variant === 'gradient' ? `url(#${gid})` : 'currentColor';
   {
     wordmark && (
       <span class="word">
-        B<span class="w-3">3</span>ND
+        b3<span class="w-bend">bend</span>
       </span>
     )
   }
   {
     tagline && (
       <span class="tagline">
-        BLAKE3 in Bend2
+        BLAKE3, bent for speed
       </span>
     )
   }
@@ -91,11 +91,12 @@ const paint = variant === 'gradient' ? `url(#${gid})` : 'currentColor';
 
   .word {
     color: var(--ink);
-    font-size: 1.15em;
-    letter-spacing: -0.01em;
+    font-size: 1.12em;
+    letter-spacing: -0.03em;
+    text-transform: none;
   }
 
-  .w-3 {
+  .w-bend {
     color: var(--volt);
   }
 
