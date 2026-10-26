@@ -29,6 +29,54 @@ POOL = """    let args = Args::parse()?;
     thread_pool.install(|| {
 """
 
+CHECK_LOOP = """    let mut line = String::new();
+    loop {
+        line.clear();
+        let n = bufreader.read_line(&mut line)?;
+        if n == 0 {
+            return Ok(());
+        }
+        // check_one_line() prints errors and turns them into a success=false
+        // return, so it doesn't return a Result.
+        let success = check_one_line(&line, args);
+        if !success {
+            // We use `files_failed > 0` to indicate a mismatch, so it's important for correctness
+            // that it's impossible for this counter to overflow.
+            *files_failed = files_failed.saturating_add(1);
+        }
+    }
+}
+"""
+
+CHECK_BATCHED = """    loop {
+        // turboblake: a batch of lines at a time, their files hashed at once
+        let lines = fast::check_batch(&mut bufreader, args)?;
+        if lines.is_empty() {
+            return Ok(());
+        }
+        for line in &lines {
+            // check_one_line() prints errors and turns them into a success=false
+            // return, so it doesn't return a Result.
+            let success = check_one_line(line, args);
+            if !success {
+                // We use `files_failed > 0` to indicate a mismatch, so it's important for correctness
+                // that it's impossible for this counter to overflow.
+                *files_failed = files_failed.saturating_add(1);
+            }
+        }
+    }
+}
+"""
+
+CHECK_HASH = """    let found_hash: blake3::Hash;
+    match hash_path(args, &file_path) {
+        Ok(mut output) => {
+            let mut found_hash_bytes = [0; blake3::OUT_LEN];
+            output.fill(&mut found_hash_bytes);
+            found_hash = found_hash_bytes.into();
+        }
+"""
+
 PATCHES = {
     "Cargo.toml": [
         ('name = "b3sum"\n', 'name = "turboblake"\n'),
@@ -75,6 +123,23 @@ PATCHES = {
          '    fast::pool(args.num_threads(), || {\n'),
         ('        std::process::exit(if files_failed > 0 { 1 } else { 0 });\n    })\n}\n',
          '        std::process::exit(if files_failed > 0 { 1 } else { 0 });\n    })?\n}\n'),
+        (CHECK_LOOP, CHECK_BATCHED),
+        (CHECK_HASH, CHECK_HASH.replace(
+            '    match hash_path(args, &file_path) {\n'
+            '        Ok(mut output) => {\n'
+            '            let mut found_hash_bytes = [0; blake3::OUT_LEN];\n'
+            '            output.fill(&mut found_hash_bytes);\n'
+            '            found_hash = found_hash_bytes.into();\n'
+            '        }\n',
+            '    // turboblake: the engine may have hashed it with its batch (fast.rs)\n'
+            '    match fast::checked(&file_path).unwrap_or_else(|| {\n'
+            '        hash_path(args, &file_path).map(|mut output| {\n'
+            '            let mut found_hash_bytes = [0; blake3::OUT_LEN];\n'
+            '            output.fill(&mut found_hash_bytes);\n'
+            '            found_hash_bytes.into()\n'
+            '        })\n'
+            '    }) {\n'
+            '        Ok(hash) => found_hash = hash,\n')),
         ('        hasher.update_reader(io::stdin().lock())?;\n',
          '        // (turboblake: big blocks, read while the one before hashes)\n'
          '        fast::update_stdin(&mut hasher)?;\n'),

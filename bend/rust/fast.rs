@@ -13,6 +13,8 @@
 //!   costs more than they save on it.
 //! - rayon's threads start when a file first needs them (`pool`), not
 //!   before the first file.
+//! - --check reads its lines a batch at a time and hashes their files as a
+//!   batch of arguments is hashed (`check_batch`).
 //!
 //! The engine is not faster on everything (ADR 0013). Starting it costs
 //! about what a few small files cost upstream, and one big file in the page
@@ -21,11 +23,13 @@
 //! more than one big one, or a big one mostly on disk.
 
 use super::{Args, FilepathString, filepath_to_string};
+use std::cell::RefCell;
+use std::collections::VecDeque;
 use std::fs::File;
-use std::io::{self, Read, Write};
+use std::io::{self, BufRead, Read, Write};
 #[cfg(unix)]
 use std::os::unix::fs::FileExt;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 #[cfg(unix)]
 use std::sync::mpsc;
@@ -298,6 +302,53 @@ impl<'a> Batch<'a> {
             None => self.on = false,
         }
     }
+}
+
+// --check: a batch of lines at a time, their files hashed as `Batch` hashes
+// a batch of arguments; check_one_line takes each file's hash in order.
+thread_local! {
+    static CHECKED: RefCell<VecDeque<(PathBuf, io::Result<blake3::Hash>)>> = const { RefCell::new(VecDeque::new()) };
+}
+
+/// Reads the next `BATCH` lines of a checkfile, and has the engine hash
+/// their files at once if it is faster on them (see `Batch`).
+pub(crate) fn check_batch(lines: &mut dyn BufRead, args: &Args) -> io::Result<Vec<String>> {
+    let mut batch = Vec::new();
+    while batch.len() < BATCH {
+        let mut line = String::new();
+        if lines.read_line(&mut line)? == 0 {
+            break;
+        }
+        batch.push(line);
+    }
+    let on = !args.no_mmap() && std::env::var("BLAKE3_BEND").as_deref() != Ok("0");
+    let files: Vec<PathBuf> = batch
+        .iter()
+        .filter_map(|l| super::parse_check_line(l).ok().map(|p| p.file_path))
+        .filter(|p| p.as_path() != Path::new("-"))
+        .collect();
+    let paths: Vec<&Path> = files.iter().map(|p| p.as_path()).collect();
+    CHECKED.with_borrow_mut(|c| c.clear());
+    if on && engine_wins(&paths) {
+        if let Some(rs) = blake3::bend::hash_files(&paths) {
+            CHECKED.with_borrow_mut(|c| c.extend(files.iter().cloned().zip(rs)));
+        }
+    }
+    Ok(batch)
+}
+
+/// The hash the engine found for the next checked file, if it took it.
+pub(crate) fn checked(path: &Path) -> Option<anyhow::Result<blake3::Hash>> {
+    CHECKED.with_borrow_mut(|c| {
+        if c.front().is_none_or(|(p, _)| p != path) {
+            c.clear();
+            return None;
+        }
+        match c.pop_front()?.1 {
+            Err(e) if e.kind() == io::ErrorKind::Unsupported => None,
+            r => Some(r.map_err(Into::into)),
+        }
+    })
 }
 
 /// Whether the engine hashes these files faster than upstream, one by one.

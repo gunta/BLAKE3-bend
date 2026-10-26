@@ -468,12 +468,15 @@ fn check_one_line(line: &str, args: &Args) -> bool {
         file_string
     };
     let found_hash: blake3::Hash;
-    match hash_path(args, &file_path) {
-        Ok(mut output) => {
+    // turboblake: the engine may have hashed it with its batch (fast.rs)
+    match fast::checked(&file_path).unwrap_or_else(|| {
+        hash_path(args, &file_path).map(|mut output| {
             let mut found_hash_bytes = [0; blake3::OUT_LEN];
             output.fill(&mut found_hash_bytes);
-            found_hash = found_hash_bytes.into();
-        }
+            found_hash_bytes.into()
+        })
+    }) {
+        Ok(hash) => found_hash = hash,
         Err(e) => {
             println!("{}: FAILED ({})", file_string, e);
             return false;
@@ -504,20 +507,21 @@ fn check_one_checkfile(path: &Path, args: &Args, files_failed: &mut u64) -> anyh
         file = File::open(path)?;
         bufreader = io::BufReader::new(&mut file);
     }
-    let mut line = String::new();
     loop {
-        line.clear();
-        let n = bufreader.read_line(&mut line)?;
-        if n == 0 {
+        // turboblake: a batch of lines at a time, their files hashed at once
+        let lines = fast::check_batch(&mut bufreader, args)?;
+        if lines.is_empty() {
             return Ok(());
         }
-        // check_one_line() prints errors and turns them into a success=false
-        // return, so it doesn't return a Result.
-        let success = check_one_line(&line, args);
-        if !success {
-            // We use `files_failed > 0` to indicate a mismatch, so it's important for correctness
-            // that it's impossible for this counter to overflow.
-            *files_failed = files_failed.saturating_add(1);
+        for line in &lines {
+            // check_one_line() prints errors and turns them into a success=false
+            // return, so it doesn't return a Result.
+            let success = check_one_line(line, args);
+            if !success {
+                // We use `files_failed > 0` to indicate a mismatch, so it's important for correctness
+                // that it's impossible for this counter to overflow.
+                *files_failed = files_failed.saturating_add(1);
+            }
         }
     }
 }
