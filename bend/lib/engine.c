@@ -19,9 +19,12 @@
 // a block we reuse.
 
 #include <errno.h>
+#include <fcntl.h>
 #include <pthread.h>
+#include <sys/stat.h>
 
 #define B3E_SPANS 64  // spans a job, read in place
+#define B3E_RESV (16ull << 30)  // the heap's room on macOS (b3e_reserve)
 #define B3E_STAGE 2   // spans a job, copied
 
 typedef struct B3EJob {
@@ -86,9 +89,18 @@ static void b3e_report(void) {
 
 // Bend can read len bytes at p in place: word-aligned, inside the window
 // past the heap's base, and ending on a 64-byte block (Bend reads whole
-// blocks, and a short last block's tail must be zeros).
+// blocks, and a short last block's tail must be zeros). On macOS the base
+// is known before the engine starts: the heap goes in the room reserved at
+// load (b3e_reserve).
+#if defined(__APPLE__)
+extern char* b3e_resv;
+#endif
+
 int b3e_inside(const void* p, uint64_t len) {
   uintptr_t base = (uintptr_t)b3e_heap, at = (uintptr_t)p;
+#if defined(__APPLE__)
+  base = base != 0 || b3e_state != 0 ? base : (uintptr_t)b3e_resv;
+#endif
   return base != 0 && at % 8 == 0 && len % 64 == 0 && at >= base + HEAP_OFF * 8
       && (at - base) / 8 + (len + 7) / 8 < LOC_MASK;
 }
@@ -542,6 +554,75 @@ static void b3e_boot(void) {
   pthread_mutex_unlock(&b3e_mu);
 }
 
+#if defined(__APPLE__)
+#include <mach/mach.h>
+#include <mach/mach_vm.h>
+
+// macOS hands big allocations out from just above a 384 GiB guard (at 448
+// GiB), lowest address first, so they sit below any heap placed later, out
+// of the engine's window (the 8 TiB past its heap's base), and every span
+// was copied. The library reserves its heap's room when it loads, at the
+// bottom of that zone: what the host allocates afterwards lands above it,
+// inside the window, and the engine reads it where it lies (ADR 0016).
+// 16 GiB is what fits under the allocator's own regions; the heap starts
+// at 8 and the heaviest jobs measured peak near 5. It cannot grow past it,
+// and a Bend heap that runs out ends the process, so b3e_heap_room turns jobs
+// away (the caller hashes them as upstream does) well before that.
+char* b3e_resv;
+u64   b3e_resv_len;
+
+static void __attribute__((constructor)) b3e_reserve(void) {
+  const char* off = getenv("BLAKE3_BEND");
+  if (off != NULL && !strcmp(off, "0")) {
+    return;
+  }
+  void* p = mmap(NULL, B3E_RESV, PROT_NONE, MAP_PRIVATE | MAP_ANON, -1, 0);
+  if (p == MAP_FAILED) {
+    return;
+  }
+  b3e_resv = p;
+  b3e_resv_len = B3E_RESV;
+  // The room lands in the lowest hole it fits; a big buffer could still
+  // fit a smaller hole below it (libmalloc's regions sit at random places
+  // there), out of the window. Those holes get PROT_NONE placeholders, so
+  // what the host allocates from now on lands above: 30 processes of 30
+  // instead of 7 had every big buffer in the window. A placeholder is
+  // mapped by hint, never MAP_FIXED, so it takes nothing another thread
+  // mapped meanwhile.
+  mach_vm_address_t at = 0, end = 0;
+  while (at < (mach_vm_address_t)(uintptr_t)p) {
+    mach_vm_size_t size;
+    vm_region_basic_info_data_64_t info;
+    mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+    mach_port_t obj;
+    if (mach_vm_region(mach_task_self(), &at, &size, VM_REGION_BASIC_INFO_64,
+                       (vm_region_info_t)&info, &cnt, &obj) != KERN_SUCCESS) {
+      break;
+    }
+    u64 lo = end, hi = at < (uintptr_t)p ? at : (uintptr_t)p;
+    if (lo >= (1ull << 32) && hi > lo && hi - lo >= (64ull << 20)) {
+      void* q = mmap((void*)(uintptr_t)lo, hi - lo, PROT_NONE, MAP_PRIVATE | MAP_ANON, -1, 0);
+      if (q != MAP_FAILED && q != (void*)(uintptr_t)lo) {
+        munmap(q, hi - lo);
+      }
+    }
+    end = at + size;
+    at += size;
+  }
+}
+#endif
+
+// Room on the heap for another job: under 3/4 of a reserved heap used.
+static bool b3e_heap_room(void) {
+#if defined(__APPLE__)
+  if (b3e_resv != NULL && (char*)b3e_heap == b3e_resv) {
+    u64 used = (HEAP_OFF + (u64)a32_load(a32_at(b3e_heap, H_BUMP)) * PAGE_LEN) * 8;
+    return used < B3E_RESV / 4 * 3;
+  }
+#endif
+  return true;
+}
+
 // Starts the engine once; 1 if it runs.
 int b3e_start(void) {
   pthread_once(&b3e_once, b3e_boot);
@@ -575,7 +656,7 @@ int b3e_hash_k(uint32_t n, const unsigned char* const* p, const uint64_t* len,
   if (b3e_hint == 0) {
     b3e_hint = (uintptr_t)p[0];
   }
-  if (!b3e_start()) {
+  if (!b3e_start() || !b3e_heap_room()) {
     return 0;
   }
   B3EJob one;
@@ -646,7 +727,7 @@ int b3e_files(uint32_t n, const char* const* paths, unsigned char (*out)[32], in
   if (n == 0) {
     return 1;
   }
-  if (!b3e_start()) {
+  if (!b3e_start() || !b3e_heap_room()) {
     return 0;
   }
   B3EFiles j = { paths, n, out, err, false };
@@ -663,6 +744,23 @@ int b3e_files(uint32_t n, const char* const* paths, unsigned char (*out)[32], in
   pthread_mutex_unlock(&b3e_mu);
   pthread_mutex_unlock(&b3e_fcall);
   return j.done;
+}
+
+static double b3_resident(int fd, u64 len);  // effs/load.c
+
+// Whether the file at path is mostly in the page cache, sampled as the
+// loader samples it, without starting the engine: 1 yes, 0 mostly on disk
+// (the engine streams such a file), -1 not a regular file or not readable.
+// turboblake asks before it starts the engine for one big file.
+int b3e_cached(const char* path) {
+  int fd = open(path, O_RDONLY | O_NONBLOCK);
+  if (fd < 0) {
+    return -1;
+  }
+  struct stat st;
+  int r = fstat(fd, &st) == 0 && S_ISREG(st.st_mode) ? b3_resident(fd, (u64)st.st_size) >= 0.9 : -1;
+  close(fd);
+  return r;
 }
 
 // b3e_hash_k in the default mode.

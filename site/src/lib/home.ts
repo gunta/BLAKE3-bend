@@ -1,17 +1,16 @@
 /**
  * The home page's numbers, picked from the same tables as the benchmarks page
  * (src/lib/page.ts) and the BLAKE3 team's chart (src/lib/official.ts). Each is
- * undefined when results.json lacks the table it comes from.
+ * undefined when results.json lacks the table it comes from. GPU numbers are
+ * not here: the home page shows them once, in the Versus section (versus.ts).
  */
-import { fmtMeasured, fmtRate } from './format';
+import { fmtMeasured } from './format';
 import { fmtSpeedup } from './model';
 import { OFFICIAL_SPEED } from './official';
-import { cliTallies, gpuBest, gpuRuns, headlines, machineName, sizeIn } from './page';
+import { cliTallies, headlines, machineName, sizeIn } from './page';
 import { lawCount, universalCount } from './proofs';
 
 const x = (ratio: string) => ratio.replace(/x$/, '×');
-/** A rate with thousands grouped: "1,674". */
-const grouped = (rate: number) => Number(fmtRate(rate)).toLocaleString('en-US', { maximumFractionDigits: 2 });
 
 /** The biggest real file: a model shard bigger than RAM. */
 export const model = (() => {
@@ -43,37 +42,7 @@ export const folders = (() => {
   };
 })();
 
-/** In memory on the GPU: the fastest run measured (native kernels included), on its biggest input. */
-export const gpu = (() => {
-  const h = headlines.gpu;
-  const run = gpuRuns[0];
-  if (!h || !run) return undefined;
-  const c = h.comparison;
-  // Past 1,000 GB/s the figure reads (and fits the tile) better in TB/s.
-  const tera = run.rate >= 1000;
-  return {
-    size: run.size,
-    ms: fmtMeasured(c.bendValue),
-    rate: tera ? (run.rate / 1000).toPrecision(3) : fmtRate(run.rate),
-    unit: tera ? 'TB/s' : 'GB/s',
-    ratio: x(h.value),
-    baselineLabel: c.baseline.label,
-    machine: run.title,
-    kernel: run.kernel,
-    href: h.href,
-  };
-})();
-
-/** The fastest run on each GPU API (CUDA, Metal), fastest first, with its share of the fastest for the tile's bars. */
-export const gpuApis = gpuBest.map((r) => ({
-  backend: r.backend ?? 'GPU',
-  engine: r.engine,
-  machine: r.title,
-  gbps: grouped(r.rate),
-  share: r.rate / (gpuBest[0]?.rate ?? r.rate),
-}));
-
-/** The machine every CPU figure was measured on. */
+/** The machine every figure in the bento was measured on. */
 export const machine = machineName;
 
 /** BLAKE3 against SHA-256 on one core, in the BLAKE3 team's own benchmark. */
