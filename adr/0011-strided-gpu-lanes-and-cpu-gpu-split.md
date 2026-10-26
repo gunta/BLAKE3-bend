@@ -1,4 +1,4 @@
-# ADR 0010: What Bend can do that the Rust crate does not: strided GPU lanes, and the CPU and the GPU on one input
+# ADR 0011: What Bend can do that the Rust crate does not: strided GPU lanes, and the CPU and the GPU on one input
 
 Date: 2026-10-26
 Status: accepted

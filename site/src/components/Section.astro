@@ -3,18 +3,27 @@ interface Props {
   id: string;
   title: string;
   kicker?: string;
+  /** Position in the race, shown as "Lap 01" before the kicker. */
+  lap?: number;
   tone?: 'plain' | 'alt';
 }
 
-const { id, title, kicker, tone = 'plain' } = Astro.props;
+const { id, title, kicker, lap, tone = 'plain' } = Astro.props;
 ---
 
 <section id={id} class:list={['section', `tone-${tone}`]} aria-labelledby={`${id}-title`}>
   <div class="wrap">
     <header class="section-head">
-      {kicker && <p class="kicker">{kicker}</p>}
-      <h2 id={`${id}-title`}>{title}</h2>
-      <div class="lede prose">
+      {
+        (kicker || lap !== undefined) && (
+          <p class="kicker" data-reveal>
+            {lap !== undefined && <span class="lap">Lap {String(lap).padStart(2, '0')}</span>}
+            {kicker}
+          </p>
+        )
+      }
+      <h2 id={`${id}-title`} data-reveal style="--i: 1">{title}</h2>
+      <div class="lede prose" data-reveal style="--i: 2">
         <slot name="lede" />
       </div>
     </header>
@@ -24,8 +33,18 @@ const { id, title, kicker, tone = 'plain' } = Astro.props;
 
 <style>
   .section {
-    padding-block: clamp(3rem, 2rem + 4vw, 5.5rem);
-    border-top: 1px solid var(--line);
+    position: relative;
+    padding-block: clamp(4rem, 2.5rem + 5vw, 7.5rem);
+  }
+
+  /* A hairline of heat across the top of every section. */
+  .section::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgb(70 227 255 / 0.35) 30%, rgb(212 255 58 / 0.45) 70%, transparent);
+    opacity: 0.6;
   }
 
   .tone-alt {
@@ -34,16 +53,12 @@ const { id, title, kicker, tone = 'plain' } = Astro.props;
 
   .section-head {
     display: grid;
-    gap: 0.75rem;
-    margin-bottom: 2rem;
+    gap: 1.1rem;
+    margin-bottom: clamp(2rem, 1.5rem + 2vw, 3rem);
   }
 
-  .kicker {
-    font-size: 0.8125rem;
-    font-weight: 650;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--ink-3);
+  .lap {
+    color: var(--volt);
   }
 
   .lede:empty {

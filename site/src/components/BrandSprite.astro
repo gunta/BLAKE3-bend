@@ -1,0 +1,32 @@
+---
+/**
+ * Every official mark once, as <symbol>s; BrandMark.astro draws them with <use>,
+ * so a mark that appears thirty times on the page is sent once. Base.astro
+ * renders this at the top of <body>.
+ */
+import { MARKS, type Mark } from '../lib/brands';
+
+const marks = Object.entries(MARKS) as [string, Mark][];
+---
+
+<svg class="brand-sprite" aria-hidden="true" focusable="false">
+  {
+    marks.map(([name, mark]) => (
+      <symbol id={`mark-${name}`} viewBox={mark.viewBox}>
+        <g transform={mark.transform}>
+          {mark.paths.map((p) => <path d={p.d} transform={p.transform} />)}
+          {mark.circles?.map((c) => <circle cx={c.cx} cy={c.cy} r={c.r} />)}
+        </g>
+      </symbol>
+    ))
+  }
+</svg>
+
+<style>
+  .brand-sprite {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+  }
+</style>

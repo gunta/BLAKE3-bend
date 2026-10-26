@@ -8,6 +8,8 @@
 import type { Chart } from '../lib/model';
 import { TIE_TEXT, VERDICT, fmtSpeedup } from '../lib/model';
 import { fmtTick } from '../lib/format';
+import { seriesMark } from '../lib/brands';
+import BrandMark from './BrandMark.astro';
 
 interface Props {
   chart: Chart;
@@ -24,7 +26,7 @@ const scaleId = `${chart.id}-scale`;
 const betterWord = chart.better === 'lower' ? 'shorter bars are faster' : 'longer bars are faster';
 ---
 
-<figure class="chart" aria-labelledby={chart.title ? titleId : scaleId} style={`--name-w: calc(${nameChars}ch + 0.75rem); --n: ${intervals};`}>
+<figure class="chart" data-reveal aria-labelledby={chart.title ? titleId : scaleId} style={`--name-w: calc(${nameChars}ch + 2.4rem); --n: ${intervals};`}>
   <div class="chart-inner">
   <div class="chart-head">
     {chart.title && <h3 class="chart-title" id={titleId}>{chart.title}</h3>}
@@ -38,6 +40,7 @@ const betterWord = chart.better === 'lower' ? 'shorter bars are faster' : 'longe
       chart.series.map((s) => (
         <li>
           <span class={`swatch tone-${s.tone}`} aria-hidden="true" />
+          {seriesMark(s.key) && <BrandMark name={seriesMark(s.key)!} class="series-mark" />}
           <span class="legend-name">{s.label}</span>
           {s.description && <span class="legend-desc">{s.description}</span>}
         </li>
@@ -49,7 +52,7 @@ const betterWord = chart.better === 'lower' ? 'shorter bars are faster' : 'longe
     <div class="gridlines" aria-hidden="true"></div>
     <ul class="groups" role="list">
       {
-        chart.groups.map((g) => (
+        chart.groups.map((g, gi) => (
           <li class="group" id={g.id}>
             <span class="group-label">{g.label}</span>
             <ul class="bars" role="list">
@@ -57,9 +60,12 @@ const betterWord = chart.better === 'lower' ? 'shorter bars are faster' : 'longe
                 const c = b.comparison;
                 return (
                   <li class:list={['bar-row', { bend: b.series.isBend }]}>
-                    <span class="bar-name">{b.series.label}</span>
+                    <span class="bar-name">
+                      {seriesMark(b.series.key) && <BrandMark name={seriesMark(b.series.key)!} class="series-mark" />}
+                      {b.series.label}
+                    </span>
                     <span class="track" aria-hidden="true">
-                      {b.value != null && <span class={`bar tone-${b.series.tone}`} style={`--f: ${b.fraction.toFixed(5)}`} />}
+                      {b.value != null && <span class={`bar tone-${b.series.tone}`} style={`--f: ${b.fraction.toFixed(5)}; --bi: ${gi}`} />}
                     </span>
                     <span class:list={['bar-value', { missing: b.value == null }]}>
                       <span class="v">{b.text}</span>
@@ -135,11 +141,16 @@ const betterWord = chart.better === 'lower' ? 'shorter bars are faster' : 'longe
   }
 
   .chart-title {
-    font-size: 1.0625rem;
+    font-size: 1.125rem;
   }
 
   .chart-scale {
     color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-stretch: 90%;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
   }
 
   /* Legend */
@@ -159,6 +170,16 @@ const betterWord = chart.better === 'lower' ? 'shorter bars are faster' : 'longe
   .legend-name {
     font-weight: 600;
     white-space: nowrap;
+  }
+
+  .chart :global(.series-mark) {
+    margin-right: 0.35rem;
+    color: var(--ink-3);
+  }
+
+  .bar-row.bend :global(.series-mark),
+  .legend :global(.merge) {
+    color: var(--volt);
   }
 
   .legend-desc {
@@ -202,7 +223,8 @@ const betterWord = chart.better === 'lower' ? 'shorter bars are faster' : 'longe
   .group-label {
     display: block;
     margin-bottom: 0.3rem;
-    font-weight: 650;
+    font-weight: 680;
+    font-stretch: 108%;
     color: var(--ink);
   }
 
@@ -261,6 +283,34 @@ const betterWord = chart.better === 'lower' ? 'shorter bars are faster' : 'longe
     height: var(--bar-h);
     width: max(3px, calc(var(--f) * 100%));
     border-radius: 0 4px 4px 0;
+    transform-origin: left center;
+  }
+
+  /* Bend bars carry a little of their own light. */
+  .bar.tone-bend {
+    background: linear-gradient(90deg, color-mix(in srgb, var(--s-bend) 55%, var(--ion)), var(--s-bend));
+    box-shadow: 0 0 18px -2px color-mix(in srgb, var(--s-bend) 55%, transparent);
+  }
+
+  .bar.tone-gpu {
+    box-shadow: 0 0 18px -2px color-mix(in srgb, var(--s-gpu) 55%, transparent);
+  }
+
+  .bar.tone-bend-alt {
+    box-shadow: 0 0 18px -2px color-mix(in srgb, var(--s-bend-alt) 55%, transparent);
+  }
+
+  /* Bars grow in from the axis when the chart scrolls into view. */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js) .chart .bar {
+      transform: scaleX(0);
+      transition: transform 1s var(--ease-out);
+      transition-delay: calc(var(--bi, 0) * 60ms + 120ms);
+    }
+
+    :global(.js) .chart:global(.in) .bar {
+      transform: none;
+    }
   }
 
   .bar-value {
@@ -301,8 +351,8 @@ const betterWord = chart.better === 'lower' ? 'shorter bars are faster' : 'longe
   }
 
   .chip.v-faster {
-    background: color-mix(in srgb, var(--good) 12%, transparent);
-    border-color: color-mix(in srgb, var(--good) 45%, transparent);
+    background: color-mix(in srgb, var(--good) 14%, transparent);
+    border-color: color-mix(in srgb, var(--good) 50%, transparent);
   }
 
   .chip.v-faster .chip-icon {

@@ -12,11 +12,17 @@
 # - The 8-lane path: for every input, each lane of compress8 and of par8 is
 #   the scalar compress or parent of that lane.
 # - The message schedule: perm iterated is the C code's MSG_SCHEDULE.
+# - Constants: the IV and the flags are the C code's.
+# - Outboards: for every input, the tree that writes iroh's bao outboard
+#   gives the plain tree's hash.
 # - Tree shapes, for any compression function: BLAKE3's left-full tree over
 #   n chunks splits into its 2^k-chunk segments (ADR 0004), and pairing
 #   neighbours level by level, the odd one carried up (a GPU reduction),
-#   builds that same tree. tree1's split rule (n > 2^p) matches the digit
-#   form these use for every input up to 1024 chunks.
+#   builds that same tree, with n leaves and n - 1 parents. tree1's split
+#   rule (n > 2^p) matches the digit form these use for every input up to
+#   1024 chunks.
+# - Streaming: the lazy merge stack that hashes a streamed file's segments
+#   builds that tree, every segment once and in order, for any count.
 
 import Base
 import ./blake3.bend as B3
@@ -267,6 +273,45 @@ law schedule:
     B3.M16{m9, m14, m11, m5, m8, m12, m15, m1, m13, m3, m0, m10, m2, m6, m4, m7},
     B3.M16{m11, m15, m5, m0, m1, m9, m8, m6, m14, m10, m2, m12, m3, m4, m7, m13}] : List<&2, B3.M16>}
 
+# Constants
+# ---------
+#
+# The IV and the four domain flags, against the official C code's
+# (c/blake3_impl.h, read by the generator like MSG_SCHEDULE). The flags are
+# distinct bits: a chunk's blocks, a parent and the root never compress
+# alike.
+
+law consts.iv:
+  {B3.IV() == B3.CV{1779033703, 3144134277, 1013904242, 2773480762, 1359893119, 2600822924, 528734635, 1541459225} : B3.CV}
+
+law consts.flags:
+  {[B3.CHUNK_START(), B3.CHUNK_END(), B3.PARENT(), B3.ROOT()] == [1, 2, 4, 8] :
+    List<&2, U32>}
+
+# Outboards
+# ---------
+#
+# iroh-blobs' bao outboard comes from tree8o (hash.ob, hash.ob.at): the CPU
+# tree that also keeps the pairs above every 16-chunk group. For every input
+# array, every length and every span, its CV is the plain tree's, so writing
+# an outboard never changes the hash. The proof never reads the array: both
+# trees make the same reads, node for node.
+
+law ob.hash:
+  for a: Array<U32>
+  for +len: U32
+  {Pair.fst(B3.CV, B3.OB, B3.hash.ob(~share, a, len)) == B3.hash(~share, a, len) :
+    B3.CV}
+
+law ob.at:
+  for a: Array<U32>
+  for +cb: U32
+  for +nch: U32
+  for +last: U32
+  for +rf: U32
+  {Pair.fst(B3.CV, B3.OB, B3.hash.ob.at(~share, a, cb, nch, last, rf)) ==
+    B3.hash.at(~share, a, cb, nch, last, rf) : B3.CV}
+
 # Tree shapes
 # -----------
 #
@@ -467,3 +512,139 @@ law levels.root:
   for +r: Nat
   for e: {shr(k, r) == 0n : Nat}
   {reduce(k, leaves(r)) == [tree(digits(k, r, []))] : List<&2, Shape>}
+
+# Counts: the leaves and the parents of a tree.
+def tips(+t: Shape) -> Nat:
+  match t:
+    case Tip{}:
+      1n
+    case Fork{l, r}:
+      Nat.add(tips(l), tips(r))
+
+def forks(+t: Shape) -> Nat:
+  match t:
+    case Tip{}:
+      0n
+    case Fork{l, r}:
+      1n+Nat.add(forks(l), forks(r))
+
+# BLAKE3's tree over chunks 0..r has r + 1 leaves, for every r < 2^k: no
+# chunk is dropped or hashed twice...
+law tree.leaves:
+  for +k: Nat
+  for +r: Nat
+  for e: {shr(k, r) == 0n : Nat}
+  {tips(tree(digits(k, r, []))) == 1n+r : Nat}
+
+# ...and r parents: n chunks cost n - 1 parent compressions, and the tree
+# above a blob's g chunk groups (by `segments`, with k = 4) has g - 1
+# parents, the pairs of its bao outboard.
+law tree.parents:
+  for +k: Nat
+  for +r: Nat
+  for e: {shr(k, r) == 0n : Nat}
+  {forks(tree(digits(k, r, []))) == r : Nat}
+
+# Streaming
+# ---------
+#
+# A file the page cache cannot hold streams (b3io.bend's stream.go): its
+# 1 GiB segments are hashed one after another, and their CVs merge on a
+# stack as BLAKE3's Hasher merges chunks, lazily: before segment k joins,
+# the top two merge while k is even, so the last merge knows it is the
+# root. These defs are b3io's stk.pop2, stk.even, stk.lazy, stk.fin,
+# stk.root and stream.go with a Tree for a CV (Seg{k} is segment k's, Par
+# a parent; the ROOT flag is not modelled) and a Nat for the U32 count;
+# `fuel` bounds the merges, 32 in b3io.
+
+type Tree is Data:
+  Seg{k: Nat}
+  Par{l: Tree, r: Tree}
+
+def stk.pop2(s: List<&2, Tree>) -> List<&2, Tree>:
+  match s:
+    case Con{r, rest}:
+      match rest:
+        case Con{l, more}:
+          Par{l, r} <> more
+        case Nil{}:
+          [r]
+    case Nil{}:
+      []
+
+# n is even and not 0.
+def stk.even(+n: Nat) -> Bool:
+  match n:
+    case 0n:
+      False{}
+    case 1n+p:
+      odd(p)
+
+def stk.lazy(fuel: Nat, s: List<&2, Tree>, +n: Nat, b: Bool) -> List<&2, Tree>:
+  match fuel b:
+    case 0n _:
+      s
+    case 1n+f True{}:
+      +m = half(n)
+      stk.lazy(f, stk.pop2(s), m, stk.even(m))
+    case 1n+f False{}:
+      s
+
+def stk.fin(s: List<&2, Tree>, r: Tree) -> Tree:
+  match s:
+    case Nil{}:
+      r
+    case Con{l, rest}:
+      stk.fin(rest, Par{l, r})
+
+def stk.root(s: List<&2, Tree>) -> Tree:
+  match s:
+    case Con{top, rest}:
+      stk.fin(rest, top)
+    case Nil{}:
+      Seg{0n}
+
+# n segments to go, from segment k.
+def stream.go(n: Nat, +fuel: Nat, +k: Nat, s: List<&2, Tree>) -> Tree:
+  match n:
+    case 0n:
+      stk.root(s)
+    case 1n+p:
+      stream.go(p, fuel, 1n+k, Seg{k} <> stk.lazy(fuel, s, k, stk.even(k)))
+
+# A Tree's shape, and its segments left to right.
+def shape(+t: Tree) -> Shape:
+  match t:
+    case Seg{k}:
+      Tip{}
+    case Par{l, r}:
+      Fork{shape(l), shape(r)}
+
+def order(+t: Tree) -> List<&2, Nat>:
+  match t:
+    case Seg{k}:
+      [k]
+    case Par{l, r}:
+      List.append(&2, Nat, order(l), order(r))
+
+# The n numbers from k.
+def range(+n: Nat, +k: Nat) -> List<&2, Nat>:
+  match n:
+    case 0n:
+      []
+    case 1n+p:
+      k <> range(p, 1n+k)
+
+# The stack builds BLAKE3's tree over r + 1 segments, for every r < 2^fuel...
+law stream.shape:
+  for +f: Nat
+  for +r: Nat
+  for e: {shr(f, r) == 0n : Nat}
+  {shape(stream.go(1n+r, f, 0n, [])) == tree(digits(f, r, [])) : Shape}
+
+# ...with every segment once, in order, whatever the fuel. A shape and its
+# leaves in order are the whole tree: the streamed hash is the mapped one.
+law stream.order:
+  for +f: Nat
+  for +r: Nat
+  {order(stream.go(1n+r, f, 0n, [])) == range(1n+r, 0n) : List<&2, Nat>}

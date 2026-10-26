@@ -1,4 +1,4 @@
-//! `b3sum-bend`: the Bend2 b3sum. All of it, the runtime included, is the C
+//! `b3bend`: the Bend2 b3sum. All of it, the runtime included, is the C
 //! that Bend emits for `bend/b3sum.bend` (see build.rs); this only passes the
 //! command line to Bend's `main`, which takes `+RTS ... -RTS` options too
 //! (`+RTS --threads N -RTS`).

@@ -1,63 +1,282 @@
 ---
+import { FileText } from 'lucide-static';
+import BrandMark from './BrandMark.astro';
+import Icon from './Icon.astro';
+import Logo from './Logo.astro';
 import { ADR_INDEX_URL } from '../lib/adr';
 import { TIE_TEXT } from '../lib/model';
 import { BEND_URL, REPO_URL, UPSTREAM_URL, blobUrl, buildCommit } from '../lib/site';
 
 const commit = buildCommit();
+const builtWith = [
+  { name: 'bend', label: 'Bend2', href: BEND_URL },
+  { name: 'vgpu', label: 'vgpu', href: 'https://vgpu.sh' },
+  { name: 'webgpu', label: 'WebGPU', href: 'https://www.w3.org/TR/webgpu/' },
+  { name: 'astro', label: 'Astro', href: 'https://astro.build' },
+  { name: 'githubpages', label: 'GitHub Pages', href: 'https://pages.github.com' },
+] as const;
 ---
 
 <footer class="site-footer">
-  <div class="wrap inner">
-    <p>
-      Every number on this page is read from
-      <a href={blobUrl('bend/bench/results/results.json')}><code>bend/bench/results/results.json</code></a>
-      when the site builds{
-        commit && (
-          <>
-            {' '}
-            (commit <a href={`${REPO_URL}/commit/${commit}`}><code>{commit.slice(0, 7)}</code></a>)
-          </>
-        )
-      }. Speedups are derived from those times; a result within {TIE_TEXT} either way is called a tie.
-    </p>
-    <ul class="links" role="list">
-      <li><a href={REPO_URL}>Repository</a></li>
-      <li><a href={ADR_INDEX_URL}>Decision records</a></li>
-      <li><a href={UPSTREAM_URL}>Official BLAKE3</a></li>
-      <li><a href={BEND_URL}>Bend2</a></li>
-    </ul>
+  <div class="finish" data-finish>
+    <div class="flag-fallback" aria-hidden="true"></div>
+    <canvas class="flag" data-flag aria-hidden="true"></canvas>
+    <div class="wrap finish-copy">
+      <p class="kicker" data-reveal>Finish line</p>
+      <p class="display sign-off" data-reveal style="--i: 1">
+        Thanks for<br /><span class="fast">racing.</span>
+      </p>
+      <p class="finish-actions" data-reveal style="--i: 2">
+        <a class="button primary" href={REPO_URL}><span><BrandMark name="github" /> Star it on GitHub</span></a>
+        <a class="button" href={ADR_INDEX_URL}><span><Icon svg={FileText} /> Read the ADRs</span></a>
+      </p>
+    </div>
+  </div>
+
+  <div class="wrap base">
+    <div class="brand-col">
+      <a class="home" href="#top" aria-label="b3bend: back to the top">
+        <Logo wordmark tagline />
+      </a>
+      <p class="fine">
+        Every number on this page is read from
+        <a href={blobUrl('bend/bench/results/results.json')}><code>bend/bench/results/results.json</code></a>
+        when the site builds{
+          commit && (
+            <>
+              {' '}
+              (commit <a href={`${REPO_URL}/commit/${commit}`}><code>{commit.slice(0, 7)}</code></a>)
+            </>
+          )
+        }. Speedups are derived from those times; a result within {TIE_TEXT} either way is called a tie.
+      </p>
+    </div>
+
+    <nav class="links" aria-label="Elsewhere">
+      <a href={REPO_URL}><BrandMark name="github" /> Repository</a>
+      <a href={ADR_INDEX_URL}><Icon svg={FileText} /> Decision records</a>
+      <a href={UPSTREAM_URL}><BrandMark name="b3" /> Official BLAKE3</a>
+      <a href={BEND_URL}><BrandMark name="bend" /> Bend2</a>
+    </nav>
+
+    <div class="built">
+      <p class="kicker">Built with</p>
+      <ul role="list">
+        {
+          builtWith.map((b) => (
+            <li>
+              <a href={b.href}>
+                <BrandMark name={b.name} />
+                {b.name !== 'vgpu' ? <span>{b.label}</span> : <span class="sr-only">{b.label}</span>}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
   </div>
 </footer>
 
+<script>
+  import { getGpu } from '../gl/gpu';
+
+  void (async () => {
+    const host = document.querySelector<HTMLElement>('[data-finish]');
+    const canvas = host?.querySelector<HTMLCanvasElement>('[data-flag]');
+    if (!host || !canvas) return;
+    // Wait until the finish line is near before spending anything on it.
+    await new Promise<void>((resolve) => {
+      const io = new IntersectionObserver(
+        (entries) => {
+          if (!entries.some((e) => e.isIntersecting)) return;
+          io.disconnect();
+          resolve();
+        },
+        { rootMargin: '600px' },
+      );
+      io.observe(host);
+    });
+    const gpu = await getGpu();
+    if (!gpu) return;
+    try {
+      const { mountFlag } = await import('../gl/flag');
+      await mountFlag(gpu, canvas, host);
+      host.classList.add('gpu-ready');
+    } catch (error) {
+      console.warn('footer: WebGPU flag unavailable, keeping the CSS one', error);
+    }
+  })();
+</script>
+
 <style>
   .site-footer {
-    border-top: 1px solid var(--line);
-    padding-block: 2.5rem 3rem;
+    position: relative;
     color: var(--ink-3);
     font-size: 0.9375rem;
   }
 
-  .inner {
+  .finish {
+    position: relative;
+    isolation: isolate;
     display: grid;
-    gap: 1rem;
+    align-items: end;
+    min-height: clamp(24rem, 18rem + 22vw, 36rem);
+    padding-block: 6rem 3.5rem;
+    overflow: hidden;
   }
 
-  .inner > p {
-    max-width: var(--measure);
+  .flag,
+  .flag-fallback {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    display: block;
+    transition: opacity 1.2s var(--ease-out);
+  }
+
+  .flag {
+    opacity: 0;
+  }
+
+  .finish:global(.gpu-ready) .flag {
+    opacity: 1;
+  }
+
+  .finish:global(.gpu-ready) .flag-fallback {
+    opacity: 0;
+  }
+
+  /* Without WebGPU: a still checkered flag in CSS. */
+  .flag-fallback {
+    background: repeating-conic-gradient(#121218 0 25%, #1c1c24 0 50%) 0 0 / 128px 128px;
+    mask-image: linear-gradient(180deg, transparent 0%, #000 70%);
+  }
+
+  .finish-copy {
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  .sign-off {
+    font-size: clamp(3rem, 1rem + 8vw, 8.5rem);
+    color: var(--ink);
+    text-shadow: 0 2px 30px rgb(6 6 8 / 0.8);
+  }
+
+  .sign-off .fast {
+    color: var(--volt);
+  }
+
+  .finish-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem 1.1rem;
+    padding-left: 0.3rem;
+  }
+
+  .base {
+    display: grid;
+    gap: 2.25rem;
+    padding-block: 3rem 3.5rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .brand-col {
+    display: grid;
+    gap: 1rem;
+    max-width: 40rem;
+  }
+
+  .home {
+    display: inline-flex;
+    width: fit-content;
+    min-height: 44px;
+    align-items: center;
+    font-size: 1.125rem;
+    text-decoration: none;
+  }
+
+  .fine {
+    line-height: 1.6;
   }
 
   .links {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.25rem 1.25rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
+    gap: 0.25rem 1.5rem;
   }
 
   .links a {
     display: inline-flex;
     align-items: center;
+    gap: 0.5rem;
     min-height: 44px;
+    color: var(--ink-2);
+    text-decoration: none;
+  }
+
+  .links a:hover {
+    color: var(--volt);
+  }
+
+  .built {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.5rem;
+  }
+
+  .built ul {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1.6rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .built a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 44px;
+    color: var(--ink-3);
+    font-size: 1.375rem;
+    text-decoration: none;
+    transition: color var(--t-fast) var(--ease-out);
+  }
+
+  .built a span {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-stretch: 90%;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .built a:hover {
+    color: var(--ink);
+  }
+
+  .built :global(.wide) {
+    height: 0.75em;
+  }
+
+  @media (min-width: 60rem) {
+    .base {
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      align-items: start;
+    }
+    .links {
+      flex-direction: column;
+      gap: 0;
+      justify-self: end;
+    }
+    .built {
+      grid-column: 1 / -1;
+    }
   }
 </style>

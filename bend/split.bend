@@ -185,7 +185,7 @@ def root(j: Nat, +nch: U32, +plan: U32, g: List<B3.CV>, c: List<B3.CV>) ->
 # ------
 # A spine share costs the GPU as much as the whole input: its smaller
 # subtrees get fewer lanes, and a lane that is not one of ~16384 runs at its
-# own latency, not at the memory's bandwidth (ADR 0010). Slices keep every
+# own latency, not at the memory's bandwidth (ADR 0011). Slices keep every
 # lane. A whole input of 2^(k+6) chunks is 16 slices, each a whole subtree
 # of 2^(k+2) chunks; lane l of 2^k hashes the 4-chunk group l of each of the
 # GPU's first G slices (g4), so the GPU's share is G/16 of the input, still

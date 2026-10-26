@@ -375,7 +375,7 @@ def g.fin(r: Array<U32> & CV) -> CV:
 # So at that leaf level a whole subtree of 64 S chunks goes to S lanes (as
 # many as its leaves) that read neighbouring memory: lane l hashes the
 # 16-chunk groups l, l + S, l + 2S and l + 3S, so the lanes running together
-# read one window of 16 S KiB (ADR 0010). The fork over the lanes is the
+# read one window of 16 S KiB (ADR 0011). The fork over the lanes is the
 # tree over lane numbers, and a join pairs its halves' four CVs group for
 # group: BLAKE3's tree of groups, level by level (the `levels` law), so
 # after log2(S) joins the four CVs are the subtree's quarters.

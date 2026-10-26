@@ -284,6 +284,10 @@ static void b3_stdin(Env e, B3File* f) {
 #define B3_READERS 16
 #define B3_RBLK (8ull << 20)
 
+#ifndef MINCORE_INCORE
+#define MINCORE_INCORE 1  // Linux: bit 0 of each mincore byte
+#endif
+
 // The fraction of the file's pages in the page cache, from 4096 samples.
 static double b3_resident(int fd, u64 len) {
   u64 pg = (u64)getpagesize();
@@ -293,9 +297,9 @@ static double b3_resident(int fd, u64 len) {
   }
   u64 pages = (len + pg - 1) / pg, hit = 0, n = pages < 4096 ? pages : 4096;
   for (u64 i = 0; i < n; i += 1) {
-    char v = 0;
+    unsigned char v = 0;
     u64 page = i * pages / n;
-    if (mincore(at + page * pg, pg, &v) == 0 && (v & MINCORE_INCORE)) {
+    if (mincore(at + page * pg, pg, (void*)&v) == 0 && (v & MINCORE_INCORE)) {
       hit += 1;
     }
   }
@@ -569,7 +573,11 @@ static Term b3_leaf(Env e, B3File* f) {
     st->fd = f->fd;
     st->len = f->len;
     st->nseg = (u32)((f->len + B3_SEG - 1) / B3_SEG);
+#ifdef F_NOCACHE
     fcntl(st->fd, F_NOCACHE, 1);
+#else
+    posix_fadvise(st->fd, 0, 0, POSIX_FADV_SEQUENTIAL);
+#endif
     f->fd = -1;
     Term v[3] = { (Term)id, (Term)st->nseg, f->name };
     return b3_ctr(e, CID(FStream), 3, v);

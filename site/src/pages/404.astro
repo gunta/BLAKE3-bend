@@ -5,10 +5,10 @@ import { withBase } from '../lib/site';
 
 <Base title="Not found" path="404.html" noindex>
   <section class="wrap missing" aria-labelledby="missing-title">
-    <p class="code">404</p>
-    <h1 id="missing-title">Nothing hashes to this address.</h1>
+    <p class="code display fast" aria-hidden="true">404</p>
+    <h1 id="missing-title"><span class="sr-only">404: </span>Nothing hashes to this address.</h1>
     <p>The page you asked for is not here.</p>
-    <p><a class="button primary" href={withBase()}>Back to the results</a></p>
+    <p><a class="button primary" href={withBase()}><span>Back to the race</span></a></p>
   </section>
 </Base>
 
@@ -21,8 +21,9 @@ import { withBase } from '../lib/site';
   }
 
   .code {
-    font-weight: 700;
-    color: var(--ink-3);
+    font-size: clamp(6rem, 3rem + 14vw, 13rem);
+    color: transparent;
+    -webkit-text-stroke: 2px var(--volt);
     font-variant-numeric: tabular-nums;
   }
 

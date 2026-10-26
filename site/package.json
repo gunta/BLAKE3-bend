@@ -11,16 +11,27 @@
   "scripts": {
     "dev": "astro dev",
     "check": "astro check",
-    "build": "astro check && astro build",
+    "build": "node scripts/check-blake3.ts && astro check && astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "test": "node scripts/check-blake3.ts"
   },
   "dependencies": {
+    "@fontsource-variable/archivo": "5.3.0",
+    "@fontsource-variable/martian-mono": "5.3.0",
+    "@vgpu/wgsl": "0.6.0",
+    "@vgpu/wgsl-std": "0.6.0",
     "astro": "^7.4.2",
-    "sharp": "^0.35.5"
+    "fontkit": "2.0.4",
+    "lucide-static": "1.61.0",
+    "sharp": "^0.35.5",
+    "simple-icons": "16.36.0",
+    "vgpu": "0.6.0",
+    "wawoff2": "2.0.1"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
+    "@types/fontkit": "^2.0.9",
     "@types/node": "^26.6.5",
     "typescript": "^6.0.3"
   }

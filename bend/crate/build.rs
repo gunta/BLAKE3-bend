@@ -16,7 +16,7 @@ fn main() {
         .unwrap_or_default();
     if !version.contains("clang") {
         panic!(
-            "b3sum-bend needs clang (Apple clang, or LLVM clang 19+): the Bend runtime uses \
+            "b3bend needs clang (Apple clang, or LLVM clang 19+): the Bend runtime uses \
              clang attributes and the build uses clang's -mllvm vectorizer flags. Set CC to a \
              clang if it is not the default."
         );
