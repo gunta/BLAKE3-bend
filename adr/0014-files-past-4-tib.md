@@ -58,6 +58,8 @@ A drop-in for `b3sum` must hash whatever it hashes.
   tree's hash, for every `hi`; and a new known answer, `kat.span.hi`: one
   chunk at counter 2^32, its high word 1, computed by the checker against
   the official crate's CV. ALL PROOFS CHECK (4 min 12 s on the merged tree).
+  ADR 0015 carries `hi` through the trees' proofs as well: `cpu.at`,
+  `gpu.at`, `keyed.at` and the specs hold for every `hi`.
 - **`test/hi.py`**: five spans past 4 TiB through all five trees (CPU
   8-lane, GPU-shaped, outboard, keyed 8-lane, scalar) against the official
   crate's subtree CVs at the same offset (`hazmat`, `test/hiref`): one

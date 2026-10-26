@@ -23,5 +23,6 @@ Each record is also told as news on the site's changelog
 | [0012](0012-the-engine-as-a-library-and-every-binding.md) | the engine as a library: one hook in the official C and Rust, a Bend program on its own thread, drop-ins for C, Rust, Python, Node/Bun/Deno, browsers and Go |
 | [0013](0013-native-gpu-kernels-where-they-measure-faster.md) | native Metal and CUDA kernels ship where they measure faster, with the CPU + GPU split; SHA-256 measured beside them (1 GiB: 574 ms SHA-256, 0.683 ms native CUDA on a B200) |
 | [0014](0014-files-past-4-tib.md) | files past 4 TiB: every span carries its chunk counter's high word, down to compress8 |
-| [0015](0015-one-name-turboblake.md) | one name, turboblake: the library and the CLI in one crate (`turboblake = "1.8"`, still `use blake3`), libturboblake, `TURBOBLAKE_*` |
+| [0015](0015-proofs-for-every-input.md) | the trees that run proven for every input: the CPU, GPU and keyed trees are the scalar tree, and that is BLAKE3's tree; tree1's split rule for every chunk count; the streaming loop as b3io runs it (stack.bend) is BLAKE3's tree over the segments; all for every 64-bit chunk counter (40 laws, 412 lemmas, gate 4:12) |
 | [0016](0016-turboblake-never-slower-than-b3sum.md) | turboblake never slower than b3sum: the engine only where it wins, the macOS window over the host's memory, stdin / --no-mmap / --check rebuilt (up to 11x) |
+| [0018](0018-one-name-turboblake.md) | one name, turboblake: the library and the CLI in one crate (`turboblake = "1.8"`, still `use blake3`), libturboblake, `TURBOBLAKE_*` |

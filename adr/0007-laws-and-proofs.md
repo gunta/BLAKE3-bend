@@ -79,6 +79,13 @@ machine has v4.35.0.
 
 ## What is not proven
 
+(Addendum, ADR 0015: the trees, the loaders and the split rule below are
+now proven for every input: `cpu.at`, `gpu.at`, `keyed.at` and the spec
+laws cover Leaf32, g16, g64 and both loaders, and `tree1.digits` is an
+induction for every chunk count. Reads of a symbolic array go through
+copies proven equal to it. The Array.fork point stands.)
+
+
 - The laws are about the trees with `~share` (Array.clone); the entry points
   that run pass `~fork` (Array.fork). That the two agree rests on
   Array.fork's contract (two handles that read as the input), which Base

@@ -96,11 +96,17 @@ claims.
 
 ## What is not proven
 
+(ADR 0015 adds the CPU, GPU and keyed trees for every input, ties the
+tree laws to the code, and moves the stack to stack.bend, where
+`stream.hash` proves the loop that runs; the other points below stand.)
+
+
 - As in ADR 0007, the laws pass `~share` (Array.clone); the code passes
   `~fork` (Array.fork, `@unsafe`).
 - b3io.bend imports hash.bend (Array.fork), so its stack is modelled, not
   imported; the model ignores the ROOT flag on the last merge and uses Nat
-  where b3io uses U32 (`n >> 1`, `n & 1`).
+  where b3io uses U32 (`n >> 1`, `n & 1`). (Lifted by ADR 0015: the stack
+  is stack.bend's, and `stream.hash` maps the model onto it.)
 - `tree.parents` says the group tree has g - 1 parents; that `tree8o`
   records exactly those (its `ku >= 5` rule) is checked against bao-tree
   by `bench/iroh`'s `ob_check`, not by a law.

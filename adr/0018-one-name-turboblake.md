@@ -1,4 +1,4 @@
-# ADR 0015: One name, turboblake
+# ADR 0018: One name, turboblake
 
 Date: 2026-10-26
 Status: accepted (in the repository; the library ships under the name with the next crates.io release)
@@ -53,16 +53,17 @@ trace lines start with `turboblake:`.
 **Kept.** The repository is `BLAKE3-bend` (site/BRAND.md), so its URLs,
 the Go module path `github.com/gunta/BLAKE3-bend/bend/go` and the Pages URL
 keep it. The engine's own symbols (`b3e_*`) are internal and unchanged.
-Earlier ADRs, through 0014, keep the names they were written with; 0016,
-which landed just before this rename, uses the new ones.
+ADRs through 0014 keep the names they were written with; 0015 and 0016,
+which landed just before this rename, use the new ones.
 
 ## Verification
 
-The rename was made on top of ADR 0014 (files past 4 TiB) and ADR 0016
-(never slower than b3sum). The C that `bend/lib/gen.sh` regenerates, and
-the crate's library, build script and command line that `bend/rust/gen.sh`
-regenerates, match the code before the rename line for line once the old
-names are mapped to the new, apart from two reworded comments. On an Apple
+The rename was made on top of ADR 0014 (files past 4 TiB), ADR 0015
+(proofs for every input) and ADR 0016 (never slower than b3sum). The C
+that `bend/lib/gen.sh` regenerates, and the crate's library, build script
+and command line that `bend/rust/gen.sh` regenerates, match the code
+before the rename line for line once the old names are mapped to the new,
+apart from two reworded comments. On an Apple
 M5 Pro, with the engine taking every subtree
 (`TURBOBLAKE_MIN=2048`): the crate's library tests (48), the CLI's unit and
 integration tests (3 and 17) and the doc tests (15) pass; libturboblake's
