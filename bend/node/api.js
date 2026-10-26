@@ -1,4 +1,4 @@
-// b3bend's two drop-in faces, over an engine (the native addon, or the
+// turboblake's two drop-in faces, over an engine (the native addon, or the
 // pure-JS one in js/engine.js):
 //   - blake3(msg, { dkLen, key, context }) and blake3.create(opts), as
 //     @noble/hashes/blake3.js exports them;
@@ -15,12 +15,12 @@ export function faces(engine) {
     if (typeof data === "string") return enc.encode(data);
     if (ArrayBuffer.isView(data)) return new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
     if (data instanceof ArrayBuffer) return new Uint8Array(data);
-    throw new TypeError(`b3bend: ${what} must be a Uint8Array, a TypedArray, an ArrayBuffer or a string`);
+    throw new TypeError(`turboblake: ${what} must be a Uint8Array, a TypedArray, an ArrayBuffer or a string`);
   }
 
   function stateFor(opts = {}) {
     if (opts.key !== undefined && opts.context !== undefined) {
-      throw new Error("b3bend: use either key or context, not both");
+      throw new Error("turboblake: use either key or context, not both");
     }
     if (opts.key !== undefined) return engine.init(KEYED, bytes(opts.key, "key"));
     if (opts.context !== undefined) return engine.init(DERIVE, bytes(opts.context, "context"));
@@ -29,7 +29,7 @@ export function faces(engine) {
 
   function outLen(n, fallback = 32) {
     if (n === undefined) return fallback;
-    if (!Number.isSafeInteger(n) || n < 0) throw new RangeError("b3bend: bad output length");
+    if (!Number.isSafeInteger(n) || n < 0) throw new RangeError("turboblake: bad output length");
     return n;
   }
 
@@ -47,13 +47,13 @@ export function faces(engine) {
       this.destroyed = false;
     }
     update(data) {
-      if (this.destroyed) throw new Error("b3bend: hash instance has been destroyed");
-      if (this.finished) throw new Error("b3bend: digest() has already been called");
+      if (this.destroyed) throw new Error("turboblake: hash instance has been destroyed");
+      if (this.finished) throw new Error("turboblake: digest() has already been called");
       engine.update(this.state, bytes(data));
       return this;
     }
     digestInto(out) {
-      if (this.finished) throw new Error("b3bend: digest() has already been called");
+      if (this.finished) throw new Error("turboblake: digest() has already been called");
       this.finished = true;
       engine.finalize(this.state, out, 0);
       return out;
@@ -62,8 +62,8 @@ export function faces(engine) {
       return this.digestInto(new Uint8Array(this.outputLen));
     }
     xofInto(out) {
-      if (this.destroyed) throw new Error("b3bend: hash instance has been destroyed");
-      if (this.finished && this.posOut === 0) throw new Error("b3bend: XOF is not possible after digest()");
+      if (this.destroyed) throw new Error("turboblake: hash instance has been destroyed");
+      if (this.finished && this.posOut === 0) throw new Error("turboblake: XOF is not possible after digest()");
       this.finished = true;
       engine.finalize(this.state, out, this.posOut);
       this.posOut += out.length;
@@ -111,7 +111,7 @@ export function faces(engine) {
     if (typeof Buffer === "undefined") {
       if (encoding === undefined) return buf;
       if (encoding === "hex") return Array.from(buf, (x) => x.toString(16).padStart(2, "0")).join("");
-      throw new Error("b3bend: only hex output without Buffer");
+      throw new Error("turboblake: only hex output without Buffer");
     }
     const b = Buffer.from(buf.buffer, buf.byteOffset, buf.byteLength);
     return encoding === undefined ? b : b.toString(encoding);

@@ -1,9 +1,9 @@
-// Builds build/b3bend.node: src/addon.c over libblake3-bend (the C in
+// Builds build/turboblake.node: src/addon.c over libblake3-bend (the C in
 // ./csrc, or ../lib/csrc in the repository), with clang. The engine gets
 // bend/build.sh's vectorizer flags. Run by `npm install` (with --optional:
-// a failure is a warning, and b3bend runs on Bend's JavaScript instead);
+// a failure is a warning, and turboblake runs on Bend's JavaScript instead);
 // needs clang and the Node-API headers (Node's own, or node-api-headers).
-// B3BEND_PORTABLE=1 builds for the baseline CPU instead of this one.
+// TURBOBLAKE_PORTABLE=1 builds for the baseline CPU instead of this one.
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, cpSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -23,13 +23,13 @@ function nodeApiInclude() {
   try {
     return createRequire(import.meta.url)("node-api-headers").include_dir;
   } catch {
-    throw new Error("b3bend: no Node-API headers (install node-api-headers)");
+    throw new Error("turboblake: no Node-API headers (install node-api-headers)");
   }
 }
 
 const cc = process.env.CC || "clang";
 const x86 = arch() === "x64";
-const cpu = process.env.B3BEND_PORTABLE ? [] : [x86 ? "-march=native" : "-mcpu=native"];
+const cpu = process.env.TURBOBLAKE_PORTABLE ? [] : [x86 ? "-march=native" : "-mcpu=native"];
 const slp = ["-mllvm", "-slp-max-reg-size=512", "-mllvm", "-slp-recursion-max-depth=100000",
   "-mllvm", "-slp-threshold=-20", "-mllvm", "-inline-threshold=20000"];
 const out = join(here, "build");
@@ -41,7 +41,7 @@ const run = (args) => {
     execFileSync(cc, args, { stdio: "inherit" });
   } catch (e) {
     if (!optional) throw e;
-    console.warn("b3bend: could not build the native addon; using Bend's JavaScript engine (slower)");
+    console.warn("turboblake: could not build the native addon; using Bend's JavaScript engine (slower)");
     process.exit(0);
   }
 };
@@ -63,6 +63,6 @@ if (x86) {
 } else {
   compile(join(csrc, "blake3_neon.c"), [...c, "-DBLAKE3_USE_NEON=1"]);
 }
-compile(join(here, "src", "addon.c"), [...c, `-I${nodeApiInclude()}`, "-DNODE_GYP_MODULE_NAME=b3bend"]);
+compile(join(here, "src", "addon.c"), [...c, `-I${nodeApiInclude()}`, "-DNODE_GYP_MODULE_NAME=turboblake"]);
 const link = platform() === "darwin" ? ["-bundle", "-undefined", "dynamic_lookup"] : ["-shared"];
-run([...link, ...objs, "-lpthread", "-lm", "-o", join(out, "b3bend.node")]);
+run([...link, ...objs, "-lpthread", "-lm", "-o", join(out, "turboblake.node")]);

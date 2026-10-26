@@ -1,4 +1,4 @@
-// b3bend's engine for JavaScript alone (browsers, workers, or Node with no
+// turboblake's engine for JavaScript alone (browsers, workers, or Node with no
 // native addon): BLAKE3 as Bend wrote it, emitted to JS (blake3.mjs, from
 // bend/js/blake3.bend), driven here by the official incremental algorithm.
 // Every compression runs in Bend's code: the spans of whole subtrees, the
@@ -149,7 +149,7 @@ export const engine = {
   // mode 0 hash, 1 keyed (32-byte key), 2 derive-key (context bytes)
   init(mode, k) {
     if (mode === 1) {
-      if (k.length !== 32) throw new RangeError("b3bend: a key is 32 bytes");
+      if (k.length !== 32) throw new RangeError("turboblake: a key is 32 bytes");
       return new State(cvOf(k), KEYED);
     }
     if (mode === 2) {

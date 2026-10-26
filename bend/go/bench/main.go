@@ -1,4 +1,4 @@
-// b3bend for Go against Go's BLAKE3s (lukechampine.com/blake3,
+// turboblake for Go against Go's BLAKE3s (lukechampine.com/blake3,
 // github.com/zeebo/blake3) and its other hashes, in memory, one-shot,
 // interleaved; medians in ms. Writes bend/bench/results/lang-go.json.
 //
@@ -39,7 +39,7 @@ func main() {
 		data[i] = byte(uint32(i) * 2654435761 >> 13)
 	}
 	sides := []side{
-		{"b3bend", func(b []byte) []byte { s := b3.Sum256(b); return s[:] }},
+		{"turboblake", func(b []byte) []byte { s := b3.Sum256(b); return s[:] }},
 		{"lukechampine.com/blake3", func(b []byte) []byte { s := luke.Sum256(b); return s[:] }},
 		{"github.com/zeebo/blake3", func(b []byte) []byte { s := zeebo.Sum256(b); return s[:] }},
 		{"crypto/sha256", func(b []byte) []byte { s := sha256.Sum256(b); return s[:] }},

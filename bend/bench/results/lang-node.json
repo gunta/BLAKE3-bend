@@ -5,7 +5,7 @@
   },
   "rows": [
     {
-      "impl": "b3bend",
+      "impl": "turboblake",
       "bytes": 1024,
       "ms": 0.0026249999999663487,
       "digest": "8214d8245d795ade"
@@ -71,7 +71,7 @@
       "digest": "51e451262e11cb30"
     },
     {
-      "impl": "b3bend",
+      "impl": "turboblake",
       "bytes": 65536,
       "ms": 0.029374999999959073,
       "digest": "bb790298334ebf43"
@@ -137,7 +137,7 @@
       "digest": "84e690f9961ac8a4"
     },
     {
-      "impl": "b3bend",
+      "impl": "turboblake",
       "bytes": 1048576,
       "ms": 0.22066700000004857,
       "digest": "6fbaf80bd5940fc4"
@@ -203,7 +203,7 @@
       "digest": "51bbab928e79a870"
     },
     {
-      "impl": "b3bend",
+      "impl": "turboblake",
       "bytes": 16777216,
       "ms": 1.0134579999999005,
       "digest": "4f9c38bd6b77a54e"
@@ -269,7 +269,7 @@
       "digest": "df0a5b3fb9589168"
     },
     {
-      "impl": "b3bend",
+      "impl": "turboblake",
       "bytes": 268435456,
       "ms": 9.938000000000102,
       "digest": "ec510ebc356e96a9"
@@ -335,7 +335,7 @@
       "digest": "6085c136429b569d"
     },
     {
-      "impl": "b3bend",
+      "impl": "turboblake",
       "bytes": 1073741824,
       "ms": 36.37883300000249,
       "digest": "b6e2b68c4439bd98"

@@ -1,4 +1,4 @@
-// b3bend for Node, Bun and Deno: a Node-API addon over libblake3-bend, the
+// turboblake for Node, Bun and Deno: a Node-API addon over libblake3-bend, the
 // official BLAKE3 C library whose big inputs go to the Bend engine on every
 // core. A hasher's state is a blake3_hasher (plain bytes, no pointers) kept
 // in a JavaScript ArrayBuffer, so a clone is a copy and nothing needs a
@@ -20,7 +20,7 @@ int b3e_files(uint32_t n, const char* const* paths, unsigned char (*out)[32], in
 #define CHECK(call)                                   \
   do {                                                \
     if ((call) != napi_ok) {                          \
-      napi_throw_error(env, NULL, "b3bend: " #call);  \
+      napi_throw_error(env, NULL, "turboblake: " #call);  \
       return NULL;                                    \
     }                                                 \
   } while (0)
@@ -49,7 +49,7 @@ static int bytes_of(napi_env env, napi_value v, void** data, size_t* len) {
   if (napi_is_arraybuffer(env, v, &is) == napi_ok && is) {
     return napi_get_arraybuffer_info(env, v, data, len) == napi_ok;
   }
-  napi_throw_type_error(env, NULL, "b3bend: expected a Uint8Array, another TypedArray, a DataView or an ArrayBuffer");
+  napi_throw_type_error(env, NULL, "turboblake: expected a Uint8Array, another TypedArray, a DataView or an ArrayBuffer");
   return 0;
 }
 
@@ -60,7 +60,7 @@ static blake3_hasher* state_of(napi_env env, napi_value v) {
     return NULL;
   }
   if (len != sizeof(blake3_hasher)) {
-    napi_throw_type_error(env, NULL, "b3bend: not a hasher state");
+    napi_throw_type_error(env, NULL, "turboblake: not a hasher state");
     return NULL;
   }
   return (blake3_hasher*)data;
@@ -83,7 +83,7 @@ static napi_value js_init(napi_env env, napi_callback_info info) {
   }
   if (mode == 1) {
     if (klen != BLAKE3_KEY_LEN) {
-      napi_throw_range_error(env, NULL, "b3bend: a key is 32 bytes");
+      napi_throw_range_error(env, NULL, "turboblake: a key is 32 bytes");
       return NULL;
     }
     blake3_hasher_init_keyed(state, k);
@@ -155,7 +155,7 @@ static napi_value js_hash_files(napi_env env, napi_callback_info info) {
     size_t len = 0;
     napi_get_element(env, argv[0], i, &s);
     if (napi_get_value_string_utf8(env, s, NULL, 0, &len) != napi_ok) {
-      napi_throw_type_error(env, NULL, "b3bend: hashFiles takes an array of paths");
+      napi_throw_type_error(env, NULL, "turboblake: hashFiles takes an array of paths");
       n = i;
       goto fail;
     }

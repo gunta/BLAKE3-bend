@@ -1,4 +1,4 @@
-// b3bend for JavaScript alone (browsers, workers, Deno Deploy): the faces of
+// turboblake for JavaScript alone (browsers, workers, Deno Deploy): the faces of
 // ../api.js over Bend's own BLAKE3, emitted to JS (engine.js).
 import { faces } from "../api.js";
 import { engine } from "./engine.js";

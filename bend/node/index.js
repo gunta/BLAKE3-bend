@@ -1,16 +1,16 @@
-// b3bend: BLAKE3 for Node, Bun and Deno on libblake3-bend, the official C
+// turboblake: BLAKE3 for Node, Bun and Deno on libblake3-bend, the official C
 // library whose big inputs go to the Bend engine on every core: two drop-in
 // faces (api.js) over one native addon (src/addon.c), and hashFiles(paths),
-// many files at once as the b3bend command does. With no addon (it could
+// many files at once as the turboblake command does. With no addon (it could
 // not be built here) the same faces run on Bend's own JavaScript (js/).
 import { createRequire } from "node:module";
 import { faces } from "./api.js";
 
-// B3BEND_JS=1 picks the JavaScript engine even with the addon built.
+// TURBOBLAKE_JS=1 picks the JavaScript engine even with the addon built.
 let native = null;
-if (globalThis.process?.env?.B3BEND_JS !== "1") {
+if (globalThis.process?.env?.TURBOBLAKE_JS !== "1") {
   try {
-    native = createRequire(import.meta.url)("./build/b3bend.node");
+    native = createRequire(import.meta.url)("./build/turboblake.node");
   } catch {}
 }
 

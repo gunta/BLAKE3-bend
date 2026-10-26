@@ -1,4 +1,4 @@
-# blake3-bend (Python)
+# turboblake (Python)
 
 The `blake3` module, API-compatible with the Rust-based
 [`blake3`](https://pypi.org/project/blake3/) on PyPI, built on
@@ -7,7 +7,7 @@ every core by a [Bend2](https://bend-lang.com) engine. blake3-py's own test
 suite passes.
 
 ```bash
-pip uninstall blake3 && pip install blake3-bend
+pip uninstall blake3 && pip install turboblake
 ```
 
 ```python

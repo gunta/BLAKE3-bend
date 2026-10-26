@@ -64,7 +64,7 @@ class BuildExt(build_ext):
             ext.sources.append("csrc/blake3_bend.c")
             ext.define_macros.append(("BLAKE3_BEND", "1"))
         else:
-            print("blake3-bend: no clang (set CC to one), building without the Bend engine")
+            print("turboblake: no clang (set CC to one), building without the Bend engine")
         if X86_64 and not WINDOWS:
             # the C compiler assembles .S files given as objects
             ext.extra_objects += [f"csrc/blake3_{s}_x86-64_unix.S"

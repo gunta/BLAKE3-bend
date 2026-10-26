@@ -1,4 +1,4 @@
-// b3bend against the BLAKE3s JavaScript has (@noble/hashes, hash-wasm,
+// turboblake against the BLAKE3s JavaScript has (@noble/hashes, hash-wasm,
 // @napi-rs/blake-hash) and node:crypto's other hashes, in memory, one-shot,
 // interleaved; medians in ms. Writes bend/bench/results/lang-<runtime>.json.
 //   node bench.mjs     bun bench.mjs
@@ -17,8 +17,8 @@ const data = new Uint8Array(1 << 30);
 for (let i = 0; i < data.length; i += 1) data[i] = (Math.imul(i, 2654435761) >>> 13) & 255;
 
 const sides = {
-  b3bend: (b) => blake3(b),
-  "b3bend (Bend's JS)": (b) => bendJs(b),
+  turboblake: (b) => blake3(b),
+  "turboblake (Bend's JS)": (b) => bendJs(b),
   "@napi-rs/blake-hash": (b) => napiRs(b),
   "hash-wasm": (b) => hashWasm(b),
   "@noble/hashes": (b) => noble(b),
@@ -50,8 +50,8 @@ for (const n of SIZES) {
     rows.push({ impl: k, bytes: n, ms: v[v.length >> 1], digest: d[k] });
   }
 }
-const agree = SIZES.every((n) => ["b3bend", "b3bend (Bend's JS)", "@napi-rs/blake-hash", "hash-wasm", "@noble/hashes"]
-  .every((k) => rows.find((r) => r.impl === k && r.bytes === n).digest === rows.find((r) => r.impl === "b3bend" && r.bytes === n).digest));
+const agree = SIZES.every((n) => ["turboblake", "turboblake (Bend's JS)", "@napi-rs/blake-hash", "hash-wasm", "@noble/hashes"]
+  .every((k) => rows.find((r) => r.impl === k && r.bytes === n).digest === rows.find((r) => r.impl === "turboblake" && r.bytes === n).digest));
 const impls = Object.keys(sides);
 console.log(`${runtime}\n\n| bytes | ${impls.join(" | ")} |\n|---:|${"---:|".repeat(impls.length)}`);
 for (const n of SIZES) {

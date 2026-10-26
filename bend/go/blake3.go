@@ -191,7 +191,7 @@ func DeriveKey(subKey []byte, ctx string, srcKey []byte) {
 	h.XOF().Read(subKey)
 }
 
-// HashFiles hashes many files at once, as the b3bend command does: opened,
+// HashFiles hashes many files at once, as the turboblake command does: opened,
 // mapped or read in parallel, files not in the page cache streamed at SSD
 // speed, every file's tree on every core. For each path, its BLAKE3 hash or
 // the error reading it (a pipe or device is read with a Hasher instead).

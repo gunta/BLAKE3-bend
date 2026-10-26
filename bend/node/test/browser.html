@@ -1,9 +1,9 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>b3bend in a browser</title>
+<title>turboblake in a browser</title>
 <pre id="out">running…</pre>
 <script type="module">
-  // b3bend's browser entry (Bend's BLAKE3, emitted to JS) against the
+  // turboblake's browser entry (Bend's BLAKE3, emitted to JS) against the
   // official test vectors, every mode, extended output and a seekless stream.
   import { blake3, backend, createHash } from "../js/index.js";
   const out = document.getElementById("out");
@@ -32,5 +32,5 @@
   out.textContent = `backend ${backend}: ${ok} checks pass, ${bad} fail (${(t1 - t0).toFixed(0)} ms)\n` +
     `8 MiB: ${d.slice(0, 16)} in ${ms.toFixed(0)} ms (${(8 * 1.048576 / ms * 1000).toFixed(0)} MB/s)\n` +
     `${navigator.userAgent}`;
-  document.title = bad === 0 ? "b3bend: pass" : "b3bend: FAIL";
+  document.title = bad === 0 ? "turboblake: pass" : "turboblake: FAIL";
 </script>

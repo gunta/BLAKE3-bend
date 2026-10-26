@@ -1,4 +1,4 @@
-// b3bend against the official test vectors (every mode, extended output,
+// turboblake against the official test vectors (every mode, extended output,
 // seeks, update splits) through both of its faces, and against
 // @noble/hashes on random inputs; then hashFiles. Run it with
 // BLAKE3_BEND_MIN=2048 too, so the engine takes every subtree.
@@ -76,7 +76,7 @@ assert.throws(() => b.blake3(new Uint8Array(1), { key: new Uint8Array(31) }), Ra
 console.log(`${checks} checks pass with @noble/hashes`);
 
 // hashFiles
-const dir = mkdtempSync(join(tmpdir(), "b3bend-"));
+const dir = mkdtempSync(join(tmpdir(), "turboblake-"));
 const files = [0, 1, 1025, 1 << 20, (5 << 20) + 3].map((n, i) => {
   const p = join(dir, `f${i}`);
   writeFileSync(p, big.subarray(0, n));

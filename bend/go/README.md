@@ -18,7 +18,7 @@ import blake3 "github.com/gunta/BLAKE3-bend/bend/go"
 
 sum := blake3.Sum256(data)
 h := blake3.New(64, key) // hash.Hash; h.XOF() for extended output
-sums, errs := blake3.HashFiles(paths) // many files at once, as the b3bend command
+sums, errs := blake3.HashFiles(paths) // many files at once, as the turboblake command
 ```
 
 Same functions, types and outputs, with three additions (`NewDeriveKey`,

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Python: blake3-bend against the blake3 module on PyPI, and hashlib.
+"""Python: turboblake against the blake3 module on PyPI, and hashlib.
 
 The two blake3 modules share a name, so each runs in its own interpreter:
 
-    python3 bench.py race --bend <python with blake3-bend> --pypi <python with blake3>
+    python3 bench.py race --bend <python with turboblake> --pypi <python with blake3>
 
 prints a table and writes bench/results/lang-python.json. A worker
 (`bench.py worker <label> [--others]`) times one-shot `blake3(data).digest()`
-(and, for the PyPI module, also with max_threads=blake3.AUTO; blake3-bend
+(and, for the PyPI module, also with max_threads=blake3.AUTO; turboblake
 ignores max_threads), plus hashlib's hashes with --others, and prints one
 JSON line per (implementation, size): the median of interleaved runs and
 the digest of the first.
@@ -60,13 +60,13 @@ def worker(label, others):
 
 def race(bend, pypi):
     rows = []
-    for py, label, others in ((pypi, "blake3 (PyPI)", False), (bend, "blake3-bend", True)):
+    for py, label, others in ((pypi, "blake3 (PyPI)", False), (bend, "turboblake", True)):
         out = subprocess.run([py, str(HERE / "bench.py"), "worker", label] + (["--others"] if others else []),
                              capture_output=True, text=True, check=True).stdout
         rows += [json.loads(line) for line in out.splitlines()]
     impls = list(dict.fromkeys(r["impl"] for r in rows))
     by = {(r["impl"], r["bytes"]): r for r in rows}
-    agree = all(by[("blake3 (PyPI)", n)]["digest"] == by[("blake3-bend", n)]["digest"] for n in SIZES)
+    agree = all(by[("blake3 (PyPI)", n)]["digest"] == by[("turboblake", n)]["digest"] for n in SIZES)
     print("| bytes | " + " | ".join(impls) + " |")
     print("|---:|" + "---:|" * len(impls))
     for n in SIZES:

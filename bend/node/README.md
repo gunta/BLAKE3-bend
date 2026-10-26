@@ -1,4 +1,4 @@
-# b3bend (Node, Bun, Deno, browsers)
+# turboblake (Node, Bun, Deno, browsers)
 
 BLAKE3 for JavaScript, two engines behind one API:
 
@@ -11,18 +11,18 @@ BLAKE3 for JavaScript, two engines behind one API:
   Bend's code.
 
 Bundlers pick bend-js through the `browser` and `worker` export conditions;
-`import ... from "b3bend/js"` asks for it anywhere; `backend` says which
+`import ... from "turboblake/js"` asks for it anywhere; `backend` says which
 runs.
 
 ```bash
-npm install b3bend
+npm install turboblake
 ```
 
 It is a drop-in for the two APIs JavaScript code uses for BLAKE3:
 
 ```js
 // was: import { blake3 } from "@noble/hashes/blake3.js";
-import { blake3 } from "b3bend";
+import { blake3 } from "turboblake";
 
 blake3(data);                                   // Uint8Array(32)
 blake3(data, { dkLen: 64, key });               // keyed, extended output
@@ -31,22 +31,22 @@ blake3.create({ context }).update(a).update(b).digest();
 
 ```js
 // was: import { hash, createHash } from "blake3";  (the npm package no longer installs)
-import { hash, keyedHash, deriveKey, createHash } from "b3bend";
+import { hash, keyedHash, deriveKey, createHash } from "turboblake";
 
 hash("hello").toString("hex");
 createHash().update(buf).digest("hex", { length: 64 });
 ```
 
-and `await hashFiles(paths)` hashes many files at once, as the `b3bend`
+and `await hashFiles(paths)` hashes many files at once, as the `turboblake`
 command does: each a `Uint8Array`, or an `Error` with its `errno`.
 
 Installing builds the addon from source (needs clang; `CC` picks another);
 without one the install still succeeds and runs on bend-js.
 Against the alternatives on an Apple M5 Pro, one-shot, 1 GiB in memory:
-b3bend 36 ms, @napi-rs/blake-hash (native, one thread) 445 ms, hash-wasm
+turboblake 36 ms, @napi-rs/blake-hash (native, one thread) 445 ms, hash-wasm
 975 ms, @noble/hashes 9.4 s on Node and 3.0 s on Bun; node:crypto's sha256
 343 ms. `node bench.mjs` or `bun bench.mjs` re-runs it;
-`node test/test.mjs` (and `B3BEND_JS=1 node test/test.mjs` for bend-js)
+`node test/test.mjs` (and `TURBOBLAKE_JS=1 node test/test.mjs` for bend-js)
 checks the official vectors in every mode and @noble/hashes on random
 inputs; `test/browser.html` (served by `test/serve.mjs`) checks bend-js in
 a browser.

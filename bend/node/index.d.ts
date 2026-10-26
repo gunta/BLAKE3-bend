@@ -1,4 +1,4 @@
-// b3bend: BLAKE3 on libblake3-bend for Node, Bun and Deno.
+// turboblake: BLAKE3 on libblake3-bend for Node, Bun and Deno.
 type Input = Uint8Array | ArrayBufferView | ArrayBuffer | string;
 
 /** Options as @noble/hashes/blake3.js takes them. Use key or context, not both. */

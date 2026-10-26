@@ -1,5 +1,5 @@
 {
-  "name": "b3bend",
+  "name": "turboblake",
   "version": "1.8.7",
   "description": "BLAKE3 for Node, Bun, Deno and browsers, with big inputs hashed on every core by a Bend2 engine (or by Bend's own JavaScript): a drop-in for @noble/hashes/blake3 and the blake3 package",
   "type": "module",

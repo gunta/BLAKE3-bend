@@ -78,7 +78,7 @@
       "digest": "14ae58b9cabbc4c2"
     },
     {
-      "impl": "blake3-bend",
+      "impl": "turboblake",
       "bytes": 1024,
       "ms": 0.0010205003491137177,
       "digest": "8214d8245d795ade"
@@ -126,7 +126,7 @@
       "digest": "51e451262e11cb30"
     },
     {
-      "impl": "blake3-bend",
+      "impl": "turboblake",
       "bytes": 65536,
       "ms": 0.02897899685194716,
       "digest": "bb790298334ebf43"
@@ -174,7 +174,7 @@
       "digest": "84e690f9961ac8a4"
     },
     {
-      "impl": "blake3-bend",
+      "impl": "turboblake",
       "bytes": 1048576,
       "ms": 0.22497950340039097,
       "digest": "3f5f9f8a1401a03f"
@@ -222,7 +222,7 @@
       "digest": "ccb613da15190328"
     },
     {
-      "impl": "blake3-bend",
+      "impl": "turboblake",
       "bytes": 16777216,
       "ms": 1.0732919981819578,
       "digest": "4365009dfd70c8f3"
@@ -270,7 +270,7 @@
       "digest": "9d8f53f26ca0ff61"
     },
     {
-      "impl": "blake3-bend",
+      "impl": "turboblake",
       "bytes": 268435456,
       "ms": 12.861458002589643,
       "digest": "6a7898caee5971ec"
@@ -318,7 +318,7 @@
       "digest": "05b97fa01cb7a49e"
     },
     {
-      "impl": "blake3-bend",
+      "impl": "turboblake",
       "bytes": 1073741824,
       "ms": 49.65629200160038,
       "digest": "14ae58b9cabbc4c2"
