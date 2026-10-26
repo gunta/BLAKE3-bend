@@ -12,6 +12,18 @@
 #   past 4 TiB, whose counter has a high word).
 # - The 8-lane path: for every input, each lane of compress8 and of par8 is
 #   the scalar compress or parent of that lane (both counter words too).
+# - The CPU tree: for every array and every span (both words of its chunk
+#   counter), H.hash's 8-lane tree is blake3.bend's scalar tree (tree1, one
+#   chunk at a time), and the laws' copy of the input (share) is
+#   Array.fork's own body.
+# - The GPU tree: for every array and every span, hash1's tree (flat 4-,
+#   16- and 64-chunk leaves, strided lanes for bigger subtrees) is the
+#   scalar tree too.
+# - The keyed tree: for every array, span, key and mode flag, the 8-lane
+#   tree of the keyed and key-derivation modes is the scalar keyed tree.
+# - BLAKE3's tree: the scalar, CPU, GPU and keyed trees compute BLAKE3's
+#   left-full tree over the chunks (ev of the tree model below), so the
+#   tree laws are about the code.
 # - The message schedule: perm iterated is the C code's MSG_SCHEDULE.
 # - Constants: the IV and the flags are the C code's.
 # - Outboards: for every input, the tree that writes iroh's bao outboard
@@ -20,13 +32,15 @@
 #   n chunks splits into its 2^k-chunk segments (ADR 0004), and pairing
 #   neighbours level by level, the odd one carried up (a GPU reduction),
 #   builds that same tree, with n leaves and n - 1 parents. tree1's split
-#   rule (n > 2^p) matches the digit form these use for every input up to
-#   1024 chunks.
-# - Streaming: the lazy merge stack that hashes a streamed file's segments
-#   builds that tree, every segment once and in order, for any count.
+#   rule (n > 2^p) is the digit form these use, for every chunk count.
+# - Streaming: the loop that hashes a streamed file's segments (stack.bend's
+#   stk.go, which b3io runs) answers BLAKE3's tree over the segments' CVs,
+#   for every count of segments: its lazy merge stack builds that tree,
+#   every segment once and in order.
 
 import Base
 import ./blake3.bend as B3
+import ./stack.bend as St
 
 # Known answers
 # -------------
@@ -297,6 +311,94 @@ law consts.flags:
   {[B3.CHUNK_START(), B3.CHUNK_END(), B3.PARENT(), B3.ROOT()] == [1, 2, 4, 8] :
     List<&2, U32>}
 
+# The CPU tree, for every input
+# -----------------------------
+#
+# The reference is blake3.bend's scalar tree: tree1 over the chunks, each
+# chunk chained block by block through compress, one at a time. H.hash runs
+# tree8 instead: eight chunks at once through compress8, 32-chunk leaves,
+# and node kinds computed from a U32 copy of the depth. For every array and
+# every span (any counter base and high word, chunk count, last chunk's
+# length and root flag) the two give the same CV (proof/cpu.bend).
+
+def ref.go(+k: Nat, a: Array<U32>, +cb: U32, +hi: U32, +nch: U32, +last: U32, +rf: U32) -> B3.CV:
+  match k:
+    case 0n:
+      B3.chunk(a, 0, cb, hi, nch, last, rf)
+    case 1n+p:
+      B3.tree1(~share, 1n+p, B3.big(1n+p, nch), share(a), 0, nch, cb, hi, nch, last, rf)
+
+# The scalar tree over a span, as hash.at takes it.
+def ref.at(a: Array<U32>, +cb: U32, +hi: U32, +nch: U32, +last: U32, +rf: U32) -> B3.CV:
+  ref.go(B3.depth(nch), a, cb, hi, nch, last, rf)
+
+# The scalar tree over a len-byte input, as hash takes it.
+def ref(a: Array<U32>, +len: U32) -> B3.CV:
+  +n = B3.chunks(len)
+  ref.at(a, 0, 0, n, B3.tail(len, n), B3.ROOT())
+
+# The laws' copy is Array.fork's own body, (a, a): Base defines Array.fork
+# as `(a, a)` (it is @unsafe because the runtime then shares one buffer).
+law share.fork:
+  for a: Array<U32>
+  {share(a) == (a, a) : Array<U32> & Array<U32>}
+
+law cpu.at:
+  for a: Array<U32>
+  for +cb: U32
+  for +hi: U32
+  for +nch: U32
+  for +last: U32
+  for +rf: U32
+  {B3.hash.at(~share, a, cb, hi, nch, last, rf) == ref.at(a, cb, hi, nch, last, rf) : B3.CV}
+
+law cpu.hash:
+  for a: Array<U32>
+  for +len: U32
+  {B3.hash(~share, a, len) == ref(a, len) : B3.CV}
+
+# The GPU tree, for every input
+# -----------------------------
+#
+# hash1 is the shape the GPU runs: it forks down to whole, full subtrees of
+# 4, 16 or 64 chunks, one lane each, and at leaf level 6 hands bigger whole
+# subtrees to strided lanes (ADR 0011). For every array and every span it
+# gives the scalar tree's CV (proof/gpu.bend).
+
+law gpu.at:
+  for a: Array<U32>
+  for +cb: U32
+  for +hi: U32
+  for +nch: U32
+  for +last: U32
+  for +rf: U32
+  {B3.hash1.at(~share, a, cb, hi, nch, last, rf) == ref.at(a, cb, hi, nch, last, rf) : B3.CV}
+
+law gpu.hash:
+  for a: Array<U32>
+  for +len: U32
+  {B3.hash1(~share, a, len) == ref(a, len) : B3.CV}
+
+# The keyed tree, for every input
+# -------------------------------
+#
+# BLAKE3's keyed and key-derivation modes hash the same tree from another
+# key, with a mode flag on every compression (blake3.bend's .k defs). The
+# library's engine runs them on hash8.at.k, the CPU's 8-lane tree; for
+# every array, span, key and flag it is the scalar keyed tree, hash.at.k
+# (proof/keyed.bend).
+
+law keyed.at:
+  for a: Array<U32>
+  for +cb: U32
+  for +hi: U32
+  for +nch: U32
+  for +last: U32
+  for +rf: U32
+  for +key: B3.CV
+  for +kf: U32
+  {B3.hash8.at.k(~share, a, cb, hi, nch, last, rf, key, kf) == B3.hash.at.k(~share, a, cb, hi, nch, last, rf, key, kf) : B3.CV}
+
 # Outboards
 # ---------
 #
@@ -333,7 +435,7 @@ law ob.at:
 # complete tree over those 2^(d-1) chunks and the tree over the rest; a 0
 # means every chunk fits in the left half, and the node is that half. That is
 # blake3.bend's tree1 split (big: n > 2^p, for n = r + 1 chunks): the law
-# tree1.digits checks the two agree.
+# tree1.digits proves the two agree.
 
 type Shape is Data:
   Tip{}
@@ -424,27 +526,13 @@ def tree1(+k: Nat, b: Bool, +n: Nat) -> Shape:
       +n2 = Nat.sub(n, h)
       Fork{tree1(p, big(p, h), h), tree1(p, big(p, n2), n2)}
 
-def Shape.eq(+a: Shape, +b: Shape) -> Bool:
-  match a b:
-    case Tip{} Tip{}:
-      True{}
-    case Fork{l, r} Fork{l2, r2}:
-      Shape.eq(l, l2) && Shape.eq(r, r2)
-    case _ _:
-      False{}
-
-# Whether tree1 and tree(digits) agree for every count 1..n at depth k.
-def agree(+k: Nat, +n: Nat) -> Bool:
-  match n:
-    case 0n:
-      True{}
-    case 1n+r:
-      Shape.eq(tree1(k, big(k, n), n), tree(digits(k, r, []))) && agree(k, r)
-
-# tree(digits) is tree1's rule: checked for every input of 1 to 1024 chunks
-# (up to 1 MiB), by computation (not by induction).
+# tree(digits) is tree1's rule: the node of depth k over r + 1 chunks
+# (r < 2^k) is the tree of r's k digits, for every chunk count.
 law tree1.digits:
-  {agree(10n, 1024n) == True{} : Bool}
+  for +k: Nat
+  for +r: Nat
+  for e: {shr(k, r) == 0n : Nat}
+  {tree1(k, big(k, 1n+r), 1n+r) == tree(digits(k, r, [])) : Shape}
 
 # Every leaf of t, made the complete tree over 2^k chunks.
 def grow(t: Shape, +k: Nat) -> Shape:
@@ -555,17 +643,98 @@ law tree.parents:
   for e: {shr(k, r) == 0n : Nat}
   {forks(tree(digits(k, r, []))) == r : Nat}
 
+# BLAKE3's tree, on the code
+# --------------------------
+#
+# The CV of shape t over the chunks of a span from chunk c: a Tip is that
+# chunk (blake3.bend's chunk), a Fork the parent of its two sides, the
+# right one from c + (the left side's leaf count). Each side takes its own
+# copy of the input (share), as tree1's nodes do.
+def ev(+t: Shape, aa: Array<U32> & Array<U32>, +c: U32, +cb: U32, +hi: U32,
+  +nch: U32, +last: U32, +rf: U32) -> B3.CV:
+  match t:
+    case Tip{}:
+      (a1, a2) = aa
+      _ = a2
+      B3.chunk(a1, c, cb, hi, nch, last, rf)
+    case Fork{l, r}:
+      (a1, a2) = aa
+      B3.parent(ev(l, share(a1), c, cb, hi, nch, last, 0),
+        ev(r, share(a2), (c + U32.from_nat(tips(l)) : U32), cb, hi, nch, last, 0), rf)
+
+# So the tree laws are about the code: for every array and every span, the
+# scalar tree is BLAKE3's tree over the span's chunks, tree(digits) of the
+# last chunk's index, each leaf a chunk and each node a parent
+# (proof/spec.bend)...
+# ev with a key and a mode flag: BLAKE3's keyed and key-derivation modes.
+def ev.k(+t: Shape, aa: Array<U32> & Array<U32>, +c: U32, +cb: U32, +hi: U32,
+  +nch: U32, +last: U32, +rf: U32, +key: B3.CV, +kf: U32) -> B3.CV:
+  match t:
+    case Tip{}:
+      (a1, a2) = aa
+      _ = a2
+      B3.chunk.k(a1, c, cb, hi, nch, last, rf, key, kf)
+    case Fork{l, r}:
+      (a1, a2) = aa
+      B3.parent.k(ev.k(l, share(a1), c, cb, hi, nch, last, 0, key, kf),
+        ev.k(r, share(a2), (c + U32.from_nat(tips(l)) : U32), cb, hi, nch, last, 0, key, kf), rf, key, kf)
+
+law ref.spec:
+  for a: Array<U32>
+  for +cb: U32
+  for +hi: U32
+  for +nch: U32
+  for +last: U32
+  for +rf: U32
+  {ref.at(a, cb, hi, nch, last, rf) ==
+    ev(tree(digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), share(a), 0, cb, hi, nch, last, rf) : B3.CV}
+
+# ...and so are the trees that run: the CPU's (cpu.at) and the GPU's (gpu.at).
+law cpu.spec:
+  for a: Array<U32>
+  for +cb: U32
+  for +hi: U32
+  for +nch: U32
+  for +last: U32
+  for +rf: U32
+  {B3.hash.at(~share, a, cb, hi, nch, last, rf) ==
+    ev(tree(digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), share(a), 0, cb, hi, nch, last, rf) : B3.CV}
+
+law gpu.spec:
+  for a: Array<U32>
+  for +cb: U32
+  for +hi: U32
+  for +nch: U32
+  for +last: U32
+  for +rf: U32
+  {B3.hash1.at(~share, a, cb, hi, nch, last, rf) ==
+    ev(tree(digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), share(a), 0, cb, hi, nch, last, rf) : B3.CV}
+
+# The keyed tree that runs (keyed.at) is BLAKE3's keyed tree.
+law keyed.spec:
+  for a: Array<U32>
+  for +cb: U32
+  for +hi: U32
+  for +nch: U32
+  for +last: U32
+  for +rf: U32
+  for +key: B3.CV
+  for +kf: U32
+  {B3.hash8.at.k(~share, a, cb, hi, nch, last, rf, key, kf) ==
+    ev.k(tree(digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), share(a), 0, cb, hi, nch, last, rf, key, kf) : B3.CV}
+
 # Streaming
 # ---------
 #
-# A file the page cache cannot hold streams (b3io.bend's stream.go): its
+# A file the page cache cannot hold streams (b3io.bend's FStream): its
 # 1 GiB segments are hashed one after another, and their CVs merge on a
 # stack as BLAKE3's Hasher merges chunks, lazily: before segment k joins,
 # the top two merge while k is even, so the last merge knows it is the
-# root. These defs are b3io's stk.pop2, stk.even, stk.lazy, stk.fin,
-# stk.root and stream.go with a Tree for a CV (Seg{k} is segment k's, Par
-# a parent; the ROOT flag is not modelled) and a Nat for the U32 count;
-# `fuel` bounds the merges, 32 in b3io.
+# root. These defs model stack.bend's stk.pop2, stk.even, stk.lazy,
+# stk.fin, stk.root and stk.go with a Tree for a CV (Seg{k} is segment
+# k's, Par a parent; the ROOT flag is not modelled) and a Nat for the U32
+# count; `fuel` bounds the merges, 32 in stack.bend. stream.hash, below,
+# is about stack.bend's own defs.
 
 type Tree is Data:
   Seg{k: Nat}
@@ -658,3 +827,46 @@ law stream.order:
   for +f: Nat
   for +r: Nat
   {order(stream.go(1n+r, f, 0n, [])) == range(1n+r, 0n) : List<&2, Nat>}
+
+# The stack that runs
+# -------------------
+#
+# stack.bend's stk.go is the loop b3io runs, its reads a template: b3io's
+# read and hash a segment, these answer from a list, segment k's CV being
+# seg(cs, k).
+
+def seg(+cs: List<&2, B3.CV>, +k: Nat) -> B3.CV:
+  match cs:
+    case Nil{}:
+      B3.IV()
+    case Con{c, rest}:
+      match k:
+        case 0n:
+          c
+        case 1n+j:
+          seg(rest, j)
+
+def seg.rd(cs: List<&2, B3.CV>, k: U32) -> IO(B3.CV):
+  IO.pure(B3.CV, seg(cs, U32.to_nat(k)))
+
+# The CV of shape t over the segments from j: a Tip is segment j's CV, a
+# Fork the parent of its sides, the right one from j + (the left side's
+# leaf count); rf on the top parent.
+def ev.segs(+t: Shape, +j: Nat, +cs: List<&2, B3.CV>, +rf: U32) -> B3.CV:
+  match t:
+    case Tip{}:
+      seg(cs, j)
+    case Fork{l, r}:
+      B3.parent(ev.segs(l, j, cs, 0), ev.segs(r, Nat.add(j, tips(l)), cs, 0), rf)
+
+# For every count of segments and every CV the reads answer, the loop that
+# runs answers BLAKE3's tree over the segments, tree(digits) of the last
+# one's index, each leaf a segment's CV and each node a parent, ROOT on the
+# top one. One segment is its own CV, unflagged: b3io hashes a one-segment
+# stream with ROOT instead (b3io's stream.one).
+law stream.hash:
+  for +nseg: U32
+  for +e: {U32.is_ne(nseg, 0) == True{} : Bool}
+  for +cs: List<&2, B3.CV>
+  {St.stk.go(~List<&2, B3.CV>, ~seg.rd, U32.to_nat(nseg), cs, 0, St.KNil{}) ==
+    IO.pure(B3.CV, ev.segs(tree(digits(32n, Nat.sub(U32.to_nat(nseg), 1n), [])), 0n, cs, B3.ROOT())) : IO(B3.CV)}

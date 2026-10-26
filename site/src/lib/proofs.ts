@@ -6,7 +6,7 @@
  */
 import { blobUrl } from './site';
 
-const files = import.meta.glob<string>(['../../../bend/LAWS.bend', '../../../bend/PROOF.bend'], {
+const files = import.meta.glob<string>(['../../../bend/LAWS.bend', '../../../bend/PROOF.bend', '../../../bend/proof/*.bend'], {
   query: '?raw',
   import: 'default',
   eager: true,
@@ -20,6 +20,10 @@ function source(name: string): string {
 
 const LAWS = source('LAWS.bend');
 const PROOF = source('PROOF.bend');
+/** The proof modules PROOF.bend imports (bend/proof/*.bend). */
+const MODULES = Object.entries(files)
+  .filter(([path]) => path.includes('/bend/proof/'))
+  .map(([, text]) => text);
 
 /** The names of the `law` blocks in a Bend file, in order. */
 function lawNames(text: string): string[] {
@@ -63,6 +67,36 @@ const GROUPS: (Omit<LawGroup, 'cards'> & { cards: LawCard[] })[] = [
         covers: 'every pair of 8-lane CVs: 2^4,099 inputs',
       },
       {
+        names: ['ref.spec', 'cpu.spec', 'gpu.spec'],
+        claim:
+          'The trees that run compute BLAKE3’s tree: the left-full binary tree over the input’s chunks, each leaf a chunk and each node a parent, so the tree laws further down are about this code and not only a model of it.',
+        covers: 'every array, every span',
+      },
+      {
+        names: ['cpu.at', 'cpu.hash'],
+        claim:
+          'The CPU tree b3sum runs (eight chunks at once through compress8, 32-chunk leaves, node kinds from a U32 copy of the depth) is blake3.bend’s plain scalar tree, one chunk at a time: the same CV, bit for bit.',
+        covers: 'every array, every span: any 64-bit chunk counter, chunk count, last-chunk length and root flag',
+      },
+      {
+        names: ['gpu.at', 'gpu.hash'],
+        claim:
+          'The GPU tree (whole 4-, 16- and 64-chunk subtrees to one lane each, bigger ones to strided lanes that read neighbouring memory) is the same scalar tree: the same CV, bit for bit.',
+        covers: 'every array, every span, every lane layout up to 2^32 chunks',
+      },
+      {
+        names: ['keyed.at', 'keyed.spec'],
+        claim:
+          'Keyed hashing and key derivation, as the library’s engine runs them on the 8-lane CPU tree, are the scalar keyed tree, and that is BLAKE3’s tree with the key in place of the IV and the mode flag on every compression.',
+        covers: 'every array, every span, every key, every mode flag',
+      },
+      {
+        names: ['share.fork'],
+        claim:
+          'The copy of the input the laws hand each tree node is Array.fork’s own body, (a, a), so the laws are about the code that runs; what stays trusted is the runtime sharing one buffer for it.',
+        covers: 'every array',
+      },
+      {
         names: ['schedule'],
         claim: 'The message permutation applied r times is row r of MSG_SCHEDULE in the official C code.',
         covers: 'every 64-byte block: 2^512 inputs',
@@ -100,10 +134,15 @@ const GROUPS: (Omit<LawGroup, 'cards'> & { cards: LawCard[] })[] = [
         covers: 'every chunk count',
       },
       {
-        names: ['stream.shape', 'stream.order'],
+        names: ['tree1.digits'],
+        claim: 'blake3.bend’s split rule (n > 2^p) is the digit form the tree laws reason about, so they are laws about the tree the code builds.',
+        covers: 'every chunk count',
+      },
+      {
+        names: ['stream.hash', 'stream.shape', 'stream.order'],
         claim:
-          'The lazy merge stack that streamed the 101.5 GB model shard builds that same tree, with every segment once and in order, so a streamed hash is the mapped one.',
-        covers: 'every segment count up to 2^32',
+          'The loop that streamed the 101.5 GB model shard, as b3io runs it, answers BLAKE3’s tree over the segments’ CVs with ROOT on the top parent: its lazy merge stack builds that same tree, with every segment once and in order, so a streamed hash is the mapped one.',
+        covers: 'every segment count and every CV',
       },
     ],
   },
@@ -123,11 +162,6 @@ const GROUPS: (Omit<LawGroup, 'cards'> & { cards: LawCard[] })[] = [
         names: ['consts.iv', 'consts.flags'],
         claim: 'The IV and the four domain flags are the C code’s constants, and the flags are distinct bits.',
         covers: 'read from c/blake3_impl.h',
-      },
-      {
-        names: ['tree1.digits'],
-        claim: 'blake3.bend’s split rule (n > 2^p) is the digit form the tree laws reason about.',
-        covers: 'every input of 1 to 1,024 chunks',
       },
     ],
   },
@@ -172,7 +206,7 @@ export const lawCount = lawNames(LAWS).length;
 export const universalCount = lawGroups
   .filter((g) => g.scope !== 'computed')
   .reduce((n, g) => n + g.cards.reduce((m, c) => m + c.laws.length, 0), 0);
-export const lemmaCount = lawNames(PROOF).length;
+export const lemmaCount = lawNames(PROOF).length + MODULES.reduce((n, text) => n + lawNames(text).length, 0);
 
 /** A block of a Bend file: from its `law` or `def` line to the next blank line. */
 function block(text: string, head: string, file: string): string {

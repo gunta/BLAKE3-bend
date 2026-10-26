@@ -12,6 +12,12 @@
 import Base
 import ./blake3.bend as B3
 import ./LAWS.bend as Laws
+import ./proof/words.bend as A
+import ./proof/cpu.bend as C
+import ./proof/gpu.bend as G
+import ./proof/spec.bend as S
+import ./proof/keyed.bend as K
+import ./stack.bend as St
 
 # Known answers
 # -------------
@@ -58,49 +64,16 @@ def Laws.kat.segs.len2048():
 def Laws.kat.span.hi():
   {==}
 
-def Laws.tree1.digits():
-  {==}
-
 # The 8-lane path
 # ---------------
+#
+# Proven in proof/cpu.bend, which the CPU tree's proof builds on.
 
 def Laws.compress8.lane(l, cv, m, ctr, step, hi, blen, flags):
-  match l cv m:
-    case Laws.L0{} B3.CV8{h0_0, h1_0, h2_0, h3_0, h4_0, h5_0, h6_0, h7_0, h0_1, h1_1, h2_1, h3_1, h4_1, h5_1, h6_1, h7_1, h0_2, h1_2, h2_2, h3_2, h4_2, h5_2, h6_2, h7_2, h0_3, h1_3, h2_3, h3_3, h4_3, h5_3, h6_3, h7_3, h0_4, h1_4, h2_4, h3_4, h4_4, h5_4, h6_4, h7_4, h0_5, h1_5, h2_5, h3_5, h4_5, h5_5, h6_5, h7_5, h0_6, h1_6, h2_6, h3_6, h4_6, h5_6, h6_6, h7_6, h0_7, h1_7, h2_7, h3_7, h4_7, h5_7, h6_7, h7_7} B3.B128{m0_0, m1_0, m2_0, m3_0, m4_0, m5_0, m6_0, m7_0, m0_1, m1_1, m2_1, m3_1, m4_1, m5_1, m6_1, m7_1, m0_2, m1_2, m2_2, m3_2, m4_2, m5_2, m6_2, m7_2, m0_3, m1_3, m2_3, m3_3, m4_3, m5_3, m6_3, m7_3, m0_4, m1_4, m2_4, m3_4, m4_4, m5_4, m6_4, m7_4, m0_5, m1_5, m2_5, m3_5, m4_5, m5_5, m6_5, m7_5, m0_6, m1_6, m2_6, m3_6, m4_6, m5_6, m6_6, m7_6, m0_7, m1_7, m2_7, m3_7, m4_7, m5_7, m6_7, m7_7, m0_8, m1_8, m2_8, m3_8, m4_8, m5_8, m6_8, m7_8, m0_9, m1_9, m2_9, m3_9, m4_9, m5_9, m6_9, m7_9, m0_10, m1_10, m2_10, m3_10, m4_10, m5_10, m6_10, m7_10, m0_11, m1_11, m2_11, m3_11, m4_11, m5_11, m6_11, m7_11, m0_12, m1_12, m2_12, m3_12, m4_12, m5_12, m6_12, m7_12, m0_13, m1_13, m2_13, m3_13, m4_13, m5_13, m6_13, m7_13, m0_14, m1_14, m2_14, m3_14, m4_14, m5_14, m6_14, m7_14, m0_15, m1_15, m2_15, m3_15, m4_15, m5_15, m6_15, m7_15}:
-      {==}
-    case Laws.L1{} B3.CV8{h0_0, h1_0, h2_0, h3_0, h4_0, h5_0, h6_0, h7_0, h0_1, h1_1, h2_1, h3_1, h4_1, h5_1, h6_1, h7_1, h0_2, h1_2, h2_2, h3_2, h4_2, h5_2, h6_2, h7_2, h0_3, h1_3, h2_3, h3_3, h4_3, h5_3, h6_3, h7_3, h0_4, h1_4, h2_4, h3_4, h4_4, h5_4, h6_4, h7_4, h0_5, h1_5, h2_5, h3_5, h4_5, h5_5, h6_5, h7_5, h0_6, h1_6, h2_6, h3_6, h4_6, h5_6, h6_6, h7_6, h0_7, h1_7, h2_7, h3_7, h4_7, h5_7, h6_7, h7_7} B3.B128{m0_0, m1_0, m2_0, m3_0, m4_0, m5_0, m6_0, m7_0, m0_1, m1_1, m2_1, m3_1, m4_1, m5_1, m6_1, m7_1, m0_2, m1_2, m2_2, m3_2, m4_2, m5_2, m6_2, m7_2, m0_3, m1_3, m2_3, m3_3, m4_3, m5_3, m6_3, m7_3, m0_4, m1_4, m2_4, m3_4, m4_4, m5_4, m6_4, m7_4, m0_5, m1_5, m2_5, m3_5, m4_5, m5_5, m6_5, m7_5, m0_6, m1_6, m2_6, m3_6, m4_6, m5_6, m6_6, m7_6, m0_7, m1_7, m2_7, m3_7, m4_7, m5_7, m6_7, m7_7, m0_8, m1_8, m2_8, m3_8, m4_8, m5_8, m6_8, m7_8, m0_9, m1_9, m2_9, m3_9, m4_9, m5_9, m6_9, m7_9, m0_10, m1_10, m2_10, m3_10, m4_10, m5_10, m6_10, m7_10, m0_11, m1_11, m2_11, m3_11, m4_11, m5_11, m6_11, m7_11, m0_12, m1_12, m2_12, m3_12, m4_12, m5_12, m6_12, m7_12, m0_13, m1_13, m2_13, m3_13, m4_13, m5_13, m6_13, m7_13, m0_14, m1_14, m2_14, m3_14, m4_14, m5_14, m6_14, m7_14, m0_15, m1_15, m2_15, m3_15, m4_15, m5_15, m6_15, m7_15}:
-      {==}
-    case Laws.L2{} B3.CV8{h0_0, h1_0, h2_0, h3_0, h4_0, h5_0, h6_0, h7_0, h0_1, h1_1, h2_1, h3_1, h4_1, h5_1, h6_1, h7_1, h0_2, h1_2, h2_2, h3_2, h4_2, h5_2, h6_2, h7_2, h0_3, h1_3, h2_3, h3_3, h4_3, h5_3, h6_3, h7_3, h0_4, h1_4, h2_4, h3_4, h4_4, h5_4, h6_4, h7_4, h0_5, h1_5, h2_5, h3_5, h4_5, h5_5, h6_5, h7_5, h0_6, h1_6, h2_6, h3_6, h4_6, h5_6, h6_6, h7_6, h0_7, h1_7, h2_7, h3_7, h4_7, h5_7, h6_7, h7_7} B3.B128{m0_0, m1_0, m2_0, m3_0, m4_0, m5_0, m6_0, m7_0, m0_1, m1_1, m2_1, m3_1, m4_1, m5_1, m6_1, m7_1, m0_2, m1_2, m2_2, m3_2, m4_2, m5_2, m6_2, m7_2, m0_3, m1_3, m2_3, m3_3, m4_3, m5_3, m6_3, m7_3, m0_4, m1_4, m2_4, m3_4, m4_4, m5_4, m6_4, m7_4, m0_5, m1_5, m2_5, m3_5, m4_5, m5_5, m6_5, m7_5, m0_6, m1_6, m2_6, m3_6, m4_6, m5_6, m6_6, m7_6, m0_7, m1_7, m2_7, m3_7, m4_7, m5_7, m6_7, m7_7, m0_8, m1_8, m2_8, m3_8, m4_8, m5_8, m6_8, m7_8, m0_9, m1_9, m2_9, m3_9, m4_9, m5_9, m6_9, m7_9, m0_10, m1_10, m2_10, m3_10, m4_10, m5_10, m6_10, m7_10, m0_11, m1_11, m2_11, m3_11, m4_11, m5_11, m6_11, m7_11, m0_12, m1_12, m2_12, m3_12, m4_12, m5_12, m6_12, m7_12, m0_13, m1_13, m2_13, m3_13, m4_13, m5_13, m6_13, m7_13, m0_14, m1_14, m2_14, m3_14, m4_14, m5_14, m6_14, m7_14, m0_15, m1_15, m2_15, m3_15, m4_15, m5_15, m6_15, m7_15}:
-      {==}
-    case Laws.L3{} B3.CV8{h0_0, h1_0, h2_0, h3_0, h4_0, h5_0, h6_0, h7_0, h0_1, h1_1, h2_1, h3_1, h4_1, h5_1, h6_1, h7_1, h0_2, h1_2, h2_2, h3_2, h4_2, h5_2, h6_2, h7_2, h0_3, h1_3, h2_3, h3_3, h4_3, h5_3, h6_3, h7_3, h0_4, h1_4, h2_4, h3_4, h4_4, h5_4, h6_4, h7_4, h0_5, h1_5, h2_5, h3_5, h4_5, h5_5, h6_5, h7_5, h0_6, h1_6, h2_6, h3_6, h4_6, h5_6, h6_6, h7_6, h0_7, h1_7, h2_7, h3_7, h4_7, h5_7, h6_7, h7_7} B3.B128{m0_0, m1_0, m2_0, m3_0, m4_0, m5_0, m6_0, m7_0, m0_1, m1_1, m2_1, m3_1, m4_1, m5_1, m6_1, m7_1, m0_2, m1_2, m2_2, m3_2, m4_2, m5_2, m6_2, m7_2, m0_3, m1_3, m2_3, m3_3, m4_3, m5_3, m6_3, m7_3, m0_4, m1_4, m2_4, m3_4, m4_4, m5_4, m6_4, m7_4, m0_5, m1_5, m2_5, m3_5, m4_5, m5_5, m6_5, m7_5, m0_6, m1_6, m2_6, m3_6, m4_6, m5_6, m6_6, m7_6, m0_7, m1_7, m2_7, m3_7, m4_7, m5_7, m6_7, m7_7, m0_8, m1_8, m2_8, m3_8, m4_8, m5_8, m6_8, m7_8, m0_9, m1_9, m2_9, m3_9, m4_9, m5_9, m6_9, m7_9, m0_10, m1_10, m2_10, m3_10, m4_10, m5_10, m6_10, m7_10, m0_11, m1_11, m2_11, m3_11, m4_11, m5_11, m6_11, m7_11, m0_12, m1_12, m2_12, m3_12, m4_12, m5_12, m6_12, m7_12, m0_13, m1_13, m2_13, m3_13, m4_13, m5_13, m6_13, m7_13, m0_14, m1_14, m2_14, m3_14, m4_14, m5_14, m6_14, m7_14, m0_15, m1_15, m2_15, m3_15, m4_15, m5_15, m6_15, m7_15}:
-      {==}
-    case Laws.L4{} B3.CV8{h0_0, h1_0, h2_0, h3_0, h4_0, h5_0, h6_0, h7_0, h0_1, h1_1, h2_1, h3_1, h4_1, h5_1, h6_1, h7_1, h0_2, h1_2, h2_2, h3_2, h4_2, h5_2, h6_2, h7_2, h0_3, h1_3, h2_3, h3_3, h4_3, h5_3, h6_3, h7_3, h0_4, h1_4, h2_4, h3_4, h4_4, h5_4, h6_4, h7_4, h0_5, h1_5, h2_5, h3_5, h4_5, h5_5, h6_5, h7_5, h0_6, h1_6, h2_6, h3_6, h4_6, h5_6, h6_6, h7_6, h0_7, h1_7, h2_7, h3_7, h4_7, h5_7, h6_7, h7_7} B3.B128{m0_0, m1_0, m2_0, m3_0, m4_0, m5_0, m6_0, m7_0, m0_1, m1_1, m2_1, m3_1, m4_1, m5_1, m6_1, m7_1, m0_2, m1_2, m2_2, m3_2, m4_2, m5_2, m6_2, m7_2, m0_3, m1_3, m2_3, m3_3, m4_3, m5_3, m6_3, m7_3, m0_4, m1_4, m2_4, m3_4, m4_4, m5_4, m6_4, m7_4, m0_5, m1_5, m2_5, m3_5, m4_5, m5_5, m6_5, m7_5, m0_6, m1_6, m2_6, m3_6, m4_6, m5_6, m6_6, m7_6, m0_7, m1_7, m2_7, m3_7, m4_7, m5_7, m6_7, m7_7, m0_8, m1_8, m2_8, m3_8, m4_8, m5_8, m6_8, m7_8, m0_9, m1_9, m2_9, m3_9, m4_9, m5_9, m6_9, m7_9, m0_10, m1_10, m2_10, m3_10, m4_10, m5_10, m6_10, m7_10, m0_11, m1_11, m2_11, m3_11, m4_11, m5_11, m6_11, m7_11, m0_12, m1_12, m2_12, m3_12, m4_12, m5_12, m6_12, m7_12, m0_13, m1_13, m2_13, m3_13, m4_13, m5_13, m6_13, m7_13, m0_14, m1_14, m2_14, m3_14, m4_14, m5_14, m6_14, m7_14, m0_15, m1_15, m2_15, m3_15, m4_15, m5_15, m6_15, m7_15}:
-      {==}
-    case Laws.L5{} B3.CV8{h0_0, h1_0, h2_0, h3_0, h4_0, h5_0, h6_0, h7_0, h0_1, h1_1, h2_1, h3_1, h4_1, h5_1, h6_1, h7_1, h0_2, h1_2, h2_2, h3_2, h4_2, h5_2, h6_2, h7_2, h0_3, h1_3, h2_3, h3_3, h4_3, h5_3, h6_3, h7_3, h0_4, h1_4, h2_4, h3_4, h4_4, h5_4, h6_4, h7_4, h0_5, h1_5, h2_5, h3_5, h4_5, h5_5, h6_5, h7_5, h0_6, h1_6, h2_6, h3_6, h4_6, h5_6, h6_6, h7_6, h0_7, h1_7, h2_7, h3_7, h4_7, h5_7, h6_7, h7_7} B3.B128{m0_0, m1_0, m2_0, m3_0, m4_0, m5_0, m6_0, m7_0, m0_1, m1_1, m2_1, m3_1, m4_1, m5_1, m6_1, m7_1, m0_2, m1_2, m2_2, m3_2, m4_2, m5_2, m6_2, m7_2, m0_3, m1_3, m2_3, m3_3, m4_3, m5_3, m6_3, m7_3, m0_4, m1_4, m2_4, m3_4, m4_4, m5_4, m6_4, m7_4, m0_5, m1_5, m2_5, m3_5, m4_5, m5_5, m6_5, m7_5, m0_6, m1_6, m2_6, m3_6, m4_6, m5_6, m6_6, m7_6, m0_7, m1_7, m2_7, m3_7, m4_7, m5_7, m6_7, m7_7, m0_8, m1_8, m2_8, m3_8, m4_8, m5_8, m6_8, m7_8, m0_9, m1_9, m2_9, m3_9, m4_9, m5_9, m6_9, m7_9, m0_10, m1_10, m2_10, m3_10, m4_10, m5_10, m6_10, m7_10, m0_11, m1_11, m2_11, m3_11, m4_11, m5_11, m6_11, m7_11, m0_12, m1_12, m2_12, m3_12, m4_12, m5_12, m6_12, m7_12, m0_13, m1_13, m2_13, m3_13, m4_13, m5_13, m6_13, m7_13, m0_14, m1_14, m2_14, m3_14, m4_14, m5_14, m6_14, m7_14, m0_15, m1_15, m2_15, m3_15, m4_15, m5_15, m6_15, m7_15}:
-      {==}
-    case Laws.L6{} B3.CV8{h0_0, h1_0, h2_0, h3_0, h4_0, h5_0, h6_0, h7_0, h0_1, h1_1, h2_1, h3_1, h4_1, h5_1, h6_1, h7_1, h0_2, h1_2, h2_2, h3_2, h4_2, h5_2, h6_2, h7_2, h0_3, h1_3, h2_3, h3_3, h4_3, h5_3, h6_3, h7_3, h0_4, h1_4, h2_4, h3_4, h4_4, h5_4, h6_4, h7_4, h0_5, h1_5, h2_5, h3_5, h4_5, h5_5, h6_5, h7_5, h0_6, h1_6, h2_6, h3_6, h4_6, h5_6, h6_6, h7_6, h0_7, h1_7, h2_7, h3_7, h4_7, h5_7, h6_7, h7_7} B3.B128{m0_0, m1_0, m2_0, m3_0, m4_0, m5_0, m6_0, m7_0, m0_1, m1_1, m2_1, m3_1, m4_1, m5_1, m6_1, m7_1, m0_2, m1_2, m2_2, m3_2, m4_2, m5_2, m6_2, m7_2, m0_3, m1_3, m2_3, m3_3, m4_3, m5_3, m6_3, m7_3, m0_4, m1_4, m2_4, m3_4, m4_4, m5_4, m6_4, m7_4, m0_5, m1_5, m2_5, m3_5, m4_5, m5_5, m6_5, m7_5, m0_6, m1_6, m2_6, m3_6, m4_6, m5_6, m6_6, m7_6, m0_7, m1_7, m2_7, m3_7, m4_7, m5_7, m6_7, m7_7, m0_8, m1_8, m2_8, m3_8, m4_8, m5_8, m6_8, m7_8, m0_9, m1_9, m2_9, m3_9, m4_9, m5_9, m6_9, m7_9, m0_10, m1_10, m2_10, m3_10, m4_10, m5_10, m6_10, m7_10, m0_11, m1_11, m2_11, m3_11, m4_11, m5_11, m6_11, m7_11, m0_12, m1_12, m2_12, m3_12, m4_12, m5_12, m6_12, m7_12, m0_13, m1_13, m2_13, m3_13, m4_13, m5_13, m6_13, m7_13, m0_14, m1_14, m2_14, m3_14, m4_14, m5_14, m6_14, m7_14, m0_15, m1_15, m2_15, m3_15, m4_15, m5_15, m6_15, m7_15}:
-      {==}
-    case Laws.L7{} B3.CV8{h0_0, h1_0, h2_0, h3_0, h4_0, h5_0, h6_0, h7_0, h0_1, h1_1, h2_1, h3_1, h4_1, h5_1, h6_1, h7_1, h0_2, h1_2, h2_2, h3_2, h4_2, h5_2, h6_2, h7_2, h0_3, h1_3, h2_3, h3_3, h4_3, h5_3, h6_3, h7_3, h0_4, h1_4, h2_4, h3_4, h4_4, h5_4, h6_4, h7_4, h0_5, h1_5, h2_5, h3_5, h4_5, h5_5, h6_5, h7_5, h0_6, h1_6, h2_6, h3_6, h4_6, h5_6, h6_6, h7_6, h0_7, h1_7, h2_7, h3_7, h4_7, h5_7, h6_7, h7_7} B3.B128{m0_0, m1_0, m2_0, m3_0, m4_0, m5_0, m6_0, m7_0, m0_1, m1_1, m2_1, m3_1, m4_1, m5_1, m6_1, m7_1, m0_2, m1_2, m2_2, m3_2, m4_2, m5_2, m6_2, m7_2, m0_3, m1_3, m2_3, m3_3, m4_3, m5_3, m6_3, m7_3, m0_4, m1_4, m2_4, m3_4, m4_4, m5_4, m6_4, m7_4, m0_5, m1_5, m2_5, m3_5, m4_5, m5_5, m6_5, m7_5, m0_6, m1_6, m2_6, m3_6, m4_6, m5_6, m6_6, m7_6, m0_7, m1_7, m2_7, m3_7, m4_7, m5_7, m6_7, m7_7, m0_8, m1_8, m2_8, m3_8, m4_8, m5_8, m6_8, m7_8, m0_9, m1_9, m2_9, m3_9, m4_9, m5_9, m6_9, m7_9, m0_10, m1_10, m2_10, m3_10, m4_10, m5_10, m6_10, m7_10, m0_11, m1_11, m2_11, m3_11, m4_11, m5_11, m6_11, m7_11, m0_12, m1_12, m2_12, m3_12, m4_12, m5_12, m6_12, m7_12, m0_13, m1_13, m2_13, m3_13, m4_13, m5_13, m6_13, m7_13, m0_14, m1_14, m2_14, m3_14, m4_14, m5_14, m6_14, m7_14, m0_15, m1_15, m2_15, m3_15, m4_15, m5_15, m6_15, m7_15}:
-      {==}
+  C.compress8.lane(l, cv, m, ctr, step, blen, flags, hi)
 
 def Laws.par8.lane(l, x, y):
-  match l x y:
-    case Laws.L0{} B3.CV8{x0_0, x1_0, x2_0, x3_0, x4_0, x5_0, x6_0, x7_0, x0_1, x1_1, x2_1, x3_1, x4_1, x5_1, x6_1, x7_1, x0_2, x1_2, x2_2, x3_2, x4_2, x5_2, x6_2, x7_2, x0_3, x1_3, x2_3, x3_3, x4_3, x5_3, x6_3, x7_3, x0_4, x1_4, x2_4, x3_4, x4_4, x5_4, x6_4, x7_4, x0_5, x1_5, x2_5, x3_5, x4_5, x5_5, x6_5, x7_5, x0_6, x1_6, x2_6, x3_6, x4_6, x5_6, x6_6, x7_6, x0_7, x1_7, x2_7, x3_7, x4_7, x5_7, x6_7, x7_7} B3.CV8{y0_0, y1_0, y2_0, y3_0, y4_0, y5_0, y6_0, y7_0, y0_1, y1_1, y2_1, y3_1, y4_1, y5_1, y6_1, y7_1, y0_2, y1_2, y2_2, y3_2, y4_2, y5_2, y6_2, y7_2, y0_3, y1_3, y2_3, y3_3, y4_3, y5_3, y6_3, y7_3, y0_4, y1_4, y2_4, y3_4, y4_4, y5_4, y6_4, y7_4, y0_5, y1_5, y2_5, y3_5, y4_5, y5_5, y6_5, y7_5, y0_6, y1_6, y2_6, y3_6, y4_6, y5_6, y6_6, y7_6, y0_7, y1_7, y2_7, y3_7, y4_7, y5_7, y6_7, y7_7}:
-      {==}
-    case Laws.L1{} B3.CV8{x0_0, x1_0, x2_0, x3_0, x4_0, x5_0, x6_0, x7_0, x0_1, x1_1, x2_1, x3_1, x4_1, x5_1, x6_1, x7_1, x0_2, x1_2, x2_2, x3_2, x4_2, x5_2, x6_2, x7_2, x0_3, x1_3, x2_3, x3_3, x4_3, x5_3, x6_3, x7_3, x0_4, x1_4, x2_4, x3_4, x4_4, x5_4, x6_4, x7_4, x0_5, x1_5, x2_5, x3_5, x4_5, x5_5, x6_5, x7_5, x0_6, x1_6, x2_6, x3_6, x4_6, x5_6, x6_6, x7_6, x0_7, x1_7, x2_7, x3_7, x4_7, x5_7, x6_7, x7_7} B3.CV8{y0_0, y1_0, y2_0, y3_0, y4_0, y5_0, y6_0, y7_0, y0_1, y1_1, y2_1, y3_1, y4_1, y5_1, y6_1, y7_1, y0_2, y1_2, y2_2, y3_2, y4_2, y5_2, y6_2, y7_2, y0_3, y1_3, y2_3, y3_3, y4_3, y5_3, y6_3, y7_3, y0_4, y1_4, y2_4, y3_4, y4_4, y5_4, y6_4, y7_4, y0_5, y1_5, y2_5, y3_5, y4_5, y5_5, y6_5, y7_5, y0_6, y1_6, y2_6, y3_6, y4_6, y5_6, y6_6, y7_6, y0_7, y1_7, y2_7, y3_7, y4_7, y5_7, y6_7, y7_7}:
-      {==}
-    case Laws.L2{} B3.CV8{x0_0, x1_0, x2_0, x3_0, x4_0, x5_0, x6_0, x7_0, x0_1, x1_1, x2_1, x3_1, x4_1, x5_1, x6_1, x7_1, x0_2, x1_2, x2_2, x3_2, x4_2, x5_2, x6_2, x7_2, x0_3, x1_3, x2_3, x3_3, x4_3, x5_3, x6_3, x7_3, x0_4, x1_4, x2_4, x3_4, x4_4, x5_4, x6_4, x7_4, x0_5, x1_5, x2_5, x3_5, x4_5, x5_5, x6_5, x7_5, x0_6, x1_6, x2_6, x3_6, x4_6, x5_6, x6_6, x7_6, x0_7, x1_7, x2_7, x3_7, x4_7, x5_7, x6_7, x7_7} B3.CV8{y0_0, y1_0, y2_0, y3_0, y4_0, y5_0, y6_0, y7_0, y0_1, y1_1, y2_1, y3_1, y4_1, y5_1, y6_1, y7_1, y0_2, y1_2, y2_2, y3_2, y4_2, y5_2, y6_2, y7_2, y0_3, y1_3, y2_3, y3_3, y4_3, y5_3, y6_3, y7_3, y0_4, y1_4, y2_4, y3_4, y4_4, y5_4, y6_4, y7_4, y0_5, y1_5, y2_5, y3_5, y4_5, y5_5, y6_5, y7_5, y0_6, y1_6, y2_6, y3_6, y4_6, y5_6, y6_6, y7_6, y0_7, y1_7, y2_7, y3_7, y4_7, y5_7, y6_7, y7_7}:
-      {==}
-    case Laws.L3{} B3.CV8{x0_0, x1_0, x2_0, x3_0, x4_0, x5_0, x6_0, x7_0, x0_1, x1_1, x2_1, x3_1, x4_1, x5_1, x6_1, x7_1, x0_2, x1_2, x2_2, x3_2, x4_2, x5_2, x6_2, x7_2, x0_3, x1_3, x2_3, x3_3, x4_3, x5_3, x6_3, x7_3, x0_4, x1_4, x2_4, x3_4, x4_4, x5_4, x6_4, x7_4, x0_5, x1_5, x2_5, x3_5, x4_5, x5_5, x6_5, x7_5, x0_6, x1_6, x2_6, x3_6, x4_6, x5_6, x6_6, x7_6, x0_7, x1_7, x2_7, x3_7, x4_7, x5_7, x6_7, x7_7} B3.CV8{y0_0, y1_0, y2_0, y3_0, y4_0, y5_0, y6_0, y7_0, y0_1, y1_1, y2_1, y3_1, y4_1, y5_1, y6_1, y7_1, y0_2, y1_2, y2_2, y3_2, y4_2, y5_2, y6_2, y7_2, y0_3, y1_3, y2_3, y3_3, y4_3, y5_3, y6_3, y7_3, y0_4, y1_4, y2_4, y3_4, y4_4, y5_4, y6_4, y7_4, y0_5, y1_5, y2_5, y3_5, y4_5, y5_5, y6_5, y7_5, y0_6, y1_6, y2_6, y3_6, y4_6, y5_6, y6_6, y7_6, y0_7, y1_7, y2_7, y3_7, y4_7, y5_7, y6_7, y7_7}:
-      {==}
-    case Laws.L4{} B3.CV8{x0_0, x1_0, x2_0, x3_0, x4_0, x5_0, x6_0, x7_0, x0_1, x1_1, x2_1, x3_1, x4_1, x5_1, x6_1, x7_1, x0_2, x1_2, x2_2, x3_2, x4_2, x5_2, x6_2, x7_2, x0_3, x1_3, x2_3, x3_3, x4_3, x5_3, x6_3, x7_3, x0_4, x1_4, x2_4, x3_4, x4_4, x5_4, x6_4, x7_4, x0_5, x1_5, x2_5, x3_5, x4_5, x5_5, x6_5, x7_5, x0_6, x1_6, x2_6, x3_6, x4_6, x5_6, x6_6, x7_6, x0_7, x1_7, x2_7, x3_7, x4_7, x5_7, x6_7, x7_7} B3.CV8{y0_0, y1_0, y2_0, y3_0, y4_0, y5_0, y6_0, y7_0, y0_1, y1_1, y2_1, y3_1, y4_1, y5_1, y6_1, y7_1, y0_2, y1_2, y2_2, y3_2, y4_2, y5_2, y6_2, y7_2, y0_3, y1_3, y2_3, y3_3, y4_3, y5_3, y6_3, y7_3, y0_4, y1_4, y2_4, y3_4, y4_4, y5_4, y6_4, y7_4, y0_5, y1_5, y2_5, y3_5, y4_5, y5_5, y6_5, y7_5, y0_6, y1_6, y2_6, y3_6, y4_6, y5_6, y6_6, y7_6, y0_7, y1_7, y2_7, y3_7, y4_7, y5_7, y6_7, y7_7}:
-      {==}
-    case Laws.L5{} B3.CV8{x0_0, x1_0, x2_0, x3_0, x4_0, x5_0, x6_0, x7_0, x0_1, x1_1, x2_1, x3_1, x4_1, x5_1, x6_1, x7_1, x0_2, x1_2, x2_2, x3_2, x4_2, x5_2, x6_2, x7_2, x0_3, x1_3, x2_3, x3_3, x4_3, x5_3, x6_3, x7_3, x0_4, x1_4, x2_4, x3_4, x4_4, x5_4, x6_4, x7_4, x0_5, x1_5, x2_5, x3_5, x4_5, x5_5, x6_5, x7_5, x0_6, x1_6, x2_6, x3_6, x4_6, x5_6, x6_6, x7_6, x0_7, x1_7, x2_7, x3_7, x4_7, x5_7, x6_7, x7_7} B3.CV8{y0_0, y1_0, y2_0, y3_0, y4_0, y5_0, y6_0, y7_0, y0_1, y1_1, y2_1, y3_1, y4_1, y5_1, y6_1, y7_1, y0_2, y1_2, y2_2, y3_2, y4_2, y5_2, y6_2, y7_2, y0_3, y1_3, y2_3, y3_3, y4_3, y5_3, y6_3, y7_3, y0_4, y1_4, y2_4, y3_4, y4_4, y5_4, y6_4, y7_4, y0_5, y1_5, y2_5, y3_5, y4_5, y5_5, y6_5, y7_5, y0_6, y1_6, y2_6, y3_6, y4_6, y5_6, y6_6, y7_6, y0_7, y1_7, y2_7, y3_7, y4_7, y5_7, y6_7, y7_7}:
-      {==}
-    case Laws.L6{} B3.CV8{x0_0, x1_0, x2_0, x3_0, x4_0, x5_0, x6_0, x7_0, x0_1, x1_1, x2_1, x3_1, x4_1, x5_1, x6_1, x7_1, x0_2, x1_2, x2_2, x3_2, x4_2, x5_2, x6_2, x7_2, x0_3, x1_3, x2_3, x3_3, x4_3, x5_3, x6_3, x7_3, x0_4, x1_4, x2_4, x3_4, x4_4, x5_4, x6_4, x7_4, x0_5, x1_5, x2_5, x3_5, x4_5, x5_5, x6_5, x7_5, x0_6, x1_6, x2_6, x3_6, x4_6, x5_6, x6_6, x7_6, x0_7, x1_7, x2_7, x3_7, x4_7, x5_7, x6_7, x7_7} B3.CV8{y0_0, y1_0, y2_0, y3_0, y4_0, y5_0, y6_0, y7_0, y0_1, y1_1, y2_1, y3_1, y4_1, y5_1, y6_1, y7_1, y0_2, y1_2, y2_2, y3_2, y4_2, y5_2, y6_2, y7_2, y0_3, y1_3, y2_3, y3_3, y4_3, y5_3, y6_3, y7_3, y0_4, y1_4, y2_4, y3_4, y4_4, y5_4, y6_4, y7_4, y0_5, y1_5, y2_5, y3_5, y4_5, y5_5, y6_5, y7_5, y0_6, y1_6, y2_6, y3_6, y4_6, y5_6, y6_6, y7_6, y0_7, y1_7, y2_7, y3_7, y4_7, y5_7, y6_7, y7_7}:
-      {==}
-    case Laws.L7{} B3.CV8{x0_0, x1_0, x2_0, x3_0, x4_0, x5_0, x6_0, x7_0, x0_1, x1_1, x2_1, x3_1, x4_1, x5_1, x6_1, x7_1, x0_2, x1_2, x2_2, x3_2, x4_2, x5_2, x6_2, x7_2, x0_3, x1_3, x2_3, x3_3, x4_3, x5_3, x6_3, x7_3, x0_4, x1_4, x2_4, x3_4, x4_4, x5_4, x6_4, x7_4, x0_5, x1_5, x2_5, x3_5, x4_5, x5_5, x6_5, x7_5, x0_6, x1_6, x2_6, x3_6, x4_6, x5_6, x6_6, x7_6, x0_7, x1_7, x2_7, x3_7, x4_7, x5_7, x6_7, x7_7} B3.CV8{y0_0, y1_0, y2_0, y3_0, y4_0, y5_0, y6_0, y7_0, y0_1, y1_1, y2_1, y3_1, y4_1, y5_1, y6_1, y7_1, y0_2, y1_2, y2_2, y3_2, y4_2, y5_2, y6_2, y7_2, y0_3, y1_3, y2_3, y3_3, y4_3, y5_3, y6_3, y7_3, y0_4, y1_4, y2_4, y3_4, y4_4, y5_4, y6_4, y7_4, y0_5, y1_5, y2_5, y3_5, y4_5, y5_5, y6_5, y7_5, y0_6, y1_6, y2_6, y3_6, y4_6, y5_6, y6_6, y7_6, y0_7, y1_7, y2_7, y3_7, y4_7, y5_7, y6_7, y7_7}:
-      {==}
+  C.par8.lane(l, x, y)
 
 def Laws.schedule(m0, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15):
   {==}
@@ -113,6 +86,34 @@ def Laws.consts.iv():
 
 def Laws.consts.flags():
   {==}
+
+# The CPU tree
+# ------------
+#
+# Proven in proof/cpu.bend.
+
+def Laws.share.fork(a):
+  C.clone.dup(a)
+
+def Laws.cpu.at(a, cb, hi, nch, last, rf):
+  C.cpu.at(a, cb, nch, last, rf, hi)
+
+def Laws.cpu.hash(a, len):
+  C.cpu.at(a, 0, B3.chunks(len), B3.tail(len, B3.chunks(len)), B3.ROOT(), 0)
+
+# The GPU tree
+# ------------
+#
+# Proven in proof/gpu.bend.
+
+def Laws.gpu.at(a, cb, hi, nch, last, rf):
+  G.gpu.at(a, cb, nch, last, rf, hi)
+
+def Laws.gpu.hash(a, len):
+  G.gpu.at(a, 0, B3.chunks(len), B3.tail(len, B3.chunks(len)), B3.ROOT(), 0)
+
+def Laws.keyed.at(a, cb, hi, nch, last, rf, key, kf):
+  K.keyed.at(a, cb, hi, nch, last, rf, key, kf)
 
 # Outboards
 # ---------
@@ -420,6 +421,26 @@ def Laws.levels.root(k, r, e):
   Equal.trans(List<&2, Laws.Shape>, Laws.reduce(k, Laws.leaves(r)),
     Laws.row(Laws.shr(k, r), Laws.digits(k, r, [])), [Laws.tree(Laws.digits(k, r, []))],
     Laws.levels(k, r), row_zero(Laws.shr(k, r), Laws.digits(k, r, []), e))
+# BLAKE3's tree, on the code
+# --------------------------
+#
+# Proven in proof/spec.bend.
+
+def Laws.tree1.digits(k, r, e):
+  S.t1d(k, r, e, Laws.big(k, 1n+r), {==})
+
+def Laws.ref.spec(a, cb, hi, nch, last, rf):
+  S.ref.spec(a, cb, nch, last, rf, hi)
+
+def Laws.cpu.spec(a, cb, hi, nch, last, rf):
+  S.cpu.spec(a, cb, nch, last, rf, hi)
+
+def Laws.gpu.spec(a, cb, hi, nch, last, rf):
+  S.gpu.spec(a, cb, nch, last, rf, hi)
+
+def Laws.keyed.spec(a, cb, hi, nch, last, rf, key, kf):
+  K.keyed.spec(a, cb, hi, nch, last, rf, key, kf)
+
 
 # Counts
 # ------
@@ -1045,3 +1066,487 @@ def Laws.stream.order(f, r):
   %Equal.sym(List<&2, Laws.Tree>, Laws.stk.lazy(f, [], 0n, False{}), [], lazy.none(f, [], 0n)) :
     {Laws.order(Laws.stream.go(r, f, 1n, Laws.Seg{0n} <> _)) == Laws.range(1n+r, 0n) : List<&2, Nat>}
   go.flat(r, f, 1n, Laws.Seg{0n}, [])
+
+# The stack that runs
+# -------------------
+#
+# stack.bend's stack on CVs is the model's stack on Trees, mapped: kst
+# turns each Tree into its CV (tcv: segment k's from cs, a parent per Par),
+# and pop2, lazy, fin and the loop commute with that map. The U32 steps are
+# the model's Nat ones (even.k; U32.shr halves), the counter does not wrap
+# while segments remain (inc.k), and the last merge is the one stk.fin
+# flags ROOT. The model's laws then give the tree's shape and its
+# segments' order, and an ordered tree's CV is ev.segs of its shape.
+
+def tcv(+t: Laws.Tree, +cs: List<&2, B3.CV>, +rf: U32) -> B3.CV:
+  match t:
+    case Laws.Seg{k}:
+      Laws.seg(cs, k)
+    case Laws.Par{l, r}:
+      B3.parent(tcv(l, cs, 0), tcv(r, cs, 0), rf)
+
+def kst(+s: List<&2, Laws.Tree>, +cs: List<&2, B3.CV>) -> St.Stk:
+  match s:
+    case Nil{}:
+      St.KNil{}
+    case Con{x, rest}:
+      St.KCon{tcv(x, cs, 0), kst(rest, cs)}
+
+law pop2.k:
+  for +s: List<&2, Laws.Tree>
+  for +cs: List<&2, B3.CV>
+  {St.stk.pop2(kst(s, cs)) == kst(Laws.stk.pop2(s), cs) : St.Stk}
+
+def pop2.k(s, cs):
+  match s:
+    case Con{r, rest}:
+      match rest:
+        case Con{l, more}:
+          {==}
+        case Nil{}:
+          {==}
+    case Nil{}:
+      {==}
+
+# Parity: a U32's low bit is its value's.
+law odd.dbl0:
+  for +t: Nat
+  {Laws.odd(Nat.double(t)) == False{} : Bool}
+
+def odd.dbl0(t):
+  match t:
+    case 0n:
+      {==}
+    case 1n+q:
+      odd.dbl0(q)
+
+law odd.dbl1:
+  for +t: Nat
+  {Laws.odd(1n+Nat.double(t)) == True{} : Bool}
+
+def odd.dbl1(t):
+  match t:
+    case 0n:
+      {==}
+    case 1n+q:
+      odd.dbl1(q)
+
+law even.dbl:
+  for +t: Nat
+  {Laws.stk.even(Nat.double(t)) == Bool.not(Nat.is_eq(Nat.double(t), 0n)) : Bool}
+
+def even.dbl(t):
+  match t:
+    case 0n:
+      {==}
+    case 1n+q:
+      odd.dbl1(q)
+
+law and1.even:
+  for +t: Word(31n)
+  {U32.and(U32{WCon{False{}, t}}, 1) == 0 : U32}
+
+def and1.even(t):
+  Equal.cong(Word(31n), U32, z => U32{WCon{False{}, z}}, Word.and(31n, t, Word.zero(31n)), Word.zero(31n), A.w.and_zero(31n, t))
+
+law and1.odd:
+  for +t: Word(31n)
+  {U32.and(U32{WCon{True{}, t}}, 1) == 1 : U32}
+
+def and1.odd(t):
+  Equal.cong(Word(31n), U32, z => U32{WCon{True{}, z}}, Word.and(31n, t, Word.zero(31n)), Word.zero(31n), A.w.and_zero(31n, t))
+
+# stack.bend's stk.even is the model's, on the value.
+law even.k:
+  for +n: U32
+  {St.stk.even(n) == Laws.stk.even(U32.to_nat(n)) : Bool}
+
+def even.k(n):
+  match n:
+    case U32{w}:
+      match w:
+        case WCon{False{}, t}:
+          %Equal.sym(U32, U32.and(U32{WCon{False{}, t}}, 1), 0, and1.even(t)) :
+            {(U32.is_eq(_, 0) && U32.is_ne(U32{WCon{False{}, t}}, 0)) == Laws.stk.even(Nat.double(Word.to_nat(31n, t))) : Bool}
+          %Equal.sym(Bool, U32.is_eq(U32{WCon{False{}, t}}, 0), Nat.is_eq(Nat.double(Word.to_nat(31n, t)), 0n),
+            A.u.is_eq_nat(U32{WCon{False{}, t}}, 0)) :
+            {Bool.not(_) == Laws.stk.even(Nat.double(Word.to_nat(31n, t))) : Bool}
+          Equal.sym(Bool, Laws.stk.even(Nat.double(Word.to_nat(31n, t))), Bool.not(Nat.is_eq(Nat.double(Word.to_nat(31n, t)), 0n)),
+            even.dbl(Word.to_nat(31n, t)))
+        case WCon{True{}, t}:
+          %Equal.sym(U32, U32.and(U32{WCon{True{}, t}}, 1), 1, and1.odd(t)) :
+            {(U32.is_eq(_, 0) && U32.is_ne(U32{WCon{True{}, t}}, 0)) == Laws.stk.even(1n+Nat.double(Word.to_nat(31n, t))) : Bool}
+          Equal.sym(Bool, Laws.odd(Nat.double(Word.to_nat(31n, t))), False{}, odd.dbl0(Word.to_nat(31n, t)))
+
+law lazy.k:
+  for +fuel: Nat
+  for +s: List<&2, Laws.Tree>
+  for +n: U32
+  for +b: Bool
+  for +cs: List<&2, B3.CV>
+  {St.stk.lazy(fuel, kst(s, cs), n, b) == kst(Laws.stk.lazy(fuel, s, U32.to_nat(n), b), cs) : St.Stk}
+
+def lazy.k(fuel, s, n, b, cs):
+  match fuel b:
+    case 0n _:
+      {==}
+    case 1n+f True{}:
+      %S.u.shr_half(n) : {St.stk.lazy(f, St.stk.pop2(kst(s, cs)), U32.shr(n), St.stk.even(U32.shr(n))) ==
+        kst(Laws.stk.lazy(f, Laws.stk.pop2(s), _, Laws.stk.even(_)), cs) : St.Stk}
+      %Equal.sym(Bool, St.stk.even(U32.shr(n)), Laws.stk.even(U32.to_nat(U32.shr(n))), even.k(U32.shr(n))) :
+        {St.stk.lazy(f, St.stk.pop2(kst(s, cs)), U32.shr(n), _) ==
+        kst(Laws.stk.lazy(f, Laws.stk.pop2(s), U32.to_nat(U32.shr(n)), Laws.stk.even(U32.to_nat(U32.shr(n)))), cs) : St.Stk}
+      %Equal.sym(St.Stk, St.stk.pop2(kst(s, cs)), kst(Laws.stk.pop2(s), cs), pop2.k(s, cs)) :
+        {St.stk.lazy(f, _, U32.shr(n), Laws.stk.even(U32.to_nat(U32.shr(n)))) ==
+        kst(Laws.stk.lazy(f, Laws.stk.pop2(s), U32.to_nat(U32.shr(n)), Laws.stk.even(U32.to_nat(U32.shr(n)))), cs) : St.Stk}
+      lazy.k(f, Laws.stk.pop2(s), U32.shr(n), Laws.stk.even(U32.to_nat(U32.shr(n))), cs)
+    case 1n+f False{}:
+      {==}
+
+# The last merge: stk.fin flags the top parent ROOT.
+law fin.k:
+  for +rest: List<&2, Laws.Tree>
+  for +l: Laws.Tree
+  for +r: Laws.Tree
+  for +cs: List<&2, B3.CV>
+  {St.stk.fin(kst(l <> rest, cs), tcv(r, cs, 0)) == tcv(Laws.stk.fin(l <> rest, r), cs, B3.ROOT()) : B3.CV}
+
+def fin.k(rest, l, r, cs):
+  match rest:
+    case Nil{}:
+      {==}
+    case Con{l2, more}:
+      fin.k(more, l2, Laws.Par{l, r}, cs)
+
+# The loop's counter: k + 1 does not wrap while segments remain.
+law add1:
+  for +x: Nat
+  {Nat.add(x, 1n) == 1n+x : Nat}
+
+def add1(x):
+  Equal.trans(Nat, Nat.add(x, 1n), 1n+Nat.add(x, 0n), 1n+x, A.add_succ(x, 0n),
+    Equal.cong(Nat, Nat, z => 1n+z, Nat.add(x, 0n), x, A.add_zero(x)))
+
+law le.addl:
+  for +p: Nat
+  for +x: Nat
+  {Nat.is_le(x, Nat.add(p, x)) == True{} : Bool}
+
+def le.addl(p, x):
+  match p:
+    case 0n:
+      A.n.le_refl(x)
+    case 1n+q:
+      A.n.le_trans(x, Nat.add(q, x), 1n+Nat.add(q, x), le.addl(q, x), A.n.le_succ(Nat.add(q, x)))
+
+law inc.le:
+  for +x: Nat
+  for +zz: Nat
+  for +p: Nat
+  for +e: {Nat.is_le(1n+Nat.add(p, x), zz) == True{} : Bool}
+  {Nat.is_le(Nat.add(x, 1n), zz) == True{} : Bool}
+
+def inc.le(x, zz, p, e):
+  %Equal.sym(Nat, Nat.add(x, 1n), 1n+x, add1(x)) : {Nat.is_le(_, zz) == True{} : Bool}
+  A.n.le_trans(1n+x, 1n+Nat.add(p, x), zz, le.addl(p, x), e)
+
+law inc.k:
+  for +k: U32
+  for +z: U32
+  for +p: Nat
+  for +e: {Nat.is_le(1n+Nat.add(p, U32.to_nat(k)), U32.to_nat(z)) == True{} : Bool}
+  {U32.to_nat((k + 1 : U32)) == 1n+U32.to_nat(k) : Nat}
+
+def inc.k(k, z, p, e):
+  Equal.trans(Nat, U32.to_nat((k + 1 : U32)), Nat.add(U32.to_nat(k), 1n), 1n+U32.to_nat(k),
+    A.u.tn_add(k, 1, z, inc.le(U32.to_nat(k), U32.to_nat(z), p, e)), add1(U32.to_nat(k)))
+
+law go.le:
+  for +p: Nat
+  for +k: U32
+  for +z: U32
+  for +e: {Nat.is_le(1n+Nat.add(p, U32.to_nat(k)), U32.to_nat(z)) == True{} : Bool}
+  {Nat.is_le(Nat.add(p, U32.to_nat((k + 1 : U32))), U32.to_nat(z)) == True{} : Bool}
+
+def go.le(p, k, z, e):
+  %Equal.sym(Nat, U32.to_nat((k + 1 : U32)), 1n+U32.to_nat(k), inc.k(k, z, p, e)) :
+    {Nat.is_le(Nat.add(p, _), U32.to_nat(z)) == True{} : Bool}
+  %Equal.sym(Nat, Nat.add(p, 1n+U32.to_nat(k)), 1n+Nat.add(p, U32.to_nat(k)), A.add_succ(p, U32.to_nat(k))) :
+    {Nat.is_le(_, U32.to_nat(z)) == True{} : Bool}
+  e
+
+# The loop: with segment j on top (the last pushed), n segments to go from
+# segment k and k + n at most z's value, stk.go answers the model tree's
+# CV, ROOT on top.
+law go.k:
+  for +n: Nat
+  for +k: U32
+  for +j: Nat
+  for +rest: List<&2, Laws.Tree>
+  for +cs: List<&2, B3.CV>
+  for +z: U32
+  for +e: {Nat.is_le(Nat.add(n, U32.to_nat(k)), U32.to_nat(z)) == True{} : Bool}
+  {St.stk.go(~List<&2, B3.CV>, ~Laws.seg.rd, n, cs, k, kst(Laws.Seg{j} <> rest, cs)) ==
+    IO.pure(B3.CV, tcv(Laws.stream.go(n, 32n, U32.to_nat(k), Laws.Seg{j} <> rest), cs, B3.ROOT())) : IO(B3.CV)}
+
+def go.k(n, k, j, rest, cs, z, e):
+  match n:
+    case 0n:
+      match rest:
+        case Nil{}:
+          {==}
+        case Con{x, more}:
+          Equal.cong(B3.CV, IO(B3.CV), v => IO.pure(B3.CV, v), St.stk.fin(kst(x <> more, cs), tcv(Laws.Seg{j}, cs, 0)),
+            tcv(Laws.stk.fin(x <> more, Laws.Seg{j}), cs, B3.ROOT()), fin.k(more, x, Laws.Seg{j}, cs))
+    case 1n+p:
+      +K = U32.to_nat(k)
+      +L = Laws.stk.lazy(32n, Laws.Seg{j} <> rest, K, Laws.stk.even(K))
+      %Equal.sym(Bool, St.stk.even(k), Laws.stk.even(K), even.k(k)) :
+        {(R => q => St.stk.go(~List<&2, B3.CV>, ~Laws.seg.rd, p, cs, (k + 1 : U32),
+          St.KCon{Laws.seg(cs, K), St.stk.lazy(32n, kst(Laws.Seg{j} <> rest, cs), k, _)})(R, q)) ==
+          IO.pure(B3.CV, tcv(Laws.stream.go(p, 32n, 1n+K, Laws.Seg{K} <> L), cs, B3.ROOT())) : IO(B3.CV)}
+      %Equal.sym(St.Stk, St.stk.lazy(32n, kst(Laws.Seg{j} <> rest, cs), k, Laws.stk.even(K)), kst(L, cs),
+        lazy.k(32n, Laws.Seg{j} <> rest, k, Laws.stk.even(K), cs)) :
+        {(R => q => St.stk.go(~List<&2, B3.CV>, ~Laws.seg.rd, p, cs, (k + 1 : U32), St.KCon{Laws.seg(cs, K), _})(R, q)) ==
+          IO.pure(B3.CV, tcv(Laws.stream.go(p, 32n, 1n+K, Laws.Seg{K} <> L), cs, B3.ROOT())) : IO(B3.CV)}
+      %inc.k(k, z, p, e) :
+        {(R => q => St.stk.go(~List<&2, B3.CV>, ~Laws.seg.rd, p, cs, (k + 1 : U32), kst(Laws.Seg{K} <> L, cs))(R, q)) ==
+          IO.pure(B3.CV, tcv(Laws.stream.go(p, 32n, _, Laws.Seg{K} <> L), cs, B3.ROOT())) : IO(B3.CV)}
+      %Equal.sym(IO(B3.CV), St.stk.go(~List<&2, B3.CV>, ~Laws.seg.rd, p, cs, (k + 1 : U32), kst(Laws.Seg{K} <> L, cs)),
+        IO.pure(B3.CV, tcv(Laws.stream.go(p, 32n, U32.to_nat((k + 1 : U32)), Laws.Seg{K} <> L), cs, B3.ROOT())),
+        go.k(p, (k + 1 : U32), K, L, cs, z, go.le(p, k, z, e))) :
+        {(R => q => _(R, q)) ==
+          IO.pure(B3.CV, tcv(Laws.stream.go(p, 32n, U32.to_nat((k + 1 : U32)), Laws.Seg{K} <> L), cs, B3.ROOT())) : IO(B3.CV)}
+      {==}
+
+# An ordered tree's CV is ev.segs of its shape: a Tree whose segments read
+# m numbers from j has segment j leftmost, and its right side starts after
+# the left side's leaves.
+def hd(+xs: List<&2, Nat>) -> Nat:
+  match xs:
+    case Nil{}:
+      0n
+    case Con{x, t}:
+      x
+
+def tl(+xs: List<&2, Nat>) -> List<&2, Nat>:
+  match xs:
+    case Nil{}:
+      []
+    case Con{x, t}:
+      t
+
+def is.con(+xs: List<&2, Nat>) -> Bool:
+  match xs:
+    case Nil{}:
+      False{}
+    case Con{x, t}:
+      True{}
+
+law con.nil:
+  for +x: Nat
+  for +t: List<&2, Nat>
+  for +e: {x <> t == [] : List<&2, Nat>}
+  Empty
+
+def con.nil(x, t, e):
+  A.absurd.tf(Equal.cong(List<&2, Nat>, Bool, z => is.con(z), x <> t, [], e))
+
+law one.range:
+  for +k: Nat
+  for +m: Nat
+  for +j: Nat
+  for +e: {[k] == Laws.range(m, j) : List<&2, Nat>}
+  {k == j : Nat}
+
+def one.range(k, m, j, e):
+  match m:
+    case 0n:
+      Empty.absurd({k == j : Nat}, con.nil(k, [], e))
+    case 1n+q:
+      Equal.cong(List<&2, Nat>, Nat, z => hd(z), [k], j <> Laws.range(q, 1n+j), e)
+
+law range.app:
+  for +xs: List<&2, Nat>
+  for +ys: List<&2, Nat>
+  for +m: Nat
+  for +j: Nat
+  for +e: {List.append(&2, Nat, xs, ys) == Laws.range(m, j) : List<&2, Nat>}
+  {xs == Laws.range(List.length(&2, Nat, xs), j) : List<&2, Nat>}
+
+def range.app(xs, ys, m, j, e):
+  match xs:
+    case Nil{}:
+      {==}
+    case Con{x, t}:
+      match m:
+        case 0n:
+          Empty.absurd({x <> t == Laws.range(1n+List.length(&2, Nat, t), j) : List<&2, Nat>},
+            con.nil(x, List.append(&2, Nat, t, ys), e))
+        case 1n+q:
+          %Equal.sym(Nat, x, j, Equal.cong(List<&2, Nat>, Nat, z => hd(z), x <> List.append(&2, Nat, t, ys),
+            j <> Laws.range(q, 1n+j), e)) :
+            {_ <> t == j <> Laws.range(List.length(&2, Nat, t), 1n+j) : List<&2, Nat>}
+          Equal.cong(List<&2, Nat>, List<&2, Nat>, z => j <> z, t, Laws.range(List.length(&2, Nat, t), 1n+j),
+            range.app(t, ys, q, 1n+j, Equal.cong(List<&2, Nat>, List<&2, Nat>, z => tl(z),
+              x <> List.append(&2, Nat, t, ys), j <> Laws.range(q, 1n+j), e)))
+
+law range.rest:
+  for +xs: List<&2, Nat>
+  for +ys: List<&2, Nat>
+  for +m: Nat
+  for +j: Nat
+  for +e: {List.append(&2, Nat, xs, ys) == Laws.range(m, j) : List<&2, Nat>}
+  {ys == Laws.range(Nat.sub(m, List.length(&2, Nat, xs)), Nat.add(j, List.length(&2, Nat, xs))) : List<&2, Nat>}
+
+def range.rest(xs, ys, m, j, e):
+  match xs:
+    case Nil{}:
+      %Equal.sym(Nat, Nat.sub(m, 0n), m, A.n.sub_zero(m)) : {ys == Laws.range(_, Nat.add(j, 0n)) : List<&2, Nat>}
+      %Equal.sym(Nat, Nat.add(j, 0n), j, A.add_zero(j)) : {ys == Laws.range(m, _) : List<&2, Nat>}
+      e
+    case Con{x, t}:
+      match m:
+        case 0n:
+          Empty.absurd({ys == Laws.range(Nat.sub(0n, 1n+List.length(&2, Nat, t)), Nat.add(j, 1n+List.length(&2, Nat, t))) : List<&2, Nat>},
+            con.nil(x, List.append(&2, Nat, t, ys), e))
+        case 1n+q:
+          %Equal.sym(Nat, Nat.add(j, 1n+List.length(&2, Nat, t)), 1n+Nat.add(j, List.length(&2, Nat, t)),
+            A.add_succ(j, List.length(&2, Nat, t))) :
+            {ys == Laws.range(Nat.sub(q, List.length(&2, Nat, t)), _) : List<&2, Nat>}
+          range.rest(t, ys, q, 1n+j, Equal.cong(List<&2, Nat>, List<&2, Nat>, z => tl(z),
+            x <> List.append(&2, Nat, t, ys), j <> Laws.range(q, 1n+j), e))
+
+law len.app:
+  for +xs: List<&2, Nat>
+  for +ys: List<&2, Nat>
+  {List.length(&2, Nat, List.append(&2, Nat, xs, ys)) ==
+    Nat.add(List.length(&2, Nat, xs), List.length(&2, Nat, ys)) : Nat}
+
+def len.app(xs, ys):
+  match xs:
+    case Nil{}:
+      {==}
+    case Con{x, t}:
+      Equal.cong(Nat, Nat, z => 1n+z, List.length(&2, Nat, List.append(&2, Nat, t, ys)),
+        Nat.add(List.length(&2, Nat, t), List.length(&2, Nat, ys)), len.app(t, ys))
+
+law ord.len:
+  for +t: Laws.Tree
+  {List.length(&2, Nat, Laws.order(t)) == Laws.tips(Laws.shape(t)) : Nat}
+
+def ord.len(t):
+  match t:
+    case Laws.Seg{k}:
+      {==}
+    case Laws.Par{l, r}:
+      %Equal.sym(Nat, List.length(&2, Nat, List.append(&2, Nat, Laws.order(l), Laws.order(r))),
+        Nat.add(List.length(&2, Nat, Laws.order(l)), List.length(&2, Nat, Laws.order(r))), len.app(Laws.order(l), Laws.order(r))) :
+        {_ == Nat.add(Laws.tips(Laws.shape(l)), Laws.tips(Laws.shape(r))) : Nat}
+      %Equal.sym(Nat, List.length(&2, Nat, Laws.order(l)), Laws.tips(Laws.shape(l)), ord.len(l)) :
+        {Nat.add(_, List.length(&2, Nat, Laws.order(r))) == Nat.add(Laws.tips(Laws.shape(l)), Laws.tips(Laws.shape(r))) : Nat}
+      %Equal.sym(Nat, List.length(&2, Nat, Laws.order(r)), Laws.tips(Laws.shape(r)), ord.len(r)) :
+        {Nat.add(Laws.tips(Laws.shape(l)), _) == Nat.add(Laws.tips(Laws.shape(l)), Laws.tips(Laws.shape(r))) : Nat}
+      {==}
+
+law tcv.segs:
+  for +t: Laws.Tree
+  for +m: Nat
+  for +j: Nat
+  for +cs: List<&2, B3.CV>
+  for +rf: U32
+  for +e: {Laws.order(t) == Laws.range(m, j) : List<&2, Nat>}
+  {tcv(t, cs, rf) == Laws.ev.segs(Laws.shape(t), j, cs, rf) : B3.CV}
+
+def tcv.segs(t, m, j, cs, rf, e):
+  match t:
+    case Laws.Seg{k}:
+      Equal.cong(Nat, B3.CV, i => Laws.seg(cs, i), k, j, one.range(k, m, j, e))
+    case Laws.Par{l, r}:
+      +nl = List.length(&2, Nat, Laws.order(l))
+      %ord.len(l) : {B3.parent(tcv(l, cs, 0), tcv(r, cs, 0), rf) ==
+        B3.parent(Laws.ev.segs(Laws.shape(l), j, cs, 0), Laws.ev.segs(Laws.shape(r), Nat.add(j, _), cs, 0), rf) : B3.CV}
+      %Equal.sym(B3.CV, tcv(l, cs, 0), Laws.ev.segs(Laws.shape(l), j, cs, 0),
+        tcv.segs(l, nl, j, cs, 0, range.app(Laws.order(l), Laws.order(r), m, j, e))) :
+        {B3.parent(_, tcv(r, cs, 0), rf) ==
+          B3.parent(Laws.ev.segs(Laws.shape(l), j, cs, 0), Laws.ev.segs(Laws.shape(r), Nat.add(j, nl), cs, 0), rf) : B3.CV}
+      %Equal.sym(B3.CV, tcv(r, cs, 0), Laws.ev.segs(Laws.shape(r), Nat.add(j, nl), cs, 0),
+        tcv.segs(r, Nat.sub(m, nl), Nat.add(j, nl), cs, 0, range.rest(Laws.order(l), Laws.order(r), m, j, e))) :
+        {B3.parent(Laws.ev.segs(Laws.shape(l), j, cs, 0), _, rf) ==
+          B3.parent(Laws.ev.segs(Laws.shape(l), j, cs, 0), Laws.ev.segs(Laws.shape(r), Nat.add(j, nl), cs, 0), rf) : B3.CV}
+      {==}
+
+# The whole stream: the first segment is pushed onto the empty stack, the
+# loop answers the model tree's CV, and stream.shape and stream.order make
+# that BLAKE3's tree over the segments.
+law first.le:
+  for +r: Nat
+  for +nseg: U32
+  for +en: {U32.to_nat(nseg) == 1n+r : Nat}
+  {Nat.is_le(Nat.add(r, 1n), U32.to_nat(nseg)) == True{} : Bool}
+
+def first.le(r, nseg, en):
+  %Equal.sym(Nat, U32.to_nat(nseg), 1n+r, en) : {Nat.is_le(Nat.add(r, 1n), _) == True{} : Bool}
+  %Equal.sym(Nat, Nat.add(r, 1n), 1n+r, add1(r)) : {Nat.is_le(_, 1n+r) == True{} : Bool}
+  A.n.le_refl(1n+r)
+
+law stream.hash.r:
+  for +r: Nat
+  for +nseg: U32
+  for +en: {U32.to_nat(nseg) == 1n+r : Nat}
+  for +es: {Laws.shr(32n, r) == 0n : Nat}
+  for +cs: List<&2, B3.CV>
+  {St.stk.go(~List<&2, B3.CV>, ~Laws.seg.rd, 1n+r, cs, 0, St.KNil{}) ==
+    IO.pure(B3.CV, Laws.ev.segs(Laws.tree(Laws.digits(32n, r, [])), 0n, cs, B3.ROOT())) : IO(B3.CV)}
+
+def stream.hash.r(r, nseg, en, es, cs):
+  %Laws.stream.shape(32n, r, es) : {St.stk.go(~List<&2, B3.CV>, ~Laws.seg.rd, 1n+r, cs, 0, St.KNil{}) ==
+    IO.pure(B3.CV, Laws.ev.segs(_, 0n, cs, B3.ROOT())) : IO(B3.CV)}
+  %tcv.segs(Laws.stream.go(1n+r, 32n, 0n, []), 1n+r, 0n, cs, B3.ROOT(), Laws.stream.order(32n, r)) :
+    {St.stk.go(~List<&2, B3.CV>, ~Laws.seg.rd, 1n+r, cs, 0, St.KNil{}) == IO.pure(B3.CV, _) : IO(B3.CV)}
+  %Equal.sym(IO(B3.CV), St.stk.go(~List<&2, B3.CV>, ~Laws.seg.rd, r, cs, 1, kst([Laws.Seg{0n}], cs)),
+    IO.pure(B3.CV, tcv(Laws.stream.go(1n+r, 32n, 0n, []), cs, B3.ROOT())),
+    go.k(r, 1, 0n, [], cs, nseg, first.le(r, nseg, en))) :
+    {(R => q => _(R, q)) == IO.pure(B3.CV, tcv(Laws.stream.go(1n+r, 32n, 0n, []), cs, B3.ROOT())) : IO(B3.CV)}
+  {==}
+
+law pos.le:
+  for +x: Nat
+  for +e: {Bool.not(Nat.is_eq(x, 0n)) == True{} : Bool}
+  {Nat.is_le(1n, x) == True{} : Bool}
+
+def pos.le(x, e):
+  match x:
+    case 0n:
+      Empty.absurd({Nat.is_le(1n, 0n) == True{} : Bool}, A.absurd.ft(e))
+    case 1n+q:
+      S.le0(q)
+
+law nseg.pos:
+  for +nseg: U32
+  for +e: {U32.is_ne(nseg, 0) == True{} : Bool}
+  {Nat.is_le(1n, U32.to_nat(nseg)) == True{} : Bool}
+
+def nseg.pos(nseg, e):
+  pos.le(U32.to_nat(nseg), Equal.trans(Bool, Bool.not(Nat.is_eq(U32.to_nat(nseg), 0n)), U32.is_ne(nseg, 0), True{},
+    Equal.cong(Bool, Bool, z => Bool.not(z), Nat.is_eq(U32.to_nat(nseg), 0n), U32.is_eq(nseg, 0),
+      Equal.sym(Bool, U32.is_eq(nseg, 0), Nat.is_eq(U32.to_nat(nseg), 0n), A.u.is_eq_nat(nseg, 0))), e))
+
+law shr.last:
+  for +nseg: U32
+  for +el: {Nat.is_le(1n, U32.to_nat(nseg)) == True{} : Bool}
+  {Laws.shr(32n, Nat.sub(U32.to_nat(nseg), 1n)) == 0n : Nat}
+
+def shr.last(nseg, el):
+  %A.u.tn_sub(nseg, 1, el) : {Laws.shr(32n, _) == 0n : Nat}
+  S.u.shr32(U32.sub(nseg, 1))
+
+def Laws.stream.hash(nseg, e, cs):
+  +r = Nat.sub(U32.to_nat(nseg), 1n)
+  +el = nseg.pos(nseg, e)
+  +en = Equal.trans(Nat, U32.to_nat(nseg), Nat.add(r, 1n), 1n+r,
+    Equal.sym(Nat, Nat.add(r, 1n), U32.to_nat(nseg), A.n.sub_add(U32.to_nat(nseg), 1n, el)), add1(r))
+  %Equal.sym(Nat, U32.to_nat(nseg), 1n+r, en) :
+    {St.stk.go(~List<&2, B3.CV>, ~Laws.seg.rd, _, cs, 0, St.KNil{}) ==
+      IO.pure(B3.CV, Laws.ev.segs(Laws.tree(Laws.digits(32n, r, [])), 0n, cs, B3.ROOT())) : IO(B3.CV)}
+  stream.hash.r(r, nseg, en, shr.last(nseg, el), cs)

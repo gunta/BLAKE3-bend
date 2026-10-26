@@ -10,6 +10,7 @@
 import Base
 import ./blake3.bend as B3
 import ./hash.bend as H
+import ./stack.bend as St
 
 # The 1 GiB parts of a big file, in BLAKE3's left-full shape: a leaf is a
 # span (see blake3.bend's hash.at) of 2^20 chunks, or fewer for the last.
@@ -200,67 +201,18 @@ def hashg(t: Files) -> Out:
 # Streaming
 # ---------
 # A file mostly not in the page cache comes as FStream: its 1 GiB segments
-# are hashed one after another (each on every core) while the SSD reads the
-# next, and their CVs merge as BLAKE3's Hasher merges chunks: lazily, a
-# stack of complete subtrees, so the last merge knows it is the root.
-
-type Stk is Data:
-  KNil{}
-  KCon{cv: B3.CV, rest: Stk}
-
-def stk.pop2(s: Stk) -> Stk:
-  match s:
-    case KCon{r, KCon{l, rest}}:
-      KCon{B3.parent(l, r, 0), rest}
-    case KCon{r, KNil{}}:
-      KCon{r, KNil{}}
-    case KNil{}:
-      KNil{}
-
-def stk.even(+n: U32) -> Bool:
-  U32.is_eq((n .&. 1 : U32), 0) && U32.is_ne(n, 0)
-
-# Before segment n joins: merge while n (the segments so far) is even.
-def stk.lazy(fuel: Nat, s: Stk, +n: U32, b: Bool) -> Stk:
-  match fuel b:
-    case 0n _:
-      s
-    case 1n+f True{}:
-      +m = (n >> 1n : U32)
-      stk.lazy(f, stk.pop2(s), m, stk.even(m))
-    case 1n+f False{}:
-      s
-
-def stk.fin(s: Stk, r: B3.CV) -> B3.CV:
-  match s:
-    case KNil{}:
-      r
-    case KCon{l, KNil{}}:
-      B3.parent(l, r, B3.ROOT())
-    case KCon{l, rest}:
-      stk.fin(rest, B3.parent(l, r, 0))
-
-def stk.root(s: Stk) -> B3.CV:
-  match s:
-    case KCon{top, rest}:
-      stk.fin(rest, top)
-    case KNil{}:
-      B3.IV()
+# are hashed one after another, and their CVs merge on stack.bend's stack.
 
 def part.cv(p: Part, +rf: U32) -> B3.CV:
   match p:
     case Part{a, cb, hi, nch, last}:
       H.hash.at(a, cb, hi, nch, last, rf)
 
-def stream.go(n: Nat, +id: U32, +k: U32, s: Stk) -> IO(B3.CV):
-  match n:
-    case 0n:
-      IO.pure(B3.CV, stk.root(s))
-    case 1n+p:
-      do IO<B3.CV>:
-        part : Part <- B3IO.seg(id, k)
-        cv : B3.CV = part.cv(part, 0)
-        stream.go(p, id, (k + 1 : U32), KCon{cv, stk.lazy(32n, s, k, stk.even(k))})
+# Segment k of stream id, read and hashed: stk.go's reads.
+def stream.seg(id: U32, k: U32) -> IO(B3.CV):
+  do IO<B3.CV>:
+    part : Part <- B3IO.seg(id, k)
+    IO.pure(B3.CV, part.cv(part, 0))
 
 def stream.one(+id: U32) -> IO(B3.CV):
   do IO<B3.CV>:
@@ -272,7 +224,7 @@ def stream.pick(b: Bool, +id: U32, +nseg: U32) -> IO(B3.CV):
     case True{}:
       stream.one(id)
     case False{}:
-      stream.go(U32.to_nat(nseg), id, 0, KNil{})
+      St.stk.go(~U32, ~stream.seg, U32.to_nat(nseg), id, 0, St.KNil{})
 
 # The hash of a streamed file: one segment is the root itself.
 def stream(+id: U32, +nseg: U32) -> IO(B3.CV):
