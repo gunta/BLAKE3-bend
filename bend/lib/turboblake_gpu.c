@@ -61,6 +61,7 @@ int b3e_hash_k(uint32_t n, const unsigned char *const *p, const uint64_t *len,
                const uint64_t *cb, const uint32_t *key, uint32_t kf,
                unsigned char (*out)[32]);
 int b3e_inside(const void *p, uint64_t len);
+const void *b3e_window(void);
 
 #define CHUNK 1024ull
 #define SPAN_MAX (1ull << 30)
@@ -981,9 +982,11 @@ int tbg_dev_subtree(int kind, void *obj, uint64_t off, uint64_t len, void *strea
   return ok;
 }
 
-// The split's balance: each side's rate (bytes a second) from the jobs so
-// far, starting from the measured ones (ADR 0017).
+// The split's balance: each side's rate (bytes a second), a guess until the
+// first job with a warm engine sets it, then a slow average of the jobs, so
+// one noisy job moves the share little (ADR 0017).
 static double rate_gpu, rate_cpu;
+static int rates_learned;
 
 uint64_t tbg_dev_min(void) {
   env();
@@ -1049,6 +1052,7 @@ int tbg_subtree(const uint8_t *input, uint64_t len, const uint32_t key[8], uint6
   int ok = cvs != NULL && p != NULL && lens != NULL && cb != NULL;
   uint64_t gbytes = g * slice < len ? g * slice : len;
   double t0 = now_s(), t_cpu = 0;
+  int warm = 0;  // the engine ran before this job (its start-up is no rate)
   pthread_mutex_lock(&gpu_mu);
   ok = ok && start(TBG_HOST, (void *)input, 0, gbytes, NULL, key, flags, ctr, log2u(slice / CHUNK),
                    gpu_all);
@@ -1060,6 +1064,7 @@ int tbg_subtree(const uint8_t *input, uint64_t len, const uint32_t key[8], uint6
       lens[i - g] = len - at < slice ? len - at : slice;
       cb[i - g] = ctr + at / CHUNK;
     }
+    warm = b3e_window() != NULL;
     double t = now_s();
     int cpu_ok = b3e_hash_k((uint32_t)(n - g), p, lens, cb, key, flags, cvs + g);
     t_cpu = now_s() - t;
@@ -1068,9 +1073,11 @@ int tbg_subtree(const uint8_t *input, uint64_t len, const uint32_t key[8], uint6
     ok = finish(cvs);
   }
   double gpu_s = job.gpu_s;
-  if (ok && g < n && gpu_s > 0 && t_cpu > 0) {
-    rate_gpu = 0.5 * rate_gpu + 0.5 * ((double)gbytes / gpu_s);
-    rate_cpu = 0.5 * rate_cpu + 0.5 * ((double)(len - gbytes) / t_cpu);
+  if (ok && warm && g < n && gpu_s > 0 && t_cpu > 0) {
+    double a = rates_learned ? 0.25 : 1.0;
+    rate_gpu = (1 - a) * rate_gpu + a * ((double)gbytes / gpu_s);
+    rate_cpu = (1 - a) * rate_cpu + a * ((double)(len - gbytes) / t_cpu);
+    rates_learned = 1;
   }
   pthread_mutex_unlock(&gpu_mu);
   if (ok) {
