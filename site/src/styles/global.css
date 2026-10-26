@@ -1,61 +1,58 @@
-/* Night Race: the brand tokens. See BRAND.md for the why behind each one. --- */
+/* turboblake tokens. See BRAND.md for the why behind each one. ------------- */
 
 :root {
   color-scheme: dark;
 
-  /* Surfaces: a blue-black track, lit from below. */
+  /* Surfaces: near-black, lifted in small steps. */
   --void: #060608;
   --page: var(--void);
-  --surface: #0c0c11;
-  --surface-2: #14141b;
-  --surface-3: #1d1d27;
-  --ink: #f4f3ee;
-  --ink-2: #b8b7c4;
-  --ink-3: #8f8e9e;
+  --surface: #0c0c10;
+  --surface-2: #131318;
+  --surface-3: #1b1b22;
+  --ink: #ededef;
+  --ink-2: #a9a9b4;
+  --ink-3: #8a8a96;
   --line: rgb(255 255 255 / 0.08);
-  --line-strong: rgb(255 255 255 / 0.16);
+  --line-strong: rgb(255 255 255 / 0.14);
   --grid: rgb(255 255 255 / 0.06);
-  --axis: rgb(255 255 255 / 0.24);
+  --axis: rgb(255 255 255 / 0.22);
 
-  /* Signal colors. Volt is the brand; ion is the GPU; data heats from ion to volt. */
+  /* Accents, used sparingly: volt for the brand and results, ion for the GPU. */
   --volt: #d4ff3a;
   --volt-ink: #0b0e00;
   --ion: #46e3ff;
   --plasma: #ff4f8b;
   --heat: linear-gradient(90deg, var(--ion), var(--volt));
-  --link: var(--volt);
+  --link: var(--ink);
   --focus: var(--volt);
 
-  /* Series: Bend in signal colors, baselines in gray (labelled on every bar). */
+  /* Series: Bend in accent colors, baselines in gray (labelled on every bar). */
   --s-bend: var(--volt);
   --s-bend-alt: var(--plasma);
   --s-gpu: var(--ion);
-  --s-base-1: #8a8999;
-  --s-base-2: #66657a;
-  --s-base-3: #b3b2c2;
+  --s-base-1: #85858f;
+  --s-base-2: #62626c;
+  --s-base-3: #ababb5;
 
   /* Status, used only next to an icon and a word. */
   --good: var(--volt);
   --critical: #ff5a5a;
 
-  --font-display: 'Archivo Variable', 'Archivo', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-sans: var(--font-display);
-  --font-mono: 'Martian Mono Variable', ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+  --font-sans: 'Geist Variable', 'Geist', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: var(--font-sans);
+  --font-mono: 'Geist Mono Variable', 'Geist Mono', ui-monospace, 'SF Mono', SFMono-Regular, Menlo, monospace;
 
-  /* Motion: quick out, no bounce. Fast brand, fast UI. */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-snap: cubic-bezier(0.2, 0.9, 0.1, 1);
-  --t-fast: 160ms;
-  --t-med: 420ms;
+  --t-fast: 150ms;
+  --t-med: 400ms;
 
   --gutter: clamp(16px, 4vw, 48px);
-  --wrap: 80rem;
-  --measure: 66ch;
-  --radius: 18px;
-  --radius-sm: 10px;
+  --wrap: 72rem;
+  --measure: 64ch;
+  --radius: 14px;
+  --radius-sm: 8px;
   /* The fixed header's height, so anchored sections land below it. */
   --header-h: 4rem;
-  --skew: -10deg;
 }
 
 /* Base -------------------------------------------------------------------- */
@@ -84,8 +81,7 @@ body {
   background: var(--page);
   color: var(--ink);
   font-family: var(--font-sans);
-  font-size: 1.0625rem;
-  font-stretch: 100%;
+  font-size: 1rem;
   line-height: 1.6;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -104,24 +100,22 @@ h3,
 h4 {
   margin: 0;
   font-family: var(--font-display);
-  line-height: 1.08;
-  letter-spacing: -0.02em;
+  font-weight: 650;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
   text-wrap: balance;
 }
 
 h2 {
-  font-size: clamp(2rem, 1.2rem + 3vw, 3.75rem);
-  font-weight: 760;
-  font-stretch: 118%;
-  letter-spacing: -0.035em;
-  line-height: 1;
+  font-size: clamp(1.875rem, 1.3rem + 2.2vw, 3rem);
+  letter-spacing: -0.045em;
+  line-height: 1.05;
 }
 
 h3 {
-  font-size: 1.1875rem;
-  font-weight: 680;
-  font-stretch: 108%;
-  letter-spacing: -0.01em;
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
 }
 
 p {
@@ -135,13 +129,16 @@ p + p {
 
 a {
   color: var(--link);
+  text-decoration-color: rgb(255 255 255 / 0.35);
   text-decoration-thickness: 1px;
   text-underline-offset: 0.2em;
-  transition: color var(--t-fast) var(--ease-out), text-decoration-thickness var(--t-fast) var(--ease-out);
+  transition:
+    color var(--t-fast) var(--ease-out),
+    text-decoration-color var(--t-fast) var(--ease-out);
 }
 
 a:hover {
-  text-decoration-thickness: 2px;
+  text-decoration-color: currentColor;
 }
 
 :focus-visible {
@@ -158,12 +155,11 @@ code,
 kbd,
 pre {
   font-family: var(--font-mono);
-  font-size: 0.84em;
-  font-stretch: 90%;
+  font-size: 0.875em;
 }
 
 :not(pre) > code {
-  padding: 0.12em 0.4em;
+  padding: 0.12em 0.38em;
   border-radius: 6px;
   background: var(--surface-2);
   border: 1px solid var(--line);
@@ -172,7 +168,7 @@ pre {
 }
 
 strong {
-  font-weight: 680;
+  font-weight: 600;
   color: var(--ink);
 }
 
@@ -202,14 +198,14 @@ strong {
   isolation: isolate;
 }
 
-/* A light that follows the pointer across cards (set by Glow.astro). */
+/* A soft light that follows the pointer across cards (set in Base.astro). */
 .card::before {
   content: '';
   position: absolute;
   inset: -1px;
   z-index: -1;
   border-radius: inherit;
-  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, -200%), rgb(212 255 58 / 0.09), transparent 60%);
+  background: radial-gradient(380px circle at var(--mx, 50%) var(--my, -200%), rgb(255 255 255 / 0.05), transparent 60%);
   opacity: 0;
   transition: opacity var(--t-med) var(--ease-out);
   pointer-events: none;
@@ -226,7 +222,6 @@ strong {
 
 .mono {
   font-family: var(--font-mono);
-  font-stretch: 90%;
 }
 
 .sr-only {
@@ -249,9 +244,9 @@ strong {
   z-index: 100;
   padding: 0.6rem 1rem;
   border-radius: var(--radius-sm);
-  background: var(--volt);
-  color: var(--volt-ink);
-  font-weight: 700;
+  background: var(--ink);
+  color: var(--void);
+  font-weight: 600;
   text-decoration: none;
 }
 
@@ -259,111 +254,78 @@ strong {
   top: 1rem;
 }
 
-/* Display type: expanded, heavy, a little forward-leaning. ------------------ */
+/* Type helpers ------------------------------------------------------------ */
 
 .display {
   font-family: var(--font-display);
-  font-stretch: 125%;
-  font-weight: 820;
-  letter-spacing: -0.035em;
-  line-height: 0.9;
-  text-transform: uppercase;
-}
-
-.fast {
-  font-style: italic;
+  font-weight: 650;
+  letter-spacing: -0.055em;
+  line-height: 1;
 }
 
 .kicker {
   display: inline-flex;
   align-items: center;
-  gap: 0.6em;
+  gap: 0.55em;
   font-family: var(--font-mono);
   font-size: 0.75rem;
   font-weight: 500;
-  font-stretch: 90%;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--ink-3);
 }
 
-/* Buttons (links styled as buttons): skewed like a livery decal. ---------- */
+/* Gradient text for the few words that carry the result. */
+.glow {
+  background: linear-gradient(90deg, var(--ink) 0%, var(--volt) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Buttons (links styled as buttons) ---------------------------------------- */
 
 .button {
-  --b-bg: var(--surface-2);
-  --b-fg: var(--ink);
-  --b-line: var(--line-strong);
-  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.55em;
-  min-height: 48px;
-  padding: 0.6rem 1.35rem;
-  border: 1px solid var(--b-line);
-  border-radius: 8px;
-  background: var(--b-bg);
-  color: var(--b-fg);
-  font-family: var(--font-display);
-  font-size: 0.875rem;
-  font-weight: 760;
-  font-stretch: 118%;
-  font-style: italic;
-  letter-spacing: 0.02em;
+  gap: 0.5em;
+  min-height: 44px;
+  padding: 0.55rem 1.1rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink);
+  font-size: 0.9375rem;
+  font-weight: 550;
   line-height: 1.1;
-  text-transform: uppercase;
   text-decoration: none;
-  transform: skewX(var(--skew));
-  overflow: hidden;
   transition:
-    transform var(--t-fast) var(--ease-out),
     background var(--t-fast) var(--ease-out),
-    border-color var(--t-fast) var(--ease-out);
+    border-color var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out);
 }
 
 .button > * {
   display: inline-flex;
   align-items: center;
-  gap: 0.55em;
-  transform: skewX(calc(var(--skew) * -1));
-}
-
-/* A shine that sweeps across on hover. */
-.button::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / 0.35) 50%, transparent 70%);
-  transform: translateX(-120%);
-  pointer-events: none;
+  gap: 0.5em;
 }
 
 .button:hover {
-  --b-line: var(--ink-3);
-  transform: skewX(var(--skew)) translateY(-1px);
-}
-
-.button:active {
-  transform: skewX(var(--skew)) translateY(1px);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .button:hover::after {
-    transform: translateX(120%);
-    transition: transform 600ms var(--ease-out);
-  }
+  background: rgb(255 255 255 / 0.06);
+  border-color: rgb(255 255 255 / 0.24);
 }
 
 .button.primary {
-  --b-bg: var(--volt);
-  --b-fg: var(--volt-ink);
-  --b-line: var(--volt);
-  box-shadow: 0 0 0 0 rgb(212 255 58 / 0);
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--void);
 }
 
 .button.primary:hover {
-  --b-line: var(--volt);
-  box-shadow: 0 10px 40px -10px rgb(212 255 58 / 0.55);
+  background: #fff;
+  border-color: #fff;
 }
 
 .button .arrow {
@@ -372,7 +334,7 @@ strong {
 }
 
 .button:hover .arrow {
-  transform: skewX(calc(var(--skew) * -1)) translateX(3px);
+  transform: translateX(2px);
 }
 
 /* Code blocks ------------------------------------------------------------- */
@@ -382,7 +344,7 @@ pre {
   padding: 1rem 1.1rem;
   overflow-x: auto;
   border-radius: var(--radius-sm);
-  background: var(--surface-2);
+  background: var(--surface);
   border: 1px solid var(--line);
   color: var(--ink);
   line-height: 1.7;
@@ -411,16 +373,16 @@ pre {
   background: var(--s-base-3);
 }
 
-/* Reveal on scroll (Reveal.astro adds .js and .in). Content is visible without JS. */
+/* Reveal on scroll (Base.astro adds .js and .in). Content is visible without JS. */
 
 @media (prefers-reduced-motion: no-preference) {
   .js [data-reveal] {
     opacity: 0;
-    transform: translateY(18px);
+    transform: translateY(12px);
     transition:
-      opacity 700ms var(--ease-out),
-      transform 900ms var(--ease-out);
-    transition-delay: calc(var(--i, 0) * 70ms);
+      opacity 600ms var(--ease-out),
+      transform 800ms var(--ease-out);
+    transition-delay: calc(var(--i, 0) * 60ms);
   }
 
   .js [data-reveal].in {

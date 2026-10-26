@@ -1,109 +1,102 @@
-# b3bend brand
+# turboblake brand
 
 The landing page's identity, and why each piece is the way it is. Tokens live in
 `src/styles/global.css` and `src/lib/brand.ts`; this file is the reasoning.
 
 ## Name
 
-**b3bend**: the name, the crate and the command are one word.
+**turboblake**: the product, the crate and the command are one word.
 
 ```bash
-cargo install b3bend
-b3bend FILE...
+brew install gunta/tap/turboblake
+turboblake --check B3SUMS
 ```
 
-- **BLAKE3 first.** `b3` is BLAKE3's own shorthand, as in the official `b3sum`;
-  "bend" comes second, as the way it got faster. The subject is BLAKE3, the hash
-  that replaces SHA-256, not the language.
-- **Easy to type.** Six lowercase keys: no shift, no dot, no hyphen. It prints
-  the same lines as `b3sum`.
-- **Write it** `b3bend`, always lowercase (it is a command). The wordmark sets
-  "b3" in ink and "bend" in volt.
-- Passed over: BLAKE3b (BLAKE2b and BLAKE2s are variants with different
-  digests, and these digests are byte-identical to BLAKE3's), blake3.bend (a dot
-  cannot be a crate name), B3ND (reads as if Bend were the product).
-- The repository stays `BLAKE3-bend`; the crate was renamed from `b3sum-bend`
-  before its first release.
+- It belongs to the **turbo** family (like `turbotoken`): a drop-in replacement
+  for a reference tool, made as fast as each machine allows.
+- BLAKE3 is the subject; the engine is not in the name. Today the engine is
+  Bend2; a native kernel can take over any target where it measures faster,
+  without a rename.
+- Write it `turboblake`, always lowercase (it is a command). The wordmark sets
+  "turbo" in volt and "blake" in ink.
+- The repository stays `BLAKE3-bend`.
 
-## Promise and voice
+## Story, in the order a developer needs it
 
-**The SHA-256 replacement, bent for speed.** The SHA-256 half is BLAKE3's own
-claim (much faster than SHA-2, and safe from length extension, unlike SHA-2;
-see the upstream README) and the page links to it rather than measuring it. The
-speed half is what this page measures: b3bend against the official BLAKE3.
+1. **What it does:** checksums files of any size at the speed of your SSD; a
+   drop-in for `sha256sum` and `b3sum`.
+2. **What BLAKE3 is:** a fingerprint for any data. Show it (the one-character
+   demo) before explaining it.
+3. **Why BLAKE3:** faster than SHA-256, safer than MD5, in the BLAKE3 team's
+   own numbers and claims (`src/lib/official.ts`), always linked.
+4. **Why turboblake:** outcomes per job, measured, ties included.
+5. **How to get it**, then **benchmarks**, then **under the hood**.
 
-Fast and honest. The page says where it wins, where it only ties, and which
-floors stop both sides; the brand never rounds a tie up to a win. Racing
-language is seasoning, not the meal: laps for sections, a finish line at the
-end, numbers first.
+Outcomes before mechanism. The "how" (Bend2, techniques, floors) is there for
+the curious, at the end.
 
-- Tagline: **Bend the tree. Beat the clock.**
-- Lead with measured numbers, from `results.json`, never typed into copy.
+## Why Bend2 (the under-the-hood story)
+
+BLAKE3 is a Merkle tree: 1 KiB chunks hashed independently, merged pairwise to
+one root. Bend2 is a language whose programs fork into trees of independent
+work that its runtime spreads over every CPU core or the GPU. A tree-shaped
+hash, run by a tree-shaped language: that is the reason for the engine, and the
+hero's light and the engine diagram both draw that tree.
+
+## Voice
+
+Calm, specific, honest. Sentence case. Numbers from `results.json`, never typed
+into copy; claims about BLAKE3 itself are the BLAKE3 team's, linked; ties are
+shown as plainly as wins. No racing metaphors.
 
 ## The mark: the Merge
 
-BLAKE3's tree, drawn sideways. Four leaves, speed lines of uneven length,
-merge in two levels into one root, and the root lands on a dot: the digest.
-It also reads as a fast-forward arrow and as Bend's `fork`, run backwards.
+BLAKE3's tree drawn sideways: four leaves merge in two levels into one root,
+which lands on a dot, the digest. It also reads as a fast-forward arrow.
 
-- The lines lean forward 10°; the dot stays round.
-- Strokes thicken toward the root (3.6 → 4.6 → 5.6 units), the way work piles up
-  as the tree merges.
-- On dark: ion → volt gradient, or solid volt. App icon and favicon: the bold
-  mark in near-black on a volt tile, like a race number plate.
+- The lines lean forward 10°; the dot stays round; strokes thicken toward the root.
+- On dark: ion → volt gradient. App icon and favicon: the bold mark in near-black
+  on a volt tile.
 - Geometry: `MARK_PATHS` in `src/lib/brand.ts`. Never redraw it by hand.
 
-## Color: Night Race
+## Color
 
 | Token | Hex | Use |
 | --- | --- | --- |
 | void | `#060608` | page |
-| surface / 2 / 3 | `#0c0c11` / `#14141b` / `#1d1d27` | cards, code, controls |
-| ink / 2 / 3 | `#f4f3ee` / `#b8b7c4` / `#8f8e9e` | text, by emphasis |
-| **volt** | `#d4ff3a` | the brand; Bend CPU series; links |
-| **ion** | `#46e3ff` | the GPU; the cold end of the heat gradient |
-| plasma | `#ff4f8b` | a second Bend series; caveats |
+| surface / 2 / 3 | `#0c0c10` / `#131318` / `#1b1b22` | cards, code, controls |
+| ink / 2 / 3 | `#ededef` / `#a9a9b4` / `#8a8a96` | text, by emphasis |
+| **volt** | `#d4ff3a` | the brand word, results, focus; used sparingly |
+| **ion** | `#46e3ff` | the GPU; the cold end of the tree's gradient |
 
-Data "heats up" from ion to volt, as it does in the hero, where leaves start
-cyan and the root burns lime. Baselines are always gray and always labelled:
-color never carries a result alone.
+Primary buttons are ink on void, not volt. Baselines in charts are gray and
+always labelled.
 
 ## Type
 
-- **Archivo** (variable, width 62–125): display at 125% width, weight ~820,
-  uppercase, tight tracking; italic for anything that should feel like motion.
-  Body at 100% width.
-- **Martian Mono**: kickers, labels, digests, commands.
-- The second headline line gets a motion smear (stacked offset text-shadows).
+**Geist** for everything, **Geist Mono** for commands, digests and labels.
+Headlines weight 650 with tight tracking (−0.045em to −0.055em); no italics.
 
-## Motion
+## Motion and shaders
 
-Quick out, no bounce: `--ease-out` (0.16, 1, 0.3, 1), 160 ms for hovers, ~0.7 s
-for reveals. Everything respects `prefers-reduced-motion`: shaders draw one still
-frame, the race shows its finish, the ticker becomes a scroller.
+Quick out, no bounce (`--ease-out`), 150 ms hovers, ~0.6 s reveals; everything
+respects `prefers-reduced-motion`.
 
-## Shaders (vgpu on WebGPU)
-
-- **Hero, `merge.wgsl`**: the Merge at full size: 32 leaves, packets racing to
-  the root, a flare, and a beam that carries the live digest's 256 bits. Typing
-  in the hash box sends a wave down the tree; the pointer bends the field (the
-  name, made literal); a click floors it. HDR, two-band bloom, ACES, grain.
-- **Footer, `flag.wgsl`**: a charcoal checkered flag with a volt light sweep;
-  the pointer pushes ripples through it.
-- Without WebGPU the same tree is static SVG (`src/lib/tree.ts`) and the flag is
-  CSS; canvases only draw while on screen.
+- **Hero, `merge.wgsl`** (vgpu on WebGPU): BLAKE3's tree in light, packets
+  merging toward the root, a beam carrying the live digest's 256 bits. Typing in
+  the demo sends a wave down the tree; the pointer bends the field. Kept calm:
+  low bloom, no streaks. Static SVG from the same geometry without WebGPU.
+- **Engine diagram:** eight chunks, three levels of parents, one root, with the
+  levels lighting up in hashing order.
 
 ## Other projects' marks
 
-Official marks name the projects the page talks about: BLAKE3 (upstream
-`media/`), Bend, Rust, C, iroh, DeepSeek, Hugging Face, NVIDIA, vgpu, WebGPU,
-Astro, GitHub. Sources are listed in `src/lib/brands.ts`. They stay their
-owners' trademarks and are shown in their own shapes, mono by default and in
-their own colors on hover. Apple's logo is not used; the machine gets a chip icon.
-UI icons are Lucide.
+Official marks name the projects the page talks about: BLAKE3, Bend, Rust, C,
+iroh, DeepSeek, Hugging Face, NVIDIA, vgpu, WebGPU, Astro, GitHub. Sources are
+in `src/lib/brands.ts`. They stay their owners' trademarks; mono by default.
+Apple's logo is not used. UI icons are Lucide.
 
 ## Assets
 
 - `/favicon.svg`, `/apple-touch-icon.png`: drawn from `iconSvg()` at build time.
-- `/og.png`: the card, built from the headlines with text outlined in the brand
-  fonts (`src/lib/outline.ts`), so previews never show stale numbers.
+- `/og.png`: built from the data, text outlined in Geist (`src/lib/outline.ts`).

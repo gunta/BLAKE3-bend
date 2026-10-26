@@ -5,8 +5,8 @@
  * digest. The lines lean forward 10 degrees; the dot stays round. Strokes thicken
  * toward the root, the way work piles up as the tree merges.
  *
- * The wordmark is b3bend, lowercase because it is also the command you type:
- * "b3" (BLAKE3's own shorthand, as in b3sum) in ink, "bend" in volt.
+ * The wordmark is turboblake, lowercase because it is also the command you
+ * type: "turbo", the family name, in volt; "blake" in ink.
  * `tagline` adds the promise, for places that introduce the name.
  *
  * Geometry lives in src/lib/brand.ts so the favicon, the Open Graph card and
@@ -49,14 +49,14 @@ const paint = variant === 'gradient' ? `url(#${gid})` : 'currentColor';
   {
     wordmark && (
       <span class="word">
-        b3<span class="w-bend">bend</span>
+        <span class="w-turbo">turbo</span>blake
       </span>
     )
   }
   {
     tagline && (
       <span class="tagline">
-        BLAKE3, bent for speed
+        BLAKE3, turbocharged
       </span>
     )
   }
@@ -66,50 +66,36 @@ const paint = variant === 'gradient' ? `url(#${gid})` : 'currentColor';
   .logo {
     display: inline-flex;
     align-items: center;
-    gap: 0.5em;
+    gap: 0.55em;
     line-height: 1;
   }
 
   .mark {
-    width: 1.9em;
+    width: 1.7em;
     height: auto;
     flex: none;
     overflow: visible;
   }
 
   .word {
-    display: inline-flex;
-    align-items: baseline;
-    font-family: var(--font-display);
-    font-stretch: 125%;
-    font-weight: 850;
-    font-style: italic;
-    letter-spacing: -0.02em;
-    text-transform: uppercase;
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 1.12em;
+    font-weight: 700;
+    letter-spacing: -0.045em;
     white-space: nowrap;
   }
 
-  .word {
-    color: var(--ink);
-    font-size: 1.12em;
-    letter-spacing: -0.03em;
-    text-transform: none;
-  }
-
-  .w-bend {
+  .w-turbo {
     color: var(--volt);
   }
 
   .tagline {
-    padding-left: 0.7em;
+    padding-left: 0.75em;
     border-left: 1px solid var(--line-strong);
     color: var(--ink-3);
-    font-family: var(--font-mono);
-    font-size: 0.68em;
-    font-stretch: 90%;
-    font-weight: 400;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    font-size: 0.8em;
+    font-weight: 450;
     white-space: nowrap;
   }
 </style>

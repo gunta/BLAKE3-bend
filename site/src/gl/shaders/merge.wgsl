@@ -1,7 +1,7 @@
 // The hero scene: BLAKE3's tree drawn in light, the logo at full size.
 //
 // 32 leaves of uneven length merge level by level into one root, the way a
-// BLAKE3 hash folds chunk chaining values into parents. Packets run down every
+// BLAKE3 hash folds 1 KiB chunks into parents and parents into one digest. Packets run down every
 // edge, denser toward the root, where the work piles up. The root flares, and a
 // beam carries the current digest's 256 bits off to the right as dashes. Each
 // keystroke in the hash box sends a wave down the tree (`wave`), and the root
@@ -94,29 +94,6 @@ fn edgeAt(p: vec2f, k: u32, i: u32) -> EdgeHit {
   return EdgeHit(abs(p.y - y) / sqrt(1.0 + slope * slope), t);
 }
 
-// Streaks drifting left on a few rows: the world rushing past.
-fn speedLines(p: vec2f) -> vec3f {
-  let pr = params.pixelRatio;
-  let rowH = 7.0 * pr;
-  let row = floor(p.y / rowH);
-  let h = hash1(row * 1.37 + 11.0);
-  if (h < 0.83) {
-    return vec3f(0.0);
-  }
-  let h2 = hash1(row * 7.13 + 3.0);
-  let len = (40.0 + 220.0 * h2) * pr;
-  let span = params.resolution.x + len * 2.0;
-  let x0 = span - fract(h2 * 9.1 + params.time * (0.05 + 0.18 * h2) * params.speed) * span - len;
-  let d = p.x - x0;
-  if (d < 0.0 || d > len) {
-    return vec3f(0.0);
-  }
-  let head = 1.0 - d / len;
-  let across = 1.0 - abs(fract(p.y / rowH) - 0.5) * 2.0;
-  let fade = smoothstep(0.0, 0.35, p.x / params.resolution.x);
-  return mix(ION, WHITE, 0.3) * head * head * smoothstep(0.55, 1.0, across) * 0.05 * fade;
-}
-
 @fragment fn fs_main(@location(0) uv: vec2f) -> @location(0) vec4f {
   let res = params.resolution;
   let pr = params.pixelRatio;
@@ -131,7 +108,6 @@ fn speedLines(p: vec2f) -> vec3f {
   let q = raw / res.y;
   let n = simplex3d(vec3f(q * 1.4, params.time * 0.025)) * 0.5 + 0.5;
   var color = VOID + mix(ION, VOLT, n) * 0.0035 * n * n;
-  color += speedLines(raw);
 
   let u = (p.x - params.tree.x) / (params.tree.z - params.tree.x);
   let reveal = params.intro * 1.25 - 0.1;
@@ -182,7 +158,7 @@ fn speedLines(p: vec2f) -> vec3f {
       let tail = 1.0 - fract(phase);
       let comet = exp(-tail * 10.0) * lit * (1.0 - smoothstep(0.985, 1.0, fract(phase)));
       let wave = exp(-abs(u - params.wave) * 22.0) * step(params.wave, 1.2);
-      let energy = mix(0.28, 1.0, heat) + comet * 5.0 + wave * 4.0 + front * 3.0;
+      let energy = mix(0.16, 0.7, heat) + comet * 3.2 + wave * 4.0 + front * 2.5;
       let tint = mix(base, WHITE, clamp(comet * 0.6 + wave * 0.5, 0.0, 0.85));
       color += tint * (line * energy + glow * mix(0.4, 1.0, heat)) * shown;
     }

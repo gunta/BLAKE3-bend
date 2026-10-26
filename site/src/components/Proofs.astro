@@ -11,12 +11,6 @@ import { GENERATOR_URL, LAWS_URL, PROOF_URL, lawCount, lawGroups, lemmaCount, sa
 import { blobUrl } from '../lib/site';
 import { machineName } from '../lib/page';
 
-interface Props {
-  /** Position in the race (see Section). */
-  lap: number;
-}
-
-const { lap } = Astro.props;
 const gate = results.proofs;
 const minutes = gate ? Math.round(gate.seconds / 60) : undefined;
 const shown = sample('ob.hash');
@@ -60,7 +54,7 @@ const limits = [
 ];
 ---
 
-<Section id="proofs" lap={lap} kicker="Machine-checked" title="Proven for every input, not only tested">
+<Section id="proofs" kicker="Under the hood · machine-checked" title="Proven for every input, not only tested">
   <Fragment slot="lede">
     <p>
       Bend’s type checker is also a prover. A <code>law</code> in <a href={LAWS_URL}>LAWS.bend</a> states a claim; a def of the same name in{' '}

@@ -1,0 +1,230 @@
+---
+/**
+ * One install line with a tab per channel (Homebrew, Cargo) and a copy
+ * button. Every instance on the page switches together, and the choice is
+ * remembered on this device. Without JavaScript the first channel shows.
+ */
+import { Copy } from 'lucide-static';
+import Icon from './Icon.astro';
+import { INSTALLS } from '../lib/site';
+
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<div class:list={['install', className]} data-install>
+  <div class="tabs" role="tablist" aria-label="Install with">
+    {
+      INSTALLS.map((i, n) => (
+        <button type="button" role="tab" class="tab" data-channel={i.id} aria-selected={n === 0 ? 'true' : 'false'}>
+          {i.label}
+        </button>
+      ))
+    }
+  </div>
+  <div class="line">
+    <code>
+      <span class="prompt" aria-hidden="true">$</span>{' '}
+      {
+        INSTALLS.map((i, n) => (
+          <span class="cmd" data-command={i.id} hidden={n !== 0}>
+            {i.command}
+          </span>
+        ))
+      }
+    </code>
+    <button class="copy" type="button" data-install-copy>
+      <Icon svg={Copy} class="copy-icon" />
+      <span class="copy-label" data-label>Copy</span><span class="sr-only"> the install command</span>
+    </button>
+  </div>
+</div>
+
+<script>
+  const KEY = 'turboblake-install';
+  const roots = [...document.querySelectorAll<HTMLElement>('[data-install]')];
+
+  function select(channel: string, remember: boolean): void {
+    for (const root of roots) {
+      for (const tab of root.querySelectorAll<HTMLElement>('[data-channel]')) {
+        tab.setAttribute('aria-selected', String(tab.dataset.channel === channel));
+      }
+      for (const cmd of root.querySelectorAll<HTMLElement>('[data-command]')) {
+        cmd.hidden = cmd.dataset.command !== channel;
+      }
+    }
+    if (remember) {
+      try {
+        localStorage.setItem(KEY, channel);
+      } catch {
+        // Private windows can refuse storage; the choice just is not kept.
+      }
+    }
+  }
+
+  try {
+    const saved = localStorage.getItem(KEY);
+    if (saved && document.querySelector(`[data-channel="${saved}"]`)) select(saved, false);
+  } catch {
+    // No storage: keep the default channel.
+  }
+
+  for (const root of roots) {
+    root.addEventListener('click', async (e) => {
+      const target = e.target as Element;
+      const tab = target.closest<HTMLElement>('[data-channel]');
+      if (tab?.dataset.channel) {
+        select(tab.dataset.channel, true);
+        return;
+      }
+      const copy = target.closest<HTMLButtonElement>('[data-install-copy]');
+      if (!copy) return;
+      const label = copy.querySelector<HTMLElement>('[data-label]');
+      const text = root.querySelector<HTMLElement>('[data-command]:not([hidden])')?.textContent?.trim() ?? '';
+      try {
+        await navigator.clipboard.writeText(text);
+        if (label) label.textContent = 'Copied';
+        copy.classList.add('done');
+      } catch {
+        if (label) label.textContent = 'Select it';
+      }
+      setTimeout(() => {
+        if (label) label.textContent = 'Copy';
+        copy.classList.remove('done');
+      }, 1500);
+    });
+  }
+</script>
+
+<style>
+  .install {
+    display: grid;
+    gap: 0.4rem;
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .tab {
+    min-height: 32px;
+    padding: 0.25rem 0.7rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: none;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-stretch: 90%;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .tab:hover {
+    color: var(--ink);
+  }
+
+  .tab[aria-selected='true'] {
+    border-color: var(--line-strong);
+    background: var(--surface-2);
+    color: var(--volt);
+  }
+
+  .line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    min-width: 0;
+    padding: 0.35rem 0.4rem 0.35rem 1rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 10px;
+    background: rgb(6 6 8 / 0.7);
+  }
+
+  code {
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--ink);
+    font-size: 0.9375rem;
+    white-space: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .prompt {
+    color: var(--volt);
+  }
+
+  .copy {
+    flex: none;
+    min-height: 36px;
+    padding: 0.3rem 0.75rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 7px;
+    background: var(--surface-3);
+    color: var(--ink-2);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-stretch: 90%;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .copy:hover {
+    color: var(--ink);
+    border-color: var(--ink-3);
+  }
+
+  .copy:global(.done) {
+    background: var(--volt);
+    border-color: var(--volt);
+    color: var(--volt-ink);
+  }
+
+  .copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .copy :global(.copy-icon) {
+    display: none;
+  }
+
+  /* Narrow screens: smaller type and an icon button, so the whole command fits. */
+  @media (max-width: 30rem) {
+    code {
+      font-size: 0.8125rem;
+    }
+    .line {
+      padding-left: 0.75rem;
+      gap: 0.5rem;
+    }
+    .copy {
+      padding: 0.3rem 0.5rem;
+    }
+    .copy :global(.copy-icon) {
+      display: inline-block;
+      width: 1rem;
+      height: 1rem;
+    }
+    .copy-label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+  }
+</style>

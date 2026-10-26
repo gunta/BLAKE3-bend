@@ -9,20 +9,18 @@
  */
 import { blake3Hex } from '../lib/blake3';
 import { treePaths } from '../lib/tree';
-import { machineName } from '../lib/page';
-import { lawCount, universalCount } from '../lib/proofs';
-import { INSTALL, REPO_URL, UPSTREAM_URL } from '../lib/site';
+import { heroProof } from '../lib/page';
+import { CLI_VERSION, REPO_URL } from '../lib/site';
+import InstallCommand from './InstallCommand.astro';
 import BrandMark from './BrandMark.astro';
 
-const SEED = 'hello, bend';
+const SEED = 'hello, world';
 const seedDigest = blake3Hex(SEED);
-// The upstream claim behind "replaces SHA-256": much faster than SHA-2, and safe from length extension.
-const UPSTREAM_README = `${UPSTREAM_URL}#readme`;
 
 // The fallback tree: merge.wgsl's layout, frozen, in a 1600 x 900 box.
 const W = 1600;
 const H = 900;
-const { edges, root } = treePaths({ x0: -0.05 * W, rootX: 0.745 * W, y: 0.53 * H, half: 0.36 * H });
+const { edges, root } = treePaths({ x0: 0.42 * W, rootX: 0.84 * W, y: 0.5 * H, half: 0.38 * H });
 ---
 
 <section class="hero" id="top" aria-labelledby="hero-title" data-hero>
@@ -50,60 +48,53 @@ const { edges, root } = treePaths({ x0: -0.05 * W, rootX: 0.745 * W, y: 0.53 * H
   </div>
 
   <div class="wrap content">
-    <p class="kicker live" data-reveal>
-      <span class="pip" aria-hidden="true"></span>
-      <BrandMark name="b3" />
-      The SHA-256 replacement, bent for speed
-    </p>
-    <h1 id="hero-title" class="display">
-      <span class="l1" data-reveal style="--i: 1">Bend the tree.</span>
-      <span class="l2 fast" data-reveal style="--i: 2">Beat the clock.</span>
+    <a class="pill" href="#install" data-reveal>
+      <span class="pill-tag">New</span>
+      <span>turboblake {CLI_VERSION} on Homebrew and crates.io</span>
+      <span class="arrow" aria-hidden="true">→</span>
+    </a>
+
+    <h1 id="hero-title" class="display" data-reveal style="--i: 1">
+      Checksum anything <span class="glow">at the speed of your SSD.</span>
     </h1>
 
-    <div class="lower">
-      <p class="lead" data-reveal style="--i: 3">
-        <strong class="name">b3<span class="ext">bend</span></strong> is BLAKE3, <a href={UPSTREAM_README}>the hash that replaces SHA-256</a>, rewritten in Bend2 and
-        raced against the official Rust/C on {machineName}. Every compression runs in Bend, C only moves bytes, and it prints the same digests as
-        <code>b3sum</code>. Bend's own checker proves {lawCount} laws about it, {universalCount} of them for every input or every size. Below: where it wins,
-        where it only ties, what is <a href="#proofs">proven</a>, and the floors that stop both.
+    <p class="lead" data-reveal style="--i: 2">
+      turboblake computes BLAKE3 fingerprints of files of any size, on every core: a drop-in for <code>sha256sum</code> and <code>b3sum</code>.
+      {
+        heroProof && (
+          <>
+            {' '}
+            It checked a {heroProof.size ?? 'huge'} model in {heroProof.seconds} seconds, {heroProof.ratio.replace(/x$/, '×')} faster than the official{' '}
+            {heroProof.baseline}.
+          </>
+        )
+      }
+    </p>
+
+    <div class="cta" data-reveal style="--i: 3">
+      <InstallCommand />
+      <p class="actions">
+        <a class="button primary" href="#install"><span>Get started <span class="arrow" aria-hidden="true">→</span></span></a>
+        <a class="button" href={REPO_URL}><span><BrandMark name="github" /> GitHub</span></a>
       </p>
-
-      <p class="actions" data-reveal style="--i: 4">
-        <a class="button primary" href={REPO_URL}><span><BrandMark name="github" /> Source on GitHub <span class="arrow" aria-hidden="true">↗</span></span></a>
-        <a class="button" href="#race"><span>Watch the race <span class="arrow" aria-hidden="true">↓</span></span></a>
-      </p>
-
-      <div class="install" data-reveal style="--i: 5">
-        <code><span class="prompt" aria-hidden="true">$</span> <span data-install>{INSTALL}</span></code>
-        <button class="install-copy" type="button" data-install-copy>
-          <span data-install-label>Copy</span><span class="sr-only"> the install command</span>
-        </button>
-      </div>
-
-      <form class="hashbox" data-hashbox data-reveal style="--i: 6" action="#" aria-labelledby="hb-title">
-        <p class="hb-head">
-          <span id="hb-title" class="kicker"><BrandMark name="b3" /> Try it: BLAKE3, live</span>
-          <span class="hb-tip" data-hb-tip aria-hidden="true">click the digest to copy</span>
-        </p>
-        <div class="hb-row">
-          <label class="hb-fn" for="hb-in">blake3<span aria-hidden="true">(</span><span class="sr-only">of</span></label>
-          <input id="hb-in" name="text" value={SEED} autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="240" />
-          <span class="hb-fn" aria-hidden="true">)</span>
-        </div>
-        <button class="hb-out" type="button" data-digest aria-describedby="hb-note" title="Copy the digest">{seedDigest}</button>
-        <p class="sr-only" aria-live="polite" data-hb-live></p>
-        <p id="hb-note" class="hb-note">
-          The same 32 bytes as <code>printf '%s' 'hello, bend' | b3bend</code>, hashed in this tab: use it wherever you reach for
-          <code class="plain">sha256sum</code>. Each keystroke runs down the tree; the beam carries the bits.
-        </p>
-      </form>
     </div>
-  </div>
 
-  <a class="cue" href="#race">
-    <span class="cue-line" aria-hidden="true"></span>
-    <span>Scroll to race</span>
-  </a>
+    <form class="hashbox" data-hashbox data-reveal style="--i: 4" action="#" aria-labelledby="hb-title">
+      <p class="hb-head">
+        <span id="hb-title" class="hb-title">Try BLAKE3 in your browser</span>
+        <span class="hb-tip" data-hb-tip aria-hidden="true">Click the fingerprint to copy</span>
+      </p>
+      <div class="hb-row">
+        <label class="sr-only" for="hb-in">Text to hash</label>
+        <input id="hb-in" name="text" value={SEED} autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="240" />
+      </div>
+      <button class="hb-out" type="button" data-digest aria-describedby="hb-note" title="Copy the fingerprint">{seedDigest}</button>
+      <p class="sr-only" aria-live="polite" data-hb-live></p>
+      <p id="hb-note" class="hb-note">
+        Same as <code>printf '%s' 'hello, world' | turboblake</code>. Every keystroke runs through the tree behind this text.
+      </p>
+    </form>
+  </div>
 </section>
 
 <script>
@@ -150,7 +141,7 @@ const { edges, root } = treePaths({ x0: -0.05 * W, rootX: 0.745 * W, y: 0.53 * H
     const hex = toHex(bytes);
     out.dataset.value = hex;
     show(out, hex);
-    if (note) note.textContent = `printf '%s' '${input.value.replace(/'/g, `'\\''`)}' | b3bend`;
+    if (note) note.textContent = `printf '%s' '${input.value.replace(/'/g, `'\\''`)}' | turboblake`;
     clearTimeout(liveTimer);
     liveTimer = window.setTimeout(() => {
       if (live) live.textContent = `Digest: ${hex}`;
@@ -168,33 +159,16 @@ const { edges, root } = treePaths({ x0: -0.05 * W, rootX: 0.745 * W, y: 0.53 * H
     try {
       await navigator.clipboard.writeText(hex);
       if (tip) {
-        tip.textContent = 'copied. go race it ⚑';
+        tip.textContent = 'Copied';
         tip.classList.add('on');
         setTimeout(() => {
-          tip.textContent = 'click the digest to copy';
+          tip.textContent = 'Click the fingerprint to copy';
           tip.classList.remove('on');
         }, 1600);
       }
     } catch {
       // Clipboard can be blocked; the digest is still selectable text.
     }
-  });
-
-  const installCopy = host?.querySelector<HTMLButtonElement>('[data-install-copy]');
-  installCopy?.addEventListener('click', async () => {
-    const label = installCopy.querySelector<HTMLElement>('[data-install-label]');
-    const text = host?.querySelector('[data-install]')?.textContent ?? '';
-    try {
-      await navigator.clipboard.writeText(text);
-      if (label) label.textContent = 'Copied';
-      installCopy.classList.add('done');
-    } catch {
-      if (label) label.textContent = 'Select it';
-    }
-    setTimeout(() => {
-      if (label) label.textContent = 'Copy';
-      installCopy.classList.remove('done');
-    }, 1500);
   });
 
   // Click anywhere on the hero that is not a control: floor it.
@@ -223,9 +197,9 @@ const { edges, root } = treePaths({ x0: -0.05 * W, rootX: 0.745 * W, y: 0.53 * H
     isolation: isolate;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    align-items: end;
-    min-height: max(100svh, 40rem);
-    padding-block: calc(var(--header-h-hero, 4.5rem) + 2rem) clamp(4.5rem, 3rem + 4vw, 7rem);
+    align-items: center;
+    min-height: max(100svh, 44rem);
+    padding-block: calc(var(--header-h) + 3rem) 4rem;
     overflow: hidden;
   }
 
@@ -258,52 +232,52 @@ const { edges, root } = treePaths({ x0: -0.05 * W, rootX: 0.745 * W, y: 0.53 * H
     opacity: 0;
   }
 
-  /* The static tree: thin lines that thicken toward the root, with dashes for packets. */
-  .fallback path {
-    filter: drop-shadow(0 0 6px rgb(212 255 58 / 0.35));
+  /* The static tree: thin lines that thicken toward the root. */
+  .fallback {
+    opacity: 0.8;
   }
 
   .lv {
-    stroke-width: 1.4;
-    opacity: 0.55;
+    stroke-width: 1.2;
+    opacity: 0.45;
   }
   .lv-1 {
-    stroke-width: 1.9;
-    opacity: 0.7;
+    stroke-width: 1.6;
+    opacity: 0.55;
   }
   .lv-2 {
-    stroke-width: 2.4;
-    opacity: 0.8;
+    stroke-width: 2;
+    opacity: 0.65;
   }
   .lv-3 {
-    stroke-width: 3;
-    opacity: 0.9;
+    stroke-width: 2.6;
+    opacity: 0.8;
   }
   .lv-4 {
-    stroke-width: 3.6;
-    opacity: 1;
+    stroke-width: 3.2;
+    opacity: 0.9;
   }
 
   .beam {
     stroke: var(--volt);
-    stroke-width: 3;
+    stroke-width: 2.5;
     stroke-dasharray: 10 6 4 6 14 6;
-    opacity: 0.85;
+    opacity: 0.7;
   }
 
   @media (prefers-reduced-motion: no-preference) {
     .lv {
       stroke-dasharray: 26 140;
-      animation: flow 2.4s linear infinite;
+      animation: flow 3.2s linear infinite;
     }
     .lv-2,
     .lv-3,
     .lv-4 {
       stroke-dasharray: 30 70;
-      animation-duration: 1.2s;
+      animation-duration: 1.8s;
     }
     .beam {
-      animation: flow 0.9s linear infinite;
+      animation: flow 1.4s linear infinite;
     }
     @keyframes flow {
       to {
@@ -317,170 +291,93 @@ const { edges, root } = treePaths({ x0: -0.05 * W, rootX: 0.745 * W, y: 0.53 * H
     position: absolute;
     inset: 0;
     background:
-      linear-gradient(90deg, rgb(6 6 8 / 0.82) 0%, rgb(6 6 8 / 0.55) 32%, rgb(6 6 8 / 0) 58%),
-      linear-gradient(180deg, rgb(6 6 8 / 0.6) 0%, rgb(6 6 8 / 0) 22%);
+      linear-gradient(90deg, rgb(6 6 8 / 0.9) 0%, rgb(6 6 8 / 0.7) 38%, rgb(6 6 8 / 0) 60%),
+      linear-gradient(180deg, rgb(6 6 8 / 0.5) 0%, rgb(6 6 8 / 0) 20%, rgb(6 6 8 / 0) 80%, rgb(6 6 8 / 1) 100%);
   }
 
   .content {
     position: relative;
     min-width: 0;
     display: grid;
-    gap: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+    justify-items: start;
+    gap: 1.6rem;
   }
 
-  .live {
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    max-width: 100%;
+    padding: 0.3rem 0.85rem 0.3rem 0.35rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    background: rgb(12 12 16 / 0.7);
     color: var(--ink-2);
+    font-size: 0.8125rem;
+    text-decoration: none;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 
-  .pip {
-    width: 0.55rem;
-    height: 0.55rem;
-    border-radius: 50%;
+  .pill:hover {
+    color: var(--ink);
+    border-color: rgb(255 255 255 / 0.24);
+  }
+
+  .pill-tag {
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
     background: var(--volt);
-    box-shadow: 0 0 0 0 rgb(212 255 58 / 0.6);
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .pip {
-      animation: pip 1.8s var(--ease-out) infinite;
-    }
-    @keyframes pip {
-      70% {
-        box-shadow: 0 0 0 0.6rem rgb(212 255 58 / 0);
-      }
-      100% {
-        box-shadow: 0 0 0 0 rgb(212 255 58 / 0);
-      }
-    }
+    color: var(--volt-ink);
+    font-size: 0.75rem;
+    font-weight: 600;
   }
 
   h1 {
-    display: grid;
-    font-size: clamp(2.25rem, 0.6rem + 6.6vw, 7.5rem);
-    max-width: 100%;
-  }
-
-  h1 span {
-    display: block;
-  }
-
-  /* The second line leans forward and leaves a motion smear behind it. */
-  .l2 {
-    color: var(--volt);
-    text-shadow:
-      -0.05em 0 0 rgb(212 255 58 / 0.28),
-      -0.11em 0 0 rgb(212 255 58 / 0.14),
-      -0.19em 0 0 rgb(212 255 58 / 0.06);
-  }
-
-  .lower {
-    display: grid;
-    gap: 1.75rem;
-    max-width: 36rem;
+    max-width: 15ch;
+    font-size: clamp(2.6rem, 1.2rem + 5.4vw, 5.75rem);
   }
 
   .lead {
-    font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+    max-width: 40rem;
     color: var(--ink-2);
-    max-width: 46ch;
+    font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem);
+    line-height: 1.55;
   }
 
-  .lead .name {
-    font-family: var(--font-display);
-    font-stretch: 125%;
-    font-style: italic;
-    font-weight: 820;
-    color: var(--ink);
-    white-space: nowrap;
-  }
-
-  .lead .ext {
-    color: var(--volt);
-  }
-
-  .lead a {
-    color: var(--ink);
-    text-decoration-color: var(--volt);
-  }
-
-  .live :global(.brandmark) {
-    height: 0.85em;
-    color: var(--ink);
+  .cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 1rem 1.25rem;
+    max-width: 100%;
   }
 
   .actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.9rem 1.1rem;
-    padding-left: 0.3rem;
-  }
-
-  /* The install line: one command, one click to copy. */
-  .install {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
     gap: 0.75rem;
-    width: fit-content;
-    max-width: 100%;
-    padding: 0.35rem 0.4rem 0.35rem 1rem;
-    border: 1px solid var(--line-strong);
-    border-radius: 10px;
-    background: rgb(6 6 8 / 0.7);
   }
 
-  .install code {
-    min-width: 0;
-    padding: 0;
-    border: 0;
-    background: none;
-    color: var(--ink);
-    font-size: 0.9375rem;
-    white-space: nowrap;
-    overflow-x: auto;
-  }
-
-  .prompt {
-    color: var(--volt);
-  }
-
-  .install-copy {
-    flex: none;
-    min-height: 36px;
-    padding: 0.3rem 0.75rem;
-    border: 1px solid var(--line-strong);
-    border-radius: 7px;
-    background: var(--surface-3);
-    color: var(--ink-2);
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    font-stretch: 90%;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    cursor: pointer;
-  }
-
-  .install-copy:hover {
-    color: var(--ink);
-    border-color: var(--ink-3);
-  }
-
-  .install-copy:global(.done) {
-    background: var(--volt);
-    border-color: var(--volt);
-    color: var(--volt-ink);
+  /* Over the light, the outline button needs its own backing to stay legible. */
+  .actions .button:not(.primary) {
+    background: rgb(12 12 16 / 0.72);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 
   /* The live hash box. */
   .hashbox {
     display: grid;
-    gap: 0.7rem;
-    padding: 1.1rem 1.2rem 1.2rem;
+    gap: 0.65rem;
+    width: min(100%, 36rem);
+    margin-top: 0.75rem;
+    padding: 1rem 1.1rem 1.1rem;
     border: 1px solid var(--line-strong);
     border-radius: var(--radius);
-    background: rgb(12 12 17 / 0.72);
-    backdrop-filter: blur(14px) saturate(1.3);
-    -webkit-backdrop-filter: blur(14px) saturate(1.3);
+    background: rgb(12 12 16 / 0.72);
+    backdrop-filter: blur(14px) saturate(1.2);
+    -webkit-backdrop-filter: blur(14px) saturate(1.2);
   }
 
   .hb-head {
@@ -488,20 +385,15 @@ const { edges, root } = treePaths({ x0: -0.05 * W, rootX: 0.745 * W, y: 0.53 * H
     flex-wrap: wrap;
     justify-content: space-between;
     gap: 0.25rem 1rem;
+    font-size: 0.8125rem;
   }
 
-  .hb-head .kicker {
-    color: var(--volt);
-  }
-
-  .hb-head :global(.brandmark) {
-    height: 0.8rem;
+  .hb-title {
+    color: var(--ink);
+    font-weight: 600;
   }
 
   .hb-tip {
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    font-stretch: 90%;
     color: var(--ink-3);
     transition: color var(--t-fast);
   }
@@ -512,25 +404,16 @@ const { edges, root } = treePaths({ x0: -0.05 * W, rootX: 0.745 * W, y: 0.53 * H
 
   .hb-row {
     display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    font-family: var(--font-mono);
-    font-stretch: 90%;
-  }
-
-  .hb-fn {
-    color: var(--ink-3);
-    font-size: 0.9375rem;
   }
 
   .hb-row input {
     flex: 1 1 auto;
     width: 0;
     min-width: 0;
-    min-height: 44px;
-    padding: 0.45rem 0.7rem;
+    min-height: 42px;
+    padding: 0.45rem 0.75rem;
     border: 1px solid var(--line-strong);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     background: var(--void);
     color: var(--ink);
     font: inherit;
@@ -548,15 +431,11 @@ const { edges, root } = treePaths({ x0: -0.05 * W, rootX: 0.745 * W, y: 0.53 * H
     all: unset;
     display: block;
     cursor: copy;
-    padding: 0.15rem 0;
     color: var(--volt);
     font-family: var(--font-mono);
-    font-size: clamp(0.75rem, 0.6rem + 0.5vw, 0.875rem);
-    font-stretch: 85%;
-    letter-spacing: 0.02em;
+    font-size: clamp(0.75rem, 0.65rem + 0.4vw, 0.875rem);
     line-height: 1.5;
     overflow-wrap: anywhere;
-    text-shadow: 0 0 18px rgb(212 255 58 / 0.45);
     font-variant-numeric: tabular-nums;
   }
 
@@ -575,75 +454,25 @@ const { edges, root } = treePaths({ x0: -0.05 * W, rootX: 0.745 * W, y: 0.53 * H
   .hb-note code {
     white-space: normal;
     overflow-wrap: anywhere;
-    font-size: 0.92em;
-  }
-
-  .cue {
-    position: absolute;
-    left: 50%;
-    bottom: 1.25rem;
-    translate: -50% 0;
-    display: none;
-    align-items: center;
-    gap: 0.75rem;
-    color: var(--ink-3);
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    font-stretch: 90%;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    text-decoration: none;
-  }
-
-  .cue-line {
-    position: relative;
-    width: 2.5rem;
-    height: 1px;
-    overflow: hidden;
-    background: var(--line-strong);
-  }
-
-  .cue-line::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--volt);
-    transform: translateX(-100%);
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .cue-line::after {
-      animation: cue 1.6s var(--ease-out) infinite;
-    }
-    @keyframes cue {
-      to {
-        transform: translateX(100%);
-      }
-    }
-  }
-
-  @media (min-width: 48rem) and (min-height: 44rem) {
-    .cue {
-      display: inline-flex;
-    }
   }
 
   /* Tall screens: the copy starts lower, leaving a band under the header where the tree grows. */
   @media (max-aspect-ratio: 23/20) {
     .hero {
-      padding-top: calc(4.5rem + 30svh);
+      align-items: end;
+      padding-top: calc(var(--header-h) + 28svh);
     }
     .scrim {
       background: linear-gradient(
         180deg,
         rgb(6 6 8 / 0) 0,
-        rgb(6 6 8 / 0) calc(4.5rem + 24svh),
-        rgb(6 6 8 / 0.78) calc(4.5rem + 36svh),
-        rgb(6 6 8 / 0.85) 100%
+        rgb(6 6 8 / 0) calc(var(--header-h) + 20svh),
+        rgb(6 6 8 / 0.82) calc(var(--header-h) + 32svh),
+        rgb(6 6 8 / 0.9) 100%
       );
     }
     .fallback {
-      height: calc(4.5rem + 32svh);
+      height: calc(var(--header-h) + 30svh);
     }
   }
 </style>

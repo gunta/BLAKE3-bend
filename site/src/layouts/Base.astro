@@ -1,7 +1,6 @@
 ---
-import '@fontsource-variable/archivo/wdth.css';
-import '@fontsource-variable/archivo/wdth-italic.css';
-import '@fontsource-variable/martian-mono/wdth.css';
+import '@fontsource-variable/geist/wght.css';
+import '@fontsource-variable/geist-mono/wght.css';
 import '../styles/global.css';
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, absoluteUrl, withBase } from '../lib/site';
 import BrandSprite from '../components/BrandSprite.astro';
@@ -18,7 +17,7 @@ const { title, description = SITE_DESCRIPTION, path = '', noindex = false } = As
 const pageTitle = title ? `${title} · ${SITE_NAME}` : SITE_TITLE;
 const canonical = absoluteUrl(path, Astro.site);
 const ogImage = absoluteUrl('og.png', Astro.site);
-const ogAlt = 'b3bend, BLAKE3 written in Bend2: the Merge logo and the headline speedups against the official Rust/C BLAKE3.';
+const ogAlt = 'turboblake, BLAKE3 written in Bend2: the Merge logo and the headline speedups against the official Rust/C BLAKE3.';
 ---
 
 <!doctype html>

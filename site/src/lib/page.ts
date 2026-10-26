@@ -34,14 +34,14 @@ export const inMemory: Table = buildTable(results.in_memory, {
 
 export const cli: Table = buildTable(results.cli, {
   b3sum: { label: 'b3sum', description: 'the official b3sum CLI' },
-  bend: { label: 'b3bend', description: 'the b3bend command (bend/b3sum.bend), CPU only' },
+  bend: { label: 'turboblake', description: 'the turboblake command (bend/b3sum.bend), CPU only' },
 });
 
 /** Real model weights, one shot: the case where most of the file is on disk. */
 export const models: Table | undefined = results.models
   ? buildTable(results.models, {
       b3sum: { label: 'b3sum', description: 'the official b3sum CLI' },
-      bend: { label: 'b3bend', description: 'the b3bend command, streaming what is not cached' },
+      bend: { label: 'turboblake', description: 'the turboblake command, streaming what is not cached' },
     })
   : undefined;
 
@@ -282,3 +282,23 @@ export const floors: { title: string; body: string | undefined }[] = results.flo
   return { title: text.slice(0, i), body: capitalize(text.slice(i + 2)) };
 });
 
+
+// ---------------------------------------------------------------- outcomes
+
+/** "DeepSeek-V4.1-Flash shard 48 (101.5 GB, bigger than RAM)" -> "101.5 GB". */
+export function sizeIn(label: string): string | undefined {
+  return /(\d+(?:\.\d+)?\s?(?:[KMGT]i?B))/.exec(label)?.[1];
+}
+
+/** The hero's proof line: the biggest real file, from the models table. */
+export const heroProof = (() => {
+  const c = headlines.models?.comparison;
+  if (!c) return undefined;
+  return {
+    size: sizeIn(c.row.label),
+    seconds: fmtMeasured(c.bendValue),
+    baselineSeconds: fmtMeasured(c.baselineValue),
+    ratio: fmtSpeedup(c),
+    baseline: c.baseline.label,
+  };
+})();
