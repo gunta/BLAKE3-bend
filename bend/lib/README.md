@@ -67,10 +67,10 @@ library (SIMD, one thread: it has no threads of its own without TBB).
 
 | one update, in memory | official C | libblake3-bend | |
 |---|---:|---:|---:|
-| 1 MiB, M5 Pro | 0.470 ms | 0.178 ms | 2.6x |
-| 64 MiB, M5 Pro | 34.9 ms | 3.73 ms | 9.4x |
-| 1 GiB, M5 Pro | 520 ms | 56.3 ms | 9.2x |
-| 1 GiB, Linux x86-64, 32 vCPUs (Modal) | 272 ms | 28.4 ms (no copy) | 9.6x |
+| 1 MiB, M5 Pro | 0.497 ms | 0.179 ms | 2.8x |
+| 64 MiB, M5 Pro | 28.0 ms | 2.83 ms | 9.9x |
+| 1 GiB, M5 Pro | 481 ms | 38.7 ms | 12.4x |
+| 1 GiB, Linux x86-64 (Modal) | 323 ms | 25.6 ms (no copy) | 12.6x |
 
-(The Mac numbers were taken with an Android emulator busy on 11 of its 18
-cores.)
+(The Mac numbers were taken with other work running at a load average
+near 7.)

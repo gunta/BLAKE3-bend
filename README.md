@@ -151,13 +151,13 @@ Apple M5 Pro, macOS, Bend2 2.0.39, official BLAKE3 1.8.7 (`b3sum`, and the
 
 | language | turboblake | the packages it replaces |
 |---|---|---|
-| C | **46.5 ms** | official C 452 ms (one thread) |
-| Rust | 44.3 ms | `blake3::hash` 470 ms; `update_rayon` **30.1 ms** |
-| Python | 44.6 ms | `blake3` 444 ms; `max_threads=AUTO` **29.8 ms** |
-| Node | **43.9 ms** | `@napi-rs/blake-hash` 454 ms, hash-wasm 954 ms, `@noble/hashes` 9.2 s |
+| C | **38.7 ms** | official C 481 ms (one thread) |
+| Rust | 37.8 ms | `blake3::hash` 507 ms; `update_rayon` **31.9 ms** |
+| Python | 41.9 ms | `blake3` 505 ms; `max_threads=AUTO` **34.0 ms** |
+| Node | **38.2 ms** | `@napi-rs/blake-hash` 482 ms, hash-wasm 964 ms, `@noble/hashes` 10.9 s |
 | Bun | **46.7 ms** | `@napi-rs/blake-hash` 479 ms, hash-wasm 1.9 s, `@noble/hashes` 3.1 s |
 | Go | **40.5 ms** | lukechampine 99.6 ms (every core), zeebo 1144 ms |
-| Go, Linux x86-64 (Modal) | **36.7 ms** | lukechampine 64.2 ms, zeebo 440 ms |
+| Go, Linux x86-64 (Modal) | **23.9 ms** | lukechampine 57.4 ms, zeebo 392 ms |
 
 On the Mac the libraries copy big inputs into Bend's heap (macOS keeps big
 allocations where the heap cannot reach), so the official crate on every core
