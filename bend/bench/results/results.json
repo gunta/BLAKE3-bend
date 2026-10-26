@@ -204,8 +204,8 @@
     "GPU reads: ~5.5-6.8 ms per GiB natively; BLAKE3's compressions fit under them, natively and in Bend, so the GPU hash is read-bound."
   ],
   "proofs": {
-    "seconds": 229,
-    "note": "bend/prove.sh (bend PROOF.bend with a deep stack), one run on the M5 Pro under outside load: ALL PROOFS CHECK for 28 laws and 45 lemmas. The known answers take nearly all of it; the other laws check in ~36 s."
+    "seconds": 206,
+    "note": "bend/prove.sh (bend PROOF.bend with a deep stack), one run on the M5 Pro, load not controlled: ALL PROOFS CHECK for 38 laws and 385 lemmas (ADR 0015). The known answers take most of it; the other laws check in ~41 s."
   },
   "techniques": [
     {

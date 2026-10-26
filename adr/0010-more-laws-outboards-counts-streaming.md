@@ -96,6 +96,10 @@ claims.
 
 ## What is not proven
 
+(ADR 0015 adds the CPU, GPU and keyed trees for every input and ties the
+tree laws to the code; the points below stand.)
+
+
 - As in ADR 0007, the laws pass `~share` (Array.clone); the code passes
   `~fork` (Array.fork, `@unsafe`).
 - b3io.bend imports hash.bend (Array.fork), so its stack is modelled, not

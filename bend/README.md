@@ -47,8 +47,8 @@ for comparison: `cargo build --release --features neon` in `../b3sum`.
 ## Laws
 
 `LAWS.bend` states what the code must satisfy and `PROOF.bend` proves it
-(ADRs 0007 and 0010): 28 laws, 45 lemmas. The gate, about four minutes,
-almost all of it the checker computing BLAKE3 itself:
+(ADRs 0007, 0010 and 0015): 38 laws, 385 lemmas. The gate, about three and a
+half minutes, most of it the checker computing BLAKE3 itself:
 
 ```bash
 bend/prove.sh
@@ -62,6 +62,12 @@ It prints ALL PROOFS CHECK when every law holds:
 - **The 8-lane path, for every input**: each lane of `compress8` and
   `par8` is the scalar `compress` or `parent` of that lane; `perm` gives the
   C code's `MSG_SCHEDULE`. The IV and flags are the C code's too.
+- **The trees that run, for every input**: the CPU's 8-lane tree
+  (`hash.at`, `hash`), the GPU's tree (`hash1.at`, `hash1`: flat leaves and
+  strided lanes) and the keyed tree (`hash8.at.k`, keyed hashing and key
+  derivation) give blake3.bend's scalar tree's CV for every array and span
+  (and key and mode flag), and that tree is BLAKE3's: the left-full binary
+  tree over the chunks, each leaf a chunk and each node a parent.
 - **Outboards, for every input**: the tree that writes iroh's bao outboard
   (`hash.ob`, `hash.ob.at`) gives the plain tree's CV for every array,
   length and span.
@@ -69,7 +75,7 @@ It prints ALL PROOFS CHECK when every law holds:
   its 2^k-chunk segments (what b3sum's 1 GiB parts rely on), and a
   level-by-level reduction (pair neighbours, carry the odd one) builds the
   same tree, with n leaves and n - 1 parents for n chunks; `tree1`'s split
-  rule matches the digit form for every input up to 1024 chunks.
+  rule is the digit form for every chunk count.
 - **Streaming, for any segment count**: `b3io.bend`'s lazy merge stack
   (modelled with Nat counts) builds that tree, every segment once and in
   order.
