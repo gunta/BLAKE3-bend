@@ -89,8 +89,7 @@ LAWS_HEAD = '''\
 #   n chunks splits into its 2^k-chunk segments (ADR 0004), and pairing
 #   neighbours level by level, the odd one carried up (a GPU reduction),
 #   builds that same tree, with n leaves and n - 1 parents. tree1's split
-#   rule (n > 2^p) matches the digit form these use for every input up to
-#   1024 chunks.
+#   rule (n > 2^p) is the digit form these use, for every chunk count.
 # - Streaming: the lazy merge stack that hashes a streamed file's segments
 #   builds that tree, every segment once and in order, for any count.
 
@@ -202,7 +201,7 @@ TREES = '''\
 # complete tree over those 2^(d-1) chunks and the tree over the rest; a 0
 # means every chunk fits in the left half, and the node is that half. That is
 # blake3.bend's tree1 split (big: n > 2^p, for n = r + 1 chunks): the law
-# tree1.digits checks the two agree.
+# tree1.digits proves the two agree.
 
 type Shape is Data:
   Tip{}
@@ -293,27 +292,13 @@ def tree1(+k: Nat, b: Bool, +n: Nat) -> Shape:
       +n2 = Nat.sub(n, h)
       Fork{tree1(p, big(p, h), h), tree1(p, big(p, n2), n2)}
 
-def Shape.eq(+a: Shape, +b: Shape) -> Bool:
-  match a b:
-    case Tip{} Tip{}:
-      True{}
-    case Fork{l, r} Fork{l2, r2}:
-      Shape.eq(l, l2) && Shape.eq(r, r2)
-    case _ _:
-      False{}
-
-# Whether tree1 and tree(digits) agree for every count 1..n at depth k.
-def agree(+k: Nat, +n: Nat) -> Bool:
-  match n:
-    case 0n:
-      True{}
-    case 1n+r:
-      Shape.eq(tree1(k, big(k, n), n), tree(digits(k, r, []))) && agree(k, r)
-
-# tree(digits) is tree1's rule: checked for every input of 1 to 1024 chunks
-# (up to 1 MiB), by computation (not by induction).
+# tree(digits) is tree1's rule: the node of depth k over r + 1 chunks
+# (r < 2^k) is the tree of r's k digits, for every chunk count.
 law tree1.digits:
-  {agree(10n, 1024n) == True{} : Bool}
+  for +k: Nat
+  for +r: Nat
+  for e: {shr(k, r) == 0n : Nat}
+  {tree1(k, big(k, 1n+r), 1n+r) == tree(digits(k, r, [])) : Shape}
 
 # Every leaf of t, made the complete tree over 2^k chunks.
 def grow(t: Shape, +k: Nat) -> Shape:
@@ -408,6 +393,7 @@ PROOF_HEAD = '''\
 import Base
 import ./blake3.bend as B3
 import ./LAWS.bend as Laws
+import ./proof/words.bend as A
 import ./proof/cpu.bend as C
 import ./proof/gpu.bend as G
 
@@ -988,6 +974,357 @@ def ob.hash(a, len):
 
 def ob.at(a, cb, nch, last, rf):
   ob.go(B3.depth(nch), a, cb, nch, last, rf)
+
+'''
+
+PROOF_DIGITS = '''
+# BLAKE3's split rule is the digit rule, for every chunk count
+# -------------------------------------------------------------
+
+# half and odd past an even number 2p.
+law half.dbl:
+  for +p: Nat
+  for +w: Nat
+  {half(Nat.add(Nat.double(p), w)) == Nat.add(p, half(w)) : Nat}
+
+def half.dbl(p, w):
+  match p:
+    case 0n:
+      {==}
+    case 1n+q:
+      Equal.cong(Nat, Nat, z => 1n+z, half(Nat.add(Nat.double(q), w)), Nat.add(q, half(w)), half.dbl(q, w))
+
+law odd.dbl:
+  for +p: Nat
+  for +w: Nat
+  {odd(Nat.add(Nat.double(p), w)) == odd(w) : Bool}
+
+def odd.dbl(p, w):
+  match p:
+    case 0n:
+      {==}
+    case 1n+q:
+      odd.dbl(q, w)
+
+# 2^p + w shifted down p bits is one more than w shifted.
+law shr.add:
+  for +p: Nat
+  for +w: Nat
+  {shr(p, Nat.add(pow2(p), w)) == 1n+shr(p, w) : Nat}
+
+def shr.add(p, w):
+  match p:
+    case 0n:
+      {==}
+    case 1n+q:
+      %Equal.sym(Nat, half(Nat.add(Nat.double(pow2(q)), w)), Nat.add(pow2(q), half(w)), half.dbl(pow2(q), w)) :
+        {shr(q, _) == 1n+shr(q, half(w)) : Nat}
+      shr.add(q, half(w))
+
+law shr.half:
+  for +p: Nat
+  for +v: Nat
+  {shr(p, half(v)) == half(shr(p, v)) : Nat}
+
+def shr.half(p, v):
+  match p:
+    case 0n:
+      {==}
+    case 1n+q:
+      shr.half(q, half(v))
+
+# The low p digits of 2^p + w are w's.
+law digits.pow:
+  for +p: Nat
+  for +w: Nat
+  for +acc: List<&2, Bool>
+  {digits(p, Nat.add(pow2(p), w), acc) == digits(p, w, acc) : List<&2, Bool>}
+
+def digits.pow(p, w, acc):
+  match p:
+    case 0n:
+      {==}
+    case 1n+q:
+      %Equal.sym(Nat, half(Nat.add(Nat.double(pow2(q)), w)), Nat.add(pow2(q), half(w)), half.dbl(pow2(q), w)) :
+        {digits(q, _, odd(Nat.add(Nat.double(pow2(q)), w)) <> acc) == digits(q, half(w), odd(w) <> acc) : List<&2, Bool>}
+      %Equal.sym(Bool, odd(Nat.add(Nat.double(pow2(q)), w)), odd(w), odd.dbl(pow2(q), w)) :
+        {digits(q, Nat.add(pow2(q), half(w)), _ <> acc) == digits(q, half(w), odd(w) <> acc) : List<&2, Bool>}
+      digits.pow(q, half(w), odd(w) <> acc)
+
+law digits.len:
+  for +p: Nat
+  for +w: Nat
+  for +acc: List<&2, Bool>
+  {List.length(&2, Bool, digits(p, w, acc)) == Nat.add(p, List.length(&2, Bool, acc)) : Nat}
+
+def digits.len(p, w, acc):
+  match p:
+    case 0n:
+      {==}
+    case 1n+q:
+      Equal.trans(Nat, List.length(&2, Bool, digits(q, half(w), odd(w) <> acc)), Nat.add(q, 1n+List.length(&2, Bool, acc)),
+        1n+Nat.add(q, List.length(&2, Bool, acc)), digits.len(q, half(w), odd(w) <> acc), A.add_succ(q, List.length(&2, Bool, acc)))
+
+# The top digit of p + 1 is bit p.
+law digits.top:
+  for +p: Nat
+  for +v: Nat
+  for +acc: List<&2, Bool>
+  {digits(1n+p, v, acc) == odd(shr(p, v)) <> digits(p, v, acc) : List<&2, Bool>}
+
+def digits.top(p, v, acc):
+  match p:
+    case 0n:
+      {==}
+    case 1n+q:
+      digits.top(q, half(v), odd(v) <> acc)
+
+law ltz:
+  for +u: Nat
+  {Nat.is_lt(u, 0n) == False{} : Bool}
+
+def ltz(u):
+  match u:
+    case 0n:
+      {==}
+    case 1n+s:
+      {==}
+
+law le0:
+  for +s: Nat
+  {Nat.is_le(0n, s) == True{} : Bool}
+
+def le0(s):
+  match s:
+    case 0n:
+      {==}
+    case 1n+q:
+      {==}
+
+law n.gt0:
+  for +q: Nat
+  for +e: {Nat.is_gt(0n, q) == True{} : Bool}
+  {False{} == True{} : Bool}
+
+def n.gt0(q, e):
+  match q:
+    case 0n:
+      e
+    case 1n+s:
+      e
+
+law pow2.pos:
+  for +m: Nat
+  {Nat.is_gt(pow2(m), 0n) == True{} : Bool}
+
+def pow2.pos(m):
+  match m:
+    case 0n:
+      {==}
+    case 1n+q:
+      A.dpos(pow2(q), pow2.pos(q))
+
+# v < 2p: half(v) < p.
+law half.lt:
+  for +v: Nat
+  for +p: Nat
+  for +e: {Nat.is_lt(v, Nat.double(p)) == True{} : Bool}
+  {Nat.is_lt(half(v), p) == True{} : Bool}
+
+def half.lt(v, p, e):
+  match v:
+    case 0n:
+      match p:
+        case 0n:
+          Empty.absurd({Nat.is_lt(0n, 0n) == True{} : Bool}, A.absurd.ft(e))
+        case 1n+q:
+          {==}
+    case 1n+v1:
+      match v1:
+        case 0n:
+          match p:
+            case 0n:
+              Empty.absurd({Nat.is_lt(0n, 0n) == True{} : Bool}, A.absurd.ft(e))
+            case 1n+q:
+              {==}
+        case 1n+u:
+          match p:
+            case 0n:
+              Empty.absurd({Nat.is_lt(1n+half(u), 0n) == True{} : Bool}, A.absurd.ft(e))
+            case 1n+q:
+              half.lt(u, q, e)
+
+law lt.shr:
+  for +p: Nat
+  for +v: Nat
+  for +e: {Nat.is_lt(v, pow2(p)) == True{} : Bool}
+  {shr(p, v) == 0n : Nat}
+
+def lt.shr(p, v, e):
+  match p:
+    case 0n:
+      match v:
+        case 0n:
+          {==}
+        case 1n+u:
+          Empty.absurd({1n+u == 0n : Nat}, A.absurd.tf(Equal.trans(Bool, True{}, Nat.is_lt(u, 0n), False{}, Equal.sym(Bool, Nat.is_lt(u, 0n), True{}, e), ltz(u))))
+    case 1n+q:
+      lt.shr(q, half(v), half.lt(v, pow2(q), e))
+
+# 1 + r chunks are no more than p: r < p.
+law ngt.lt:
+  for +r: Nat
+  for +p: Nat
+  for +e: {Nat.is_gt(1n+r, p) == False{} : Bool}
+  {Nat.is_lt(r, p) == True{} : Bool}
+
+def ngt.lt(r, p, e):
+  match r p:
+    case _ 0n:
+      Empty.absurd({Nat.is_lt(r, 0n) == True{} : Bool}, A.absurd.tf(e))
+    case 0n 1n+q:
+      {==}
+    case 1n+u 1n+q:
+      ngt.lt(u, q, e)
+
+# 1 + r chunks are more than p: p <= r.
+law gt.le:
+  for +r: Nat
+  for +p: Nat
+  for +e: {Nat.is_gt(1n+r, p) == True{} : Bool}
+  {Nat.is_le(p, r) == True{} : Bool}
+
+def gt.le(r, p, e):
+  match r p:
+    case _ 0n:
+      le0(r)
+    case 0n 1n+q:
+      Empty.absurd({Nat.is_le(1n+q, 0n) == True{} : Bool}, A.absurd.ft(n.gt0(q, e)))
+    case 1n+u 1n+q:
+      gt.le(u, q, e)
+
+law sub.add1:
+  for +a: Nat
+  for +w: Nat
+  {Nat.sub(1n+Nat.add(a, w), a) == 1n+w : Nat}
+
+def sub.add1(a, w):
+  match a:
+    case 0n:
+      {==}
+    case 1n+b:
+      sub.add1(b, w)
+
+law sub.add0:
+  for +a: Nat
+  for +w: Nat
+  {Nat.sub(Nat.add(a, w), a) == w : Nat}
+
+def sub.add0(a, w):
+  match a:
+    case 0n:
+      match w:
+        case 0n:
+          {==}
+        case 1n+u:
+          {==}
+    case 1n+b:
+      sub.add0(b, w)
+
+law sub.dbl:  for +x: Nat
+  {Nat.sub(Nat.double(x), x) == x : Nat}
+
+def sub.dbl(x):
+  %Equal.sym(Nat, Nat.double(x), Nat.add(x, x), A.double_add(x)) : {Nat.sub(_, x) == x : Nat}
+  sub.add0(x, x)
+
+law pow2.gt:
+  for +q: Nat
+  {Nat.is_gt(Nat.double(pow2(q)), pow2(q)) == True{} : Bool}
+
+def pow2.gt(q):
+  A.dgt(pow2(q), pow2.pos(q))
+
+# The tree over 2^p chunks is the complete one.
+law t1.full:
+  for +p: Nat
+  {tree1(p, big(p, pow2(p)), pow2(p)) == full(p) : Shape}
+
+def t1.full(p):
+  match p:
+    case 0n:
+      {==}
+    case 1n+q:
+      %Equal.sym(Bool, Nat.is_gt(Nat.double(pow2(q)), pow2(q)), True{}, pow2.gt(q)) :
+        {tree1(1n+q, _, pow2(1n+q)) == full(1n+q) : Shape}
+      %Equal.sym(Nat, Nat.sub(Nat.double(pow2(q)), pow2(q)), pow2(q), sub.dbl(pow2(q))) :
+        {Fork{tree1(q, big(q, pow2(q)), pow2(q)), tree1(q, big(q, _), _)} == full(1n+q) : Shape}
+      %Equal.sym(Shape, tree1(q, big(q, pow2(q)), pow2(q)), full(q), t1.full(q)) : {Fork{_, _} == full(1n+q) : Shape}
+      {==}
+
+law half.one:
+  for +x: Nat
+  for +e: {half(1n+x) == 0n : Nat}
+  {x == 0n : Nat}
+
+def half.one(x, e):
+  match x:
+    case 0n:
+      {==}
+    case 1n+y:
+      Empty.absurd({1n+y == 0n : Nat}, A.absurd.ft(Equal.cong(Nat, Bool, z => Nat.is_eq(z, 0n), 1n+half(y), 0n, e)))
+
+# tree1's rule (n > 2^(k-1)) is the digit rule, for every r < 2^k: the
+# decision b is a parameter, so the induction matches it.
+law t1d:
+  for +k: Nat
+  for +r: Nat
+  for +e: {shr(k, r) == 0n : Nat}
+  for b: Bool
+  for +eb: {big(k, 1n+r) == b : Bool}
+  {tree1(k, b, 1n+r) == tree(digits(k, r, [])) : Shape}
+
+def t1d(k, r, e, b, eb):
+  match k b:
+    case 0n _:
+      {==}
+    case 1n+p False{}:
+      +lt = ngt.lt(r, pow2(p), eb)
+      +z = lt.shr(p, r, lt)
+      %Equal.sym(List<&2, Bool>, digits(1n+p, r, []), odd(shr(p, r)) <> digits(p, r, []), digits.top(p, r, [])) :
+        {tree1(p, big(p, 1n+r), 1n+r) == tree(_) : Shape}
+      %Equal.sym(Nat, shr(p, r), 0n, z) : {tree1(p, big(p, 1n+r), 1n+r) == tree(odd(_) <> digits(p, r, [])) : Shape}
+      t1d(p, r, z, big(p, 1n+r), {==})
+    case 1n+p True{}:
+      +pw = pow2(p)
+      +w = Nat.sub(r, pw)
+      +ar = A.n.add_sub(pw, r, gt.le(r, pw, eb))
+      +e2 = Equal.trans(Nat, shr(1n+p, Nat.add(pw, w)), shr(1n+p, r), 0n, Equal.cong(Nat, Nat, y => shr(1n+p, y), Nat.add(pw, w), r, ar), e)
+      +e3 = Equal.trans(Nat, half(1n+shr(p, w)), half(shr(p, Nat.add(pw, w))), 0n,
+        Equal.cong(Nat, Nat, y => half(y), 1n+shr(p, w), shr(p, Nat.add(pw, w)), Equal.sym(Nat, shr(p, Nat.add(pw, w)), 1n+shr(p, w), shr.add(p, w))),
+        Equal.trans(Nat, half(shr(p, Nat.add(pw, w))), shr(p, half(Nat.add(pw, w))), 0n, Equal.sym(Nat, shr(p, half(Nat.add(pw, w))), half(shr(p, Nat.add(pw, w))), shr.half(p, Nat.add(pw, w))), e2))
+      +ew = half.one(shr(p, w), e3)
+      %ar : {tree1(1n+p, True{}, 1n+_) == tree(digits(1n+p, _, [])) : Shape}
+      %Equal.sym(Nat, Nat.sub(1n+Nat.add(pw, w), pw), 1n+w, sub.add1(pw, w)) :
+        {Fork{tree1(p, big(p, pw), pw), tree1(p, big(p, _), _)} == tree(digits(1n+p, Nat.add(pw, w), [])) : Shape}
+      %Equal.sym(List<&2, Bool>, digits(1n+p, Nat.add(pw, w), []), odd(shr(p, Nat.add(pw, w))) <> digits(p, Nat.add(pw, w), []), digits.top(p, Nat.add(pw, w), [])) :
+        {Fork{tree1(p, big(p, pw), pw), tree1(p, big(p, 1n+w), 1n+w)} == tree(_) : Shape}
+      %Equal.sym(Nat, shr(p, Nat.add(pw, w)), 1n+shr(p, w), shr.add(p, w)) :
+        {Fork{tree1(p, big(p, pw), pw), tree1(p, big(p, 1n+w), 1n+w)} == tree(odd(_) <> digits(p, Nat.add(pw, w), [])) : Shape}
+      %Equal.sym(Nat, shr(p, w), 0n, ew) :
+        {Fork{tree1(p, big(p, pw), pw), tree1(p, big(p, 1n+w), 1n+w)} == tree(odd(1n+_) <> digits(p, Nat.add(pw, w), [])) : Shape}
+      %Equal.sym(List<&2, Bool>, digits(p, Nat.add(pw, w), []), digits(p, w, []), digits.pow(p, w, [])) :
+        {Fork{tree1(p, big(p, pw), pw), tree1(p, big(p, 1n+w), 1n+w)} == tree(True{} <> _) : Shape}
+      %Equal.sym(Nat, List.length(&2, Bool, digits(p, w, [])), Nat.add(p, 0n), digits.len(p, w, [])) :
+        {Fork{tree1(p, big(p, pw), pw), tree1(p, big(p, 1n+w), 1n+w)} == Fork{full(_), tree(digits(p, w, []))} : Shape}
+      %Equal.sym(Nat, Nat.add(p, 0n), p, A.add_zero(p)) :
+        {Fork{tree1(p, big(p, pw), pw), tree1(p, big(p, 1n+w), 1n+w)} == Fork{full(_), tree(digits(p, w, []))} : Shape}
+      %Equal.sym(Shape, tree1(p, big(p, pw), pw), full(p), t1.full(p)) : {Fork{_, tree1(p, big(p, 1n+w), 1n+w)} == Fork{full(p), tree(digits(p, w, []))} : Shape}
+      %Equal.sym(Shape, tree1(p, big(p, 1n+w), 1n+w), tree(digits(p, w, [])), t1d(p, w, ew, big(p, 1n+w), {==})) : {Fork{full(p), _} == Fork{full(p), tree(digits(p, w, []))} : Shape}
+      {==}
+
+def Laws.tree1.digits(k, r, e):
+  t1d(k, r, e, big(k, 1n+r), {==})
 
 '''
 
@@ -1644,6 +1981,14 @@ def laws_names(text):
                    for l in text.splitlines(keepends=True))
 
 
+def digits_names(text):
+    """laws_names, with the tree1 model's own names (tree1, big, pow2)."""
+    pat = re.compile(r"(?<![\w.])(" + "|".join(
+        re.escape(n) for n in sorted(LAWS_NAMES + ["tree1", "big", "pow2"], key=len, reverse=True)) + r")(?![\w.])")
+    return "".join(l if l.lstrip().startswith("#") else pat.sub(r"Laws.\1", l)
+                   for l in text.splitlines(keepends=True))
+
+
 def proof_outboards():
     def t8(name, k, ku, d, aa, c, n, rf):
         return f"B3.{name}(~share, {k}, {ku}, {d}, {aa}, {c}, {n}, cb, nch, last, {rf})"
@@ -1769,14 +2114,14 @@ def proof_file():
     # The laws proven by {==}: the checker computes both sides.
     computed = ([f"kat.hash.len{n}" for n in KAT_HASH] +
                 [f"kat.hash1.len{n}" for n in KAT_HASH1] +
-                ["kat.g4.len4096", "kat.segs.len2048", "tree1.digits"])
+                ["kat.g4.len4096", "kat.segs.len2048"])
     return (PROOF_HEAD + "# Known answers\n# -------------\n\n" +
             "".join(f"def Laws.{n}():\n  {{==}}\n\n" for n in computed) +
             proof_lanes() +
             "# Constants\n# ---------\n\n"
             "def Laws.consts.iv():\n  {==}\n\n"
             "def Laws.consts.flags():\n  {==}\n\n" +
-            PROOF_CPU + PROOF_GPU + proof_outboards() + PROOF_TREES + laws_names(PROOF_COUNTS) +
+            PROOF_CPU + PROOF_GPU + proof_outboards() + PROOF_TREES + digits_names(PROOF_DIGITS) + laws_names(PROOF_COUNTS) +
             laws_names(PROOF_STREAM))
 
 

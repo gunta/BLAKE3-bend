@@ -25,8 +25,7 @@
 #   n chunks splits into its 2^k-chunk segments (ADR 0004), and pairing
 #   neighbours level by level, the odd one carried up (a GPU reduction),
 #   builds that same tree, with n leaves and n - 1 parents. tree1's split
-#   rule (n > 2^p) matches the digit form these use for every input up to
-#   1024 chunks.
+#   rule (n > 2^p) is the digit form these use, for every chunk count.
 # - Streaming: the lazy merge stack that hashes a streamed file's segments
 #   builds that tree, every segment once and in order, for any count.
 
@@ -395,7 +394,7 @@ law ob.at:
 # complete tree over those 2^(d-1) chunks and the tree over the rest; a 0
 # means every chunk fits in the left half, and the node is that half. That is
 # blake3.bend's tree1 split (big: n > 2^p, for n = r + 1 chunks): the law
-# tree1.digits checks the two agree.
+# tree1.digits proves the two agree.
 
 type Shape is Data:
   Tip{}
@@ -486,27 +485,13 @@ def tree1(+k: Nat, b: Bool, +n: Nat) -> Shape:
       +n2 = Nat.sub(n, h)
       Fork{tree1(p, big(p, h), h), tree1(p, big(p, n2), n2)}
 
-def Shape.eq(+a: Shape, +b: Shape) -> Bool:
-  match a b:
-    case Tip{} Tip{}:
-      True{}
-    case Fork{l, r} Fork{l2, r2}:
-      Shape.eq(l, l2) && Shape.eq(r, r2)
-    case _ _:
-      False{}
-
-# Whether tree1 and tree(digits) agree for every count 1..n at depth k.
-def agree(+k: Nat, +n: Nat) -> Bool:
-  match n:
-    case 0n:
-      True{}
-    case 1n+r:
-      Shape.eq(tree1(k, big(k, n), n), tree(digits(k, r, []))) && agree(k, r)
-
-# tree(digits) is tree1's rule: checked for every input of 1 to 1024 chunks
-# (up to 1 MiB), by computation (not by induction).
+# tree(digits) is tree1's rule: the node of depth k over r + 1 chunks
+# (r < 2^k) is the tree of r's k digits, for every chunk count.
 law tree1.digits:
-  {agree(10n, 1024n) == True{} : Bool}
+  for +k: Nat
+  for +r: Nat
+  for e: {shr(k, r) == 0n : Nat}
+  {tree1(k, big(k, 1n+r), 1n+r) == tree(digits(k, r, [])) : Shape}
 
 # Every leaf of t, made the complete tree over 2^k chunks.
 def grow(t: Shape, +k: Nat) -> Shape:

@@ -122,6 +122,11 @@ const GROUPS: (Omit<LawGroup, 'cards'> & { cards: LawCard[] })[] = [
         covers: 'every chunk count',
       },
       {
+        names: ['tree1.digits'],
+        claim: 'blake3.bend’s split rule (n > 2^p) is the digit form the tree laws reason about, so they are laws about the tree the code builds.',
+        covers: 'every chunk count',
+      },
+      {
         names: ['stream.shape', 'stream.order'],
         claim:
           'The lazy merge stack that streamed the 101.5 GB model shard builds that same tree, with every segment once and in order, so a streamed hash is the mapped one.',
@@ -145,11 +150,6 @@ const GROUPS: (Omit<LawGroup, 'cards'> & { cards: LawCard[] })[] = [
         names: ['consts.iv', 'consts.flags'],
         claim: 'The IV and the four domain flags are the C code’s constants, and the flags are distinct bits.',
         covers: 'read from c/blake3_impl.h',
-      },
-      {
-        names: ['tree1.digits'],
-        claim: 'blake3.bend’s split rule (n > 2^p) is the digit form the tree laws reason about.',
-        covers: 'every input of 1 to 1,024 chunks',
       },
     ],
   },
