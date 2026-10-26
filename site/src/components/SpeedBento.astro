@@ -1,13 +1,14 @@
 ---
 /**
  * The home page's proof, as a bento: the biggest real file (to scale), many
- * small files, the GPU, the drop-in, what is proven, and the library. Numbers
+ * small files, the drop-in, what is proven, and the library. The GPU has its
+ * own section right after this one (Versus.astro). Numbers
  * come from src/lib/home.ts; the detail lives on /benchmarks/.
  */
-import { BookOpen, FolderTree, Gpu, HardDriveDownload, ShieldCheck, Terminal } from 'lucide-static';
+import { BookOpen, FolderTree, HardDriveDownload, ShieldCheck, Terminal } from 'lucide-static';
 import BrandMark from './BrandMark.astro';
 import Icon from './Icon.astro';
-import { folders, gpu, gpuApis, laws, machine, model, universalLaws } from '../lib/home';
+import { folders, laws, machine, model, universalLaws } from '../lib/home';
 import { withBase } from '../lib/site';
 
 const pct = model ? ((model.bend / model.baseline) * 100).toFixed(1) : '0';
@@ -92,45 +93,6 @@ const cells = Array.from({ length: 96 }, (_, i) => ((i * 37) % 23) / 23);
         )
       }
 
-      {
-        gpu && (
-          <article class="tile t-gpu" data-reveal style="--i: 2">
-            <p class="tile-kicker">
-              <Icon svg={Gpu} /> On the GPU
-            </p>
-            <p class="mega mid-num">
-              <span data-countup={gpu.rate}>{gpu.rate}</span>
-              <span class="unit">{gpu.unit}</span>
-            </p>
-            {
-              gpuApis.length > 1 ? (
-                <ul class="apis" role="list">
-                  {gpuApis.map((a) => (
-                    <li>
-                      <span class="api">
-                        {a.backend} <span class="api-on">{a.engine === 'native' ? 'native · ' : ''}{a.machine}</span>
-                      </span>
-                      <span class="api-rate num">{a.gbps} GB/s</span>
-                      <span class="gauge" aria-hidden="true">
-                        <span style={`width: ${(a.share * 100).toFixed(1)}%`} />
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div class="gauge" aria-hidden="true">
-                  <span />
-                </div>
-              )
-            }
-            <p class="tile-body">
-              {gpu.size} in memory in {gpu.ms} ms on the {gpu.machine}, with {gpu.kernel}: {gpu.ratio} the official crate on all its CPU cores.{' '}
-              <a href={gpu.href}>Every GPU →</a>
-            </p>
-          </article>
-        )
-      }
-
       <article class="tile t-dropin" data-reveal style="--i: 1">
         <p class="tile-kicker">
           <Icon svg={Terminal} /> Drop-in
@@ -167,9 +129,8 @@ const cells = Array.from({ length: 96 }, (_, i) => ((i * 37) % 23) / 23);
     </div>
 
     <p class="footnote" data-reveal>
-      Measured against the official BLAKE3 tools, same files, same fingerprints, on one {machine}{
-        gpu && gpu.machine !== machine && <>; the GPU figure on the {gpu.machine}</>
-      }. Some workloads only tie; every number, and how it was measured, is on <a href={withBase('benchmarks/')}>the benchmarks page</a>.
+      Measured against the official BLAKE3 tools, same files, same fingerprints, on one {machine}. Some workloads only tie; every number, and how it
+      was measured, is on <a href={withBase('benchmarks/')}>the benchmarks page</a>.
     </p>
   </div>
 </section>
@@ -247,7 +208,7 @@ const cells = Array.from({ length: 96 }, (_, i) => ((i * 37) % 23) / 23);
 
   .bento {
     grid-template-areas:
-      'model model folders gpu'
+      'model model folders folders'
       'model model dropin proofs'
       'lib lib dropin proofs';
     grid-auto-rows: minmax(13rem, auto);
@@ -258,9 +219,6 @@ const cells = Array.from({ length: 96 }, (_, i) => ((i * 37) % 23) / 23);
   }
   .t-folders {
     grid-area: folders;
-  }
-  .t-gpu {
-    grid-area: gpu;
   }
   .t-dropin {
     grid-area: dropin;
@@ -276,7 +234,7 @@ const cells = Array.from({ length: 96 }, (_, i) => ((i * 37) % 23) / 23);
     .bento {
       grid-template-areas:
         'model model'
-        'folders gpu'
+        'folders folders'
         'dropin proofs'
         'lib lib';
     }
@@ -426,6 +384,13 @@ const cells = Array.from({ length: 96 }, (_, i) => ((i * 37) % 23) / 23);
     gap: 3px;
   }
 
+  /* The tile runs two columns wide wherever the bento has two or more. */
+  @media (min-width: 40rem) {
+    .cells {
+      grid-template-columns: repeat(32, 1fr);
+    }
+  }
+
   .cells i {
     aspect-ratio: 1;
     border-radius: 2px;
@@ -450,63 +415,6 @@ const cells = Array.from({ length: 96 }, (_, i) => ((i * 37) % 23) / 23);
         background: rgb(212 255 58 / 0.25);
       }
     }
-  }
-
-  /* GPU: a gauge near the top of its range. */
-  .gauge {
-    height: 6px;
-    border-radius: 999px;
-    background: var(--surface-3);
-    overflow: hidden;
-  }
-
-  .gauge span {
-    display: block;
-    width: 92%;
-    height: 100%;
-    border-radius: inherit;
-    background: linear-gradient(90deg, var(--ion), #9ff3ff);
-    box-shadow: 0 0 14px rgb(70 227 255 / 0.6);
-  }
-
-  .t-gpu .unit {
-    font-size: 0.4em;
-  }
-
-  /* One bar per GPU API, to scale against the fastest. */
-  .apis {
-    display: grid;
-    gap: 0.65rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .apis li {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: baseline;
-    gap: 0.35rem 0.75rem;
-    font-size: 0.8125rem;
-  }
-
-  .apis .gauge {
-    grid-column: 1 / -1;
-  }
-
-  .api {
-    color: var(--ink);
-    font-weight: 600;
-  }
-
-  .api-on {
-    color: var(--ink-3);
-    font-weight: 400;
-  }
-
-  .api-rate {
-    color: var(--ink-2);
-    font-family: var(--font-mono);
   }
 
   .term {
