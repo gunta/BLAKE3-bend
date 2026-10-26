@@ -436,11 +436,12 @@ def lib(steps: str = "test,bench", log: int = 28, reps: int = 8) -> dict:
         t = sh("python3 bend/lib/test.py", cwd=work)
         out["c_tests"] = [line for line in t.splitlines() if "pass" in line or "MISMATCH" in line]
         print("\n".join(out["c_tests"]), flush=True)
+    if "test" in steps or "rust" in steps:
         crate = f"{work}/bend/crate"
         out["rust_tests"] = {}
         for name, env in (("engine", {}), ("gpu", {"TURBOBLAKE_GPU": "all"}),
                           ("split", {"TURBOBLAKE_GPU": "all", "TURBOBLAKE_GPU_SHARE": "0.5"})):
-            r = sh("cargo test --release --lib 2>&1 | grep 'test result'", cwd=crate,
+            r = sh("cargo test --release --lib 2>&1 | grep -E 'test result|^test .* FAILED|panicked'", cwd=crate,
                    env={"TURBOBLAKE_MIN": "2048", "TURBOBLAKE_GPU_MIN": "2048", **env})
             out["rust_tests"][name] = r.strip()
             print(name, r.strip(), flush=True)

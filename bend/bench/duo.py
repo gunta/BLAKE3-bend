@@ -75,10 +75,12 @@ def run_native(d, reps, plan):
     env = dict(os.environ)
     if share:
         env["TURBOBLAKE_GPU_SHARE"] = share
-    out = subprocess.run([NATIVE, str(d), str(reps), mode], env=env, capture_output=True,
-                         text=True, check=True).stdout
-    rows = [line.split() for line in out.splitlines() if line.startswith("us ")][1:]
-    return [int(r[1]) for r in rows], {r[2] for r in rows}
+    r = subprocess.run([NATIVE, str(d), str(reps), mode], env=env, capture_output=True, text=True)
+    if r.returncode != 0:
+        print(f"plan {plan} failed ({r.returncode}): {r.stderr.strip()[-300:]}", flush=True)
+        return [], set()
+    rows = [line.split() for line in r.stdout.splitlines() if line.startswith("us ")][1:]
+    return [int(x[1]) for x in rows], {x[2] for x in rows}
 
 
 def native(args):
@@ -103,6 +105,8 @@ def native(args):
             digests[plan] |= dg
     rows = []
     for plan in plans:
+        if not times[plan]:
+            continue
         med, best = statistics.median(times[plan]), min(times[plan])
         rows.append({"plan": plan, "bytes": 4 << d, "median_ms": med / 1000, "min_ms": best / 1000,
                      "runs_ms": [t / 1000 for t in times[plan]], "digests": sorted(digests[plan])})

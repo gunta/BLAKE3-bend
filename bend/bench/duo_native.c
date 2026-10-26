@@ -37,6 +37,10 @@ int main(int argc, char** argv) {
   const char* mode = argv[3];
   size_t words = (size_t)1 << d, len = words * 4;
   int split = !strcmp(mode, "split"), gpu = !strcmp(mode, "gpu");
+  if (!split && !gpu && strcmp(mode, "cpu") != 0) {
+    fprintf(stderr, "mode is cpu, split or gpu\n");
+    return 2;
+  }
   uint32_t* p = split ? turboblake_alloc(len) : malloc(len);
   if (p == NULL) {
     fprintf(stderr, "no memory for %s\n", mode);
