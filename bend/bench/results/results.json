@@ -411,6 +411,24 @@
       ]
     },
     {
+      "adr": "0015",
+      "title": "One name, turboblake",
+      "summary": "One crate, turboblake, holds the library (still named blake3) and the command line behind a default cli feature; the C library is libturboblake (turboblake.h, turboblake_subtree, -DTURBOBLAKE, beside the drop-in libblake3); the engine reads TURBOBLAKE, TURBOBLAKE_MIN, TURBOBLAKE_THREADS and TURBOBLAKE_TRACE.",
+      "date": "2026-10-26T20:10:10+09:00",
+      "tag": "Libraries",
+      "headline": "One name for the command and the library: turboblake",
+      "dek": "The Rust crate, the C library and every setting now carry the turboblake name, and one crate holds both the command and the library. Switching from the official blake3 crate changes one dependency line and none of your code.",
+      "stat": {
+        "value": "0",
+        "label": "code changes when you switch from the blake3 crate"
+      },
+      "points": [
+        "Rust: the library comes with turboblake\u2019s next crates.io release; until then, from this repository on GitHub",
+        "C: link -lturboblake, or -lblake3 as before",
+        "TURBOBLAKE=0 turns the engine off; TURBOBLAKE_THREADS caps its threads"
+      ]
+    },
+    {
       "adr": "0016",
       "title": "Never slower than b3sum",
       "summary": "The hook takes only the subtrees the engine reads in place and wins; the engine's window covers the host's memory on macOS; stdin and --no-mmap read big blocks while the last one hashes; --check hashes a batch at a time. stdin 1 GiB 529 -> 57 ms, 2,000 x 64 KiB 10.9x, single files a tie.",
