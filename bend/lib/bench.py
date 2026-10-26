@@ -7,6 +7,7 @@ one thread: the C library has no threads of its own without TBB). Hashes
 one in-memory buffer per size; prints medians and checks the digests.
     python3 bend/lib/bench.py [reps]
 """
+import json
 import os
 import pathlib
 import platform
@@ -49,13 +50,21 @@ def main():
     build()
     print("| bytes | official C (1 thread, SIMD) | libblake3-bend | | digest |")
     print("|---:|---:|---:|---:|:---:|")
+    rows, agree = [], True
     for n in SIZES:
         r = max(3, reps if n <= 64 << 20 else reps // 3)
         a, da = run("official", n, r)
         b, db = run("bend", n, r)
+        agree = agree and da == db
+        rows += [{"impl": "official C", "bytes": n, "ms": a / 1000, "digest": da[:16]},
+                 {"impl": "libblake3-bend", "bytes": n, "ms": b / 1000, "digest": db[:16]}]
         size = f"{n >> 30} GiB" if n >= 1 << 30 else f"{n >> 20} MiB" if n >= 1 << 20 else f"{n >> 10} KiB"
         print(f"| {size} | {a / 1000:.3f} ms | {b / 1000:.3f} ms | {a / b:.2f}x | "
               f"{'ok' if da == db else 'DIFFER'} |", flush=True)
+    out = ROOT / "bend" / "bench" / "results" / f"lang-c{'-' + platform.system().lower() if platform.system() != 'Darwin' else ''}.json"
+    out.write_text(json.dumps({"info": {"machine": platform.machine(), "system": platform.system(),
+                                        "digests_agree": agree}, "rows": rows}, indent=2) + "\n")
+    print(f"wrote {out}")
 
 
 if __name__ == "__main__":

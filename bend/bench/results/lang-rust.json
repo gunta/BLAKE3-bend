@@ -1,0 +1,33 @@
+{
+  "info": {"arch": "aarch64"},
+  "rows": [
+    {"impl": "blake3 hash", "bytes": 1024, "ms": 0.0009, "digest": "8214d8245d795ade", "same": true},
+    {"impl": "blake3 update_rayon", "bytes": 1024, "ms": 0.0008, "digest": "8214d8245d795ade", "same": true},
+    {"impl": "blake3-bend hash", "bytes": 1024, "ms": 0.0008, "digest": "8214d8245d795ade", "same": true},
+    {"impl": "blake3-bend update_rayon", "bytes": 1024, "ms": 0.0008, "digest": "8214d8245d795ade", "same": true},
+    {"impl": "blake3 hash", "bytes": 65536, "ms": 0.0298, "digest": "bb790298334ebf43", "same": true},
+    {"impl": "blake3 update_rayon", "bytes": 65536, "ms": 0.1483, "digest": "bb790298334ebf43", "same": true},
+    {"impl": "blake3-bend hash", "bytes": 65536, "ms": 0.0300, "digest": "bb790298334ebf43", "same": true},
+    {"impl": "blake3-bend update_rayon", "bytes": 65536, "ms": 0.1577, "digest": "bb790298334ebf43", "same": true},
+    {"impl": "blake3 hash", "bytes": 1048576, "ms": 0.4982, "digest": "6fbaf80bd5940fc4", "same": true},
+    {"impl": "blake3 update_rayon", "bytes": 1048576, "ms": 0.2366, "digest": "6fbaf80bd5940fc4", "same": true},
+    {"impl": "blake3-bend hash", "bytes": 1048576, "ms": 0.2023, "digest": "6fbaf80bd5940fc4", "same": true},
+    {"impl": "blake3-bend update_rayon", "bytes": 1048576, "ms": 0.1465, "digest": "6fbaf80bd5940fc4", "same": true},
+    {"impl": "blake3 hash", "bytes": 16777216, "ms": 7.7037, "digest": "4f9c38bd6b77a54e", "same": true},
+    {"impl": "blake3 update_rayon", "bytes": 16777216, "ms": 0.7788, "digest": "4f9c38bd6b77a54e", "same": true},
+    {"impl": "blake3-bend hash", "bytes": 16777216, "ms": 0.9097, "digest": "4f9c38bd6b77a54e", "same": true},
+    {"impl": "blake3-bend update_rayon", "bytes": 16777216, "ms": 0.8722, "digest": "4f9c38bd6b77a54e", "same": true},
+    {"impl": "blake3 hash", "bytes": 67108864, "ms": 29.7905, "digest": "c0035488215947de", "same": true},
+    {"impl": "blake3 update_rayon", "bytes": 67108864, "ms": 2.2048, "digest": "c0035488215947de", "same": true},
+    {"impl": "blake3-bend hash", "bytes": 67108864, "ms": 2.7884, "digest": "c0035488215947de", "same": true},
+    {"impl": "blake3-bend update_rayon", "bytes": 67108864, "ms": 2.7531, "digest": "c0035488215947de", "same": true},
+    {"impl": "blake3 hash", "bytes": 268435456, "ms": 124.3561, "digest": "ec510ebc356e96a9", "same": true},
+    {"impl": "blake3 update_rayon", "bytes": 268435456, "ms": 7.8604, "digest": "ec510ebc356e96a9", "same": true},
+    {"impl": "blake3-bend hash", "bytes": 268435456, "ms": 9.6641, "digest": "ec510ebc356e96a9", "same": true},
+    {"impl": "blake3-bend update_rayon", "bytes": 268435456, "ms": 9.7379, "digest": "ec510ebc356e96a9", "same": true},
+    {"impl": "blake3 hash", "bytes": 1073741824, "ms": 507.3732, "digest": "b6e2b68c4439bd98", "same": true},
+    {"impl": "blake3 update_rayon", "bytes": 1073741824, "ms": 31.8518, "digest": "b6e2b68c4439bd98", "same": true},
+    {"impl": "blake3-bend hash", "bytes": 1073741824, "ms": 37.8074, "digest": "b6e2b68c4439bd98", "same": true},
+    {"impl": "blake3-bend update_rayon", "bytes": 1073741824, "ms": 39.7522, "digest": "b6e2b68c4439bd98", "same": true}
+  ]
+}

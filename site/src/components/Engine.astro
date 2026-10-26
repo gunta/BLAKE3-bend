@@ -7,12 +7,12 @@
 import { Cpu, Gpu } from 'lucide-static';
 import BrandMark from './BrandMark.astro';
 import Icon from './Icon.astro';
-import { fmtMeasured } from '../lib/format';
-import { headlines } from '../lib/page';
+import { fmtList, fmtRate } from '../lib/format';
+import { bendGpuBest, headlines } from '../lib/page';
 import { BEND_URL } from '../lib/site';
 import { lawCount, universalCount } from '../lib/proofs';
 
-const { gpu, perCore } = headlines;
+const { perCore } = headlines;
 
 // The diagram: eight 1 KiB chunks, three levels of parents, one root.
 const W = 640;
@@ -91,8 +91,8 @@ const curve = (a: { x: number; y: number }, b: { x: number; y: number }) => {
             <div>
               <p class="t-title">On the GPU</p>
               <p class="t-body">
-                The same tree on thousands of threads.
-                {gpu && <> {gpu.context}: {fmtMeasured(gpu.comparison.bendValue)} ms.</>}
+                The same tree on thousands of threads, compiled for {bendGpuBest.length > 1 ? fmtList(bendGpuBest.map((r) => r.backend ?? 'the GPU')) : 'the GPU'}.
+                {bendGpuBest.map((r) => <> {r.backend ?? 'GPU'} on the {r.title}: {fmtRate(r.rate)} GB/s on {r.size}.</>)}
               </p>
             </div>
           </li>

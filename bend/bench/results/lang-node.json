@@ -7,397 +7,433 @@
     {
       "impl": "turboblake",
       "bytes": 1024,
-      "ms": 0.0026249999999663487,
+      "ms": 0.0025409999999510546,
+      "digest": "8214d8245d795ade"
+    },
+    {
+      "impl": "turboblake (Bend's JS)",
+      "bytes": 1024,
+      "ms": 0.07637499999998454,
       "digest": "8214d8245d795ade"
     },
     {
       "impl": "@napi-rs/blake-hash",
       "bytes": 1024,
-      "ms": 0.0024580000000469227,
+      "ms": 0.0040840000000343935,
       "digest": "8214d8245d795ade"
     },
     {
       "impl": "hash-wasm",
       "bytes": 1024,
-      "ms": 0.010124999999902684,
+      "ms": 0.013084000000048945,
       "digest": "8214d8245d795ade"
     },
     {
       "impl": "@noble/hashes",
       "bytes": 1024,
-      "ms": 0.04724999999996271,
+      "ms": 0.03812499999992269,
       "digest": "8214d8245d795ade"
     },
     {
       "impl": "crypto sha256",
       "bytes": 1024,
-      "ms": 0.0027079999999841675,
+      "ms": 0.004249999999956344,
       "digest": "447fb7c94f4e9091"
     },
     {
       "impl": "crypto sha512",
       "bytes": 1024,
-      "ms": 0.0020419999999603533,
+      "ms": 0.002207999999995991,
       "digest": "0836548ddc3a2b77"
     },
     {
       "impl": "crypto sha1",
       "bytes": 1024,
-      "ms": 0.0015419999999721767,
+      "ms": 0.0015409999999747015,
       "digest": "a37fb4c68177df13"
     },
     {
       "impl": "crypto md5",
       "bytes": 1024,
-      "ms": 0.0025000000000545697,
+      "ms": 0.002459000000044398,
       "digest": "57b49e462481dbca"
     },
     {
       "impl": "crypto blake2b512",
       "bytes": 1024,
-      "ms": 0.002124999999978172,
+      "ms": 0.002250000000003638,
       "digest": "17595db39b16a052"
     },
     {
       "impl": "crypto blake2s256",
       "bytes": 1024,
-      "ms": 0.0026249999999663487,
+      "ms": 0.002417000000036751,
       "digest": "a0d717911968a92c"
     },
     {
       "impl": "crypto sha3-256",
       "bytes": 1024,
-      "ms": 0.002333000000021457,
+      "ms": 0.002417000000036751,
       "digest": "51e451262e11cb30"
     },
     {
       "impl": "turboblake",
       "bytes": 65536,
-      "ms": 0.029374999999959073,
+      "ms": 0.03445800000008603,
+      "digest": "bb790298334ebf43"
+    },
+    {
+      "impl": "turboblake (Bend's JS)",
+      "bytes": 65536,
+      "ms": 0.9096250000000055,
       "digest": "bb790298334ebf43"
     },
     {
       "impl": "@napi-rs/blake-hash",
       "bytes": 65536,
-      "ms": 0.02883299999996325,
+      "ms": 0.04500000000007276,
       "digest": "bb790298334ebf43"
     },
     {
       "impl": "hash-wasm",
       "bytes": 65536,
-      "ms": 0.06620799999996052,
+      "ms": 0.09275000000002365,
       "digest": "bb790298334ebf43"
     },
     {
       "impl": "@noble/hashes",
       "bytes": 65536,
-      "ms": 0.6144159999998919,
+      "ms": 0.9291660000000093,
       "digest": "bb790298334ebf43"
     },
     {
       "impl": "crypto sha256",
       "bytes": 65536,
-      "ms": 0.025249999999914507,
+      "ms": 0.04041600000005019,
       "digest": "3a43a35d764c0aa8"
     },
     {
       "impl": "crypto sha512",
       "bytes": 65536,
-      "ms": 0.03708299999993869,
+      "ms": 0.0399169999999458,
       "digest": "7d5936195c43be7b"
     },
     {
       "impl": "crypto sha1",
       "bytes": 65536,
-      "ms": 0.021166999999991276,
+      "ms": 0.02304099999992104,
       "digest": "edcc2b89e8bc3ddc"
     },
     {
       "impl": "crypto md5",
       "bytes": 65536,
-      "ms": 0.07058400000005349,
+      "ms": 0.07662500000003547,
       "digest": "70bdf8b670064914"
     },
     {
       "impl": "crypto blake2b512",
       "bytes": 65536,
-      "ms": 0.04216699999994944,
+      "ms": 0.04808300000001964,
       "digest": "df2316883255077b"
     },
     {
       "impl": "crypto blake2s256",
       "bytes": 65536,
-      "ms": 0.06912499999998545,
+      "ms": 0.08299999999996999,
       "digest": "650a2f7f30855be8"
     },
     {
       "impl": "crypto sha3-256",
       "bytes": 65536,
-      "ms": 0.0610829999999396,
+      "ms": 0.08279099999992923,
       "digest": "84e690f9961ac8a4"
     },
     {
       "impl": "turboblake",
       "bytes": 1048576,
-      "ms": 0.22066700000004857,
+      "ms": 0.22266700000000128,
+      "digest": "6fbaf80bd5940fc4"
+    },
+    {
+      "impl": "turboblake (Bend's JS)",
+      "bytes": 1048576,
+      "ms": 7.823291999999924,
       "digest": "6fbaf80bd5940fc4"
     },
     {
       "impl": "@napi-rs/blake-hash",
       "bytes": 1048576,
-      "ms": 0.4503750000000082,
+      "ms": 0.46145899999987705,
       "digest": "6fbaf80bd5940fc4"
     },
     {
       "impl": "hash-wasm",
       "bytes": 1048576,
-      "ms": 0.9722909999998137,
+      "ms": 0.9882499999999936,
       "digest": "6fbaf80bd5940fc4"
     },
     {
       "impl": "@noble/hashes",
       "bytes": 1048576,
-      "ms": 9.973124999999982,
+      "ms": 9.429082999999991,
       "digest": "6fbaf80bd5940fc4"
     },
     {
       "impl": "crypto sha256",
       "bytes": 1048576,
-      "ms": 0.35362499999996544,
+      "ms": 0.3520419999999831,
       "digest": "f5600770a8695a85"
     },
     {
       "impl": "crypto sha512",
       "bytes": 1048576,
-      "ms": 0.5862500000000637,
+      "ms": 0.5865000000001146,
       "digest": "cd413518ca0383b2"
     },
     {
       "impl": "crypto sha1",
       "bytes": 1048576,
-      "ms": 0.33016699999996035,
+      "ms": 0.3324169999998503,
       "digest": "59656b1808e5e200"
     },
     {
       "impl": "crypto md5",
       "bytes": 1048576,
-      "ms": 1.140625,
+      "ms": 1.169499999999971,
       "digest": "8f82ce4cfc5debdf"
     },
     {
       "impl": "crypto blake2b512",
       "bytes": 1048576,
-      "ms": 0.6651669999999967,
+      "ms": 0.668583000000126,
       "digest": "30ae8470cc761c06"
     },
     {
       "impl": "crypto blake2s256",
       "bytes": 1048576,
-      "ms": 1.141666999999984,
+      "ms": 1.1270419999998467,
       "digest": "9d6544ce973125b1"
     },
     {
       "impl": "crypto sha3-256",
       "bytes": 1048576,
-      "ms": 1.043875000000071,
+      "ms": 1.001166000000012,
       "digest": "51bbab928e79a870"
     },
     {
       "impl": "turboblake",
       "bytes": 16777216,
-      "ms": 1.0134579999999005,
+      "ms": 1.1867919999999685,
+      "digest": "4f9c38bd6b77a54e"
+    },
+    {
+      "impl": "turboblake (Bend's JS)",
+      "bytes": 16777216,
+      "ms": 137.46912500000053,
       "digest": "4f9c38bd6b77a54e"
     },
     {
       "impl": "@napi-rs/blake-hash",
       "bytes": 16777216,
-      "ms": 6.941665999999714,
+      "ms": 7.7062910000004194,
       "digest": "4f9c38bd6b77a54e"
     },
     {
       "impl": "hash-wasm",
       "bytes": 16777216,
-      "ms": 15.22741700000006,
+      "ms": 17.40220799999952,
       "digest": "4f9c38bd6b77a54e"
     },
     {
       "impl": "@noble/hashes",
       "bytes": 16777216,
-      "ms": 143.32562499999995,
+      "ms": 173.2949169999997,
       "digest": "4f9c38bd6b77a54e"
     },
     {
       "impl": "crypto sha256",
       "bytes": 16777216,
-      "ms": 5.231707999999799,
+      "ms": 5.851584000000003,
       "digest": "136c0a30d6325e8c"
     },
     {
       "impl": "crypto sha512",
       "bytes": 16777216,
-      "ms": 9.19399999999996,
+      "ms": 10.534999999999854,
       "digest": "88eb65d439b60fae"
     },
     {
       "impl": "crypto sha1",
       "bytes": 16777216,
-      "ms": 5.177166999999827,
+      "ms": 5.956458000000566,
       "digest": "d1348fbed811e92c"
     },
     {
       "impl": "crypto md5",
       "bytes": 16777216,
-      "ms": 18.25858300000027,
+      "ms": 20.187917000000198,
       "digest": "1ce8601272deff63"
     },
     {
       "impl": "crypto blake2b512",
       "bytes": 16777216,
-      "ms": 10.454208999999992,
+      "ms": 12.103167000000212,
       "digest": "31b39fb45789fbe7"
     },
     {
       "impl": "crypto blake2s256",
       "bytes": 16777216,
-      "ms": 17.67108300000018,
+      "ms": 20.02991699999984,
       "digest": "f400a85f4f1e2663"
     },
     {
       "impl": "crypto sha3-256",
       "bytes": 16777216,
-      "ms": 15.833333999999923,
+      "ms": 18.606416999999965,
       "digest": "df0a5b3fb9589168"
     },
     {
       "impl": "turboblake",
       "bytes": 268435456,
-      "ms": 9.938000000000102,
+      "ms": 10.124958000000333,
+      "digest": "ec510ebc356e96a9"
+    },
+    {
+      "impl": "turboblake (Bend's JS)",
+      "bytes": 268435456,
+      "ms": 2012.6258339999986,
       "digest": "ec510ebc356e96a9"
     },
     {
       "impl": "@napi-rs/blake-hash",
       "bytes": 268435456,
-      "ms": 110.13758299999972,
+      "ms": 121.28220800000054,
       "digest": "ec510ebc356e96a9"
     },
     {
       "impl": "hash-wasm",
       "bytes": 268435456,
-      "ms": 243.20533299999988,
+      "ms": 299.0875410000008,
       "digest": "ec510ebc356e96a9"
     },
     {
       "impl": "@noble/hashes",
       "bytes": 268435456,
-      "ms": 2378.109457999999,
+      "ms": 2657.347417000001,
       "digest": "ec510ebc356e96a9"
     },
     {
       "impl": "crypto sha256",
       "bytes": 268435456,
-      "ms": 86.9783750000006,
+      "ms": 86.71229200000016,
       "digest": "61cd0b906732e749"
     },
     {
       "impl": "crypto sha512",
       "bytes": 268435456,
-      "ms": 150.2770419999997,
+      "ms": 154.9110409999994,
       "digest": "dc2ff14af492fcca"
     },
     {
       "impl": "crypto sha1",
       "bytes": 268435456,
-      "ms": 85.26741700000093,
+      "ms": 87.67262500000288,
       "digest": "bc52719fc9db335e"
     },
     {
       "impl": "crypto md5",
       "bytes": 268435456,
-      "ms": 301.82645799999955,
+      "ms": 307.6075000000019,
       "digest": "18c3ab4d53c7c0c1"
     },
     {
       "impl": "crypto blake2b512",
       "bytes": 268435456,
-      "ms": 168.3975410000021,
+      "ms": 183.15929200000028,
       "digest": "982126016203e0b9"
     },
     {
       "impl": "crypto blake2s256",
       "bytes": 268435456,
-      "ms": 288.7362499999999,
+      "ms": 296.8629170000022,
       "digest": "b977cbb038a492e7"
     },
     {
       "impl": "crypto sha3-256",
       "bytes": 268435456,
-      "ms": 260.229374999999,
+      "ms": 280.88837499999863,
       "digest": "6085c136429b569d"
     },
     {
       "impl": "turboblake",
       "bytes": 1073741824,
-      "ms": 36.37883300000249,
+      "ms": 38.17033300000185,
+      "digest": "b6e2b68c4439bd98"
+    },
+    {
+      "impl": "turboblake (Bend's JS)",
+      "bytes": 1073741824,
+      "ms": 7686.730750000002,
       "digest": "b6e2b68c4439bd98"
     },
     {
       "impl": "@napi-rs/blake-hash",
       "bytes": 1073741824,
-      "ms": 444.9314579999991,
+      "ms": 482.4938750000001,
       "digest": "b6e2b68c4439bd98"
     },
     {
       "impl": "hash-wasm",
       "bytes": 1073741824,
-      "ms": 974.7900829999999,
+      "ms": 963.879958999998,
       "digest": "b6e2b68c4439bd98"
     },
     {
       "impl": "@noble/hashes",
       "bytes": 1073741824,
-      "ms": 9427.261666999999,
+      "ms": 10891.974625000003,
       "digest": "b6e2b68c4439bd98"
     },
     {
       "impl": "crypto sha256",
       "bytes": 1073741824,
-      "ms": 343.4935839999962,
+      "ms": 334.5358750000014,
       "digest": "18ddfccdc445117d"
     },
     {
       "impl": "crypto sha512",
       "bytes": 1073741824,
-      "ms": 602.0039160000015,
+      "ms": 605.4844999999914,
       "digest": "deff23d71be7328a"
     },
     {
       "impl": "crypto sha1",
       "bytes": 1073741824,
-      "ms": 341.56291699999565,
+      "ms": 345.9827499999956,
       "digest": "2502066cb224af9e"
     },
     {
       "impl": "crypto md5",
       "bytes": 1073741824,
-      "ms": 1192.3735840000008,
+      "ms": 1236.694583000004,
       "digest": "1bfb38f0e6f16404"
     },
     {
       "impl": "crypto blake2b512",
       "bytes": 1073741824,
-      "ms": 688.6864999999962,
+      "ms": 744.9850420000002,
       "digest": "6960ce8e9feb92df"
     },
     {
       "impl": "crypto blake2s256",
       "bytes": 1073741824,
-      "ms": 1218.2063749999943,
+      "ms": 1256.400874999992,
       "digest": "b0aeabb25f4ff27f"
     },
     {
       "impl": "crypto sha3-256",
       "bytes": 1073741824,
-      "ms": 1047.1835829999982,
+      "ms": 1125.8773329999967,
       "digest": "dcf9468168969f43"
     }
   ]

@@ -9,10 +9,8 @@
  */
 import { blake3Hex } from '../lib/blake3';
 import { treePaths } from '../lib/tree';
-import { heroProof } from '../lib/page';
-import { CLI_VERSION, REPO_URL } from '../lib/site';
+import { CLI_VERSION } from '../lib/site';
 import InstallCommand from './InstallCommand.astro';
-import BrandMark from './BrandMark.astro';
 
 const SEED = 'hello, world';
 const seedDigest = blake3Hex(SEED);
@@ -59,23 +57,15 @@ const { edges, root } = treePaths({ x0: 0.42 * W, rootX: 0.84 * W, y: 0.5 * H, h
     </h1>
 
     <p class="lead" data-reveal style="--i: 2">
-      turboblake computes BLAKE3 fingerprints of files of any size, on every core: a drop-in for <code>sha256sum</code> and <code>b3sum</code>.
-      {
-        heroProof && (
-          <>
-            {' '}
-            It checked a {heroProof.size ?? 'huge'} model in {heroProof.seconds} seconds, {heroProof.ratio.replace(/x$/, '×')} faster than the official{' '}
-            {heroProof.baseline}.
-          </>
-        )
-      }
+      turboblake fingerprints files of any size with BLAKE3, the modern replacement for SHA‑256, on every core you have. Use it anywhere you use{' '}
+      <code>sha256sum</code>.
     </p>
 
     <div class="cta" data-reveal style="--i: 3">
       <InstallCommand />
       <p class="actions">
         <a class="button primary" href="#install"><span>Get started <span class="arrow" aria-hidden="true">→</span></span></a>
-        <a class="button" href={REPO_URL}><span><BrandMark name="github" /> GitHub</span></a>
+        <a class="button" href="#speed"><span>See how fast</span></a>
       </p>
     </div>
 

@@ -8,7 +8,7 @@
     "bend": "Bend2 2.0.39",
     "reference": "official BLAKE3 1.8.7: b3sum and the blake3 crate with NEON + rayon"
   },
-  "status_note": "Numbers from 2026-10-26; NVIDIA results are pending: Bend 2.0.39's CUDA runtime hangs inside Modal's sandbox.",
+  "status_note": "Numbers from 2026-10-26. NVIDIA: Bend's CUDA runtime on Modal's B200 and L4, with its heap in 1 GiB pieces (Modal's sandbox grants no bigger managed allocation).",
   "in_memory": {
     "unit": "ms",
     "note": "Warm, data already in memory, same bytes and same digest. Rust = blake3 crate (NEON + rayon).",
@@ -279,5 +279,1182 @@
         "bend": 4.17
       }
     ]
+  },
+  "gpu_metal": {
+    "title": "Apple M5 Pro",
+    "machine": "Apple M5 Pro, 20-core GPU (Metal 4)",
+    "unit": "ms",
+    "note": "Bend's GPU path (hash1!) against hand-written Metal (bend/ref, ADR 0006), warm, in memory, same digest; medians of 6 interleaved rounds on a loaded machine (+-10%); the 1 GiB row is from ADR 0011, after Bend's lanes began reading interleaved groups. metal_bend_leaves runs the native kernel in hash1!'s shape: one thread per leaf, ~16,384 leaves.",
+    "rows": [
+      {
+        "input": "16 MiB",
+        "bend_gpu": 1.29,
+        "metal": 0.37,
+        "metal_bend_leaves": 0.41,
+        "bend_cpu": 0.5,
+        "rust": 1.13
+      },
+      {
+        "input": "64 MiB",
+        "bend_gpu": 1.52,
+        "metal": 0.66,
+        "metal_bend_leaves": 0.73,
+        "bend_cpu": 1.74,
+        "rust": 1.95
+      },
+      {
+        "input": "256 MiB",
+        "bend_gpu": 2.7,
+        "metal": 1.72,
+        "metal_bend_leaves": 1.8,
+        "bend_cpu": 6.6,
+        "rust": 6.9
+      },
+      {
+        "input": "1 GiB",
+        "bend_gpu": 9.43,
+        "metal": 6.69,
+        "metal_bend_leaves": 9.19,
+        "bend_cpu": 26.9,
+        "rust": 27.8
+      }
+    ],
+    "series": {
+      "bend_gpu": {
+        "label": "Bend, Metal",
+        "kind": "bend",
+        "description": "hash1! on the 20-core GPU"
+      },
+      "metal": {
+        "label": "native Metal",
+        "kind": "blake3",
+        "description": "hand-written Metal (bend/ref/metal)"
+      },
+      "metal_bend_leaves": {
+        "label": "native Metal, Bend's leaves",
+        "kind": "blake3",
+        "description": "the same kernel in hash1!'s leaf shape"
+      },
+      "bend_cpu": {
+        "label": "Bend, CPU (18 cores)",
+        "kind": "bend",
+        "description": "the 8-lane CPU tree"
+      },
+      "rust": {
+        "label": "Rust blake3, CPU (18 cores)",
+        "kind": "blake3",
+        "description": "the official crate, NEON + rayon"
+      }
+    }
+  },
+  "gpu_nvidia": [
+    {
+      "title": "NVIDIA B200",
+      "machine": "NVIDIA B200 on Modal, 16 x86 cores",
+      "unit": "ms",
+      "note": "Warm, in memory, the same digest from every side; medians, the first run (moving pages onto the GPU) left out.",
+      "rows": [
+        {
+          "input": "64 MiB",
+          "bend_gpu": 1.477,
+          "native_cuda": 0.134,
+          "native_cuda_bend_shape": 0.134,
+          "bend_cpu": 1.315,
+          "rust_cpu": 3.16
+        },
+        {
+          "input": "128 MiB",
+          "bend_gpu": 1.489,
+          "native_cuda": 0.15,
+          "native_cuda_bend_shape": 0.149,
+          "bend_cpu": 1.888,
+          "rust_cpu": 4.079
+        },
+        {
+          "input": "256 MiB",
+          "bend_gpu": 1.532,
+          "native_cuda": 0.241,
+          "native_cuda_bend_shape": 0.479,
+          "bend_cpu": 3.908,
+          "rust_cpu": 6.391
+        },
+        {
+          "input": "512 MiB",
+          "bend_gpu": 2.292,
+          "native_cuda": 0.411,
+          "native_cuda_bend_shape": 0.481,
+          "bend_cpu": 7.021,
+          "rust_cpu": 8.263
+        },
+        {
+          "input": "1 GiB",
+          "bend_gpu": 3.202,
+          "native_cuda": 0.683,
+          "native_cuda_bend_shape": 1.856,
+          "bend_cpu": 15.345,
+          "rust_cpu": 13.872
+        },
+        {
+          "input": "2 GiB",
+          "bend_gpu": 4.84,
+          "native_cuda": 1.283,
+          "native_cuda_bend_shape": 1.846,
+          "bend_cpu": 28.56,
+          "rust_cpu": 24.225
+        }
+      ],
+      "series": {
+        "bend_gpu": {
+          "label": "Bend, CUDA",
+          "kind": "bend",
+          "description": "hash1! on Bend's CUDA runtime"
+        },
+        "native_cuda": {
+          "label": "native CUDA",
+          "kind": "blake3",
+          "description": "hand-written CUDA (bend/ref/cuda)"
+        },
+        "native_cuda_bend_shape": {
+          "label": "native CUDA, Bend's leaves",
+          "kind": "blake3",
+          "description": "the same kernel run in hash1!'s leaf shape"
+        },
+        "bend_cpu": {
+          "label": "Bend, CPU (16 cores)",
+          "kind": "bend",
+          "description": "the 8-lane CPU tree"
+        },
+        "rust_cpu": {
+          "label": "Rust blake3, CPU (16 cores)",
+          "kind": "blake3",
+          "description": "the official crate, SIMD + rayon"
+        }
+      }
+    },
+    {
+      "title": "NVIDIA L4",
+      "machine": "NVIDIA L4 on Modal, 16 x86 cores",
+      "unit": "ms",
+      "note": "Warm, in memory, the same digest from every side; medians, the first run (moving pages onto the GPU) left out.",
+      "rows": [
+        {
+          "input": "64 MiB",
+          "bend_gpu": 1.607,
+          "native_cuda": 0.471,
+          "native_cuda_bend_shape": 0.468,
+          "bend_cpu": 2.465,
+          "rust_cpu": 2.93
+        },
+        {
+          "input": "128 MiB",
+          "bend_gpu": 2.151,
+          "native_cuda": 1.358,
+          "native_cuda_bend_shape": 1.365,
+          "bend_cpu": 4.338,
+          "rust_cpu": 3.947
+        },
+        {
+          "input": "256 MiB",
+          "bend_gpu": 3.159,
+          "native_cuda": 2.689,
+          "native_cuda_bend_shape": 1.664,
+          "bend_cpu": 8.459,
+          "rust_cpu": 5.71
+        }
+      ],
+      "series": {
+        "bend_gpu": {
+          "label": "Bend, CUDA",
+          "kind": "bend",
+          "description": "hash1! on Bend's CUDA runtime"
+        },
+        "native_cuda": {
+          "label": "native CUDA",
+          "kind": "blake3",
+          "description": "hand-written CUDA (bend/ref/cuda)"
+        },
+        "native_cuda_bend_shape": {
+          "label": "native CUDA, Bend's leaves",
+          "kind": "blake3",
+          "description": "the same kernel run in hash1!'s leaf shape"
+        },
+        "bend_cpu": {
+          "label": "Bend, CPU (16 cores)",
+          "kind": "bend",
+          "description": "the 8-lane CPU tree"
+        },
+        "rust_cpu": {
+          "label": "Rust blake3, CPU (16 cores)",
+          "kind": "blake3",
+          "description": "the official crate, SIMD + rayon"
+        }
+      }
+    }
+  ],
+  "deepseek_linux": {
+    "title": "DeepSeek-sized files on Linux",
+    "machine": "Linux x86-64, 16 vCPUs (Modal)",
+    "unit": "s",
+    "note": "Synthetic shards at the real files' sizes (bench/synth.c), one-shot, identical output. Modal's sandbox keeps written files in memory, so this is the cached case; the Mac's run of the real 101.5 GB shard measures the uncached one.",
+    "rows": [
+      {
+        "input": "shards 1-6 (31.9 GB)",
+        "b3sum": 1.57,
+        "bend": 1.24
+      },
+      {
+        "input": "101 GB shard (101.5 GB)",
+        "b3sum": 4.05,
+        "bend": 3.95
+      }
+    ],
+    "series": {
+      "b3sum": {
+        "label": "b3sum",
+        "kind": "blake3",
+        "description": "the official b3sum 1.8.7"
+      },
+      "bend": {
+        "label": "turboblake",
+        "kind": "bend",
+        "description": "turboblake 1.8.7"
+      }
+    }
+  },
+  "languages": {
+    "c": {
+      "title": "C (blake3.h)",
+      "machine": "Apple M5 Pro, 18 cores",
+      "unit": "ms",
+      "note": "One-shot hash of an in-memory buffer, medians of interleaved runs, same digest for every BLAKE3.",
+      "rows": [
+        {
+          "input": "1 KiB",
+          "official": 0.001,
+          "bend": 0.001
+        },
+        {
+          "input": "64 KiB",
+          "official": 0.03,
+          "bend": 0.03
+        },
+        {
+          "input": "1 MiB",
+          "official": 0.497,
+          "bend": 0.179
+        },
+        {
+          "input": "16 MiB",
+          "official": 6.981,
+          "bend": 0.848
+        },
+        {
+          "input": "256 MiB",
+          "official": 114.232,
+          "bend": 10.093
+        },
+        {
+          "input": "1 GiB",
+          "official": 480.542,
+          "bend": 38.691
+        }
+      ],
+      "series": {
+        "official": {
+          "label": "official C",
+          "kind": "blake3",
+          "description": "the official C library: SIMD, one thread"
+        },
+        "bend": {
+          "label": "libblake3-bend",
+          "kind": "bend",
+          "description": "the official C library with the Bend engine"
+        }
+      }
+    },
+    "rust": {
+      "title": "Rust",
+      "machine": "Apple M5 Pro, 18 cores",
+      "unit": "ms",
+      "note": "One-shot hash of an in-memory buffer, medians of interleaved runs, same digest for every BLAKE3.",
+      "rows": [
+        {
+          "input": "1 KiB",
+          "blake3": 0.0009,
+          "blake3_rayon": 0.0008,
+          "bend": 0.0008,
+          "bend_rayon": 0.0008
+        },
+        {
+          "input": "64 KiB",
+          "blake3": 0.0298,
+          "blake3_rayon": 0.1483,
+          "bend": 0.03,
+          "bend_rayon": 0.1577
+        },
+        {
+          "input": "1 MiB",
+          "blake3": 0.4982,
+          "blake3_rayon": 0.2366,
+          "bend": 0.2023,
+          "bend_rayon": 0.1465
+        },
+        {
+          "input": "16 MiB",
+          "blake3": 7.7037,
+          "blake3_rayon": 0.7788,
+          "bend": 0.9097,
+          "bend_rayon": 0.8722
+        },
+        {
+          "input": "256 MiB",
+          "blake3": 124.3561,
+          "blake3_rayon": 7.8604,
+          "bend": 9.6641,
+          "bend_rayon": 9.7379
+        },
+        {
+          "input": "1 GiB",
+          "blake3": 507.3732,
+          "blake3_rayon": 31.8518,
+          "bend": 37.8074,
+          "bend_rayon": 39.7522
+        }
+      ],
+      "series": {
+        "blake3": {
+          "label": "blake3 hash",
+          "kind": "blake3",
+          "description": "the official crate's hash: one thread"
+        },
+        "blake3_rayon": {
+          "label": "blake3 update_rayon",
+          "kind": "blake3",
+          "description": "the official crate on every core (rayon)"
+        },
+        "bend": {
+          "label": "blake3-bend hash",
+          "kind": "bend",
+          "description": "blake3::hash on blake3-bend"
+        },
+        "bend_rayon": {
+          "label": "blake3-bend update_rayon",
+          "kind": "bend",
+          "description": "Hasher::update_rayon on blake3-bend"
+        }
+      }
+    },
+    "python": {
+      "title": "Python",
+      "machine": "Apple M5 Pro, 18 cores",
+      "unit": "ms",
+      "note": "One-shot hash of an in-memory buffer, medians of interleaved runs, same digest for every BLAKE3. 3.13.17.",
+      "rows": [
+        {
+          "input": "1 KiB",
+          "pypi": 0.0012,
+          "pypi_auto": 0.0012,
+          "bend": 0.001,
+          "sha256": 0.0007,
+          "sha512": 0.001,
+          "sha1": 0.0007,
+          "md5": 0.0015,
+          "blake2b": 0.0009,
+          "blake2s": 0.0014,
+          "sha3_256": 0.0015
+        },
+        {
+          "input": "64 KiB",
+          "pypi": 0.03,
+          "pypi_auto": 0.1429,
+          "bend": 0.029,
+          "sha256": 0.0219,
+          "sha512": 0.0392,
+          "sha1": 0.022,
+          "md5": 0.0762,
+          "blake2b": 0.0447,
+          "blake2s": 0.0784,
+          "sha3_256": 0.064
+        },
+        {
+          "input": "1 MiB",
+          "pypi": 0.4697,
+          "pypi_auto": 0.2483,
+          "bend": 0.2393,
+          "sha256": 0.3547,
+          "sha512": 0.642,
+          "sha1": 0.351,
+          "md5": 1.2167,
+          "blake2b": 0.7426,
+          "blake2s": 1.3357,
+          "sha3_256": 1.0854
+        },
+        {
+          "input": "16 MiB",
+          "pypi": 7.6853,
+          "pypi_auto": 1.0216,
+          "bend": 1.0227,
+          "sha256": 5.898,
+          "sha512": 10.7796,
+          "sha1": 6.0667,
+          "md5": 20.8358,
+          "blake2b": 12.786,
+          "blake2s": 22.5107,
+          "sha3_256": 18.9411
+        },
+        {
+          "input": "256 MiB",
+          "pypi": 123.0666,
+          "pypi_auto": 8.3002,
+          "bend": 11.4668,
+          "sha256": 101.6361,
+          "sha512": 171.421,
+          "sha1": 94.6439,
+          "md5": 322.5698,
+          "blake2b": 205.6876,
+          "blake2s": 352.0474,
+          "sha3_256": 300.3881
+        },
+        {
+          "input": "1 GiB",
+          "pypi": 504.7675,
+          "pypi_auto": 34.0099,
+          "bend": 41.869,
+          "sha256": 400.5635,
+          "sha512": 651.5975,
+          "sha1": 376.8528,
+          "md5": 1312.7576,
+          "blake2b": 776.0584,
+          "blake2s": 1400.8763,
+          "sha3_256": 1206.2958
+        }
+      ],
+      "series": {
+        "pypi": {
+          "label": "blake3 (PyPI)",
+          "kind": "blake3",
+          "description": "the Rust-based blake3 module, default max_threads=1"
+        },
+        "pypi_auto": {
+          "label": "blake3 (PyPI), AUTO",
+          "kind": "blake3",
+          "description": "the same, max_threads=blake3.AUTO"
+        },
+        "bend": {
+          "label": "turboblake",
+          "kind": "bend",
+          "description": "pip install turboblake (import blake3)"
+        },
+        "sha256": {
+          "label": "SHA-256",
+          "kind": "other",
+          "description": "hashlib.sha256"
+        },
+        "sha512": {
+          "label": "SHA-512",
+          "kind": "other",
+          "description": "hashlib.sha512"
+        },
+        "sha1": {
+          "label": "SHA-1",
+          "kind": "other",
+          "description": "hashlib.sha1"
+        },
+        "md5": {
+          "label": "MD5",
+          "kind": "other",
+          "description": "hashlib.md5"
+        },
+        "blake2b": {
+          "label": "BLAKE2b",
+          "kind": "other",
+          "description": "hashlib.blake2b"
+        },
+        "blake2s": {
+          "label": "BLAKE2s",
+          "kind": "other",
+          "description": "hashlib.blake2s"
+        },
+        "sha3_256": {
+          "label": "SHA3-256",
+          "kind": "other",
+          "description": "hashlib.sha3_256"
+        }
+      }
+    },
+    "node": {
+      "title": "Node.js",
+      "machine": "Apple M5 Pro, 18 cores",
+      "unit": "ms",
+      "note": "One-shot hash of an in-memory buffer, medians of interleaved runs, same digest for every BLAKE3. node 26.12.0.",
+      "rows": [
+        {
+          "input": "1 KiB",
+          "bend": 0.0025,
+          "bend_js": 0.0764,
+          "napi_rs": 0.0041,
+          "hash_wasm": 0.0131,
+          "noble": 0.0381,
+          "sha256": 0.0042,
+          "sha512": 0.0022,
+          "sha1": 0.0015,
+          "md5": 0.0025,
+          "blake2b": 0.0023,
+          "blake2s": 0.0024,
+          "sha3_256": 0.0024
+        },
+        {
+          "input": "64 KiB",
+          "bend": 0.0345,
+          "bend_js": 0.9096,
+          "napi_rs": 0.045,
+          "hash_wasm": 0.0928,
+          "noble": 0.9292,
+          "sha256": 0.0404,
+          "sha512": 0.0399,
+          "sha1": 0.023,
+          "md5": 0.0766,
+          "blake2b": 0.0481,
+          "blake2s": 0.083,
+          "sha3_256": 0.0828
+        },
+        {
+          "input": "1 MiB",
+          "bend": 0.2227,
+          "bend_js": 7.8233,
+          "napi_rs": 0.4615,
+          "hash_wasm": 0.9882,
+          "noble": 9.4291,
+          "sha256": 0.352,
+          "sha512": 0.5865,
+          "sha1": 0.3324,
+          "md5": 1.1695,
+          "blake2b": 0.6686,
+          "blake2s": 1.127,
+          "sha3_256": 1.0012
+        },
+        {
+          "input": "16 MiB",
+          "bend": 1.1868,
+          "bend_js": 137.4691,
+          "napi_rs": 7.7063,
+          "hash_wasm": 17.4022,
+          "noble": 173.2949,
+          "sha256": 5.8516,
+          "sha512": 10.535,
+          "sha1": 5.9565,
+          "md5": 20.1879,
+          "blake2b": 12.1032,
+          "blake2s": 20.0299,
+          "sha3_256": 18.6064
+        },
+        {
+          "input": "256 MiB",
+          "bend": 10.125,
+          "bend_js": 2012.6258,
+          "napi_rs": 121.2822,
+          "hash_wasm": 299.0875,
+          "noble": 2657.3474,
+          "sha256": 86.7123,
+          "sha512": 154.911,
+          "sha1": 87.6726,
+          "md5": 307.6075,
+          "blake2b": 183.1593,
+          "blake2s": 296.8629,
+          "sha3_256": 280.8884
+        },
+        {
+          "input": "1 GiB",
+          "bend": 38.1703,
+          "bend_js": 7686.7308,
+          "napi_rs": 482.4939,
+          "hash_wasm": 963.88,
+          "noble": 10891.9746,
+          "sha256": 334.5359,
+          "sha512": 605.4845,
+          "sha1": 345.9827,
+          "md5": 1236.6946,
+          "blake2b": 744.985,
+          "blake2s": 1256.4009,
+          "sha3_256": 1125.8773
+        }
+      ],
+      "series": {
+        "bend": {
+          "label": "turboblake",
+          "kind": "bend",
+          "description": "the native addon"
+        },
+        "bend_js": {
+          "label": "turboblake, Bend's JS",
+          "kind": "bend",
+          "description": "Bend's BLAKE3 emitted to JavaScript (browsers)"
+        },
+        "napi_rs": {
+          "label": "@napi-rs/blake-hash",
+          "kind": "blake3",
+          "description": "native, Rust, one thread"
+        },
+        "hash_wasm": {
+          "label": "hash-wasm",
+          "kind": "blake3",
+          "description": "WebAssembly"
+        },
+        "noble": {
+          "label": "@noble/hashes",
+          "kind": "blake3",
+          "description": "pure JavaScript"
+        },
+        "sha256": {
+          "label": "SHA-256",
+          "kind": "other",
+          "description": "node:crypto"
+        },
+        "sha512": {
+          "label": "SHA-512",
+          "kind": "other",
+          "description": "node:crypto"
+        },
+        "sha1": {
+          "label": "SHA-1",
+          "kind": "other",
+          "description": "node:crypto"
+        },
+        "md5": {
+          "label": "MD5",
+          "kind": "other",
+          "description": "node:crypto"
+        },
+        "blake2b": {
+          "label": "BLAKE2b",
+          "kind": "other",
+          "description": "node:crypto"
+        },
+        "blake2s": {
+          "label": "BLAKE2s",
+          "kind": "other",
+          "description": "node:crypto"
+        },
+        "sha3_256": {
+          "label": "SHA3-256",
+          "kind": "other",
+          "description": "node:crypto"
+        }
+      }
+    },
+    "go": {
+      "title": "Go",
+      "machine": "Apple M5 Pro, 18 cores",
+      "unit": "ms",
+      "note": "One-shot hash of an in-memory buffer, medians of interleaved runs, same digest for every BLAKE3. go1.27.2.",
+      "rows": [
+        {
+          "input": "1 KiB",
+          "bend": 0.001,
+          "luke": 0.0011,
+          "zeebo": 0.001,
+          "sha256": 0.0004,
+          "sha512": 0.0007,
+          "sha1": 0.0004,
+          "md5": 0.0013,
+          "blake2b": 0.0008,
+          "blake2s": 0.0012,
+          "sha3_256": 0.001
+        },
+        {
+          "input": "64 KiB",
+          "bend": 0.029,
+          "luke": 0.049,
+          "zeebo": 0.0715,
+          "sha256": 0.0213,
+          "sha512": 0.0367,
+          "sha1": 0.0211,
+          "md5": 0.0771,
+          "blake2b": 0.0474,
+          "blake2s": 0.0779,
+          "sha3_256": 0.0629
+        },
+        {
+          "input": "1 MiB",
+          "bend": 0.2179,
+          "luke": 0.227,
+          "zeebo": 1.1137,
+          "sha256": 0.3332,
+          "sha512": 0.569,
+          "sha1": 0.3289,
+          "md5": 1.2138,
+          "blake2b": 0.7341,
+          "blake2s": 1.1868,
+          "sha3_256": 0.9858
+        },
+        {
+          "input": "16 MiB",
+          "bend": 1.1123,
+          "luke": 1.8219,
+          "zeebo": 18.4903,
+          "sha256": 5.6829,
+          "sha512": 9.7708,
+          "sha1": 5.6007,
+          "md5": 20.8624,
+          "blake2b": 13.0172,
+          "blake2s": 20.2409,
+          "sha3_256": 17.2394
+        },
+        {
+          "input": "256 MiB",
+          "bend": 10.5194,
+          "luke": 25.368,
+          "zeebo": 296.6729,
+          "sha256": 88.0589,
+          "sha512": 148.7333,
+          "sha1": 84.4166,
+          "md5": 320.7269,
+          "blake2b": 206.59,
+          "blake2s": 328.3936,
+          "sha3_256": 278.8038
+        },
+        {
+          "input": "1 GiB",
+          "bend": 40.5348,
+          "luke": 99.6388,
+          "zeebo": 1144.4757,
+          "sha256": 404.2613,
+          "sha512": 627.5904,
+          "sha1": 342.9515,
+          "md5": 1237.8841,
+          "blake2b": 825.8837,
+          "blake2s": 1292.2261,
+          "sha3_256": 1089.714
+        }
+      ],
+      "series": {
+        "bend": {
+          "label": "turboblake",
+          "kind": "bend",
+          "description": "github.com/gunta/BLAKE3-bend/bend/go"
+        },
+        "luke": {
+          "label": "lukechampine.com/blake3",
+          "kind": "blake3",
+          "description": "Go assembly, every core for big inputs"
+        },
+        "zeebo": {
+          "label": "github.com/zeebo/blake3",
+          "kind": "blake3",
+          "description": "Go assembly, one thread"
+        },
+        "sha256": {
+          "label": "SHA-256",
+          "kind": "other",
+          "description": "crypto/sha256"
+        },
+        "sha512": {
+          "label": "SHA-512",
+          "kind": "other",
+          "description": "crypto/sha512"
+        },
+        "sha1": {
+          "label": "SHA-1",
+          "kind": "other",
+          "description": "crypto/sha1"
+        },
+        "md5": {
+          "label": "MD5",
+          "kind": "other",
+          "description": "crypto/md5"
+        },
+        "blake2b": {
+          "label": "BLAKE2b",
+          "kind": "other",
+          "description": "golang.org/x/crypto/blake2b"
+        },
+        "blake2s": {
+          "label": "BLAKE2s",
+          "kind": "other",
+          "description": "golang.org/x/crypto/blake2s"
+        },
+        "sha3_256": {
+          "label": "SHA3-256",
+          "kind": "other",
+          "description": "crypto/sha3"
+        }
+      }
+    },
+    "bun": {
+      "title": "Bun",
+      "machine": "Apple M5 Pro, 18 cores",
+      "unit": "ms",
+      "note": "One-shot hash of an in-memory buffer, medians of interleaved runs, same digest for every BLAKE3. bun 1.4.3.",
+      "rows": [
+        {
+          "input": "1 KiB",
+          "bend": 0.0016,
+          "bend_js": 0.0223,
+          "napi_rs": 0.0018,
+          "hash_wasm": 0.005,
+          "noble": 0.043,
+          "sha256": 0.001,
+          "sha512": 0.001,
+          "sha1": 0.0007,
+          "md5": 0.0015,
+          "blake2b": 0.0012,
+          "blake2s": 0.0015,
+          "sha3_256": 0.0015
+        },
+        {
+          "input": "64 KiB",
+          "bend": 0.0296,
+          "bend_js": 1.2956,
+          "napi_rs": 0.0317,
+          "hash_wasm": 0.122,
+          "noble": 1.005,
+          "sha256": 0.0222,
+          "sha512": 0.0375,
+          "sha1": 0.0208,
+          "md5": 0.0759,
+          "blake2b": 0.045,
+          "blake2s": 0.0712,
+          "sha3_256": 0.0663
+        },
+        {
+          "input": "1 MiB",
+          "bend": 0.2503,
+          "bend_js": 20.3617,
+          "napi_rs": 0.4396,
+          "hash_wasm": 1.7538,
+          "noble": 2.728,
+          "sha256": 0.3242,
+          "sha512": 0.579,
+          "sha1": 0.3227,
+          "md5": 1.2118,
+          "blake2b": 0.6891,
+          "blake2s": 1.1209,
+          "sha3_256": 1.0833
+        },
+        {
+          "input": "16 MiB",
+          "bend": 1.3688,
+          "bend_js": 320.689,
+          "napi_rs": 6.792,
+          "hash_wasm": 27.7225,
+          "noble": 42.7276,
+          "sha256": 5.1491,
+          "sha512": 9.1373,
+          "sha1": 5.2001,
+          "md5": 19.412,
+          "blake2b": 11.1479,
+          "blake2s": 17.9974,
+          "sha3_256": 17.2355
+        },
+        {
+          "input": "256 MiB",
+          "bend": 12.6239,
+          "bend_js": 5139.9117,
+          "napi_rs": 110.1997,
+          "hash_wasm": 442.3858,
+          "noble": 692.1064,
+          "sha256": 82.8838,
+          "sha512": 145.974,
+          "sha1": 82.8959,
+          "md5": 313.4725,
+          "blake2b": 178.6978,
+          "blake2s": 287.3231,
+          "sha3_256": 278.6545
+        },
+        {
+          "input": "1 GiB",
+          "bend": 46.6896,
+          "bend_js": 21751.0394,
+          "napi_rs": 478.6499,
+          "hash_wasm": 1865.9902,
+          "noble": 3131.311,
+          "sha256": 348.3105,
+          "sha512": 595.1377,
+          "sha1": 367.5392,
+          "md5": 1290.4808,
+          "blake2b": 756.3068,
+          "blake2s": 1225.6058,
+          "sha3_256": 1208.7281
+        }
+      ],
+      "series": {
+        "bend": {
+          "label": "turboblake",
+          "kind": "bend",
+          "description": "the native addon"
+        },
+        "bend_js": {
+          "label": "turboblake, Bend's JS",
+          "kind": "bend",
+          "description": "Bend's BLAKE3 emitted to JavaScript (browsers)"
+        },
+        "napi_rs": {
+          "label": "@napi-rs/blake-hash",
+          "kind": "blake3",
+          "description": "native, Rust, one thread"
+        },
+        "hash_wasm": {
+          "label": "hash-wasm",
+          "kind": "blake3",
+          "description": "WebAssembly"
+        },
+        "noble": {
+          "label": "@noble/hashes",
+          "kind": "blake3",
+          "description": "pure JavaScript"
+        },
+        "sha256": {
+          "label": "SHA-256",
+          "kind": "other",
+          "description": "node:crypto"
+        },
+        "sha512": {
+          "label": "SHA-512",
+          "kind": "other",
+          "description": "node:crypto"
+        },
+        "sha1": {
+          "label": "SHA-1",
+          "kind": "other",
+          "description": "node:crypto"
+        },
+        "md5": {
+          "label": "MD5",
+          "kind": "other",
+          "description": "node:crypto"
+        },
+        "blake2b": {
+          "label": "BLAKE2b",
+          "kind": "other",
+          "description": "node:crypto"
+        },
+        "blake2s": {
+          "label": "BLAKE2s",
+          "kind": "other",
+          "description": "node:crypto"
+        },
+        "sha3_256": {
+          "label": "SHA3-256",
+          "kind": "other",
+          "description": "node:crypto"
+        }
+      }
+    },
+    "go_linux": {
+      "title": "Go on Linux",
+      "machine": "Linux x86-64, 32 vCPUs (Modal)",
+      "unit": "ms",
+      "note": "One-shot hash of an in-memory buffer, medians of interleaved runs, same digest for every BLAKE3. go1.27.2.",
+      "rows": [
+        {
+          "input": "1 KiB",
+          "bend": 0.0015,
+          "luke": 0.002,
+          "zeebo": 0.0013,
+          "sha256": 0.0008,
+          "sha512": 0.0019,
+          "sha1": 0.0008,
+          "md5": 0.0017,
+          "blake2b": 0.0014,
+          "blake2s": 0.0018,
+          "sha3_256": 0.0034
+        },
+        {
+          "input": "64 KiB",
+          "bend": 0.0207,
+          "luke": 0.0838,
+          "zeebo": 0.0228,
+          "sha256": 0.046,
+          "sha512": 0.1053,
+          "sha1": 0.0424,
+          "md5": 0.1018,
+          "blake2b": 0.0868,
+          "blake2s": 0.1198,
+          "sha3_256": 0.2045
+        },
+        {
+          "input": "1 MiB",
+          "bend": 0.3348,
+          "luke": 0.7547,
+          "zeebo": 0.3826,
+          "sha256": 0.7126,
+          "sha512": 1.6371,
+          "sha1": 0.6606,
+          "md5": 1.5674,
+          "blake2b": 1.3709,
+          "blake2s": 1.8262,
+          "sha3_256": 3.2208
+        },
+        {
+          "input": "16 MiB",
+          "bend": 1.2595,
+          "luke": 6.4367,
+          "zeebo": 5.716,
+          "sha256": 11.2202,
+          "sha512": 26.3916,
+          "sha1": 10.7203,
+          "md5": 25.3439,
+          "blake2b": 22.054,
+          "blake2s": 29.6714,
+          "sha3_256": 52.3965
+        },
+        {
+          "input": "256 MiB",
+          "bend": 7.2188,
+          "luke": 16.2748,
+          "zeebo": 111.1197,
+          "sha256": 182.5212,
+          "sha512": 433.7625,
+          "sha1": 170.6748,
+          "md5": 409.4877,
+          "blake2b": 360.5624,
+          "blake2s": 492.4309,
+          "sha3_256": 849.2601
+        },
+        {
+          "input": "1 GiB",
+          "bend": 23.8666,
+          "luke": 57.4351,
+          "zeebo": 392.1221,
+          "sha256": 722.6758,
+          "sha512": 1682.9655,
+          "sha1": 673.3128,
+          "md5": 1626.4304,
+          "blake2b": 1414.2512,
+          "blake2s": 1891.0207,
+          "sha3_256": 3316.9159
+        }
+      ],
+      "series": {
+        "bend": {
+          "label": "turboblake",
+          "kind": "bend",
+          "description": "github.com/gunta/BLAKE3-bend/bend/go"
+        },
+        "luke": {
+          "label": "lukechampine.com/blake3",
+          "kind": "blake3",
+          "description": "Go assembly, every core for big inputs"
+        },
+        "zeebo": {
+          "label": "github.com/zeebo/blake3",
+          "kind": "blake3",
+          "description": "Go assembly, one thread"
+        },
+        "sha256": {
+          "label": "SHA-256",
+          "kind": "other",
+          "description": "crypto/sha256"
+        },
+        "sha512": {
+          "label": "SHA-512",
+          "kind": "other",
+          "description": "crypto/sha512"
+        },
+        "sha1": {
+          "label": "SHA-1",
+          "kind": "other",
+          "description": "crypto/sha1"
+        },
+        "md5": {
+          "label": "MD5",
+          "kind": "other",
+          "description": "crypto/md5"
+        },
+        "blake2b": {
+          "label": "BLAKE2b",
+          "kind": "other",
+          "description": "golang.org/x/crypto/blake2b"
+        },
+        "blake2s": {
+          "label": "BLAKE2s",
+          "kind": "other",
+          "description": "golang.org/x/crypto/blake2s"
+        },
+        "sha3_256": {
+          "label": "SHA3-256",
+          "kind": "other",
+          "description": "crypto/sha3"
+        }
+      }
+    }
+  },
+  "versus": {
+    "title": "1 GiB, from SHA-256 to the GPU",
+    "input": "1 GiB",
+    "unit": "ms",
+    "note": "One 1 GiB buffer already in memory, hashed once per run; medians. Every BLAKE3 side gives the same digest. On the B200 the GPU sides read the buffer from the GPU's own memory (the first run, which moves it there, is left out); SHA-256 there is a separate run on the same Modal B200 host. On the Mac, CPU and GPU share one memory.",
+    "rows": [
+      {
+        "input": "NVIDIA B200",
+        "sha256": 574.447,
+        "blake3": 193.382,
+        "blake3_all": 13.872,
+        "bend_cpu": 15.345,
+        "bend_gpu": 3.202,
+        "bend_native": 0.683
+      },
+      {
+        "input": "Apple M5 Pro",
+        "sha256": 334.536,
+        "blake3": 448,
+        "blake3_all": 27.8,
+        "bend_cpu": 26.9,
+        "bend_gpu": 9.43,
+        "bend_native": 6.69
+      }
+    ],
+    "machines": [
+      {
+        "id": "b200",
+        "title": "NVIDIA B200",
+        "where": "on Modal, 16 x86 cores",
+        "api": "CUDA",
+        "cores": 16,
+        "sha256": "OpenSSL 3.0.16 (Python's hashlib), SHA-NI",
+        "gpu_memory": true
+      },
+      {
+        "id": "metal",
+        "title": "Apple M5 Pro",
+        "where": "18 cores, 20-core GPU",
+        "api": "Metal",
+        "cores": 18,
+        "sha256": "Node's crypto (OpenSSL), ARMv8 SHA-2 instructions",
+        "gpu_memory": false
+      }
+    ],
+    "series": {
+      "sha256": {
+        "label": "SHA-256",
+        "kind": "other",
+        "description": "the fastest SHA-256 measured on the machine, with the CPU's SHA instructions; one core, since each block waits for the one before"
+      },
+      "blake3": {
+        "label": "BLAKE3, one core",
+        "kind": "blake3",
+        "description": "the official blake3 crate on one thread"
+      },
+      "blake3_all": {
+        "label": "BLAKE3, every core",
+        "kind": "blake3",
+        "description": "the official blake3 crate on every core (rayon)"
+      },
+      "bend_cpu": {
+        "label": "turboblake, CPU",
+        "kind": "bend",
+        "description": "Bend's 8-lane tree on every core"
+      },
+      "bend_gpu": {
+        "label": "turboblake, Bend on the GPU",
+        "kind": "bend",
+        "description": "Bend's GPU path (hash1!)"
+      },
+      "bend_native": {
+        "label": "turboblake, native GPU kernel",
+        "kind": "bend",
+        "description": "the hand-written CUDA or Metal kernel in bend/ref (ADR 0013)"
+      }
+    }
   }
 }

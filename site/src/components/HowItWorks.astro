@@ -1,0 +1,452 @@
+---
+/**
+ * How turboblake is fast, in three steps on one diagram: BLAKE3 splits a file
+ * into chunks, Bend2 spreads them over every core, and the results fold up the
+ * tree into the fingerprint. The steps play in turn while on screen; picking
+ * one holds it. The engine's detail lives on /benchmarks/#engine.
+ */
+import BrandMark from './BrandMark.astro';
+import { blake3Hex } from '../lib/blake3';
+import { BEND_URL, withBase } from '../lib/site';
+
+const digest = blake3Hex('model.safetensors');
+
+const W = 720;
+const leafY = 214;
+const levels = [8, 4, 2, 1];
+const ys = [leafY, 152, 98, 46];
+const xs = (n: number) => Array.from({ length: n }, (_, i) => 40 + ((i + 0.5) * (W - 80)) / n);
+const nodes = levels.map((n, k) => xs(n).map((x) => ({ x, y: ys[k]! })));
+const links = nodes.slice(1).flatMap((row, k) =>
+  row.flatMap((parent, j) => [nodes[k]![2 * j]!, nodes[k]![2 * j + 1]!].map((child) => ({ child, parent, k }))),
+);
+const curve = (a: { x: number; y: number }, b: { x: number; y: number }) => {
+  const my = (a.y + b.y) / 2;
+  return `M${a.x} ${a.y - 14}C${a.x} ${my} ${b.x} ${my} ${b.x} ${b.y + 10}`;
+};
+const root = nodes[3]![0]!;
+
+const steps = [
+  { n: '01', title: 'Split', body: 'BLAKE3 cuts every file into 1 KiB chunks. Each chunk can be hashed on its own.' },
+  { n: '02', title: 'Spread', body: 'Bend2 hands the chunks to every CPU core at once, eight at a time in SIMD lanes, or to thousands of GPU threads.' },
+  { n: '03', title: 'Fold', body: 'Results merge pair by pair up the tree into one root: the fingerprint, identical to the official b3sum.' },
+];
+---
+
+<section id="how" class="home-section how" aria-labelledby="how-title">
+  <div class="wrap">
+    <header class="home-head">
+      <p class="kicker" data-reveal>How it works</p>
+      <h2 id="how-title" data-reveal style="--i: 1">BLAKE3 is a tree. <span class="glow">Bend2 runs trees.</span></h2>
+      <p data-reveal style="--i: 2">
+        The algorithm was always parallel; most tools still feed it one piece at a time. turboblake's engine is written in <a href={BEND_URL}>Bend2</a>,
+        a language that spreads tree-shaped work over every core you have, with no threads or locks in sight.
+      </p>
+    </header>
+
+    <div class="layout" data-how data-stage="0">
+      <figure class="tile diagram" data-reveal>
+        <svg viewBox={`0 0 ${W} 290`} role="img" aria-labelledby="how-desc" focusable="false">
+          <desc id="how-desc">A file is cut into eight chunks, hashed side by side on four cores, and merged pairwise into one root: the fingerprint.</desc>
+          <defs>
+            <linearGradient id="how-heat" x1="0" y1="250" x2="0" y2="30" gradientUnits="userSpaceOnUse">
+              <stop offset="0" style="stop-color: var(--ion)" />
+              <stop offset="1" style="stop-color: var(--volt)" />
+            </linearGradient>
+          </defs>
+
+          <g class="file">
+            <rect x="40" y="252" width={W - 80} height="24" rx="6" />
+            {nodes[0]!.slice(1).map((n, i) => <line x1={n.x - (W - 80) / 16} x2={n.x - (W - 80) / 16} y1="252" y2="276" style={`--i: ${i}`} />)}
+            <text x="52" y="268">model.safetensors</text>
+          </g>
+
+          <g class="links" fill="none" stroke="url(#how-heat)" stroke-linecap="round">
+            {links.map((l) => <path class={`k${l.k}`} d={curve(l.child, l.parent)} />)}
+          </g>
+
+          {
+            nodes[0]!.map((n, i) => (
+              <g class={`chunk core-${i % 4}`} style={`--i: ${i}`}>
+                <rect x={n.x - 32} y={n.y - 14} width="64" height="28" rx="7" />
+                <text class="lbl-a" x={n.x} y={n.y + 4}>
+                  1 KiB
+                </text>
+                <text class="lbl-b" x={n.x} y={n.y + 4}>
+                  core {(i % 4) + 1}
+                </text>
+              </g>
+            ))
+          }
+          {nodes.slice(1, 3).flatMap((row) => row.map((n) => <circle class="parent" cx={n.x} cy={n.y} r="9" />))}
+          <g class="root">
+            <circle cx={root.x} cy={root.y} r="13" />
+          </g>
+          <text class="digest" x={root.x} y={root.y - 26}>{digest.slice(0, 16)}…</text>
+        </svg>
+      </figure>
+
+      <ol class="steps" role="list">
+        {
+          steps.map((s, i) => (
+            <li>
+              <button type="button" class="step tile" data-step={i} aria-pressed={i === 0 ? 'true' : 'false'} data-reveal style={`--i: ${i + 1}`}>
+                <span class="n">{s.n}</span>
+                <span class="t">{s.title}</span>
+                <span class="b">{s.body}</span>
+                <span class="bar" aria-hidden="true" />
+              </button>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+
+    <p class="more" data-reveal>
+      <span class="marks">
+        <span><BrandMark name="bend" /> Bend2 engine</span>
+        <span><BrandMark name="c" /> C for I/O</span>
+        <span><BrandMark name="rust" /> Rust command line</span>
+      </span>
+      <a href={withBase('benchmarks/#engine')}>How the engine works <span aria-hidden="true">→</span></a>
+    </p>
+  </div>
+</section>
+
+<script>
+  const STEP_MS = 3200;
+  for (const root of document.querySelectorAll<HTMLElement>('[data-how]')) {
+    const buttons = [...root.querySelectorAll<HTMLButtonElement>('[data-step]')];
+    let stage = 0;
+    let timer = 0;
+    let held = false;
+    const show = (n: number) => {
+      stage = n;
+      root.dataset.stage = String(n);
+      buttons.forEach((b, i) => b.setAttribute('aria-pressed', String(i === n)));
+    };
+    const play = () => {
+      clearInterval(timer);
+      if (held || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      root.classList.add('playing');
+      timer = window.setInterval(() => show((stage + 1) % buttons.length), STEP_MS);
+    };
+    const pause = () => {
+      clearInterval(timer);
+      root.classList.remove('playing');
+    };
+    buttons.forEach((b, i) =>
+      b.addEventListener('click', () => {
+        held = true;
+        pause();
+        show(i);
+      }),
+    );
+    new IntersectionObserver((entries) => (entries.some((e) => e.isIntersecting) ? play() : pause()), { threshold: 0.3 }).observe(root);
+    show(0);
+  }
+</script>
+
+<style>
+  .home-head a {
+    color: var(--ink);
+  }
+
+  .layout {
+    display: grid;
+    gap: 1rem;
+  }
+
+  @media (min-width: 48rem) {
+    .steps {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .diagram {
+    justify-content: center;
+    margin: 0;
+    padding: clamp(1rem, 0.5rem + 2vw, 2.5rem) clamp(0.5rem, 2vw, 3rem);
+    background:
+      radial-gradient(60% 50% at 50% 0%, rgb(212 255 58 / 0.07), transparent 70%),
+      var(--surface);
+  }
+
+  svg {
+    display: block;
+    width: 100%;
+    max-width: 56rem;
+    height: auto;
+    margin-inline: auto;
+    overflow: visible;
+  }
+
+  text {
+    fill: var(--ink-2);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-anchor: middle;
+  }
+
+  /* The file */
+  .file rect {
+    fill: var(--surface-3);
+    stroke: var(--line-strong);
+  }
+
+  .file text {
+    text-anchor: start;
+    fill: var(--ink-3);
+  }
+
+  .file line {
+    stroke: var(--volt);
+    stroke-width: 1.5;
+    opacity: 0;
+    transition: opacity 0.3s var(--ease-out);
+    transition-delay: calc(var(--i) * 60ms);
+  }
+
+  [data-stage='0'] .file line {
+    opacity: 0.9;
+  }
+
+  /* Links: dim until the fold, then lit and flowing up. */
+  .links path {
+    stroke-width: 1.6;
+    opacity: 0.18;
+    transition: opacity 0.5s var(--ease-out);
+  }
+
+  [data-stage='2'] .links path {
+    opacity: 0.9;
+    stroke-dasharray: 10 14;
+    animation: up 0.9s linear infinite;
+  }
+
+  @keyframes up {
+    to {
+      stroke-dashoffset: -24;
+    }
+  }
+
+  /* Chunks */
+  .chunk rect {
+    fill: var(--void);
+    stroke: var(--line-strong);
+    transition:
+      fill 0.4s var(--ease-out),
+      stroke 0.4s var(--ease-out),
+      transform 0.5s var(--ease-out);
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .chunk text {
+    transition: opacity 0.3s;
+  }
+
+  .lbl-b {
+    opacity: 0;
+  }
+
+  /* Too small to read on a phone: the colors carry it there. */
+  @media (max-width: 39.99rem) {
+    .chunk text {
+      display: none;
+    }
+  }
+
+  [data-stage='0'] .chunk rect {
+    stroke: var(--volt);
+  }
+
+  [data-stage='1'] .lbl-a {
+    opacity: 0;
+  }
+
+  [data-stage='1'] .lbl-b {
+    opacity: 1;
+    fill: var(--ink);
+  }
+
+  [data-stage='1'] .core-0 rect {
+    fill: rgb(70 227 255 / 0.22);
+    stroke: var(--ion);
+  }
+  [data-stage='1'] .core-1 rect {
+    fill: rgb(130 240 200 / 0.2);
+    stroke: #82f0c8;
+  }
+  [data-stage='1'] .core-2 rect {
+    fill: rgb(180 250 120 / 0.2);
+    stroke: #b4fa78;
+  }
+  [data-stage='1'] .core-3 rect {
+    fill: rgb(212 255 58 / 0.2);
+    stroke: var(--volt);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    [data-stage='1'] .chunk rect {
+      animation: work 0.8s ease-in-out infinite alternate;
+      animation-delay: calc(var(--i) * -0.13s);
+    }
+    @keyframes work {
+      to {
+        transform: translateY(-4px);
+      }
+    }
+  }
+
+  .parent {
+    fill: var(--surface-3);
+    stroke: var(--ion);
+    stroke-width: 1.5;
+    transition: fill 0.4s;
+  }
+
+  [data-stage='2'] .parent {
+    fill: var(--ion);
+  }
+
+  .root circle {
+    fill: var(--surface-3);
+    stroke: var(--volt);
+    stroke-width: 2;
+    transition: fill 0.4s;
+  }
+
+  [data-stage='2'] .root circle {
+    fill: var(--volt);
+    filter: drop-shadow(0 0 10px rgb(212 255 58 / 0.9));
+  }
+
+  .digest {
+    fill: var(--volt);
+    font-size: 14px;
+    opacity: 0;
+    transition: opacity 0.5s 0.4s;
+  }
+
+  [data-stage='2'] .digest {
+    opacity: 1;
+  }
+
+  /* Steps */
+  .steps {
+    display: grid;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .step {
+    width: 100%;
+    height: 100%;
+    gap: 0.35rem;
+    text-align: left;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    transition:
+      border-color var(--t-med) var(--ease-out),
+      background var(--t-med) var(--ease-out);
+  }
+
+  .step[aria-pressed='true'] {
+    border-color: rgb(212 255 58 / 0.4);
+    background:
+      radial-gradient(90% 90% at 0% 0%, rgb(212 255 58 / 0.08), transparent 70%),
+      var(--surface-2);
+  }
+
+  .step:focus-visible {
+    outline: 2px solid var(--volt);
+    outline-offset: 2px;
+  }
+
+  .n {
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+  }
+
+  .step[aria-pressed='true'] .n {
+    color: var(--volt);
+  }
+
+  .t {
+    color: var(--ink);
+    font-size: 1.25rem;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+  }
+
+  .b {
+    color: var(--ink-2);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+  }
+
+  /* While playing, the current step shows how long until the next. */
+  .bar {
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 2px;
+    background: var(--heat);
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+
+  :global(.playing) .step[aria-pressed='true'] .bar {
+    animation: progress 3.2s linear forwards;
+  }
+
+  @keyframes progress {
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  .more {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1.5rem;
+    margin-top: 1.5rem;
+    color: var(--ink-3);
+    font-size: 0.875rem;
+  }
+
+  .marks {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1.25rem;
+  }
+
+  .marks span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    white-space: nowrap;
+  }
+
+  .marks :global(.brandmark) {
+    font-size: 1.1rem;
+  }
+
+  .more a {
+    color: var(--ink);
+    text-decoration: none;
+    font-weight: 550;
+  }
+
+  .more a:hover {
+    text-decoration: underline;
+  }
+</style>

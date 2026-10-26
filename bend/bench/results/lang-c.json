@@ -1,0 +1,129 @@
+{
+  "info": {
+    "machine": "arm64",
+    "system": "Darwin",
+    "digests_agree": true
+  },
+  "rows": [
+    {
+      "impl": "official C",
+      "bytes": 1024,
+      "ms": 0.001,
+      "digest": "8214d8245d795ade"
+    },
+    {
+      "impl": "libblake3-bend",
+      "bytes": 1024,
+      "ms": 0.001,
+      "digest": "8214d8245d795ade"
+    },
+    {
+      "impl": "official C",
+      "bytes": 16384,
+      "ms": 0.007,
+      "digest": "e619ec0549dbf76a"
+    },
+    {
+      "impl": "libblake3-bend",
+      "bytes": 16384,
+      "ms": 0.007,
+      "digest": "e619ec0549dbf76a"
+    },
+    {
+      "impl": "official C",
+      "bytes": 65536,
+      "ms": 0.03,
+      "digest": "bb790298334ebf43"
+    },
+    {
+      "impl": "libblake3-bend",
+      "bytes": 65536,
+      "ms": 0.03,
+      "digest": "bb790298334ebf43"
+    },
+    {
+      "impl": "official C",
+      "bytes": 262144,
+      "ms": 0.127,
+      "digest": "2932311ee947b44f"
+    },
+    {
+      "impl": "libblake3-bend",
+      "bytes": 262144,
+      "ms": 0.125,
+      "digest": "2932311ee947b44f"
+    },
+    {
+      "impl": "official C",
+      "bytes": 1048576,
+      "ms": 0.497,
+      "digest": "6fbaf80bd5940fc4"
+    },
+    {
+      "impl": "libblake3-bend",
+      "bytes": 1048576,
+      "ms": 0.179,
+      "digest": "6fbaf80bd5940fc4"
+    },
+    {
+      "impl": "official C",
+      "bytes": 4194304,
+      "ms": 1.793,
+      "digest": "46e2c11c566b113f"
+    },
+    {
+      "impl": "libblake3-bend",
+      "bytes": 4194304,
+      "ms": 0.293,
+      "digest": "46e2c11c566b113f"
+    },
+    {
+      "impl": "official C",
+      "bytes": 16777216,
+      "ms": 6.981,
+      "digest": "4f9c38bd6b77a54e"
+    },
+    {
+      "impl": "libblake3-bend",
+      "bytes": 16777216,
+      "ms": 0.848,
+      "digest": "4f9c38bd6b77a54e"
+    },
+    {
+      "impl": "official C",
+      "bytes": 67108864,
+      "ms": 28.034,
+      "digest": "c0035488215947de"
+    },
+    {
+      "impl": "libblake3-bend",
+      "bytes": 67108864,
+      "ms": 2.827,
+      "digest": "c0035488215947de"
+    },
+    {
+      "impl": "official C",
+      "bytes": 268435456,
+      "ms": 114.232,
+      "digest": "ec510ebc356e96a9"
+    },
+    {
+      "impl": "libblake3-bend",
+      "bytes": 268435456,
+      "ms": 10.093,
+      "digest": "ec510ebc356e96a9"
+    },
+    {
+      "impl": "official C",
+      "bytes": 1073741824,
+      "ms": 480.542,
+      "digest": "b6e2b68c4439bd98"
+    },
+    {
+      "impl": "libblake3-bend",
+      "bytes": 1073741824,
+      "ms": 38.691,
+      "digest": "b6e2b68c4439bd98"
+    }
+  ]
+}

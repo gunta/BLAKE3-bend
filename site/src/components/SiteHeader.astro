@@ -4,10 +4,21 @@ import BrandMark from './BrandMark.astro';
 import { REPO_URL, withBase } from '../lib/site';
 
 interface Props {
-  links: { href: string; label: string }[];
+  /** In-page sections; without them the header shows the site's pages. */
+  links?: { href: string; label: string }[];
 }
 
-const { links } = Astro.props;
+const SITE_NAV = [
+  { href: withBase('#why'), label: 'Why BLAKE3' },
+  { href: withBase('#how'), label: 'How it works' },
+  { href: withBase('install/'), label: 'Install' },
+  { href: withBase('languages/'), label: 'Languages' },
+  { href: withBase('gpu/'), label: 'GPU' },
+  { href: withBase('benchmarks/'), label: 'Benchmarks' },
+];
+
+const { links = SITE_NAV } = Astro.props;
+const here = Astro.url.pathname.replace(/\/?$/, '/');
 ---
 
 <header class="site-header" data-header>
@@ -20,7 +31,9 @@ const { links } = Astro.props;
         {
           links.map((l) => (
             <li>
-              <a href={l.href}>{l.label}</a>
+              <a href={l.href} aria-current={l.href === here ? 'page' : undefined}>
+                {l.label}
+              </a>
             </li>
           ))
         }
@@ -135,6 +148,10 @@ const { links } = Astro.props;
   nav a:hover {
     color: var(--ink);
     background: rgb(255 255 255 / 0.05);
+  }
+
+  nav a[aria-current='page'] {
+    color: var(--ink);
   }
 
   .gh {

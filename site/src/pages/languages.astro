@@ -1,0 +1,245 @@
+---
+/**
+ * turboblake in every environment it ships for, against the BLAKE3 packages it
+ * replaces there, with the platform's other hash functions behind toggles.
+ */
+import Base from '../layouts/Base.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import Section from '../components/Section.astro';
+import BarChart from '../components/BarChart.astro';
+import DataTable from '../components/DataTable.astro';
+import Note from '../components/Note.astro';
+import { compareToFastest, fmtSpeedup, tableView, VERDICT } from '../lib/model';
+import { deepseekLinux, languages, otherHashes } from '../lib/more';
+import { withBase } from '../lib/site';
+
+const links = [
+  { href: '#summary', label: 'Summary' },
+  ...languages.map((l) => ({ href: `#${l.id}`, label: l.title })),
+];
+
+const DEFAULT_ON = new Set(['sha256']);
+
+/** turboblake against the fastest BLAKE3 alternative, on each language's biggest input. */
+const summary = languages.map((l) => {
+  const row = l.table.rows[l.table.rows.length - 1]!;
+  const best = l.table.bend
+    .map((b) => compareToFastest(l.table, row, b))
+    .filter((c) => c !== undefined)
+    .sort((a, b) => b!.ratio - a!.ratio)[0];
+  return { id: l.id, title: l.title, input: row.label, c: best };
+});
+
+/** CSS that hides each other hash unless its toggle is on, bars and legend entries alike. */
+const hideRules = otherHashes
+  .map((h) => `.langs:not(.on-${h.key}) [data-series="${h.key}"] { display: none !important; }`)
+  .join('\n');
+const startClasses = otherHashes.filter((h) => DEFAULT_ON.has(h.key)).map((h) => `on-${h.key}`);
+---
+
+<Base title="Languages: every package, benchmarked" path="languages/" description="turboblake for C, Rust, Python, Node.js, Bun and Go, against each ecosystem's BLAKE3 packages, with SHA-256, SHA-512, SHA-1, MD5, BLAKE2 and SHA-3 for scale.">
+  <SiteHeader slot="header" links={links} />
+
+  <div class:list={['langs', ...startClasses]} data-langs>
+    <section class="intro" id="summary" aria-labelledby="summary-title">
+      <div class="wrap">
+        <p class="kicker">Languages</p>
+        <h1 id="summary-title">The same engine, in every language</h1>
+        <div class="prose lede">
+          <p>
+            Each package keeps the API of the BLAKE3 package it replaces, and hands big inputs to the same Bend engine on every core. Below, one-shot hashing of
+            an in-memory buffer in each environment, against that environment's own BLAKE3 packages; speedups are against the fastest of them. How to install
+            and swap each one: <a href={withBase('install/')}>install</a>.
+          </p>
+          <p>
+            Where it loses: against the official Rust crate on every core (<code>update_rayon</code>, and blake3-py's <code>max_threads=AUTO</code>, which is
+            that crate) from 16 MiB up on the Mac. macOS keeps big allocations where Bend's heap cannot reach, so the libraries copy each span into the heap
+            before hashing it; on Linux the engine reads the caller's memory in place.
+          </p>
+        </div>
+        <ul class="summary" role="list">
+          {
+            summary.map((s) => (
+              <li class="card">
+                <a href={`#${s.id}`}>
+                  <span class="s-title">{s.title}</span>
+                  {s.c ? (
+                    <span class={`s-ratio v-${s.c.verdict}`}>
+                      <span aria-hidden="true">{VERDICT[s.c.verdict].icon}</span> {fmtSpeedup(s.c)}
+                    </span>
+                  ) : (
+                    <span class="s-ratio">n/a</span>
+                  )}
+                  <span class="s-what">{s.c ? `vs ${s.c.baseline.label}, ${s.input}` : s.input}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+
+        <fieldset class="toggles">
+          <legend>Show other hash functions, for scale</legend>
+          <div class="chips">
+            {
+              otherHashes.map((h) => (
+                <label class="chip">
+                  <input type="checkbox" value={h.key} checked={DEFAULT_ON.has(h.key)} data-hash-toggle />
+                  <span>{h.label}</span>
+                </label>
+              ))
+            }
+          </div>
+          <p class="hint">They are not drop-in alternatives (another digest), and BLAKE3 is meant to replace them; their bars carry no speedup.</p>
+        </fieldset>
+      </div>
+    </section>
+
+    {
+      languages.map((l, i) => (
+        <Section id={l.id} kicker={l.machine} title={l.title} tone={i % 2 === 0 ? 'alt' : 'plain'}>
+          <Note text={l.note} />
+          <div class="charts">
+            {l.charts.map((c) => (
+              <BarChart chart={c} />
+            ))}
+          </div>
+          <DataTable id={`${l.id}-table`} view={tableView(l.table, `${l.title}, times in ${l.table.unit} with GB/s below each time.`, { throughput: true })} />
+        </Section>
+      ))
+    }
+
+    {
+      deepseekLinux && (
+        <Section id="cli-linux" kicker={deepseekLinux.machine} title="The command line on Linux: DeepSeek-sized files">
+          <Note text={deepseekLinux.note} />
+          <BarChart chart={deepseekLinux.chart} />
+          <DataTable id="cli-linux-table" view={tableView(deepseekLinux.table, `One-shot runs, ${deepseekLinux.table.unit}.`)} />
+        </Section>
+      )
+    }
+  </div>
+
+  <SiteFooter slot="footer" />
+</Base>
+
+<style set:html={hideRules}></style>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-langs]');
+  for (const box of document.querySelectorAll<HTMLInputElement>('[data-hash-toggle]')) {
+    box.addEventListener('change', () => root?.classList.toggle(`on-${box.value}`, box.checked));
+  }
+</script>
+
+<style>
+  .intro {
+    padding-block: calc(var(--header-h) + clamp(3rem, 2rem + 4vw, 5.5rem)) clamp(3rem, 2rem + 3vw, 4.5rem);
+  }
+
+  .intro h1 {
+    max-width: 20ch;
+    margin-block: 0.6rem 1.2rem;
+    font-size: clamp(2.125rem, 1.4rem + 3vw, 3.5rem);
+  }
+
+  .lede {
+    max-width: 44rem;
+    font-size: 1.0625rem;
+  }
+
+  .lede p + p {
+    margin-top: 0.9rem;
+  }
+
+  .summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+    gap: 0.75rem;
+    margin: 2.25rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .summary a {
+    display: grid;
+    gap: 0.2rem;
+    padding: 1rem 1.1rem;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .s-title {
+    color: var(--ink-2);
+    font-size: 0.875rem;
+  }
+
+  .s-ratio {
+    font-size: 1.75rem;
+    font-weight: 650;
+    letter-spacing: -0.04em;
+  }
+
+  .s-ratio.v-faster {
+    color: var(--volt);
+  }
+
+  .s-what {
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+  }
+
+  .toggles {
+    margin: 2.5rem 0 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .toggles legend {
+    margin-bottom: 0.75rem;
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 36px;
+    padding: 0.3rem 0.8rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    background: var(--surface-2);
+    color: var(--ink-2);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    cursor: pointer;
+  }
+
+  .chip:has(input:checked) {
+    border-color: var(--ink-3);
+    color: var(--ink);
+  }
+
+  .chip input {
+    accent-color: var(--volt);
+  }
+
+  .hint {
+    margin-top: 0.75rem;
+    color: var(--ink-3);
+    font-size: 0.875rem;
+  }
+
+  .charts {
+    display: grid;
+    gap: 3rem;
+  }
+</style>
