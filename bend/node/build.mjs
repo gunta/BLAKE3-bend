@@ -12,8 +12,9 @@ import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
+// in the repository, always the current C; in a package, the copy it ships
 let csrc = join(here, "csrc");
-if (!existsSync(join(csrc, "engine.c")) && existsSync(join(here, "..", "lib", "csrc", "engine.c"))) {
+if (existsSync(join(here, "..", "lib", "csrc", "engine.c"))) {
   cpSync(join(here, "..", "lib", "csrc"), csrc, { recursive: true });
 }
 

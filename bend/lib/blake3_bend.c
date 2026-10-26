@@ -29,6 +29,9 @@
 
 int b3e_hash(uint32_t n, const unsigned char* const* p, const uint64_t* len,
              const uint64_t* cb, unsigned char (*out)[32]);
+int b3e_hash_k(uint32_t n, const unsigned char* const* p, const uint64_t* len,
+               const uint64_t* cb, const uint32_t* key, uint32_t kf,
+               unsigned char (*out)[32]);
 const void* b3e_window(void);
 int b3e_inside(const void* p, uint64_t len);
 
@@ -144,9 +147,9 @@ int blake3_bend_subtree(const uint8_t* input, size_t input_len, const uint32_t k
   if (input_len <= BLAKE3_CHUNK_LEN || input_len < bend_min(input, input_len)) {
     return 0;
   }
-  // The engine hashes BLAKE3's default mode, 32-bit chunk counters.
+  // The engine takes every mode (key and flags), and 32-bit chunk counters.
   uint64_t chunks = (input_len + BLAKE3_CHUNK_LEN - 1) / BLAKE3_CHUNK_LEN;
-  if (flags != 0 || memcmp(key, IV, sizeof IV) != 0 || chunk_counter + chunks > (1ull << 32)) {
+  if (chunk_counter + chunks > (1ull << 32)) {
     return 0;
   }
   // The two children: below a span, one span each; past it, the left is
@@ -171,7 +174,7 @@ int blake3_bend_subtree(const uint8_t* input, size_t input_len, const uint32_t k
     cb[i] = chunk_counter + at / BLAKE3_CHUNK_LEN;
   }
   if (ok) {
-    ok = b3e_hash((uint32_t)n, p, len, cb, cvs);
+    ok = b3e_hash_k((uint32_t)n, p, len, cb, key, flags, cvs);
   }
   if (ok) {
     merge(key, flags, cvs, (uint32_t)nl);

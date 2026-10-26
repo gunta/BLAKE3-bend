@@ -29,6 +29,8 @@ typedef struct B3EJob {
   u64 len[B3E_SPANS];  // bytes, at most 1 GiB
   u64 cb[B3E_SPANS];   // chunk counter of the first chunk
   u32 n;
+  u32 key[8];           // the mode: the key words and flag (IV and 0 by default)
+  u32 kf;
   unsigned char (*out)[32];
   int* left;            // the caller's count of jobs not done
   int* failed;
@@ -326,10 +328,16 @@ static Term b3e_arr(Env e, B3EJob* j, u32 i, u32* k) {
 
 static Term b3e_spans(Env e, B3EJob* j, u32 lo, u32 hi, u32* k) {
   if (hi - lo == 1) {
+    // bend flattens the key's CV into SpOne: arr, cb, nch, last, eight key
+    // words, kf (13 fields)
     u64 len = j->len[lo], nch = (len + 1023) / 1024;
-    Term v[4] = { b3e_arr(e, j, lo, k), (Term)(u32)j->cb[lo], (Term)(u32)nch,
+    Term v[13] = { b3e_arr(e, j, lo, k), (Term)(u32)j->cb[lo], (Term)(u32)nch,
       (Term)(u32)(len - (nch - 1) * 1024) };
-    return b3e_ctr(e, CID(SpOne), 4, v);
+    for (u32 i = 0; i < 8; i += 1) {
+      v[4 + i] = (Term)j->key[i];
+    }
+    v[12] = (Term)j->kf;
+    return b3e_ctr(e, CID(SpOne), 13, v);
   }
   u32 mid = lo + (hi - lo) / 2;
   Term l = b3e_spans(e, j, lo, mid, k);
@@ -545,13 +553,14 @@ const void* b3e_window(void) {
   return b3e_heap;
 }
 
-// Hashes n spans (each at most 1 GiB) into out[0..n-1]: B3E_SPANS a job
-// while they can be read in place, B3E_STAGE copied ones a job, every job
-// queued at once. 1 on success, 0 if the engine is not running (the caller
-// then hashes in C).
-int b3e_hash(uint32_t n, const unsigned char* const* p, const uint64_t* len,
-             const uint64_t* cb, unsigned char (*out)[32]) {
-  if (n == 0) {
+// Hashes n spans (each at most 1 GiB) into out[0..n-1], in the mode of
+// key (8 words) and kf: B3E_SPANS a job while they can be read in place,
+// B3E_STAGE copied ones a job, every job queued at once. 1 on success, 0 if
+// the engine is not running (the caller then hashes in C).
+int b3e_hash_k(uint32_t n, const unsigned char* const* p, const uint64_t* len,
+               const uint64_t* cb, const uint32_t* key, uint32_t kf,
+               unsigned char (*out)[32]) {
+  if (n == 0 || cid_arity(CID(SpOne)) != 13) {
     return 0;
   }
   if (b3e_hint == 0) {
@@ -581,6 +590,8 @@ int b3e_hash(uint32_t n, const unsigned char* const* p, const uint64_t* len,
     j->set = -1;
     j->ready = false;
     j->next = NULL;
+    memcpy(j->key, key, sizeof j->key);
+    j->kf = kf;
     u32 copied = 0;
     while (i < n && j->n < B3E_SPANS) {
       bool copy = !b3e_inside(p[i], len[i]);
@@ -643,4 +654,12 @@ int b3e_files(uint32_t n, const char* const* paths, unsigned char (*out)[32], in
   pthread_mutex_unlock(&b3e_mu);
   pthread_mutex_unlock(&b3e_fcall);
   return j.done;
+}
+
+// b3e_hash_k in the default mode.
+int b3e_hash(uint32_t n, const unsigned char* const* p, const uint64_t* len,
+             const uint64_t* cb, unsigned char (*out)[32]) {
+  static const uint32_t iv[8] = { 0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A,
+                                  0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19 };
+  return b3e_hash_k(n, p, len, cb, iv, 0, out);
 }

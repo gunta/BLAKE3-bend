@@ -8700,6 +8700,120 @@ def hash1(~dup: Array<U32> -> Array<U32> & Array<U32>,
   +n = chunks(len)
   hash1.at(~dup, a, 0, n, tail(len, n), ROOT())
 
+# Keyed and key-derivation modes, 8 lanes
+# ---------------------------------------
+#
+# The CPU tree's defs again, with the key (`key`, and `k8` in every lane)
+# and the mode flag (kf) threaded through, as the scalar .k defs do;
+# compress8 and the node kinds are the default mode's.
+
+def key8(+k: CV) -> CV8:
+  match k:
+    case CV{+h0, +h1, +h2, +h3, +h4, +h5, +h6, +h7}:
+      CV8{h0, h0, h0, h0, h0, h0, h0, h0, h1, h1, h1, h1, h1, h1, h1, h1, h2, h2, h2, h2, h2, h2, h2, h2, h3, h3, h3, h3, h3, h3, h3, h3, h4, h4, h4, h4, h4, h4, h4, h4, h5, h5, h5, h5, h5, h5, h5, h5, h6, h6, h6, h6, h6, h6, h6, h6, h7, h7, h7, h7, h7, h7, h7, h7}
+
+def c8.go.k(+n: Nat, r: Array<U32> & B128, +w: U32, cv: CV8, +ctr: U32,
+  +fl: U32, +kf: U32) -> Array<U32> & CV8:
+  match n:
+    case 0n:
+      (a, m) = r
+      (a, cv)
+    case 1n+p:
+      (a, m) = r
+      +w2 = (w + step(p) : U32)
+      c8.go.k(p, ld8(a, w2), w2, compress8(cv, m, ctr, 1, 64,
+        ((fl .|. endf(p) : U32) .|. kf : U32)), ctr, 0, kf)
+
+def group.k(a: Array<U32>, +c: U32, +t: U32, +key: CV, +kf: U32) -> Array<U32> & CV8:
+  +w = (c << 8n : U32)
+  c8.go.k(16n, ld8(a, w), w, key8(key), t, CHUNK_START(), kf)
+
+# One level of parents over 16 CVs: lanes 0-3 merge x's lane pairs,
+# lanes 4-7 merge y's, so a level stays in lane order.
+def par8.k(x: CV8, y: CV8, +key: CV, +kf: U32) -> CV8:
+  match x y:
+    case CV8{x0_0, x1_0, x2_0, x3_0, x4_0, x5_0, x6_0, x7_0, x0_1, x1_1, x2_1, x3_1, x4_1, x5_1, x6_1, x7_1, x0_2, x1_2, x2_2, x3_2, x4_2, x5_2, x6_2, x7_2, x0_3, x1_3, x2_3, x3_3, x4_3, x5_3, x6_3, x7_3, x0_4, x1_4, x2_4, x3_4, x4_4, x5_4, x6_4, x7_4, x0_5, x1_5, x2_5, x3_5, x4_5, x5_5, x6_5, x7_5, x0_6, x1_6, x2_6, x3_6, x4_6, x5_6, x6_6, x7_6, x0_7, x1_7, x2_7, x3_7, x4_7, x5_7, x6_7, x7_7} CV8{y0_0, y1_0, y2_0, y3_0, y4_0, y5_0, y6_0, y7_0, y0_1, y1_1, y2_1, y3_1, y4_1, y5_1, y6_1, y7_1, y0_2, y1_2, y2_2, y3_2, y4_2, y5_2, y6_2, y7_2, y0_3, y1_3, y2_3, y3_3, y4_3, y5_3, y6_3, y7_3, y0_4, y1_4, y2_4, y3_4, y4_4, y5_4, y6_4, y7_4, y0_5, y1_5, y2_5, y3_5, y4_5, y5_5, y6_5, y7_5, y0_6, y1_6, y2_6, y3_6, y4_6, y5_6, y6_6, y7_6, y0_7, y1_7, y2_7, y3_7, y4_7, y5_7, y6_7, y7_7}:
+      compress8.p(key8(key), B128{x0_0, x2_0, x4_0, x6_0, y0_0, y2_0, y4_0, y6_0, x0_1, x2_1, x4_1, x6_1, y0_1, y2_1, y4_1, y6_1, x0_2, x2_2, x4_2, x6_2, y0_2, y2_2, y4_2, y6_2, x0_3, x2_3, x4_3, x6_3, y0_3, y2_3, y4_3, y6_3, x0_4, x2_4, x4_4, x6_4, y0_4, y2_4, y4_4, y6_4, x0_5, x2_5, x4_5, x6_5, y0_5, y2_5, y4_5, y6_5, x0_6, x2_6, x4_6, x6_6, y0_6, y2_6, y4_6, y6_6, x0_7, x2_7, x4_7, x6_7, y0_7, y2_7, y4_7, y6_7, x1_0, x3_0, x5_0, x7_0, y1_0, y3_0, y5_0, y7_0, x1_1, x3_1, x5_1, x7_1, y1_1, y3_1, y5_1, y7_1, x1_2, x3_2, x5_2, x7_2, y1_2, y3_2, y5_2, y7_2, x1_3, x3_3, x5_3, x7_3, y1_3, y3_3, y5_3, y7_3, x1_4, x3_4, x5_4, x7_4, y1_4, y3_4, y5_4, y7_4, x1_5, x3_5, x5_5, x7_5, y1_5, y3_5, y5_5, y7_5, x1_6, x3_6, x5_6, x7_6, y1_6, y3_6, y5_6, y7_6, x1_7, x3_7, x5_7, x7_7, y1_7, y3_7, y5_7, y7_7}, 64, (PARENT() .|. kf : U32))
+
+# The last three levels over a CV8's lanes, one compression each.
+def fold8.k(x: CV8, +rf: U32, +key: CV, +kf: U32) -> CV:
+  match x:
+    case CV8{x0_0, x1_0, x2_0, x3_0, x4_0, x5_0, x6_0, x7_0, x0_1, x1_1, x2_1, x3_1, x4_1, x5_1, x6_1, x7_1, x0_2, x1_2, x2_2, x3_2, x4_2, x5_2, x6_2, x7_2, x0_3, x1_3, x2_3, x3_3, x4_3, x5_3, x6_3, x7_3, x0_4, x1_4, x2_4, x3_4, x4_4, x5_4, x6_4, x7_4, x0_5, x1_5, x2_5, x3_5, x4_5, x5_5, x6_5, x7_5, x0_6, x1_6, x2_6, x3_6, x4_6, x5_6, x6_6, x7_6, x0_7, x1_7, x2_7, x3_7, x4_7, x5_7, x6_7, x7_7}:
+      parent.k(parent.k(parent.k(CV{x0_0, x0_1, x0_2, x0_3, x0_4, x0_5, x0_6, x0_7}, CV{x1_0, x1_1, x1_2, x1_3, x1_4, x1_5, x1_6, x1_7}, 0, key, kf), parent.k(CV{x2_0, x2_1, x2_2, x2_3, x2_4, x2_5, x2_6, x2_7}, CV{x3_0, x3_1, x3_2, x3_3, x3_4, x3_5, x3_6, x3_7}, 0, key, kf), 0, key, kf),
+        parent.k(parent.k(CV{x4_0, x4_1, x4_2, x4_3, x4_4, x4_5, x4_6, x4_7}, CV{x5_0, x5_1, x5_2, x5_3, x5_4, x5_5, x5_6, x5_7}, 0, key, kf), parent.k(CV{x6_0, x6_1, x6_2, x6_3, x6_4, x6_5, x6_6, x6_7}, CV{x7_0, x7_1, x7_2, x7_3, x7_4, x7_5, x7_6, x7_7}, 0, key, kf), 0, key, kf), rf, key, kf)
+
+def leaf8.fin.k(r: Array<U32> & CV8, +rf: U32, +key: CV, +kf: U32) -> CV:
+  (a, x) = r
+  _ = a
+  fold8.k(x, rf, key, kf)
+
+def leaf8.k(a: Array<U32>, +c: U32, +t: U32, +rf: U32, +key: CV, +kf: U32) -> CV:
+  leaf8.fin.k(group.k(a, c, t, key, kf), rf, key, kf)
+
+def leaf32.s3.k(r: Array<U32> & CV8, x: CV8, g2: CV8, +key: CV, +kf: U32) -> Array<U32> & CV8:
+  (a, g3) = r
+  (a, par8.k(x, par8.k(g2, g3, key, kf), key, kf))
+
+def leaf32.s2.k(r: Array<U32> & CV8, +c: U32, +t: U32, x: CV8, +key: CV, +kf: U32) -> Array<U32> & CV8:
+  (a, g2) = r
+  leaf32.s3.k(group.k(a, (c + 24 : U32), (t + 24 : U32), key, kf), x, g2, key, kf)
+
+def leaf32.s1.k(r: Array<U32> & CV8, +c: U32, +t: U32, g0: CV8, +key: CV, +kf: U32) -> Array<U32> & CV8:
+  (a, g1) = r
+  leaf32.s2.k(group.k(a, (c + 16 : U32), (t + 16 : U32), key, kf), c, t, par8.k(g0, g1, key, kf), key, kf)
+
+def leaf32.s0.k(r: Array<U32> & CV8, +c: U32, +t: U32, +key: CV, +kf: U32) -> Array<U32> & CV8:
+  (a, g0) = r
+  leaf32.s1.k(group.k(a, (c + 8 : U32), (t + 8 : U32), key, kf), c, t, g0, key, kf)
+
+def leaf32.k(a: Array<U32>, +c: U32, +t: U32, +rf: U32, +key: CV, +kf: U32) -> CV:
+  leaf8.fin.k(leaf32.s0.k(group.k(a, c, t, key, kf), c, t, key, kf), rf, key, kf)
+
+def tree8.k(~dup: Array<U32> -> Array<U32> & Array<U32>,
+  +k: Nat, +ku: U32, d: Node, aa: Array<U32> & Array<U32>, +c: U32,
+  +n: U32, +cb: U32, +nch: U32, +last: U32, +rf: U32, +key: CV,
+  +kf: U32) -> CV:
+  match k d:
+    case 0n _:
+      (a1, a2) = aa
+      _ = a2
+      chunk.k(a1, c, cb, nch, last, rf, key, kf)
+    case 1n+p Down{}:
+      +kp = (ku - 1 : U32)
+      tree8.k(~dup, p, kp, kind(kp, n, c, nch, last), aa, c, n, cb, nch, last, rf, key, kf)
+    case 1n+p Leaf32{}:
+      (a1, a2) = aa
+      _ = a2
+      leaf32.k(a1, c, (cb + c : U32), rf, key, kf)
+    case 1n+p Leaf8{}:
+      (a1, a2) = aa
+      _ = a2
+      leaf8.k(a1, c, (cb + c : U32), rf, key, kf)
+    case 1n+p Split{}:
+      (a1, a2) = aa
+      +kp = (ku - 1 : U32)
+      +h = U32.shln(1, p)
+      +n2 = (n - h : U32)
+      +c2 = (c + h : U32)
+      l r = tree8.k(~dup, p, kp, kind(kp, h, c, nch, last), dup(a1), c, h, cb, nch, last, 0, key, kf) tree8.k(~dup, p, kp, kind(kp, n2, c2, nch, last), dup(a2), c2, n2, cb, nch, last, 0, key, kf)
+      parent.k(l, r, rf, key, kf)
+
+def hash8.go.k(~dup: Array<U32> -> Array<U32> & Array<U32>,
+  +k: Nat, a: Array<U32>, +cb: U32, +nch: U32, +last: U32,
+  +rf: U32, +key: CV, +kf: U32) -> CV:
+  match k:
+    case 0n:
+      chunk.k(a, 0, cb, nch, last, rf, key, kf)
+    case 1n+p:
+      +ku = U32.from_nat(k)
+      tree8.k(~dup, k, ku, kind(ku, nch, 0, nch, last), dup(a), 0, nch, cb,
+        nch, last, rf, key, kf)
+
+# The CV of a span (as hash.at) in any mode, on the CPU's 8-lane tree.
+def hash8.at.k(~dup: Array<U32> -> Array<U32> & Array<U32>,
+  a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32, +key: CV, +kf: U32) -> CV:
+  hash8.go.k(~dup, depth(nch), a, cb, nch, last, rf, key, kf)
+
 # Hex
 # ---
 

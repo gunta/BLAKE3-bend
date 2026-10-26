@@ -16,10 +16,11 @@ import ../hash.bend as H
 import ../b3io.bend as F
 
 # Subtrees to hash: each a span (see blake3.bend's hash.at) of nch chunks,
-# the last of them `last` bytes; the chunk counter of its first is cb.
+# the last of them `last` bytes; the chunk counter of its first is cb. key
+# and kf are the mode (blake3.bend's .k defs): IV and 0 in the default mode.
 type Spans is Type:
   SpNil{}
-  SpOne{arr: Array<U32>, cb: U32, nch: U32, last: U32}
+  SpOne{arr: Array<U32>, cb: U32, nch: U32, last: U32, key: B3.CV, kf: U32}
   SpTwo{l: Spans, r: Spans}
 
 # Their chaining values, in the same shape.
@@ -44,13 +45,22 @@ def Eng.done(c: CVs) -> IO(Unit):
   import "./engine.c"
   import "./engine.js"
 
+# A span's CV: the default mode's tree, or the keyed one.
+def span(dflt: Bool, a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +key: B3.CV,
+  +kf: U32) -> B3.CV:
+  match dflt:
+    case True{}:
+      H.hash.at(a, cb, nch, last, 0)
+    case False{}:
+      H.hash8.at.k(a, cb, nch, last, 0, key, kf)
+
 # Every span at once; no span is a root (the root is always C's).
 def cvs(s: Spans) -> CVs:
   match s:
     case SpNil{}:
       CvNil{}
-    case SpOne{a, cb, nch, last}:
-      CvOne{H.hash.at(a, cb, nch, last, 0)}
+    case SpOne{a, +cb, +nch, +last, +key, +kf}:
+      CvOne{span(U32.is_eq(kf, 0), a, cb, nch, last, key, kf)}
     case SpTwo{l, r}:
       x y = cvs(l) cvs(r)
       CvTwo{x, y}

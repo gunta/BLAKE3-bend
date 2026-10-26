@@ -10,361 +10,361 @@
     {
       "impl": "turboblake",
       "bytes": 1024,
-      "ms": 0.001623,
+      "ms": 0.00149,
       "digest": "8214d8245d795ade"
     },
     {
       "impl": "lukechampine.com/blake3",
       "bytes": 1024,
-      "ms": 0.001964,
+      "ms": 0.001869,
       "digest": "8214d8245d795ade"
     },
     {
       "impl": "github.com/zeebo/blake3",
       "bytes": 1024,
-      "ms": 0.001313,
+      "ms": 0.00125,
       "digest": "8214d8245d795ade"
     },
     {
       "impl": "crypto/sha256",
       "bytes": 1024,
-      "ms": 0.000812,
+      "ms": 0.00078,
       "digest": "447fb7c94f4e9091"
     },
     {
       "impl": "crypto/sha512",
       "bytes": 1024,
-      "ms": 0.001904,
+      "ms": 0.00182,
       "digest": "0836548ddc3a2b77"
     },
     {
       "impl": "crypto/sha1",
       "bytes": 1024,
-      "ms": 0.000762,
+      "ms": 0.000729,
       "digest": "a37fb4c68177df13"
     },
     {
       "impl": "crypto/md5",
       "bytes": 1024,
-      "ms": 0.001653,
+      "ms": 0.00158,
       "digest": "57b49e462481dbca"
     },
     {
       "impl": "x/crypto/blake2b",
       "bytes": 1024,
-      "ms": 0.001393,
+      "ms": 0.00132,
       "digest": "17595db39b16a052"
     },
     {
       "impl": "x/crypto/blake2s",
       "bytes": 1024,
-      "ms": 0.001843,
+      "ms": 0.00175,
       "digest": "a0d717911968a92c"
     },
     {
       "impl": "crypto/sha3 (256)",
       "bytes": 1024,
-      "ms": 0.003407,
+      "ms": 0.00324,
       "digest": "51e451262e11cb30"
     },
     {
       "impl": "turboblake",
       "bytes": 65536,
-      "ms": 0.02057,
+      "ms": 0.01874,
       "digest": "bb790298334ebf43"
     },
     {
       "impl": "lukechampine.com/blake3",
       "bytes": 65536,
-      "ms": 0.079088,
+      "ms": 0.08212,
       "digest": "bb790298334ebf43"
     },
     {
       "impl": "github.com/zeebo/blake3",
       "bytes": 65536,
-      "ms": 0.022453,
+      "ms": 0.02172,
       "digest": "bb790298334ebf43"
     },
     {
       "impl": "crypto/sha256",
       "bytes": 65536,
-      "ms": 0.043313,
+      "ms": 0.04118,
       "digest": "3a43a35d764c0aa8"
     },
     {
       "impl": "crypto/sha512",
       "bytes": 65536,
-      "ms": 0.10333,
+      "ms": 0.09639,
       "digest": "7d5936195c43be7b"
     },
     {
       "impl": "crypto/sha1",
       "bytes": 65536,
-      "ms": 0.040699,
+      "ms": 0.03862,
       "digest": "edcc2b89e8bc3ddc"
     },
     {
       "impl": "crypto/md5",
       "bytes": 65536,
-      "ms": 0.097288,
+      "ms": 0.09168,
       "digest": "70bdf8b670064914"
     },
     {
       "impl": "x/crypto/blake2b",
       "bytes": 65536,
-      "ms": 0.084373,
+      "ms": 0.079909,
       "digest": "df2316883255077b"
     },
     {
       "impl": "x/crypto/blake2s",
       "bytes": 65536,
-      "ms": 0.114963,
+      "ms": 0.10697,
       "digest": "650a2f7f30855be8"
     },
     {
       "impl": "crypto/sha3 (256)",
       "bytes": 65536,
-      "ms": 0.205087,
+      "ms": 0.190651,
       "digest": "84e690f9961ac8a4"
     },
     {
       "impl": "turboblake",
       "bytes": 1048576,
-      "ms": 0.348293,
+      "ms": 0.48862,
       "digest": "6fbaf80bd5940fc4"
     },
     {
       "impl": "lukechampine.com/blake3",
       "bytes": 1048576,
-      "ms": 0.767735,
+      "ms": 0.81508,
       "digest": "6fbaf80bd5940fc4"
     },
     {
       "impl": "github.com/zeebo/blake3",
       "bytes": 1048576,
-      "ms": 0.337553,
+      "ms": 0.35748,
       "digest": "6fbaf80bd5940fc4"
     },
     {
       "impl": "crypto/sha256",
       "bytes": 1048576,
-      "ms": 0.70354,
+      "ms": 0.67541,
       "digest": "f5600770a8695a85"
     },
     {
       "impl": "crypto/sha512",
       "bytes": 1048576,
-      "ms": 1.638007,
+      "ms": 1.566811,
       "digest": "cd413518ca0383b2"
     },
     {
       "impl": "crypto/sha1",
       "bytes": 1048576,
-      "ms": 0.662,
+      "ms": 0.630661,
       "digest": "59656b1808e5e200"
     },
     {
       "impl": "crypto/md5",
       "bytes": 1048576,
-      "ms": 1.568574,
+      "ms": 1.494841,
       "digest": "8f82ce4cfc5debdf"
     },
     {
       "impl": "x/crypto/blake2b",
       "bytes": 1048576,
-      "ms": 1.366533,
+      "ms": 1.303821,
       "digest": "30ae8470cc761c06"
     },
     {
       "impl": "x/crypto/blake2s",
       "bytes": 1048576,
-      "ms": 1.832493,
+      "ms": 1.746781,
       "digest": "9d6544ce973125b1"
     },
     {
       "impl": "crypto/sha3 (256)",
       "bytes": 1048576,
-      "ms": 3.241479,
+      "ms": 3.063881,
       "digest": "51bbab928e79a870"
     },
     {
       "impl": "turboblake",
       "bytes": 16777216,
-      "ms": 1.483404,
+      "ms": 1.620751,
       "digest": "4f9c38bd6b77a54e"
     },
     {
       "impl": "lukechampine.com/blake3",
       "bytes": 16777216,
-      "ms": 7.383969,
+      "ms": 7.356634,
       "digest": "4f9c38bd6b77a54e"
     },
     {
       "impl": "github.com/zeebo/blake3",
       "bytes": 16777216,
-      "ms": 6.081037,
+      "ms": 6.863763,
       "digest": "4f9c38bd6b77a54e"
     },
     {
       "impl": "crypto/sha256",
       "bytes": 16777216,
-      "ms": 11.326953,
+      "ms": 10.719185,
       "digest": "136c0a30d6325e8c"
     },
     {
       "impl": "crypto/sha512",
       "bytes": 16777216,
-      "ms": 26.705401,
+      "ms": 24.921152,
       "digest": "88eb65d439b60fae"
     },
     {
       "impl": "crypto/sha1",
       "bytes": 16777216,
-      "ms": 10.886936,
+      "ms": 9.952375,
       "digest": "d1348fbed811e92c"
     },
     {
       "impl": "crypto/md5",
       "bytes": 16777216,
-      "ms": 25.509439,
+      "ms": 23.849941,
       "digest": "1ce8601272deff63"
     },
     {
       "impl": "x/crypto/blake2b",
       "bytes": 16777216,
-      "ms": 22.234596,
+      "ms": 20.89275,
       "digest": "31b39fb45789fbe7"
     },
     {
       "impl": "x/crypto/blake2s",
       "bytes": 16777216,
-      "ms": 29.758102,
+      "ms": 27.856573,
       "digest": "f400a85f4f1e2663"
     },
     {
       "impl": "crypto/sha3 (256)",
       "bytes": 16777216,
-      "ms": 52.382793,
+      "ms": 48.957173,
       "digest": "df0a5b3fb9589168"
     },
     {
       "impl": "turboblake",
       "bytes": 268435456,
-      "ms": 7.629607,
+      "ms": 9.915575,
       "digest": "ec510ebc356e96a9"
     },
     {
       "impl": "lukechampine.com/blake3",
       "bytes": 268435456,
-      "ms": 17.845907,
+      "ms": 17.625378,
       "digest": "ec510ebc356e96a9"
     },
     {
       "impl": "github.com/zeebo/blake3",
       "bytes": 268435456,
-      "ms": 108.287635,
+      "ms": 109.480042,
       "digest": "ec510ebc356e96a9"
     },
     {
       "impl": "crypto/sha256",
       "bytes": 268435456,
-      "ms": 182.845157,
+      "ms": 170.62936,
       "digest": "61cd0b906732e749"
     },
     {
       "impl": "crypto/sha512",
       "bytes": 268435456,
-      "ms": 425.950179,
+      "ms": 397.583878,
       "digest": "dc2ff14af492fcca"
     },
     {
       "impl": "crypto/sha1",
       "bytes": 268435456,
-      "ms": 172.542741,
+      "ms": 159.692766,
       "digest": "bc52719fc9db335e"
     },
     {
       "impl": "crypto/md5",
       "bytes": 268435456,
-      "ms": 408.26132,
+      "ms": 381.505789,
       "digest": "18c3ab4d53c7c0c1"
     },
     {
       "impl": "x/crypto/blake2b",
       "bytes": 268435456,
-      "ms": 363.310907,
+      "ms": 333.557128,
       "digest": "982126016203e0b9"
     },
     {
       "impl": "x/crypto/blake2s",
       "bytes": 268435456,
-      "ms": 490.030681,
+      "ms": 446.24025,
       "digest": "b977cbb038a492e7"
     },
     {
       "impl": "crypto/sha3 (256)",
       "bytes": 268435456,
-      "ms": 851.689732,
+      "ms": 782.67077,
       "digest": "6085c136429b569d"
     },
     {
       "impl": "turboblake",
       "bytes": 1073741824,
-      "ms": 25.403428,
+      "ms": 36.711574,
       "digest": "b6e2b68c4439bd98"
     },
     {
       "impl": "lukechampine.com/blake3",
       "bytes": 1073741824,
-      "ms": 62.613453,
+      "ms": 64.217927,
       "digest": "b6e2b68c4439bd98"
     },
     {
       "impl": "github.com/zeebo/blake3",
       "bytes": 1073741824,
-      "ms": 403.579104,
+      "ms": 440.279439,
       "digest": "b6e2b68c4439bd98"
     },
     {
       "impl": "crypto/sha256",
       "bytes": 1073741824,
-      "ms": 756.095256,
+      "ms": 683.226462,
       "digest": "18ddfccdc445117d"
     },
     {
       "impl": "crypto/sha512",
       "bytes": 1073741824,
-      "ms": 1732.789525,
+      "ms": 1591.703258,
       "digest": "deff23d71be7328a"
     },
     {
       "impl": "crypto/sha1",
       "bytes": 1073741824,
-      "ms": 697.898768,
+      "ms": 638.720488,
       "digest": "2502066cb224af9e"
     },
     {
       "impl": "crypto/md5",
       "bytes": 1073741824,
-      "ms": 1683.093348,
+      "ms": 1523.632049,
       "digest": "1bfb38f0e6f16404"
     },
     {
       "impl": "x/crypto/blake2b",
       "bytes": 1073741824,
-      "ms": 1463.586141,
+      "ms": 1332.048376,
       "digest": "6960ce8e9feb92df"
     },
     {
       "impl": "x/crypto/blake2s",
       "bytes": 1073741824,
-      "ms": 1947.906439,
+      "ms": 1783.876341,
       "digest": "b0aeabb25f4ff27f"
     },
     {
       "impl": "crypto/sha3 (256)",
       "bytes": 1073741824,
-      "ms": 3405.794131,
+      "ms": 3133.029007,
       "digest": "dcf9468168969f43"
     }
   ]

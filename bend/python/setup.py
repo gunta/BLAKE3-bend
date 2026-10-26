@@ -22,7 +22,8 @@ HERE = Path(__file__).resolve().parent
 CSRC = HERE / "csrc"
 VERSION = "1.8.7"
 
-if not (CSRC / "engine.c").exists() and (HERE.parent / "lib" / "csrc" / "engine.c").exists():
+# in the repository, always the current C; in an sdist, the copy it ships
+if (HERE.parent / "lib" / "csrc" / "engine.c").exists():
     shutil.copytree(HERE.parent / "lib" / "csrc", CSRC, dirs_exist_ok=True)
 
 MACHINE = platform.machine().lower()
