@@ -82,6 +82,9 @@ there for upstream's own crate too.
 
 - crates.io: `turboblake` 1.8.7 is the CLI alone, so the merged crate needs
   a new version to publish (the version is the user's call; upstream is
-  still 1.8.7). After it ships, `blake3-bend` 1.8.7 can be yanked.
+  still 1.8.7). After it ships, `blake3-bend` 1.8.7 can be yanked. Until
+  then the READMEs give library users the git dependency
+  (`turboblake = { git = "https://github.com/gunta/BLAKE3-bend" }`), which
+  cargo finds in `bend/crate`.
 - The site's install page and library snippet change to `turboblake = "1.8"`
   when that release is out.

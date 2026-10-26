@@ -66,7 +66,7 @@ hashed by Bend on every core and everything else is upstream's code
 
 | language | replaces | swap in |
 |---|---|---|
-| Rust | `blake3` | `cargo add turboblake`; the library is named `blake3` ([README](bend/rust/README.md)) |
+| Rust | `blake3` | `cargo add turboblake --git https://github.com/gunta/BLAKE3-bend` (on crates.io from its next release; 1.8.7 there is the command line alone); the library is named `blake3` ([README](bend/rust/README.md)) |
 | C | the official `libblake3` | `bend/lib/build.sh`, then link `-lturboblake` (or `-lblake3`, the same library) ([README](bend/lib/README.md)) |
 | Python | `blake3` on PyPI | `pip install "turboblake @ git+https://github.com/gunta/BLAKE3-bend#subdirectory=bend/python"` ([README](bend/python/README.md)) |
 | Node, Bun, Deno | `@noble/hashes/blake3`, `blake3`, `@napi-rs/blake-hash` | `npm install` in [`bend/node`](bend/node/README.md), then `npm install <path>` |
