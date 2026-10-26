@@ -289,14 +289,16 @@ static void b3_stdin(Env e, B3File* f) {
 #define MINCORE_INCORE 1  // Linux: bit 0 of each mincore byte
 #endif
 
-// The fraction of the file's pages in the page cache, from 4096 samples.
+// The fraction of the file's pages in the page cache, from 256 samples: a
+// mincore call costs ~0.7 us, so 4096 of them were 3 ms of a 1 GiB file's
+// ~45 (ADR 0016), and 256 still tell 90% cached from not.
 static double b3_resident(int fd, u64 len) {
   u64 pg = (u64)getpagesize();
   char* at = mmap(NULL, len, PROT_READ, MAP_SHARED, fd, 0);
   if (at == MAP_FAILED) {
     return 1.0;
   }
-  u64 pages = (len + pg - 1) / pg, hit = 0, n = pages < 4096 ? pages : 4096;
+  u64 pages = (len + pg - 1) / pg, hit = 0, n = pages < 256 ? pages : 256;
   for (u64 i = 0; i < n; i += 1) {
     unsigned char v = 0;
     u64 page = i * pages / n;
@@ -721,15 +723,24 @@ static Term b3_load(Env e, B3File* fs, u32 n, u32 threads, bool trace, u64 t0) {
 
 // B3IO.seg(id, k): segment k of stream id, read by now; reading k + 1
 // into the other block starts before this returns.
+// The two blocks every stream reads into, kept for the process: streams
+// are hashed one at a time, and a stream's last segment starts no read, so
+// one pair serves them all. (A pair a stream once held 2 GiB of heap per
+// streamed file, ADR 0016.)
+static Term b3_sblk[2];
+static u64  b3_sloc[2];
+
 Term b3io_seg_run(Env e, Term* f, IoWork* w) {
   B3Stream* st = &b3_streams[(u32)f[0]];
   u32 k = (u32)f[1];
   u32 cls = b3_cls(B3_SEG);
   for (u32 b = 0; b < 2; b += 1) {
-    if (st->arr[b] == 0) {
-      st->loc[b] = heap_alloc(e, blk_wcls(0, cls));
-      st->arr[b] = term_keep(e, term_blk(0, cls, st->loc[b]), 0);
+    if (b3_sblk[b] == 0) {
+      b3_sloc[b] = heap_alloc(e, blk_wcls(0, cls));
+      b3_sblk[b] = term_keep(e, term_blk(0, cls, b3_sloc[b]), 0);
     }
+    st->arr[b] = b3_sblk[b];
+    st->loc[b] = b3_sloc[b];
   }
   if (st->busy) {
     pthread_join(st->reader, NULL);
@@ -968,6 +979,7 @@ Term b3io_release_run(Env e, Term* f, IoWork* w) {
     b3_zone_used = 0;
   }
   b3_nkept = 0;
+  b3_nstreams = 0;  // every stream of the round is hashed by now
   if (getenv("B3IO_TRACE") != NULL) {
     fprintf(stderr, "b3io release %u maps %llu us\n", kept,
       (unsigned long long)(b3_us() - t0));

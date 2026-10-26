@@ -907,7 +907,7 @@ fn compress_subtree_to_parent_node<J: join::Join>(
     debug_assert!(input.len() > CHUNK_LEN);
     // blake3-bend: a big subtree goes to the Bend engine, on every core
     #[cfg(all(blake3_bend, feature = "std"))]
-    if let Some(pair) = bend::subtree(input, key, chunk_counter, flags, platform) {
+    if let Some(pair) = bend::subtree(input, key, chunk_counter, flags, platform, J::PARALLEL) {
         return pair;
     }
     let mut cv_array = [0; MAX_SIMD_DEGREE_OR_2 * OUT_LEN];

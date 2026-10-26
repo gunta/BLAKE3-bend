@@ -96,13 +96,23 @@ PATCHES = {
         ('fn main() -> Result<(), Box<dyn std::error::Error>> {\n',
          ENGINE_BUILD.lstrip("\n") + '\nfn main() -> Result<(), Box<dyn std::error::Error>> {\n'),
     ],
+    # The hook asks whether the caller wanted rayon: a span the engine must
+    # copy loses to rayon on every core, so those stay upstream's.
+    "src/join.rs": [
+        ('pub trait Join {\n',
+         'pub trait Join {\n'
+         '    /// blake3-bend: true for `RayonJoin`, whose callers hash on every core\n'
+         '    const PARALLEL: bool = false;\n\n'),
+        ('impl Join for RayonJoin {\n',
+         'impl Join for RayonJoin {\n    const PARALLEL: bool = true;\n\n'),
+    ],
     "src/lib.rs": [
         ('mod io;\nmod join;\n',
          'mod io;\nmod join;\n\n#[cfg(feature = "std")]\npub mod bend;\n'),
         (HOOK, HOOK.replace("    let mut cv_array",
                             "    // blake3-bend: a big subtree goes to the Bend engine, on every core\n"
                             "    #[cfg(all(blake3_bend, feature = \"std\"))]\n"
-                            "    if let Some(pair) = bend::subtree(input, key, chunk_counter, flags, platform) {\n"
+                            "    if let Some(pair) = bend::subtree(input, key, chunk_counter, flags, platform, J::PARALLEL) {\n"
                             "        return pair;\n"
                             "    }\n"
                             "    let mut cv_array", 1)),
