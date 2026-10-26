@@ -13,6 +13,7 @@ import BarChart from '../components/BarChart.astro';
 import DataTable from '../components/DataTable.astro';
 import Scorecard from '../components/Scorecard.astro';
 import Note from '../components/Note.astro';
+import Versus from '../components/Versus.astro';
 import { adr, ADR_INDEX_URL } from '../lib/adr';
 import { lawCount } from '../lib/proofs';
 import { fmtList, fmtRange } from '../lib/format';
@@ -41,9 +42,20 @@ import {
   results,
 } from '../lib/page';
 import { BEND_URL, REPO_URL, blobUrl, treeUrl, withBase } from '../lib/site';
+import { fmtTimes, versus } from '../lib/versus';
+
+/** SHA-256 against BLAKE3 on one core, machine by machine: whichever is faster, said plainly. */
+const oneCore = (versus?.machines ?? []).flatMap((m) => {
+  const b = m.blake3;
+  if (!b) return [];
+  return b.timesSha >= 1
+    ? [`on the ${m.title}, BLAKE3 is ${fmtTimes(b.timesSha)} faster than SHA-256`]
+    : [`on the ${m.title}, SHA-256 is ${fmtTimes(1 / b.timesSha)} faster than BLAKE3`];
+});
 
 const links = [
   { href: '#in-memory', label: 'In memory' },
+  ...(versus ? [{ href: '#versus', label: 'SHA-256 to GPU' }] : []),
   { href: '#cli', label: 'Command line' },
   ...(models ? [{ href: '#models', label: 'Model files' }] : []),
   ...(daemon ? [{ href: '#daemon', label: 'Long-running' }] : []),
@@ -175,7 +187,37 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
     <DataTable id="in-memory-table" view={tableView(inMemory, `In-memory hashing, times in ${inMemory.unit} with GB/s below each time.`, { throughput: true })} />
   </Section>
 
-  <Section id="cli" kicker="Benchmark · command line" title="One command, against b3sum" tone="alt">
+  {
+    versus && (
+      <Section id="versus" kicker="Benchmark · scale" title={versus.title} tone="alt">
+        <Fragment slot="lede">
+          <p>
+            {versus.input} already in memory, on the fastest GPU measured ({versus.lead.title}, {versus.lead.where}) and on this {machineName}. SHA-256 is
+            what most checksum files use; it chains each block to the one before, so one input runs on one core, here with the CPU's own SHA instructions.
+            The official BLAKE3 runs on one core or, through rayon, on every core. turboblake adds the GPU twice: Bend's own GPU path, and the hand-written
+            native kernel that the command line and the library take next (<a href={adr('0013').url}>ADR 0013</a>).
+          </p>
+          {oneCore.length > 0 && (
+            <p>
+              On one core the two trade places: {oneCore.join('; ')}. BLAKE3's lead comes from being a tree, which is what lets it use more than one core.
+            </p>
+          )}
+        </Fragment>
+        <Note text={versus.note} />
+        <Versus bare />
+        <DataTable
+          id="versus-table"
+          view={tableView(
+            { ...versus.table, baselines: versus.table.baselines.filter((s) => s.key === 'sha256' || s.key === 'blake3_all') },
+            `${versus.input} in memory, times in ${versus.table.unit} with GB/s below each time; speedups against SHA-256 and the official BLAKE3 on every core.`,
+            { throughput: true },
+          )}
+        />
+      </Section>
+    )
+  }
+
+  <Section id="cli" kicker="Benchmark · command line" title="One command, against b3sum">
     <Fragment slot="lede">
       <p>
         <code>turboblake FILE...</code> against the official <code>b3sum FILE...</code>, process start included, output byte for byte the same. These

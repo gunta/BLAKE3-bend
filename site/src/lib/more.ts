@@ -71,6 +71,13 @@ export interface GpuMachine {
   gpuCharts: Chart[];
   cpu: Table | undefined;
   cpuCharts: Chart[];
+  /** The GPU API Bend compiled to ("Metal", "CUDA"), from its series label ("Bend, CUDA"). */
+  backend: string | undefined;
+  /** Bend and the native kernels on the GPU, with the CPU baselines of the same machine (the official crate on every core). */
+  vsCpu: Table | undefined;
+  /** The hand-written kernels' series (native_cuda, metal); the runs in Bend's leaf shape are diagnostics and left out. */
+  nativeKeys: string[];
+  cpuBaselineKeys: string[];
 }
 
 function gpuMachine(raw: RawMore, id: string): GpuMachine {
@@ -79,6 +86,9 @@ function gpuMachine(raw: RawMore, id: string): GpuMachine {
   const gpu = pick(raw, keys.filter(isGpu));
   const cpuKeys = keys.filter((k) => !isGpu(k));
   const cpu = cpuKeys.some((k) => k.startsWith('bend')) && cpuKeys.some((k) => !k.startsWith('bend')) ? pick(raw, cpuKeys) : undefined;
+  const bendGpu = keys.filter((k) => isGpu(k) && k.startsWith('bend'));
+  const nativeKeys = keys.filter((k) => isGpu(k) && !/bend/.test(k));
+  const cpuBaselines = cpuKeys.filter((k) => !k.startsWith('bend'));
   return {
     id,
     title: raw.title,
@@ -88,6 +98,10 @@ function gpuMachine(raw: RawMore, id: string): GpuMachine {
     gpuCharts: charts(gpu, `${id}-gpu`),
     cpu,
     cpuCharts: cpu ? charts(cpu, `${id}-cpu`) : [],
+    backend: /\b(Metal|CUDA)\b/i.exec(raw.series[bendGpu[0] ?? '']?.label ?? '')?.[1],
+    vsCpu: bendGpu.length && cpuBaselines.length ? pick(raw, [...bendGpu, ...nativeKeys, ...cpuBaselines]) : undefined,
+    nativeKeys,
+    cpuBaselineKeys: cpuBaselines,
   };
 }
 

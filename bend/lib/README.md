@@ -33,9 +33,11 @@ cc -I bend/lib/build/include app.c bend/lib/build/lib/libblake3.a -lpthread -o a
 - Bend's arrays live in an 8 TiB window past its heap's base. On Linux the
   engine puts that window over the region where `mmap` (and so `malloc`)
   places big buffers, and reads the caller's memory where it lies: no
-  copy. On macOS every big allocation sits below 512 GiB, where no heap can
-  go, so spans are copied (by a few helper threads) into two warm heap
-  blocks.
+  copy. On macOS big allocations come from the bottom of a zone above a
+  384 GiB guard, so the library reserves the heap's room there when it
+  loads (and fills the holes below it with placeholders): buffers the
+  program allocates afterwards lie in the window too (ADR 0016). Anything
+  outside it is copied (by a few helper threads) into two warm heap blocks.
 - The engine starts on the first big update. Before that, and for small
   subtrees, keyed hashing and key derivation (for now), and in a forked
   child, the official C code hashes as it always does.
@@ -67,10 +69,10 @@ library (SIMD, one thread: it has no threads of its own without TBB).
 
 | one update, in memory | official C | libblake3-bend | |
 |---|---:|---:|---:|
-| 1 MiB, M5 Pro | 0.470 ms | 0.178 ms | 2.6x |
-| 64 MiB, M5 Pro | 34.9 ms | 3.73 ms | 9.4x |
-| 1 GiB, M5 Pro | 520 ms | 56.3 ms | 9.2x |
-| 1 GiB, Linux x86-64, 32 vCPUs (Modal) | 272 ms | 28.4 ms (no copy) | 9.6x |
+| 1 MiB, M5 Pro | 0.497 ms | 0.179 ms | 2.8x |
+| 64 MiB, M5 Pro | 28.0 ms | 2.83 ms | 9.9x |
+| 1 GiB, M5 Pro | 481 ms | 38.7 ms | 12.4x |
+| 1 GiB, Linux x86-64 (Modal) | 323 ms | 25.6 ms (no copy) | 12.6x |
 
-(The Mac numbers were taken with an Android emulator busy on 11 of its 18
-cores.)
+(The Mac numbers were taken with other work running at a load average
+near 7.)

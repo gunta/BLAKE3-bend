@@ -16,7 +16,7 @@
 //! - --check reads its lines a batch at a time and hashes their files as a
 //!   batch of arguments is hashed (`check_batch`).
 //!
-//! The engine is not faster on everything (ADR 0013). Starting it costs
+//! The engine is not faster on everything (ADR 0016). Starting it costs
 //! about what a few small files cost upstream, and one big file in the page
 //! cache is bound by its page faults, which upstream's mapping takes as fast
 //! as the engine's. So a batch goes to the engine when it holds many files,

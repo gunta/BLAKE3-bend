@@ -4,9 +4,12 @@
  * the hero's headline numbers. No benchmark number is written in this file.
  */
 import { results } from './results';
+import { gpuMachines } from './more';
+import { withBase } from './site';
 import { fmtList, fmtMeasured, fmtRange, fmtRate } from './format';
 import {
   buildTable,
+  compare,
   compareToFastest,
   fmtSpeedup,
   gbPerSecond,
@@ -127,7 +130,6 @@ export interface Headline {
   context: string;
 }
 
-const gpuSeries = inMemory.bend.find((s) => s.tone === 'gpu');
 const cpuSeries = inMemory.bend.find((s) => s.tone !== 'gpu');
 
 function sized(table: Table) {
@@ -137,30 +139,102 @@ function sized(table: Table) {
   });
 }
 
+export interface GpuRun {
+  /** The machine's section on the GPU page. */
+  id: string;
+  title: string;
+  backend: string | undefined;
+  /** Whose code ran: Bend's GPU path, or a hand-written kernel (bend/ref). */
+  engine: 'Bend' | 'native';
+  /** "a native CUDA kernel", "Bend's CUDA": what ran, for prose. */
+  kernel: string;
+  size: string;
+  rate: number;
+  /** The GPU run (as `bend`) against the official crate on the same machine's CPU (as `baseline`). */
+  comparison: Comparison;
+}
+
+/** The largest input this Mac's GPU ran in memory: the size every GPU is compared at. */
+const macGpuBytes = (() => {
+  const s = inMemory.bend.find((b) => b.tone === 'gpu');
+  const sizes = sized(inMemory).flatMap((r) => (s && r.bytes !== undefined && r.row.values.get(s.key) != null ? [r.bytes] : []));
+  return sizes.length ? Math.max(...sizes) : undefined;
+})();
+
+/**
+ * Every GPU run measured, Bend's and the hand-written kernels', on this Mac's
+ * Metal and each NVIDIA card's CUDA, fastest first. Each runs the input size
+ * this Mac's GPU ran (or its own largest, if it never ran that size), against
+ * the official crate on all of the same machine's CPU cores: one size for every
+ * GPU, and no peak size cherry-picked.
+ */
+export const gpuRuns: GpuRun[] = gpuMachines
+  .flatMap((m): GpuRun[] => {
+    const t = m.vsCpu;
+    if (!t) return [];
+    const kernels = t.series.filter((s) => s.tone === 'gpu' || m.nativeKeys.includes(s.key));
+    const cpu = t.series.filter((s) => m.cpuBaselineKeys.includes(s.key));
+    return kernels.flatMap((s): GpuRun[] => {
+      const rows = sized(t).filter((r) => r.bytes !== undefined && r.row.values.get(s.key) != null);
+      const top =
+        rows.find((r) => r.bytes === macGpuBytes) ??
+        rows.reduce<(typeof rows)[number] | undefined>((a, r) => (!a || (r.bytes ?? 0) >= (a.bytes ?? 0) ? r : a), undefined);
+      if (!top || top.bytes === undefined) return [];
+      // The strongest CPU baseline on that row.
+      const c = cpu
+        .map((base) => compare(top.row, s, base))
+        .reduce<Comparison | undefined>((a, x) => (x && (!a || x.baselineValue < a.baselineValue) ? x : a), undefined);
+      if (!c) return [];
+      const engine = s.isBend ? 'Bend' : 'native';
+      const api = m.backend ?? 'GPU';
+      return [
+        {
+          id: m.id,
+          title: m.title,
+          backend: m.backend,
+          engine,
+          kernel: engine === 'Bend' ? `Bend's ${api}` : `a native ${api} kernel`,
+          size: top.size,
+          rate: gbPerSecond(top.bytes, c.bendValue),
+          comparison: c,
+        },
+      ];
+    });
+  })
+  .sort((a, b) => b.rate - a.rate);
+
+function bestPerBackend(runs: GpuRun[]): GpuRun[] {
+  return runs.filter((r, i) => runs.findIndex((o) => o.backend === r.backend) === i);
+}
+
+/** The fastest run on each GPU API, native kernels included: one for CUDA, one for Metal. */
+export const gpuBest: GpuRun[] = bestPerBackend(gpuRuns);
+
+/** The same for Bend's own GPU path only. */
+export const bendGpuBest: GpuRun[] = bestPerBackend(gpuRuns.filter((r) => r.engine === 'Bend'));
+
+/** "the official crate on all 16 CPU cores", from "Rust blake3, CPU (16 cores)". */
+function cpuBaseline(c: Comparison): string {
+  const cores = /(\d+)\s*cores/.exec(c.baseline.label)?.[1];
+  return cores ? `the official crate on all ${cores} CPU cores` : c.baseline.label;
+}
+
 function gpuHeadline(): Headline | undefined {
-  if (!gpuSeries) return undefined;
-  const rows = sized(inMemory).filter((r) => r.bytes !== undefined && r.row.values.get(gpuSeries.key) != null);
-  // The largest input the GPU ran: the headline does not cherry-pick the peak.
-  const top = rows.reduce<(typeof rows)[number] | undefined>((a, r) => (!a || (r.bytes ?? 0) >= (a.bytes ?? 0) ? r : a), undefined);
-  if (!top || top.bytes === undefined) return undefined;
-  const c = compareToFastest(inMemory, top.row, gpuSeries);
-  if (!c) return undefined;
-  const rate = gbPerSecond(top.bytes, c.bendValue);
-  const peak = rows.reduce<{ rate: number; size: string } | undefined>((a, r) => {
-    const ms = r.row.values.get(gpuSeries.key);
-    if (ms == null || r.bytes === undefined) return a;
-    const v = gbPerSecond(r.bytes, ms);
-    return !a || v > a.rate ? { rate: v, size: r.size } : a;
-  }, undefined);
-  const peakText = peak && peak.size !== top.size ? ` It peaks at ${fmtRate(peak.rate)} GB/s on ${peak.size}.` : '';
+  const best = gpuRuns[0];
+  if (!best) return undefined;
+  const c = best.comparison;
+  const also = gpuBest
+    .filter((r) => r !== best)
+    .map((r) => ` With ${r.kernel} on the ${r.title}: ${fmtRate(r.rate)} GB/s on ${r.size}, ${fmtSpeedup(r.comparison).replace(/x$/, '×')} ${cpuBaseline(r.comparison)}.`)
+    .join('');
   return {
     value: fmtSpeedup(c),
-    label: `${gpuSeries.label} vs the official ${c.baseline.label} crate, hashing ${top.size} in memory`,
-    detail: `${fmtMeasured(c.bendValue)} ms against ${fmtMeasured(c.baselineValue)} ms${top.mode ? ` on ${top.mode}` : ''}, ${fmtRate(rate)} GB/s.${peakText}`,
-    href: '#in-memory',
+    label: `${c.bend.label} on the ${best.title} vs the official crate on its CPU, hashing ${best.size} in memory`,
+    detail: `${fmtMeasured(c.bendValue)} ms with ${best.kernel}, against ${fmtMeasured(c.baselineValue)} ms for ${cpuBaseline(c)}, ${fmtRate(best.rate)} GB/s.${also}`,
+    href: withBase(`gpu/#${best.id}`),
     comparison: c,
-    short: `${gpuSeries.label} vs ${c.baseline.label}`,
-    context: `${top.size} in memory`,
+    short: `${c.bend.label} vs ${c.baseline.label}`,
+    context: `${best.size} in memory on the ${best.title}`,
   };
 }
 

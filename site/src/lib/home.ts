@@ -4,13 +4,14 @@
  * undefined when results.json lacks the table it comes from.
  */
 import { fmtMeasured, fmtRate } from './format';
-import { fmtSpeedup, gbPerSecond, parseBytes, splitInput } from './model';
+import { fmtSpeedup } from './model';
 import { OFFICIAL_SPEED } from './official';
-import { cliTallies, headlines, machineName, sizeIn } from './page';
+import { cliTallies, gpuBest, gpuRuns, headlines, machineName, sizeIn } from './page';
 import { lawCount, universalCount } from './proofs';
-import { withBase } from './site';
 
 const x = (ratio: string) => ratio.replace(/x$/, '×');
+/** A rate with thousands grouped: "1,674". */
+const grouped = (rate: number) => Number(fmtRate(rate)).toLocaleString('en-US', { maximumFractionDigits: 2 });
 
 /** The biggest real file: a model shard bigger than RAM. */
 export const model = (() => {
@@ -42,25 +43,35 @@ export const folders = (() => {
   };
 })();
 
-/** In memory on the GPU: the biggest input, as throughput, on the machine the headline picked. */
+/** In memory on the GPU: the fastest run measured (native kernels included), on its biggest input. */
 export const gpu = (() => {
   const h = headlines.gpu;
-  if (!h) return undefined;
+  const run = gpuRuns[0];
+  if (!h || !run) return undefined;
   const c = h.comparison;
-  const { size } = splitInput(c.row.label);
-  const bytes = parseBytes(size);
+  // Past 1,000 GB/s the figure reads (and fits the tile) better in TB/s.
+  const tera = run.rate >= 1000;
   return {
-    size,
+    size: run.size,
     ms: fmtMeasured(c.bendValue),
-    gbps: bytes ? fmtRate(gbPerSecond(bytes, c.bendValue)) : undefined,
+    rate: tera ? (run.rate / 1000).toPrecision(3) : fmtRate(run.rate),
+    unit: tera ? 'TB/s' : 'GB/s',
     ratio: x(h.value),
     baselineLabel: c.baseline.label,
-    // The context ends in "on the <machine>" when the GPU is not this one's.
-    machine: / on (?:the )?(.+)$/.exec(h.context)?.[1] ?? machineName,
-    // The GPU page has every GPU; an in-page anchor would point at the old home sections.
-    href: h.href.startsWith('#') ? withBase('gpu/') : h.href,
+    machine: run.title,
+    kernel: run.kernel,
+    href: h.href,
   };
 })();
+
+/** The fastest run on each GPU API (CUDA, Metal), fastest first, with its share of the fastest for the tile's bars. */
+export const gpuApis = gpuBest.map((r) => ({
+  backend: r.backend ?? 'GPU',
+  engine: r.engine,
+  machine: r.title,
+  gbps: grouped(r.rate),
+  share: r.rate / (gpuBest[0]?.rate ?? r.rate),
+}));
 
 /** The machine every CPU figure was measured on. */
 export const machine = machineName;

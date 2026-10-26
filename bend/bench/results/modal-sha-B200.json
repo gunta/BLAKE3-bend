@@ -1,0 +1,102 @@
+{
+  "info": {
+    "gpu": "NVIDIA B200, 183359 MiB, 610.57.04",
+    "cpu": "unknown",
+    "cpus": 32,
+    "sha_ni": true,
+    "avx512f": true,
+    "python": "3.12.10",
+    "openssl": "OpenSSL 3.0.16 11 Feb 2025",
+    "blake3": "1.0.11"
+  },
+  "rows": [
+    {
+      "bytes": 1073741824,
+      "sha256": {
+        "runs_ms": [
+          583.701,
+          573.322,
+          573.669,
+          575.165,
+          574.447,
+          575.553
+        ],
+        "min_ms": 573.322,
+        "median_ms": 574.447,
+        "digest": "c6ccf4c360dad4309712f722b2e688a3822bf495dff251821230876ce292284c"
+      },
+      "blake3_1t": {
+        "runs_ms": [
+          166.34,
+          166.53,
+          166.861,
+          166.3,
+          166.07,
+          166.244
+        ],
+        "min_ms": 166.07,
+        "median_ms": 166.3,
+        "digest": "2259986a2ca7d9dc0f2a047266382ed205d174ad17e88ffc0460f5a04165ef61"
+      },
+      "blake3_all": {
+        "runs_ms": [
+          20.79,
+          29.932,
+          26.935,
+          18.7,
+          20.12,
+          18.467
+        ],
+        "min_ms": 18.467,
+        "median_ms": 20.12,
+        "digest": "2259986a2ca7d9dc0f2a047266382ed205d174ad17e88ffc0460f5a04165ef61"
+      },
+      "blake3_agree": true
+    },
+    {
+      "bytes": 2147483648,
+      "sha256": {
+        "runs_ms": [
+          1310.093,
+          1153.845,
+          1153.134,
+          1154.075,
+          1152.643,
+          1153.277
+        ],
+        "min_ms": 1152.643,
+        "median_ms": 1153.277,
+        "digest": "1b12eaff50b1506fa876002c3ee3fc7ddda30ffb212b7dda3ae31a514f7dd68c"
+      },
+      "blake3_1t": {
+        "runs_ms": [
+          361.662,
+          361.372,
+          361.795,
+          361.266,
+          360.955,
+          367.205
+        ],
+        "min_ms": 360.955,
+        "median_ms": 361.372,
+        "digest": "ca658ade369bca765179427801d76c3d05ddfec0e29b9e048dbc01579c7709c9"
+      },
+      "blake3_all": {
+        "runs_ms": [
+          23.595,
+          42.48,
+          25.361,
+          32.96,
+          28.095,
+          31.276
+        ],
+        "min_ms": 25.361,
+        "median_ms": 31.276,
+        "digest": "ca658ade369bca765179427801d76c3d05ddfec0e29b9e048dbc01579c7709c9"
+      },
+      "blake3_agree": true
+    }
+  ],
+  "note": "in memory, one buffer per size; medians, the first run (paging the buffer in) left out",
+  "requested_gpu": "B200"
+}

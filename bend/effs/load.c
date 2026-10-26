@@ -291,7 +291,7 @@ static void b3_stdin(Env e, B3File* f) {
 
 // The fraction of the file's pages in the page cache, from 256 samples: a
 // mincore call costs ~0.7 us, so 4096 of them were 3 ms of a 1 GiB file's
-// ~45 (ADR 0013), and 256 still tell 90% cached from not.
+// ~45 (ADR 0016), and 256 still tell 90% cached from not.
 static double b3_resident(int fd, u64 len) {
   u64 pg = (u64)getpagesize();
   char* at = mmap(NULL, len, PROT_READ, MAP_SHARED, fd, 0);
@@ -726,7 +726,7 @@ static Term b3_load(Env e, B3File* fs, u32 n, u32 threads, bool trace, u64 t0) {
 // The two blocks every stream reads into, kept for the process: streams
 // are hashed one at a time, and a stream's last segment starts no read, so
 // one pair serves them all. (A pair a stream once held 2 GiB of heap per
-// streamed file, ADR 0013.)
+// streamed file, ADR 0016.)
 static Term b3_sblk[2];
 static u64  b3_sloc[2];
 

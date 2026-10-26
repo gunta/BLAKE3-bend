@@ -117,34 +117,56 @@ by `bend/bench/collect.py`). Apple M5 Pro, 18 cores:
 
 | language | turboblake | the packages it replaces |
 |---|---|---|
-| C | **46.5 ms** | official C 452 ms (one thread) |
-| Rust | 44.3 ms | `blake3::hash` 470 ms; `update_rayon` **30.1 ms** |
-| Python | 44.6 ms | `blake3` 444 ms; `max_threads=AUTO` **29.8 ms** |
-| Node | **43.9 ms** | `@napi-rs/blake-hash` 454 ms, hash-wasm 954 ms, `@noble/hashes` 9.2 s |
+| C | **38.7 ms** | official C 481 ms (one thread) |
+| Rust | 37.8 ms | `blake3::hash` 507 ms; `update_rayon` **31.9 ms** |
+| Python | 41.9 ms | `blake3` 505 ms; `max_threads=AUTO` **34.0 ms** |
+| Node | **38.2 ms** | `@napi-rs/blake-hash` 482 ms, hash-wasm 964 ms, `@noble/hashes` 10.9 s |
 | Bun | **46.7 ms** | `@napi-rs/blake-hash` 479 ms, hash-wasm 1.9 s, `@noble/hashes` 3.1 s |
 | Go | **40.5 ms** | lukechampine 99.6 ms (every core), zeebo 1144 ms |
-| Go, Linux x86-64 (Modal) | **36.7 ms** | lukechampine 64.2 ms, zeebo 440 ms |
+| Go, Linux x86-64 (Modal) | **23.9 ms** | lukechampine 57.4 ms, zeebo 392 ms |
 
-Bend's JS build hashes 1 GiB in 7.2 s on Node (21.8 s on Bun): slower than
+Bun and Go on the Mac are from before the compress8 fix below (another
+session held 11 cores when they re-ran), so they understate turboblake.
+Bend's JS build hashes 1 GiB in 7.7 s on Node (21.8 s on Bun): slower than
 `@noble/hashes` on Bun, faster on Node, and correct everywhere. It is for
 where native code cannot go.
+
+### Addendum: one caller per compress8
+
+The first engine with both trees was 1.47x slower per core than b3sum's
+Bend (606 against 412 ms per GiB on one core), in every binding. The keyed
+tree called the default mode's `compress8` and `compress8.p`, so each had
+two callers, and clang kept them out of line: a call with 196 flattened
+arguments per eight blocks, where b3sum's single caller inlines and
+vectorizes it (ADR 0002). The keyed tree now has its own copies
+(`compress8.k`, `compress8.p.k`); one core is back to 403 ms per GiB, and
+1 GiB through the library on every core went from about 45 ms to 34-38 ms.
+The general rule for the generator: a program that holds two trees needs a
+compress8 per tree.
 
 ## Consequences
 
 - One engine, six ecosystems: a speed-up in `engine.bend` or `blake3.bend`
   reaches every binding with a rebuild.
-- **The Mac's copy costs a third.** From the heap, the engine hashes 1 GiB in
-  26.9 ms; through the library, with each span copied in, 44 ms. The official
-  crate on rayon reads in place and gets 30 ms, so it wins from 16 MiB up on
-  the Mac (Rust's `update_rayon`, and blake3-py's `max_threads=AUTO`, which is
-  that crate). Mapping the caller's pages into the window instead of copying
-  them (`mach_vm_remap`) is the next thing to measure.
+- **The Mac's copy still costs the lead.** On a buffer already in the
+  window the engine hashes 1 GiB in 28-31 ms, as fast as b3sum's Bend;
+  through the library, with each span copied in, 34-38 ms. The official crate
+  on rayon reads in place and gets about 30-32 ms, so it wins from 16 MiB up
+  on the Mac (Rust's `update_rayon`, and blake3-py's `max_threads=AUTO`, which
+  is that crate). Fewer copy threads or deeper staging measured no better.
+  Aliasing the caller's pages into the window with `mach_vm_remap` instead
+  of copying them is worse: the remap itself is 0.02 ms, but the first touch
+  of each 16 KiB page faults (1 GiB hashed in 41.7 ms) and unmapping costs
+  8 ms more.
 - **AVX-512 wants 16 lanes.** On an x86-64 with AVX-512 the official crate's
-  16-way kernel beats the 8-lane engine at 1 GiB (14.4 ms against 24.7 ms on
-  Modal), though the engine wins at 64 MiB (1.7 against 4.6 ms). A 16-lane
+  16-way kernel beats the 8-lane engine at 1 GiB (15.0 ms against 28.2 ms on
+  Modal's 32 vCPUs, after the fix), though the engine wins up to 256 MiB
+  (8.2 against 9.0 ms; 64 MiB 2.9 against 4.9). A 16-lane
   `compress16` vectorizes to `zmm` registers with
-  `-mprefer-vector-width=512 -mllvm -slp-max-reg-size=1024`; an engine built
-  on it is next.
+  `-mprefer-vector-width=512 -mllvm -slp-max-reg-size=1024`, but it cannot be
+  the generator's `L = 16`: Bend keeps constructor and function arity in a
+  byte, and compress16 would take about 388 flattened arguments (compress8
+  takes 196). It needs another shape first.
 - The Python and JavaScript packages are named `turboblake` for PyPI and
   npm but not published yet; the install page and READMEs install them from
   the repository until then. The Rust crates (`blake3-bend`, `turboblake`)

@@ -1,4 +1,4 @@
-# ADR 0013: turboblake never slower than the official b3sum
+# ADR 0016: turboblake never slower than the official b3sum
 
 Date: 2026-10-26
 Status: accepted

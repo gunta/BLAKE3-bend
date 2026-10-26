@@ -240,7 +240,7 @@ pub(crate) fn subtree(
     // on every core the engine wins only reading in place, in the default
     // mode (its keyed tree runs ~2.3x slower per core), and up to 16 MiB: a
     // job after the engine has idled pays up to ~1 ms waking it, which
-    // loses 32-64 MiB to rayon. A rayon caller keeps the rest (ADR 0013).
+    // loses 32-64 MiB to rayon. A rayon caller keeps the rest (ADR 0016).
     let left = crate::hazmat::left_subtree_len(input.len() as u64) as usize;
     let whole = input.len() - input.len() % 64;
     // The window is known once the engine runs, and on macOS before: its

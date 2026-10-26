@@ -52,7 +52,7 @@ start only when a file needs them, and a small file hashes on one thread.
 Against the official `b3sum` on an Apple M5 Pro: a 101.5 GB DeepSeek-V4.1
 model shard bigger than RAM in 7.65 s against 211 s; 2,000 x 64 KiB files
 10.9x faster, 8,000 cargo source files 4.0x, stdin and `--no-mmap` 9x on
-1 GiB, and never slower on any case measured (ADR 0013). Benchmarks and
+1 GiB, and never slower on any case measured (ADR 0016). Benchmarks and
 method:
 [gunta.github.io/BLAKE3-bend](https://gunta.github.io/BLAKE3-bend/).
 

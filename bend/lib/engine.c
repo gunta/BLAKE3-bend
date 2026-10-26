@@ -563,7 +563,7 @@ static void b3e_boot(void) {
 // of the engine's window (the 8 TiB past its heap's base), and every span
 // was copied. The library reserves its heap's room when it loads, at the
 // bottom of that zone: what the host allocates afterwards lands above it,
-// inside the window, and the engine reads it where it lies (ADR 0013).
+// inside the window, and the engine reads it where it lies (ADR 0016).
 // 16 GiB is what fits under the allocator's own regions; the heap starts
 // at 8 and the heaviest jobs measured peak near 5. It cannot grow past it,
 // and a Bend heap that runs out ends the process, so b3e_heap_room turns jobs
