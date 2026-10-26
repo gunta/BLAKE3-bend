@@ -528,14 +528,15 @@ fn check_one_checkfile(path: &Path, args: &Args, files_failed: &mut u64) -> anyh
 
 fn main() -> anyhow::Result<()> {
     let args = Args::parse()?;
-    // turboblake: --num-threads caps the Bend engine's threads too, and the
-    // subtree hook leaves inputs under 1 MiB alone (fast.rs hashes small
-    // files on one thread). SAFETY: no other thread runs yet.
+    // turboblake: --num-threads caps the Bend engine's threads too, and
+    // blake3-bend's subtree hook stays off: upstream's paths here stay
+    // upstream's, and fast.rs gives the engine what it wins on (a file the
+    // hook took would pay the engine's start). SAFETY: no other thread runs.
     if let Some(n) = args.num_threads() {
         unsafe { std::env::set_var("BLAKE3_BEND_THREADS", n.to_string()) };
     }
     if std::env::var_os("BLAKE3_BEND_MIN").is_none() {
-        unsafe { std::env::set_var("BLAKE3_BEND_MIN", "1048576") };
+        unsafe { std::env::set_var("BLAKE3_BEND_MIN", usize::MAX.to_string()) };
     }
     // turboblake: rayon's threads start when a file first needs them
     fast::pool(args.num_threads(), || {

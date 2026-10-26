@@ -95531,6 +95531,14 @@ static void cube_run(u64* H, bool gpu) {
 static u64 corpus_size;
 
 static bool corpus_at(void* at, u64 size) {
+#if defined(BEND_EMBED) && defined(__APPLE__)
+  extern char* b3e_resv;
+  extern u64 b3e_resv_len;
+  if (b3e_resv != NULL && (char*)at >= b3e_resv && (char*)at + size <= b3e_resv + b3e_resv_len) {
+    return mmap(at, size, PROT_READ | PROT_WRITE,
+      MAP_PRIVATE | MAP_ANON | MAP_NORESERVE | MAP_FIXED, -1, 0) == at;
+  }
+#endif
   void* p = pool_try(at, size);
   if (p != MAP_FAILED && p != at) {
     munmap(p, size);
@@ -95539,6 +95547,12 @@ static bool corpus_at(void* at, u64 size) {
 }
 
 static void* corpus_map(u64 size) {
+#if defined(BEND_EMBED) && defined(__APPLE__)
+  extern char* b3e_resv;
+  if (b3e_resv != NULL && corpus_at(b3e_resv, size)) {
+    return b3e_resv;
+  }
+#endif
 #if defined(BEND_EMBED) && defined(B3E_HEAP_AT)
   if (corpus_at((void*)(uintptr_t)(B3E_HEAP_AT), size)) {
     return (void*)(uintptr_t)(B3E_HEAP_AT);
@@ -96366,6 +96380,7 @@ static void __attribute__((constructor)) io_thread_count_use(void) {
 #include <sys/stat.h>
 
 #define B3E_SPANS 64  // spans a job, read in place
+#define B3E_RESV (16ull << 30)  // the heap's room on macOS (b3e_reserve)
 #define B3E_STAGE 2   // spans a job, copied
 
 typedef struct B3EJob {
@@ -96430,9 +96445,18 @@ static void b3e_report(void) {
 
 // Bend can read len bytes at p in place: word-aligned, inside the window
 // past the heap's base, and ending on a 64-byte block (Bend reads whole
-// blocks, and a short last block's tail must be zeros).
+// blocks, and a short last block's tail must be zeros). On macOS the base
+// is known before the engine starts: the heap goes in the room reserved at
+// load (b3e_reserve).
+#if defined(__APPLE__)
+extern char* b3e_resv;
+#endif
+
 int b3e_inside(const void* p, uint64_t len) {
   uintptr_t base = (uintptr_t)b3e_heap, at = (uintptr_t)p;
+#if defined(__APPLE__)
+  base = base != 0 || b3e_state != 0 ? base : (uintptr_t)b3e_resv;
+#endif
   return base != 0 && at % 8 == 0 && len % 64 == 0 && at >= base + HEAP_OFF * 8
       && (at - base) / 8 + (len + 7) / 8 < LOC_MASK;
 }
@@ -96886,6 +96910,75 @@ static void b3e_boot(void) {
   pthread_mutex_unlock(&b3e_mu);
 }
 
+#if defined(__APPLE__)
+#include <mach/mach.h>
+#include <mach/mach_vm.h>
+
+// macOS hands big allocations out from just above a 384 GiB guard (at 448
+// GiB), lowest address first, so they sit below any heap placed later, out
+// of the engine's window (the 8 TiB past its heap's base), and every span
+// was copied. The library reserves its heap's room when it loads, at the
+// bottom of that zone: what the host allocates afterwards lands above it,
+// inside the window, and the engine reads it where it lies (ADR 0013).
+// 16 GiB is what fits under the allocator's own regions; the heap starts
+// at 8 and the heaviest jobs measured peak near 5. It cannot grow past it,
+// and a Bend heap that runs out ends the process, so b3e_heap_room turns jobs
+// away (the caller hashes them as upstream does) well before that.
+char* b3e_resv;
+u64   b3e_resv_len;
+
+static void __attribute__((constructor)) b3e_reserve(void) {
+  const char* off = getenv("BLAKE3_BEND");
+  if (off != NULL && !strcmp(off, "0")) {
+    return;
+  }
+  void* p = mmap(NULL, B3E_RESV, PROT_NONE, MAP_PRIVATE | MAP_ANON, -1, 0);
+  if (p == MAP_FAILED) {
+    return;
+  }
+  b3e_resv = p;
+  b3e_resv_len = B3E_RESV;
+  // The room lands in the lowest hole it fits; a big buffer could still
+  // fit a smaller hole below it (libmalloc's regions sit at random places
+  // there), out of the window. Those holes get PROT_NONE placeholders, so
+  // what the host allocates from now on lands above: 30 processes of 30
+  // instead of 7 had every big buffer in the window. A placeholder is
+  // mapped by hint, never MAP_FIXED, so it takes nothing another thread
+  // mapped meanwhile.
+  mach_vm_address_t at = 0, end = 0;
+  while (at < (mach_vm_address_t)(uintptr_t)p) {
+    mach_vm_size_t size;
+    vm_region_basic_info_data_64_t info;
+    mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+    mach_port_t obj;
+    if (mach_vm_region(mach_task_self(), &at, &size, VM_REGION_BASIC_INFO_64,
+                       (vm_region_info_t)&info, &cnt, &obj) != KERN_SUCCESS) {
+      break;
+    }
+    u64 lo = end, hi = at < (uintptr_t)p ? at : (uintptr_t)p;
+    if (lo >= (1ull << 32) && hi > lo && hi - lo >= (64ull << 20)) {
+      void* q = mmap((void*)(uintptr_t)lo, hi - lo, PROT_NONE, MAP_PRIVATE | MAP_ANON, -1, 0);
+      if (q != MAP_FAILED && q != (void*)(uintptr_t)lo) {
+        munmap(q, hi - lo);
+      }
+    }
+    end = at + size;
+    at += size;
+  }
+}
+#endif
+
+// Room on the heap for another job: under 3/4 of a reserved heap used.
+static bool b3e_heap_room(void) {
+#if defined(__APPLE__)
+  if (b3e_resv != NULL && (char*)b3e_heap == b3e_resv) {
+    u64 used = (HEAP_OFF + (u64)a32_load(a32_at(b3e_heap, H_BUMP)) * PAGE_LEN) * 8;
+    return used < B3E_RESV / 4 * 3;
+  }
+#endif
+  return true;
+}
+
 // Starts the engine once; 1 if it runs.
 int b3e_start(void) {
   pthread_once(&b3e_once, b3e_boot);
@@ -96910,7 +97003,7 @@ int b3e_hash_k(uint32_t n, const unsigned char* const* p, const uint64_t* len,
   if (b3e_hint == 0) {
     b3e_hint = (uintptr_t)p[0];
   }
-  if (!b3e_start()) {
+  if (!b3e_start() || !b3e_heap_room()) {
     return 0;
   }
   B3EJob one;
@@ -96981,7 +97074,7 @@ int b3e_files(uint32_t n, const char* const* paths, unsigned char (*out)[32], in
   if (n == 0) {
     return 1;
   }
-  if (!b3e_start()) {
+  if (!b3e_start() || !b3e_heap_room()) {
     return 0;
   }
   B3EFiles j = { paths, n, out, err, false };
@@ -97747,15 +97840,24 @@ static Term b3_load(Env e, B3File* fs, u32 n, u32 threads, bool trace, u64 t0) {
 
 // B3IO.seg(id, k): segment k of stream id, read by now; reading k + 1
 // into the other block starts before this returns.
+// The two blocks every stream reads into, kept for the process: streams
+// are hashed one at a time, and a stream's last segment starts no read, so
+// one pair serves them all. (A pair a stream once held 2 GiB of heap per
+// streamed file, ADR 0013.)
+static Term b3_sblk[2];
+static u64  b3_sloc[2];
+
 Term b3io_seg_run(Env e, Term* f, IoWork* w) {
   B3Stream* st = &b3_streams[(u32)f[0]];
   u32 k = (u32)f[1];
   u32 cls = b3_cls(B3_SEG);
   for (u32 b = 0; b < 2; b += 1) {
-    if (st->arr[b] == 0) {
-      st->loc[b] = heap_alloc(e, blk_wcls(0, cls));
-      st->arr[b] = term_keep(e, term_blk(0, cls, st->loc[b]), 0);
+    if (b3_sblk[b] == 0) {
+      b3_sloc[b] = heap_alloc(e, blk_wcls(0, cls));
+      b3_sblk[b] = term_keep(e, term_blk(0, cls, b3_sloc[b]), 0);
     }
+    st->arr[b] = b3_sblk[b];
+    st->loc[b] = b3_sloc[b];
   }
   if (st->busy) {
     pthread_join(st->reader, NULL);
@@ -97994,6 +98096,7 @@ Term b3io_release_run(Env e, Term* f, IoWork* w) {
     b3_zone_used = 0;
   }
   b3_nkept = 0;
+  b3_nstreams = 0;  // every stream of the round is hashed by now
   if (getenv("B3IO_TRACE") != NULL) {
     fprintf(stderr, "b3io release %u maps %llu us\n", kept,
       (unsigned long long)(b3_us() - t0));

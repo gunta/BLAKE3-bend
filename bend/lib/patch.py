@@ -43,13 +43,31 @@ EMBED = [
     # io_loop: SIGPIPE ignored process-wide
     ('  io_stk = pool_stack();\n  signal(SIGPIPE, SIG_IGN);\n',
      '  io_stk = pool_stack();\n#ifndef BEND_EMBED\n  signal(SIGPIPE, SIG_IGN);\n#endif\n'),
-    # corpus_map: put the heap a few TiB below the first big input the engine
-    # sees (engine.c's b3e_hint), so the 8 TiB a Term can name cover the
-    # host's memory and the engine reads it where it lies; else, on Linux,
-    # 7 TiB below where mmap hands out memory (malloc maps big buffers
-    # there); or at B3E_HEAP_AT, if the build fixes it
+    # corpus_at: inside the room engine.c reserved on macOS (b3e_reserve), a
+    # map replaces the reservation (MAP_FIXED); a hint never lands there
+    ('static bool corpus_at(void* at, u64 size) {\n',
+     'static bool corpus_at(void* at, u64 size) {\n'
+     '#if defined(BEND_EMBED) && defined(__APPLE__)\n'
+     '  extern char* b3e_resv;\n'
+     '  extern u64 b3e_resv_len;\n'
+     '  if (b3e_resv != NULL && (char*)at >= b3e_resv && (char*)at + size <= b3e_resv + b3e_resv_len) {\n'
+     '    return mmap(at, size, PROT_READ | PROT_WRITE,\n'
+     '      MAP_PRIVATE | MAP_ANON | MAP_NORESERVE | MAP_FIXED, -1, 0) == at;\n'
+     '  }\n'
+     '#endif\n'),
+    # corpus_map: on macOS, the heap goes in that room; elsewhere, a few TiB
+    # below the first big input the engine sees (engine.c's b3e_hint), so the
+    # 8 TiB a Term can name cover the host's memory and the engine reads it
+    # where it lies; else, on Linux, 7 TiB below where mmap hands out memory
+    # (malloc maps big buffers there); or at B3E_HEAP_AT, if the build fixes it
     ('static void* corpus_map(u64 size) {\n',
      'static void* corpus_map(u64 size) {\n'
+     '#if defined(BEND_EMBED) && defined(__APPLE__)\n'
+     '  extern char* b3e_resv;\n'
+     '  if (b3e_resv != NULL && corpus_at(b3e_resv, size)) {\n'
+     '    return b3e_resv;\n'
+     '  }\n'
+     '#endif\n'
      '#if defined(BEND_EMBED) && defined(B3E_HEAP_AT)\n'
      '  if (corpus_at((void*)(uintptr_t)(B3E_HEAP_AT), size)) {\n'
      '    return (void*)(uintptr_t)(B3E_HEAP_AT);\n'

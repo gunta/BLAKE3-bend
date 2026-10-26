@@ -118,6 +118,7 @@ unsafe extern "C" {
 
 const SPAN_MAX: usize = 1 << 30;
 const SPAN_COPY: usize = 64 << 20;
+const RAYON_MAX: usize = 16 << 20;
 const PROBE: usize = 256 * 1024;
 const UNSET: usize = usize::MAX - 1;
 
@@ -235,16 +236,22 @@ pub(crate) fn subtree(
         return None;
     }
     // Spans the engine reads in place are up to 1 GiB; copied ones 64 MiB,
-    // so their copies overlap the hashing of the ones before. Copying costs
-    // more than rayon gains back: `update_rayon` keeps those (ADR 0013).
+    // so their copies overlap the hashing of the ones before. Against rayon
+    // on every core the engine wins only reading in place, in the default
+    // mode (its keyed tree runs ~2.3x slower per core), and up to 16 MiB: a
+    // job after the engine has idled pays up to ~1 ms waking it, which
+    // loses 32-64 MiB to rayon. A rayon caller keeps the rest (ADR 0013).
     let left = crate::hazmat::left_subtree_len(input.len() as u64) as usize;
     let whole = input.len() - input.len() % 64;
-    // The window is known once the engine runs. On macOS a rayon caller's
-    // memory never lies in it (big allocations sit below 512 GiB, the heap
-    // far above), so it does not start the engine to find that out.
-    let started = !rayon || unsafe { b3e_window() }.is_some() || (!cfg!(target_os = "macos") && unsafe { b3e_start() } == 1);
-    let inside = started && unsafe { b3e_inside(input.as_ptr(), whole as u64) } != 0;
-    if rayon && !inside {
+    // The window is known once the engine runs, and on macOS before: its
+    // heap goes in the room reserved when the library loaded. Elsewhere a
+    // rayon caller starts the engine to find out (the heap goes near the
+    // first input); on macOS one whose input lies outside never does.
+    let inside = |p: *const u8| unsafe { b3e_inside(p, whole as u64) } != 0;
+    let unknown = unsafe { b3e_window() }.is_none() && !cfg!(target_os = "macos");
+    let inside = inside(input.as_ptr())
+        || (rayon && unknown && unsafe { b3e_start() } == 1 && inside(input.as_ptr()));
+    if rayon && (!inside || flags != 0 || input.len() > RAYON_MAX) {
         return None;
     }
     let most = if inside { SPAN_MAX } else { SPAN_COPY };
