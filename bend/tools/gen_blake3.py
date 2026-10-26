@@ -186,33 +186,41 @@ def gen_compress8(dname="compress8", parent=False):
 
 
 def gen_ld8():
-    """ld8(a, w): word i of lane l is at w + 256 * l + i (eight chunks)."""
-    n = L * 16
-    off = lambda j: (j // 16) * 256 + j % 16
-    nm = lambda j: f"m{j // 16}_{j % 16}"
-    defs = []
-    prev_all = ", ".join(nm(j) for j in range(n - 1))
+    """ld8(a, w): lane l's block is ld's at w + 256 * l (eight chunks).
+
+    Eight calls of the scalar loader, so lane l of an 8-lane block is the
+    scalar block of chunk l by construction (the laws lean on it); the
+    loads, and their order, are the same 128 as one flat chain."""
+    ms = ", ".join(f"m{l}: M16" for l in range(L))
+    pats = " ".join(
+        "M16{" + ", ".join(f"m{l}_{i}" for i in range(16)) + "}" for l in range(L))
+    defs = [
+        "# Eight blocks, one per lane, as the word-major B128.\n"
+        f"def b128.of({ms}) -> B128:\n"
+        f"  match {', '.join(f'm{l}' for l in range(L)).replace(',', '')}:\n"
+        f"    case {pats}:\n"
+        f"      B128{{{b128_fields()}}}\n"
+    ]
+    prev = ", ".join(f"m{l}: M16" for l in range(L - 1))
     defs.append(
-        f"def ld8.s{n - 1}(r: Array<U32> & U32, "
-        + ", ".join(f"{nm(j)}: U32" for j in range(n - 1))
-        + ") -> Array<U32> & B128:\n"
-        f"  (a, {nm(n - 1)}) = r\n"
-        f"  (a, B128{{{b128_fields()}}})\n"
+        f"def ld8.s{L - 1}(r: Array<U32> & M16, {prev}) -> Array<U32> & B128:\n"
+        f"  (a, m{L - 1}) = r\n"
+        f"  (a, b128.of({', '.join(f'm{l}' for l in range(L))}))\n"
     )
-    for k in range(n - 2, -1, -1):
-        params = ", ".join(f"{nm(j)}: U32" for j in range(k))
-        args = ", ".join(nm(j) for j in range(k + 1))
+    for k in range(L - 2, -1, -1):
+        params = ", ".join(f"m{l}: M16" for l in range(k))
+        args = ", ".join(f"m{l}" for l in range(k + 1))
         nxt = k + 1
-        sig = f"def ld8.s{k}(r: Array<U32> & U32, +w: U32" + (", " + params if k else "") + ")"
-        if nxt == n - 1:
-            call = f"  ld8.s{nxt}(a[(w + {off(nxt)} : U32)], {args})\n"
+        sig = f"def ld8.s{k}(r: Array<U32> & M16, +w: U32" + (", " + params if k else "") + ")"
+        if nxt == L - 1:
+            call = f"  ld8.s{nxt}(ld(a, (w + {256 * nxt} : U32)), {args})\n"
         else:
-            call = f"  ld8.s{nxt}(a[(w + {off(nxt)} : U32)], w, {args})\n"
-        defs.append(sig + " -> Array<U32> & B128:\n" + f"  (a, {nm(k)}) = r\n" + call)
+            call = f"  ld8.s{nxt}(ld(a, (w + {256 * nxt} : U32)), w, {args})\n"
+        defs.append(sig + " -> Array<U32> & B128:\n" + f"  (a, m{k}) = r\n" + call)
     defs.append(
         "# The blocks at word w of eight consecutive chunks.\n"
         "def ld8(a: Array<U32>, +w: U32) -> Array<U32> & B128:\n"
-        "  ld8.s0(a[w], w)\n"
+        "  ld8.s0(ld(a, w), w)\n"
     )
     return "\n".join(defs)
 
