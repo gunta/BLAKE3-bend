@@ -1,7 +1,7 @@
-// libblake3-bend's one hook into the official C library
+// libturboblake's one hook into the official C library
 // ======================================================
 //
-// blake3.c (patched by build.sh) asks blake3_bend_subtree first whenever an
+// blake3.c (patched by build.sh) asks turboblake_subtree first whenever an
 // update reaches a complete power-of-two subtree of 2+ chunks: the work its
 // SIMD loop would do on one thread. If the subtree is big enough to beat
 // the trip to the engine, it is cut into spans of at most 1 GiB (whole
@@ -11,10 +11,10 @@
 // an engine that failed to start) answers 0 and C hashes it as upstream does.
 //
 // Environment:
-//   BLAKE3_BEND=0          never use the engine
-//   BLAKE3_BEND_MIN=n      smallest subtree in bytes for the engine (default:
+//   TURBOBLAKE=0          never use the engine
+//   TURBOBLAKE_MIN=n      smallest subtree in bytes for the engine (default:
 //                          calibrated at the first big update)
-//   BLAKE3_BEND_THREADS=n  the engine's threads (default: every core)
+//   TURBOBLAKE_THREADS=n  the engine's threads (default: every core)
 
 #define _GNU_SOURCE  // clock_gettime under -std=c11
 #include <pthread.h>
@@ -25,7 +25,7 @@
 #include <time.h>
 
 #include "blake3_impl.h"
-#include "blake3_bend.h"
+#include "turboblake.h"
 
 int b3e_hash(uint32_t n, const unsigned char* const* p, const uint64_t* len,
              const uint64_t* cb, unsigned char (*out)[32]);
@@ -42,7 +42,7 @@ int b3e_hi(void) __attribute__((weak));
 #define SPAN_MAX (1ull << 30)
 #define SPAN_COPY (64ull << 20)
 
-// The smallest subtree the engine takes: BLAKE3_BEND_MIN if set, else
+// The smallest subtree the engine takes: TURBOBLAKE_MIN if set, else
 // calibrated on the first subtree that might qualify. The engine costs a
 // fixed O per job (waking its threads; ~0.1 ms on a Mac, more in a
 // sandbox) and then runs ~10x the one-thread SIMD rate R, so it wins past
@@ -50,8 +50,8 @@ int b3e_hi(void) __attribute__((weak));
 static size_t bend_fixed(void) {
   static size_t min = 1;
   if (min == 1) {
-    const char* off = getenv("BLAKE3_BEND");
-    const char* m = getenv("BLAKE3_BEND_MIN");
+    const char* off = getenv("TURBOBLAKE");
+    const char* m = getenv("TURBOBLAKE_MIN");
     min = off != NULL && !strcmp(off, "0") ? SIZE_MAX
         : m != NULL && atoll(m) >= 2 * BLAKE3_CHUNK_LEN ? (size_t)atoll(m)
         : 0;
@@ -92,8 +92,8 @@ static void calibrate(void) {
   }
   double bytes = 2.0 * o * (PROBE / r);
   calib_min = bytes < 64 * 1024 ? 64 * 1024 : bytes > (64u << 20) ? (64u << 20) : (size_t)bytes;
-  if (getenv("BLAKE3_BEND_TRACE") != NULL) {
-    fprintf(stderr, "blake3-bend: engine %.1f us a job, C %.2f GB/s: subtrees from %zu bytes\n",
+  if (getenv("TURBOBLAKE_TRACE") != NULL) {
+    fprintf(stderr, "turboblake: engine %.1f us a job, C %.2f GB/s: subtrees from %zu bytes\n",
             o * 1e6, PROBE / r / 1e9, calib_min);
   }
 }
@@ -146,7 +146,7 @@ static void merge(const uint32_t key[8], uint8_t flags, uint8_t (*cvs)[32], uint
   parent_cv(key, flags, cvs[0], cvs[p], cvs[0]);
 }
 
-int blake3_bend_subtree(const uint8_t* input, size_t input_len, const uint32_t key[8],
+int turboblake_subtree(const uint8_t* input, size_t input_len, const uint32_t key[8],
                         uint64_t chunk_counter, uint8_t flags, uint8_t out[2 * BLAKE3_OUT_LEN]) {
   if (input_len <= BLAKE3_CHUNK_LEN || input_len < bend_min(input, input_len)) {
     return 0;
@@ -197,6 +197,6 @@ int blake3_bend_subtree(const uint8_t* input, size_t input_len, const uint32_t k
   return ok;
 }
 
-int blake3_bend_running(void) {
+int turboblake_running(void) {
   return b3e_window() != NULL;
 }

@@ -300,12 +300,12 @@ fn build_wasm32_simd() {
     println!("cargo::rustc-cfg=blake3_wasm32_simd");
 }
 
-// blake3-bend: the Bend engine (csrc/engine.c, the C that Bend2 emits for
+// turboblake: the Bend engine (csrc/engine.c, the C that Bend2 emits for
 // bend/lib/engine.bend), compiled with clang's SLP vectorizer tuned as in
 // bend/build.sh. Without clang the crate builds as upstream's, engine-less.
 fn build_bend_engine() {
     println!("cargo::rerun-if-changed=csrc/engine.c");
-    println!("cargo::rerun-if-env-changed=BLAKE3_BEND_TARGET_CPU");
+    println!("cargo::rerun-if-env-changed=TURBOBLAKE_TARGET_CPU");
     if env::var_os("CARGO_FEATURE_STD").is_none() || env::var_os("CARGO_FEATURE_PURE").is_some() {
         return;
     }
@@ -317,7 +317,7 @@ fn build_bend_engine() {
         .unwrap_or_default();
     if !version.contains("clang") {
         println!(
-            "cargo::warning=blake3-bend: no clang (set CC to one): building without the Bend \
+            "cargo::warning=turboblake: no clang (set CC to one): building without the Bend \
              engine, as the official blake3"
         );
         return;
@@ -333,13 +333,13 @@ fn build_bend_engine() {
         .warnings(false)
         .flag("-w");
     // tuned for the machine that builds, unless cross-compiling
-    // BLAKE3_BEND_TARGET_CPU (e.g. "-march=x86-64-v3") sets a baseline instead,
+    // TURBOBLAKE_TARGET_CPU (e.g. "-march=x86-64-v3") sets a baseline instead,
     // for binaries that must run on every machine of their target.
-    match env::var("BLAKE3_BEND_TARGET_CPU") {
+    match env::var("TURBOBLAKE_TARGET_CPU") {
         Ok(cpu) if !cpu.is_empty() => {
             b.flag(&cpu);
         }
-        _ if env::var("HOST") == env::var("TARGET") && env::var_os("BLAKE3_BEND_PORTABLE").is_none() => {
+        _ if env::var("HOST") == env::var("TARGET") && env::var_os("TURBOBLAKE_PORTABLE").is_none() => {
             b.flag(if arch == "x86_64" { "-march=native" } else { "-mcpu=native" });
         }
         _ => {}
@@ -352,9 +352,9 @@ fn build_bend_engine() {
     ] {
         b.flag("-mllvm").flag(f);
     }
-    b.compile("blake3_bend_engine");
+    b.compile("turboblake_engine");
     println!("cargo::rustc-link-lib=pthread");
-    println!("cargo::rustc-cfg=blake3_bend");
+    println!("cargo::rustc-cfg=turboblake");
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -383,7 +383,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "blake3_avx512_ffi",
         "blake3_neon",
         "blake3_wasm32_simd",
-        "blake3_bend",
+        "turboblake",
     ];
     for cfg_name in all_cfgs {
         // https://doc.rust-lang.org/cargo/reference/build-scripts.html#outputs-of-the-build-script

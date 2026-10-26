@@ -1,4 +1,4 @@
-// turboblake for Node, Bun and Deno: a Node-API addon over libblake3-bend, the
+// turboblake for Node, Bun and Deno: a Node-API addon over libturboblake, the
 // official BLAKE3 C library whose big inputs go to the Bend engine on every
 // core. A hasher's state is a blake3_hasher (plain bytes, no pointers) kept
 // in a JavaScript ArrayBuffer, so a clone is a copy and nothing needs a

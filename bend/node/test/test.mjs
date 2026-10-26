@@ -1,7 +1,7 @@
 // turboblake against the official test vectors (every mode, extended output,
 // seeks, update splits) through both of its faces, and against
 // @noble/hashes on random inputs; then hashFiles. Run it with
-// BLAKE3_BEND_MIN=2048 too, so the engine takes every subtree.
+// TURBOBLAKE_MIN=2048 too, so the engine takes every subtree.
 //   node test/test.mjs     bun test/test.mjs
 import assert from "node:assert/strict";
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";

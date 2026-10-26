@@ -28,7 +28,7 @@ for f in blake3.c blake3.h blake3_impl.h blake3_dispatch.c blake3_portable.c bla
          blake3_avx2_x86-64_unix.S blake3_avx512_x86-64_unix.S; do
   cp "$root/c/$f" "$here/csrc/$f"
 done
-cp "$here/blake3_bend.c" "$here/blake3_bend.h" "$here/csrc/"
+cp "$here/turboblake.c" "$here/turboblake.h" "$here/csrc/"
 python3 "$here/patch.py" hook "$here/csrc/blake3.c"
-cp "$out" "$root/bend/rust/blake3-bend/csrc/engine.c" 2>/dev/null || true
+cp "$out" "$root/bend/crate/csrc/engine.c" 2>/dev/null || true
 echo "wrote $here/csrc ($(wc -c < "$out") bytes of engine, $("$BEND" version))"

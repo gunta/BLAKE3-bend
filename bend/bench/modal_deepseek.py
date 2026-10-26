@@ -59,7 +59,7 @@ image = (
     ])
 )
 
-app = modal.App("blake3-bend-deepseek", image=image)
+app = modal.App("turboblake-deepseek", image=image)
 
 # Drops a file's pages from the page cache (posix_fadvise DONTNEED) and
 # prints the fraction still resident (mincore on 4096 sampled pages), so

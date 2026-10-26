@@ -35,6 +35,10 @@ bend/build.sh bend/test/vectors.bend && bend/test/build/vectors | python3 bend/t
 ```
 
 ```bash
+bend/build.sh bend/test/split.bend && bend/test/build/split | python3 bend/test/check.py
+```
+
+```bash
 python3 bend/test/big.py
 ```
 

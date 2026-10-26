@@ -1,9 +1,10 @@
 #!/bin/sh
-# Builds libblake3-bend into bend/lib/build (or $1):
-#   include/blake3.h, include/blake3_bend.h   the official header, unchanged
+# Builds libturboblake into bend/lib/build (or $1):
+#   include/blake3.h, include/turboblake.h   the official header, unchanged
 #   lib/libblake3.a, lib/libblake3.{dylib,so} the official C library with
 #                                             its subtree hook, plus the
-#                                             Bend engine (engine.bend)
+#                                             Bend engine (engine.bend);
+#                                             libturboblake.* link to them
 #   bin/blake3                                the test CLI (cli.c)
 # Needs clang (Apple's, or LLVM 19+); Bend2 (~/.bend/bin/bend) only to
 # regenerate csrc/engine.c (gen.sh).
@@ -30,7 +31,7 @@ TUNE="-O3 $cpu -mllvm -slp-max-reg-size=512 -mllvm -slp-recursion-max-depth=1000
 
 # 1. the C (gen.sh makes csrc from engine.bend and c/; REGEN=1 remakes it)
 stale=""
-for f in "$here/engine.bend" "$here/engine.c" "$here/blake3_bend.c" "$here/blake3_bend.h" \
+for f in "$here/engine.bend" "$here/engine.c" "$here/turboblake.c" "$here/turboblake.h" \
          "$here/patch.py" "$root/bend/hash.bend" "$root/bend/b3io.bend" "$root/bend/effs/load.c" \
          "$root/bend/effs/emit.c" "$root/bend/tools/gen_blake3.py"; do
   [ "$f" -nt "$here/csrc/engine.c" ] && stale=1
@@ -45,12 +46,12 @@ fi
 cp "$here"/csrc/* "$src/"
 
 # 3. objects
-C="-O3 -std=c11 -fPIC -fvisibility=default -DBLAKE3_BEND -I$src"
+C="-O3 -std=c11 -fPIC -fvisibility=default -DTURBOBLAKE -I$src"
 objs=""
 cd "$src"
 "$CC" -x c -std=c11 $TUNE -fPIC -w -DBEND_EMBED -Dmain=b3e_bend_main -c engine.c -o engine.o
 objs="engine.o"
-for f in blake3.c blake3_dispatch.c blake3_portable.c blake3_bend.c; do
+for f in blake3.c blake3_dispatch.c blake3_portable.c turboblake.c; do
   "$CC" $C $cpu -c "$f" -o "${f%.c}.o"
   objs="$objs ${f%.c}.o"
 done
@@ -83,6 +84,10 @@ else
   "$CC" -shared -Wl,-soname,libblake3.so.0 -o "$out/lib/libblake3.so.0" $objs -lpthread -lm
   ln -sf libblake3.so.0 "$out/lib/libblake3.so"
 fi
-cp "$src/blake3.h" "$here/blake3_bend.h" "$out/include/"
+# the same library under its own name: -lturboblake links it as -lblake3 does
+for f in "$out"/lib/libblake3.*; do
+  ln -sf "$(basename "$f")" "$out/lib/libturboblake${f##*/libblake3}"
+done
+cp "$src/blake3.h" "$here/turboblake.h" "$out/include/"
 "$CC" -O2 -I"$out/include" "$here/cli.c" "$out/lib/libblake3.a" -lpthread -lm -o "$out/bin/blake3"
 echo "built $out (libblake3.a, $(ls "$out/lib" | grep -v '\.a$' | head -1), bin/blake3)"

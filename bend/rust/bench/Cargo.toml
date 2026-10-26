@@ -1,5 +1,5 @@
 [package]
-name = "blake3-bend-bench"
+name = "turboblake-bench"
 version = "0.0.0"
 edition = "2024"
 publish = false
@@ -9,7 +9,7 @@ publish = false
 
 [dependencies]
 official = { package = "blake3", path = "../../..", features = ["rayon"] }
-bend = { package = "blake3-bend", path = "../blake3-bend", features = ["rayon"] }
+bend = { package = "turboblake", path = "../../crate", default-features = false, features = ["std", "rayon"] }
 
 [profile.release]
 codegen-units = 1

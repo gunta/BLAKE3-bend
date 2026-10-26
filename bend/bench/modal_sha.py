@@ -26,7 +26,7 @@ import time
 import modal
 
 image = modal.Image.debian_slim(python_version="3.12").pip_install("blake3")
-app = modal.App("blake3-bend-sha", image=image)
+app = modal.App("turboblake-sha", image=image)
 
 SIZES = [1 << 30, 2 << 30]
 

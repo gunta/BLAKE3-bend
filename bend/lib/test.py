@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""libblake3-bend against the official test vectors and the official b3sum.
+"""libturboblake against the official test vectors and the official b3sum.
 
 Runs build/bin/blake3 (cli.c over blake3.h) on every case of
 test_vectors/test_vectors.json in all three modes, with extended output and
-a seek, under several update splits, with BLAKE3_BEND_MIN=2048 so that the
+a seek, under several update splits, with TURBOBLAKE_MIN=2048 so that the
 engine hashes every subtree of two chunks or more. Then hashes random inputs
 around the engine's edges (up to 2 GiB + 1 with --big) against b3sum.
     python3 bend/lib/test.py [--big]
@@ -20,7 +20,7 @@ ROOT = HERE.parents[1]
 CLI = HERE / "build" / "bin" / "blake3"
 B3SUM = ROOT / "b3sum" / "target" / "release" / "b3sum"
 VECTORS = json.loads((ROOT / "test_vectors" / "test_vectors.json").read_text())
-ENV = {**os.environ, "BLAKE3_BEND_MIN": "2048"}
+ENV = {**os.environ, "TURBOBLAKE_MIN": "2048"}
 
 
 def pattern(n):
@@ -70,9 +70,9 @@ def main():
             checks += 1
             if got != want:
                 bad += 1
-                print(f"MISMATCH random len={n} split={split} min={env.get('BLAKE3_BEND_MIN')}\n"
+                print(f"MISMATCH random len={n} split={split} min={env.get('TURBOBLAKE_MIN')}\n"
                       f"  got  {got}\n  want {want}")
-    print(f"{checks - bad}/{checks} checks pass in all" + ("" if bad else ": libblake3-bend matches"))
+    print(f"{checks - bad}/{checks} checks pass in all" + ("" if bad else ": libturboblake matches"))
     sys.exit(1 if bad else 0)
 
 

@@ -2,7 +2,7 @@
 
 BLAKE3 for JavaScript, two engines behind one API:
 
-- **native** (Node, Bun, Deno): a Node-API addon over libblake3-bend, the
+- **native** (Node, Bun, Deno): a Node-API addon over libturboblake, the
   official BLAKE3 C library whose big inputs are hashed on every core by a
   [Bend2](https://bend-lang.com) engine;
 - **bend-js** (browsers, workers, or a machine with no C compiler): BLAKE3

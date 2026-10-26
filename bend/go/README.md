@@ -1,6 +1,6 @@
-# BLAKE3 for Go, on libblake3-bend
+# BLAKE3 for Go, on libturboblake
 
-Two drop-in packages over libblake3-bend, the official BLAKE3 C library
+Two drop-in packages over libturboblake, the official BLAKE3 C library
 whose big inputs are hashed on every core by a [Bend2](https://bend-lang.com)
 engine:
 
