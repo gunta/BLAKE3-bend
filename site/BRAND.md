@@ -21,19 +21,25 @@ turboblake --check B3SUMS
   "turbo" in volt and "blake" in ink.
 - The repository stays `BLAKE3-bend`.
 
-## Story, in the order a developer needs it
+## Story, in the order a regular developer needs it
 
-1. **What it does:** checksums files of any size at the speed of your SSD; a
-   drop-in for `sha256sum` and `b3sum`.
-2. **What BLAKE3 is:** a fingerprint for any data. Show it (the one-character
-   demo) before explaining it.
-3. **Why BLAKE3:** faster than SHA-256, safer than MD5, in the BLAKE3 team's
-   own numbers and claims (`src/lib/official.ts`), always linked.
-4. **Why turboblake:** outcomes per job, measured, ties included.
-5. **How to get it**, then **benchmarks**, then **under the hood**.
+The home page is for people who hash files, not people who benchmark hashers.
+Each section is one idea, shown before it is explained, laid out as bento tiles:
 
-Outcomes before mechanism. The "how" (Bend2, techniques, floors) is there for
-the curious, at the end.
+1. **What it does** (hero): checksum anything at the speed of your SSD; use it
+   anywhere you use `sha256sum`.
+2. **Speed** (bento): a handful of measured outcomes, big numbers, to scale.
+   One footnote links the method; nothing about reproducing on the home page.
+3. **What a checksum is:** a fingerprint for any data. Show it (the
+   one-character demo) before explaining it.
+4. **Why BLAKE3:** faster than SHA-256, safer than MD5, who already ships it,
+   in the BLAKE3 team's own numbers and claims (`src/lib/official.ts`), linked.
+5. **How it works:** split, spread, fold, on one diagram. Bend2 in one line.
+6. **Install:** one line, over the aurora.
+
+Everything else (every table, ties, floors, techniques, proofs, how to
+reproduce) lives on `/benchmarks/`, with `/install/`, `/languages/` and `/gpu/`
+beside it.
 
 ## Why Bend2 (the under-the-hood story)
 

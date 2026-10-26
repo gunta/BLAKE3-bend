@@ -1,0 +1,98 @@
+---
+/**
+ * What people fingerprint, in two rows of big type running opposite ways.
+ * Decorative: the list is also in the page as plain text for assistive tech.
+ */
+const rows = [
+  ['Model weights', 'ISO images', 'Photo libraries', 'Backups', 'Release artifacts', 'Datasets'],
+  ['node_modules', 'Video archives', 'Docker layers', 'Git LFS objects', 'Game assets', 'Log archives'],
+];
+---
+
+<section class="things" aria-label="What you can fingerprint">
+  <p class="sr-only">Fingerprint anything: {rows.flat().join(', ')}.</p>
+  {
+    rows.map((row, r) => (
+      <div class:list={['row', { reverse: r === 1 }]} aria-hidden="true">
+        {[0, 1].map(() => (
+          <ul class="tape" role="list">
+            {row.map((item, i) => (
+              <li class:list={{ outline: (i + r) % 2 === 1 }}>
+                {item}
+                <span class="dot" />
+              </li>
+            ))}
+          </ul>
+        ))}
+      </div>
+    ))
+  }
+</section>
+
+<style>
+  .things {
+    display: grid;
+    gap: 0.5rem;
+    padding-block: clamp(2rem, 1rem + 3vw, 4rem);
+    overflow: hidden;
+    border-block: 1px solid var(--line);
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+
+  .row {
+    display: flex;
+  }
+
+  .tape {
+    flex: none;
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: clamp(1rem, 0.5rem + 1.5vw, 2rem);
+    padding-right: clamp(1rem, 0.5rem + 1.5vw, 2rem);
+    font-size: clamp(2.25rem, 1.2rem + 4.5vw, 5.5rem);
+    font-weight: 650;
+    letter-spacing: -0.05em;
+    line-height: 1.1;
+    white-space: nowrap;
+    color: var(--ink);
+  }
+
+  li.outline {
+    color: transparent;
+    -webkit-text-stroke: 1px rgb(237 237 239 / 0.45);
+  }
+
+  .dot {
+    width: 0.18em;
+    height: 0.18em;
+    border-radius: 50%;
+    background: var(--volt);
+    box-shadow: 0 0 18px rgb(212 255 58 / 0.7);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .tape {
+      animation: run 60s linear infinite;
+    }
+    .reverse .tape {
+      animation-direction: reverse;
+      animation-duration: 70s;
+    }
+    .things:hover .tape {
+      animation-play-state: paused;
+    }
+    @keyframes run {
+      to {
+        transform: translateX(-100%);
+      }
+    }
+  }
+</style>

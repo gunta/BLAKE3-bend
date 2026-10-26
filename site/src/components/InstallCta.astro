@@ -1,0 +1,249 @@
+---
+/**
+ * The close: one install line over an aurora (src/gl/aurora.ts on WebGPU, a
+ * CSS gradient without it), where it runs, the one-line switch from
+ * sha256sum, and the way on to the libraries and every install option.
+ */
+import { ArrowRight } from 'lucide-static';
+import BrandMark from './BrandMark.astro';
+import Icon from './Icon.astro';
+import InstallCommand from './InstallCommand.astro';
+import { CLI_VERSION, RELEASES_URL, REPO_URL, withBase } from '../lib/site';
+---
+
+<section id="install" class="cta" aria-labelledby="install-title" data-aurora>
+  <div class="sky" aria-hidden="true">
+    <canvas data-aurora-canvas></canvas>
+  </div>
+
+  <div class="wrap inner">
+    <p class="kicker" data-reveal>Get started</p>
+    <h2 id="install-title" class="display" data-reveal style="--i: 1">Ready in <span class="glow">one line.</span></h2>
+    <p class="lead" data-reveal style="--i: 2">
+      Prebuilt for macOS and Linux, or built from source and tuned for your CPU. Then use it exactly like <code>b3sum</code>.
+    </p>
+
+    <div class="box" data-reveal style="--i: 3">
+      <InstallCommand class="big" />
+      <ul class="platforms" role="list">
+        <li><BrandMark name="apple" /> macOS · Apple silicon and Intel</li>
+        <li><BrandMark name="linux" /> Linux · arm64 and x86‑64</li>
+        <li><BrandMark name="homebrew" /> Homebrew</li>
+        <li><BrandMark name="rust" /> crates.io</li>
+      </ul>
+    </div>
+
+    <div class="switch" data-reveal style="--i: 4">
+      <p class="switch-title">Coming from sha256sum?</p>
+      <pre class="diff"><code><span class="before"><span class="m">-</span> sha256sum -c SHA256SUMS</span>
+<span class="after"><span class="m">+</span> turboblake --check B3SUMS</span></code></pre>
+    </div>
+
+    <p class="actions" data-reveal style="--i: 5">
+      <a class="button primary" href={withBase('install/')}><span>All install options <Icon svg={ArrowRight} /></span></a>
+      <a class="button" href={withBase('languages/')}><span>Python, JavaScript, Go, C</span></a>
+      <a class="button" href={REPO_URL}><span><BrandMark name="github" /> Star on GitHub</span></a>
+    </p>
+
+    <p class="fine" data-reveal style="--i: 6">
+      turboblake {CLI_VERSION} · <a href={RELEASES_URL}>Release notes and checksums</a> · Open source, CC0 or Apache-2.0
+    </p>
+  </div>
+</section>
+
+<script>
+  import { getGpu } from '../gl/gpu';
+
+  const host = document.querySelector<HTMLElement>('[data-aurora]');
+  const canvas = host?.querySelector<HTMLCanvasElement>('[data-aurora-canvas]');
+  // Wait until the section is near before paying for a second pipeline.
+  if (host && canvas) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        io.disconnect();
+        void (async () => {
+          const gpu = await getGpu();
+          if (!gpu) return;
+          try {
+            const { mountAurora } = await import('../gl/aurora');
+            await mountAurora(gpu, canvas, host);
+            host.classList.add('gpu-ready');
+          } catch (error) {
+            console.warn('aurora: WebGPU unavailable, keeping the gradient', error);
+          }
+        })();
+      },
+      { rootMargin: '600px' },
+    );
+    io.observe(host);
+  }
+</script>
+
+<style>
+  .cta {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding-block: clamp(7rem, 4rem + 9vw, 12rem);
+    text-align: center;
+  }
+
+  .sky {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(60% 45% at 30% 62%, rgb(70 227 255 / 0.16), transparent 70%),
+      radial-gradient(55% 40% at 70% 55%, rgb(212 255 58 / 0.14), transparent 70%),
+      var(--void);
+  }
+
+  canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    opacity: 0;
+    transition: opacity 1.4s var(--ease-out);
+  }
+
+  .cta:global(.gpu-ready) canvas {
+    opacity: 1;
+  }
+
+  .inner {
+    display: grid;
+    justify-items: center;
+    gap: 1.25rem;
+  }
+
+  h2 {
+    font-size: clamp(3rem, 1.6rem + 6vw, 7rem);
+  }
+
+  .lead {
+    max-width: 36rem;
+    color: var(--ink-2);
+    font-size: 1.125rem;
+  }
+
+  .box {
+    display: grid;
+    justify-items: center;
+    gap: 1rem;
+    width: min(100%, 44rem);
+    margin-top: 0.75rem;
+  }
+
+  .box :global(.install) {
+    width: 100%;
+    justify-items: center;
+  }
+
+  .box :global(.install .line) {
+    width: 100%;
+    padding: 0.5rem 0.5rem 0.5rem 1.25rem;
+    border-radius: 16px;
+    background: rgb(6 6 8 / 0.75);
+    backdrop-filter: blur(10px);
+    box-shadow:
+      0 0 0 1px rgb(212 255 58 / 0.12),
+      0 20px 60px -20px rgb(212 255 58 / 0.25);
+  }
+
+  .box :global(.install code) {
+    font-size: clamp(0.9375rem, 0.8rem + 0.6vw, 1.25rem);
+  }
+
+  .platforms {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .platforms li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.35rem 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: rgb(12 12 16 / 0.6);
+    backdrop-filter: blur(8px);
+    color: var(--ink-2);
+    font-size: 0.8125rem;
+  }
+
+  .switch {
+    display: grid;
+    justify-items: center;
+    gap: 0.6rem;
+    margin-top: 1.25rem;
+  }
+
+  .switch-title {
+    color: var(--ink-3);
+    font-size: 0.875rem;
+  }
+
+  .diff {
+    display: grid;
+    margin: 0;
+    padding: 0.9rem 1.25rem;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: rgb(6 6 8 / 0.7);
+    backdrop-filter: blur(8px);
+    text-align: left;
+    font-size: 0.9375rem;
+    line-height: 1.8;
+  }
+
+  .before {
+    color: var(--ink-3);
+    text-decoration: line-through;
+    text-decoration-color: rgb(255 93 93 / 0.6);
+  }
+
+  .before .m {
+    color: #ff5d5d;
+  }
+
+  .after {
+    color: var(--ink);
+  }
+
+  .after .m {
+    color: var(--volt);
+  }
+
+  .m {
+    display: inline-block;
+    width: 1.25rem;
+    text-decoration: none;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+
+  .fine {
+    color: var(--ink-3);
+    font-size: 0.8125rem;
+  }
+
+  .fine a {
+    color: var(--ink-2);
+  }
+</style>

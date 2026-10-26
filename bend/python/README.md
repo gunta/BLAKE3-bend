@@ -10,6 +10,12 @@ suite passes.
 pip uninstall blake3 && pip install turboblake
 ```
 
+Until it is on PyPI, install it from this repository:
+
+```bash
+pip install "turboblake @ git+https://github.com/gunta/BLAKE3-bend#subdirectory=bend/python"
+```
+
 ```python
 from blake3 import blake3
 

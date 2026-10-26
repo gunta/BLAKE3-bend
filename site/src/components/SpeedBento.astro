@@ -1,0 +1,517 @@
+---
+/**
+ * The home page's proof, as a bento: the biggest real file (to scale), many
+ * small files, the GPU, the drop-in, what is proven, and the library. Numbers
+ * come from src/lib/home.ts; the detail lives on /benchmarks/.
+ */
+import { BookOpen, FolderTree, Gpu, HardDriveDownload, ShieldCheck, Terminal } from 'lucide-static';
+import BrandMark from './BrandMark.astro';
+import Icon from './Icon.astro';
+import { folders, gpu, laws, machine, model, universalLaws } from '../lib/home';
+import { withBase } from '../lib/site';
+
+const pct = model ? ((model.bend / model.baseline) * 100).toFixed(1) : '0';
+// The folders tile: a field of small files, each lighting up on its own beat.
+const cells = Array.from({ length: 96 }, (_, i) => ((i * 37) % 23) / 23);
+---
+
+<section id="speed" class="home-section speed" aria-labelledby="speed-title">
+  <div class="wrap">
+    <header class="home-head">
+      <p class="kicker" data-reveal>Speed</p>
+      <h2 id="speed-title" data-reveal style="--i: 1">Hours become <span class="glow">seconds.</span></h2>
+      <p data-reveal style="--i: 2">The same BLAKE3 fingerprints as the official tools, without the wait. Measured, not promised.</p>
+    </header>
+
+    <div class="bento">
+      {
+        model && (
+          <article class="tile t-model" data-reveal data-race data-bend={model.bend} data-base={model.baseline}>
+            <p class="tile-kicker">
+              <Icon svg={HardDriveDownload} /> A model bigger than RAM
+            </p>
+            <p class="mega big-num">
+              <span data-countup={model.seconds}>{model.seconds}</span>
+              <span class="unit">s</span>
+            </p>
+            <p class="tile-title">
+              to fingerprint a {model.size} model. {model.baselineLabel} takes {model.baselineSeconds} s.
+            </p>
+            <div class="lanes" aria-hidden="true">
+              <div class="lane is-bend finished" style="--p: 1">
+                <span class="who">
+                  <BrandMark name="merge" /> turboblake
+                </span>
+                <span class="track">
+                  <span class="fill" />
+                </span>
+                <span class="t" data-state>
+                  Done
+                </span>
+              </div>
+              <div class="lane is-base" style={`--p: ${(model.bend / model.baseline).toFixed(4)}`}>
+                <span class="who">
+                  <BrandMark name="b3" /> {model.baselineLabel}
+                </span>
+                <span class="track">
+                  <span class="fill" />
+                </span>
+                <span class="t" data-state>
+                  {pct}%
+                </span>
+              </div>
+            </div>
+            <p class="foot">
+              <span class="ratio">{model.ratio} faster</span>
+              {model.deepseek && (
+                <span class="src">
+                  <BrandMark name="deepseek" tone="brand" /> DeepSeek weights · <BrandMark name="huggingface" tone="brand" /> Hugging Face
+                </span>
+              )}
+            </p>
+          </article>
+        )
+      }
+
+      {
+        folders && (
+          <article class="tile t-folders" data-reveal style="--i: 1">
+            <p class="tile-kicker">
+              <Icon svg={FolderTree} /> Folders of small files
+            </p>
+            <div class="cells" aria-hidden="true">
+              {cells.map((d) => (
+                <i style={`--d: ${d.toFixed(3)}`} />
+              ))}
+            </div>
+            <p class="mega mid-num">{folders.ratio}</p>
+            <p class="tile-body">
+              {folders.files} in {folders.ms} ms instead of {folders.baselineMs} ms. Opened and hashed all at once.
+            </p>
+          </article>
+        )
+      }
+
+      {
+        gpu && gpu.gbps && (
+          <article class="tile t-gpu" data-reveal style="--i: 2">
+            <p class="tile-kicker">
+              <Icon svg={Gpu} /> On the GPU
+            </p>
+            <p class="mega mid-num">
+              <span data-countup={gpu.gbps}>{gpu.gbps}</span>
+              <span class="unit">GB/s</span>
+            </p>
+            <div class="gauge" aria-hidden="true">
+              <span />
+            </div>
+            <p class="tile-body">
+              {gpu.size} in memory in {gpu.ms} ms on the {gpu.machine}: {gpu.ratio} the official crate on all its CPU cores.{' '}
+              <a href={gpu.href}>Every GPU →</a>
+            </p>
+          </article>
+        )
+      }
+
+      <article class="tile t-dropin" data-reveal style="--i: 1">
+        <p class="tile-kicker">
+          <Icon svg={Terminal} /> Drop-in
+        </p>
+        <p class="tile-title">Same flags. Same output. Same checksum files.</p>
+        <pre class="term" aria-label="Example"><code><span class="p">$</span> turboblake --check B3SUMS
+<span class="ok">model.safetensors: OK</span>
+<span class="ok">release.iso: OK</span></code></pre>
+        <p class="tile-body">It is the official <code>b3sum</code> with a faster engine. Swap it in for <code>sha256sum -c</code> too.</p>
+      </article>
+
+      <article class="tile t-proofs" data-reveal style="--i: 2">
+        <p class="tile-kicker">
+          <Icon svg={ShieldCheck} /> Proven
+        </p>
+        <p class="mega mid-num">{laws}</p>
+        <p class="tile-body">
+          laws about this BLAKE3, machine-checked by Bend's prover, {universalLaws} of them for every input or every size: proven, not only
+          tested. <a href={withBase('benchmarks/#proofs')}>See them</a>
+        </p>
+      </article>
+
+      <article class="tile t-lib" data-reveal style="--i: 3">
+        <p class="tile-kicker">
+          <Icon svg={BookOpen} /> In your code
+        </p>
+        <p class="tile-title">The same engine as a library.</p>
+        <pre class="term" aria-label="Cargo.toml"><code>blake3 = {'{'} package = <span class="s">"blake3-bend"</span>, version = <span class="s">"1.8"</span> {'}'}</code></pre>
+        <p class="tile-body libs">
+          <span><BrandMark name="rust" /> Rust, a drop-in for the <code>blake3</code> crate</span>
+          <span><BrandMark name="python" /> Python, JavaScript and Go in the <a href={withBase('install/')}>install guide</a></span>
+        </p>
+      </article>
+    </div>
+
+    <p class="footnote" data-reveal>
+      Measured against the official BLAKE3 tools, same files, same fingerprints, on one {machine}{
+        gpu && gpu.machine !== machine && <>; the GPU figure on the {gpu.machine}</>
+      }. Some workloads only tie; every number, and how it was measured, is on <a href={withBase('benchmarks/')}>the benchmarks page</a>.
+    </p>
+  </div>
+</section>
+
+<script>
+  import { fmtMeasured } from '../lib/format';
+
+  // The model tile: bars run at the measured times, slowed by one factor, once it scrolls into view.
+  const RUN = 2.4;
+  for (const tile of document.querySelectorAll<HTMLElement>('[data-race]')) {
+    const bend = Number(tile.dataset.bend);
+    const base = Number(tile.dataset.base);
+    const lanes = [...tile.querySelectorAll<HTMLElement>('.lane')];
+    if (!(bend > 0 && base > 0) || lanes.length !== 2 || matchMedia('(prefers-reduced-motion: reduce)').matches) continue;
+    const scale = RUN / bend;
+    const paint = (sim: number) =>
+      [bend, base].forEach((v, i) => {
+        const lane = lanes[i]!;
+        lane.style.setProperty('--p', Math.min(1, sim / v).toFixed(4));
+        lane.classList.toggle('finished', sim >= v);
+        const t = lane.querySelector<HTMLElement>('[data-state]');
+        if (t) t.textContent = sim >= v ? 'Done' : `${((sim / v) * 100).toFixed(1)}%`;
+      });
+    paint(0);
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        io.disconnect();
+        const t0 = performance.now();
+        const tick = (now: number) => {
+          const sim = (now - t0) / 1000 / scale;
+          paint(Math.min(sim, base));
+          // b3sum's bar would take a minute: stop when it has shown what it shows.
+          if (sim < bend * 1.6) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      },
+      { threshold: 0.4 },
+    );
+    io.observe(tile);
+  }
+
+  // Numbers count up to their value when they scroll into view, keeping the page's decimals.
+  for (const el of document.querySelectorAll<HTMLElement>('[data-countup]')) {
+    const final = el.dataset.countup ?? '';
+    const target = Number.parseFloat(final.replace(/,/g, ''));
+    const decimals = (final.split('.')[1] ?? '').length;
+    if (!Number.isFinite(target) || matchMedia('(prefers-reduced-motion: reduce)').matches) continue;
+    el.textContent = (0).toFixed(decimals);
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        io.disconnect();
+        const t0 = performance.now();
+        const step = (now: number) => {
+          const k = Math.min(1, (now - t0) / 1400);
+          const v = target * (1 - Math.pow(1 - k, 4));
+          el.textContent = k < 1 ? fmtMeasured(Number(v.toFixed(decimals))) : final;
+          if (k < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      },
+      { threshold: 0.6 },
+    );
+    io.observe(el);
+  }
+</script>
+
+<style>
+  .speed {
+    background:
+      radial-gradient(50rem 30rem at 15% 0%, rgb(212 255 58 / 0.05), transparent 70%),
+      radial-gradient(40rem 30rem at 90% 40%, rgb(70 227 255 / 0.05), transparent 70%);
+  }
+
+  .bento {
+    grid-template-areas:
+      'model model folders gpu'
+      'model model dropin proofs'
+      'lib lib dropin proofs';
+    grid-auto-rows: minmax(13rem, auto);
+  }
+
+  .t-model {
+    grid-area: model;
+  }
+  .t-folders {
+    grid-area: folders;
+  }
+  .t-gpu {
+    grid-area: gpu;
+  }
+  .t-dropin {
+    grid-area: dropin;
+  }
+  .t-proofs {
+    grid-area: proofs;
+  }
+  .t-lib {
+    grid-area: lib;
+  }
+
+  @media (max-width: 61.99rem) {
+    .bento {
+      grid-template-areas:
+        'model model'
+        'folders gpu'
+        'dropin proofs'
+        'lib lib';
+    }
+  }
+
+  @media (max-width: 39.99rem) {
+    .bento {
+      grid-template-areas: none;
+    }
+    .bento > * {
+      grid-area: auto;
+    }
+  }
+
+  /* The model tile */
+  .t-model {
+    justify-content: space-between;
+    background:
+      radial-gradient(70% 60% at 90% 10%, rgb(212 255 58 / 0.1), transparent 70%),
+      radial-gradient(60% 50% at 0% 100%, rgb(70 227 255 / 0.06), transparent 70%),
+      var(--surface);
+  }
+
+  .big-num {
+    display: flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    font-size: clamp(5rem, 3rem + 7vw, 9.5rem);
+    background: linear-gradient(180deg, #fff 30%, rgb(237 237 239 / 0.55));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .unit {
+    font-size: 0.32em;
+    letter-spacing: -0.02em;
+    color: var(--ink-3);
+    -webkit-text-fill-color: var(--ink-3);
+  }
+
+  .lanes {
+    display: grid;
+    gap: 0.7rem;
+    margin-top: 0.5rem;
+  }
+
+  .lane {
+    display: grid;
+    grid-template-columns: 8.5rem minmax(0, 1fr) 3.5rem;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .who {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+
+  .is-bend .who {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .is-bend .who :global(.brandmark) {
+    color: var(--volt);
+  }
+
+  .track {
+    height: 10px;
+    border-radius: 999px;
+    background: var(--surface-3);
+    overflow: hidden;
+  }
+
+  .fill {
+    display: block;
+    height: 100%;
+    width: calc(var(--p) * 100%);
+    min-width: 3px;
+    border-radius: inherit;
+    background: var(--s-base-2);
+  }
+
+  .is-bend .fill {
+    background: var(--heat);
+    box-shadow: 0 0 16px rgb(212 255 58 / 0.5);
+  }
+
+  .t {
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-align: right;
+  }
+
+  .is-bend.finished .t {
+    color: var(--volt);
+  }
+
+  .foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    margin-top: 0.5rem;
+  }
+
+  .ratio {
+    padding: 0.25rem 0.7rem;
+    border-radius: 999px;
+    background: var(--volt);
+    color: var(--volt-ink);
+    font-size: 0.875rem;
+    font-weight: 650;
+  }
+
+  .src {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--ink-3);
+    font-size: 0.8125rem;
+  }
+
+  .mid-num {
+    display: flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    font-size: clamp(3rem, 2rem + 2.5vw, 4.25rem);
+    color: var(--ink);
+  }
+
+  .t-folders .mid-num {
+    color: var(--volt);
+  }
+
+  /* Folders: a field of files lighting up all at once, out of step. */
+  .cells {
+    display: grid;
+    grid-template-columns: repeat(16, 1fr);
+    gap: 3px;
+  }
+
+  .cells i {
+    aspect-ratio: 1;
+    border-radius: 2px;
+    background: var(--surface-3);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .cells i {
+      animation: file 2.2s linear infinite;
+      animation-delay: calc(var(--d) * -2.2s);
+    }
+    @keyframes file {
+      0%,
+      70% {
+        background: var(--surface-3);
+      }
+      78% {
+        background: var(--volt);
+        box-shadow: 0 0 8px rgb(212 255 58 / 0.6);
+      }
+      100% {
+        background: rgb(212 255 58 / 0.25);
+      }
+    }
+  }
+
+  /* GPU: a gauge near the top of its range. */
+  .gauge {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--surface-3);
+    overflow: hidden;
+  }
+
+  .gauge span {
+    display: block;
+    width: 92%;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--ion), #9ff3ff);
+    box-shadow: 0 0 14px rgb(70 227 255 / 0.6);
+  }
+
+  .t-gpu .unit {
+    font-size: 0.4em;
+  }
+
+  .term {
+    margin: 0.25rem 0;
+    padding: 0.8rem 0.9rem;
+    border-radius: 12px;
+    background: var(--void);
+    font-size: 0.8125rem;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .p {
+    color: var(--volt);
+  }
+
+  .ok {
+    color: var(--ink-3);
+  }
+
+  .s {
+    color: var(--volt);
+  }
+
+  .t-proofs {
+    background:
+      radial-gradient(80% 60% at 50% 0%, rgb(70 227 255 / 0.08), transparent 70%),
+      var(--surface);
+  }
+
+  .t-proofs .mid-num {
+    color: var(--ion);
+  }
+
+  .tile a {
+    color: var(--ink);
+  }
+
+  .libs {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .libs span {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .footnote {
+    max-width: 48rem;
+    margin-top: 1.5rem;
+    color: var(--ink-3);
+    font-size: 0.875rem;
+  }
+
+  .footnote a {
+    color: var(--ink-2);
+  }
+</style>

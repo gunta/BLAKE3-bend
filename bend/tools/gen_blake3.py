@@ -254,25 +254,34 @@ def gen_fold8():
 def gen_keyed8():
     """The 8-lane tree in BLAKE3's keyed and key-derivation modes: the
     default mode's defs with the key (in every lane: key8) and the mode flag
-    threaded through, compress8 unchanged. hash8.at.k is the entry point."""
+    threaded through. hash8.at.k is the entry point. The compressions are
+    copies (compress8.k, compress8.p.k): a program with both trees, such as
+    the library's engine, then calls each compress8 from one place, and clang
+    inlines and vectorizes it there (ADR 0002); a second caller left it a
+    call with 100-odd arguments, 1.47x slower."""
     k8 = ", ".join(f"h{i}" for l, i in cv8_order())
     par8 = gen_par8().replace(
         "def par8(x: CV8, y: CV8) -> CV8:", "def par8.k(x: CV8, y: CV8, +key: CV, +kf: U32) -> CV8:"
-    ).replace("compress8.p(IV8(), ", "compress8.p(key8(key), ").replace(
+    ).replace("compress8.p(IV8(), ", "compress8.p.k(key8(key), ").replace(
         ", 64, PARENT())", ", 64, (PARENT() .|. kf : U32))")
     fold8 = gen_fold8().replace(
         "def fold8(x: CV8, +rf: U32) -> CV:", "def fold8.k(x: CV8, +rf: U32, +key: CV, +kf: U32) -> CV:"
     ).replace(", 0)", ", 0, key, kf)").replace(", rf)", ", rf, key, kf)").replace("parent(", "parent.k(")
-    for old in ("def par8(", "def fold8(", "IV8()", ", PARENT())"):
+    for old in ("def par8(", "def fold8(", "IV8()", ", PARENT())", "compress8.p("):
         assert old not in par8 + fold8, old
+    compress8k = gen_compress8("compress8.k")
+    compress8pk = gen_compress8("compress8.p.k", parent=True)
     return f"""
 # Keyed and key-derivation modes, 8 lanes
 # ---------------------------------------
 #
 # The CPU tree's defs again, with the key (`key`, and `k8` in every lane)
-# and the mode flag (kf) threaded through, as the scalar .k defs do;
-# compress8 and the node kinds are the default mode's.
+# and the mode flag (kf) threaded through, as the scalar .k defs do. The
+# compressions are copies of the default mode's, so that each has one
+# caller (see compress8); the node kinds are the default mode's.
 
+{compress8k}
+{compress8pk}
 def key8(+k: CV) -> CV8:
   match k:
     case CV{{{", ".join(f"+h{i}" for i in range(8))}}}:
@@ -287,7 +296,7 @@ def c8.go.k(+n: Nat, r: Array<U32> & B128, +w: U32, cv: CV8, +ctr: U32,
     case 1n+p:
       (a, m) = r
       +w2 = (w + step(p) : U32)
-      c8.go.k(p, ld8(a, w2), w2, compress8(cv, m, ctr, 1, hi, 64,
+      c8.go.k(p, ld8(a, w2), w2, compress8.k(cv, m, ctr, 1, hi, 64,
         ((fl .|. endf(p) : U32) .|. kf : U32)), ctr, hi, 0, kf)
 
 def group.k(a: Array<U32>, +c: U32, +t: U32, +hi: U32, +key: CV, +kf: U32) -> Array<U32> & CV8:

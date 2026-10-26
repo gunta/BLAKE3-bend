@@ -1,0 +1,808 @@
+---
+import Base from '../layouts/Base.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import Engine from '../components/Engine.astro';
+import Proofs from '../components/Proofs.astro';
+import BrandMark from '../components/BrandMark.astro';
+import Icon from '../components/Icon.astro';
+import { CircleCheck, Cpu, FileStack, FileText, Flag, FolderOpen, Gauge, Gpu, HardDrive, Laptop, MemoryStick, Monitor, ShieldCheck, Timer } from 'lucide-static';
+import type { MarkName } from '../lib/brands';
+import SiteFooter from '../components/SiteFooter.astro';
+import Section from '../components/Section.astro';
+import BarChart from '../components/BarChart.astro';
+import DataTable from '../components/DataTable.astro';
+import Scorecard from '../components/Scorecard.astro';
+import Note from '../components/Note.astro';
+import { adr, ADR_INDEX_URL } from '../lib/adr';
+import { lawCount } from '../lib/proofs';
+import { fmtList, fmtRange } from '../lib/format';
+import { TIE_TEXT, tableView, fmtSpeedup } from '../lib/model';
+import {
+  cli,
+  cliChart,
+  cliTallies,
+  daemon,
+  daemonChart,
+  daemonTallies,
+  floors,
+  inMemory,
+  inMemoryCharts,
+  inMemoryTallies,
+  iroh,
+  irohChart,
+  models,
+  modelsChart,
+  modelsTallies,
+  irohHashOnly,
+  irohTallies,
+  levelWording,
+  machine,
+  machineName,
+  results,
+} from '../lib/page';
+import { BEND_URL, REPO_URL, blobUrl, treeUrl, withBase } from '../lib/site';
+
+const links = [
+  { href: '#in-memory', label: 'In memory' },
+  { href: '#cli', label: 'Command line' },
+  ...(models ? [{ href: '#models', label: 'Model files' }] : []),
+  ...(daemon ? [{ href: '#daemon', label: 'Long-running' }] : []),
+  ...(iroh ? [{ href: '#iroh', label: 'iroh-blobs' }] : []),
+  { href: '#engine', label: 'Engine' },
+  { href: '#proofs', label: 'Proofs' },
+  { href: '#floors', label: 'Limits' },
+  { href: '#reproduce', label: 'Reproduce' },
+];
+
+/** An icon for each floor, from what it is about; NVIDIA gets its own mark. */
+function floorIcon(title: string): StepIcon {
+  if (/nvidia/i.test(title)) return { mark: 'nvidia' };
+  if (/page fault/i.test(title)) return { svg: MemoryStick };
+  if (/cpu/i.test(title)) return { svg: Cpu };
+  if (/open\(/i.test(title)) return { svg: FolderOpen };
+  if (/start-?up/i.test(title)) return { svg: Timer };
+  if (/ssd|uncached|disk/i.test(title)) return { svg: HardDrive };
+  if (/gpu/i.test(title)) return { svg: Gpu };
+  return { svg: Gauge };
+}
+
+const SPEC_ICONS: Record<string, StepIcon> = {
+  Machine: { svg: Laptop },
+  CPU: { svg: Cpu },
+  GPU: { svg: Gpu },
+  Memory: { svg: MemoryStick },
+  OS: { svg: Monitor },
+  Bend: { mark: 'bend' },
+  Reference: { mark: 'b3' },
+};
+
+
+// CLI prose: which workloads win and which tie, straight from the tally.
+const cliTally = cliTallies[0];
+const cliTies = cliTally?.tie ?? [];
+const cliWins = cliTally?.faster ?? [];
+const cliBest = cliTally?.best;
+
+// Daemon prose: how Bend does against the strongest baseline.
+const daemonStrongest = daemonTallies[0];
+const daemonLevel = levelWording(daemonStrongest);
+
+const irohCaveat = irohHashOnly;
+
+type StepIcon = { mark?: MarkName | 'bend'; svg?: string };
+
+const reproduce: { title: string; icon: StepIcon; body: string; code: string }[] = [
+  {
+    title: 'Get the code',
+    icon: { mark: 'github' },
+    body: 'The fork keeps the official BLAKE3 tree next to bend/, so both sides of every race build from one checkout.',
+    code: `git clone ${REPO_URL}.git\ncd BLAKE3-bend`,
+  },
+  {
+    title: 'Build the official b3sum to race against',
+    icon: { mark: 'rust' },
+    body: 'NEON on, as the reference runs.',
+    code: '(cd b3sum && cargo build --release --features neon)',
+  },
+  {
+    title: 'Build turboblake from its Bend source',
+    icon: { mark: 'bend' },
+    body: 'build.sh runs bend, then clang with the tuned flags. It needs ~/.bend/bin/bend and Apple clang.',
+    code: 'bend/build.sh bend/b3sum.bend bend/build/b3sum',
+  },
+  {
+    title: 'Check the official test vectors',
+    icon: { svg: CircleCheck },
+    body: 'Both paths, against test_vectors/test_vectors.json.',
+    code: 'bend/build.sh bend/test/vectors.bend && bend/test/build/vectors | python3 bend/test/check.py',
+  },
+  {
+    title: 'Check the proofs',
+    icon: { svg: ShieldCheck },
+    body: `Bend's checker proves the ${lawCount} laws of bend/LAWS.bend and prints ALL PROOFS CHECK, in about four minutes (nearly all of it the known answers).`,
+    code: 'bend/prove.sh',
+  },
+  {
+    title: 'Check big files against the official b3sum',
+    icon: { svg: FileStack },
+    body: 'Sparse files past the 4 GiB mark with random bytes at every segment edge, hashed by both tools and compared.',
+    code: 'python3 bend/test/big.py',
+  },
+  {
+    title: 'Run the benchmark',
+    icon: { svg: Flag },
+    body: 'Interleaved rounds against the official b3sum; the argument is the round count.',
+    code: 'python3 bend/bench/race.py 15',
+  },
+];
+---
+
+<Base title="Benchmarks and method" description="Every turboblake measurement against the official BLAKE3 tools, how it was measured, what is proven, and how to reproduce it." path="benchmarks/">
+  <SiteHeader slot="header" />
+
+
+  <section id="benchmarks" class="page-head" aria-labelledby="benchmarks-title">
+    <div class="wrap">
+      <p class="kicker"><a href={withBase()}>turboblake</a> / Benchmarks</p>
+      <h1 id="benchmarks-title">Benchmarks and method.</h1>
+      <p class="prose">
+        Every result on one {machineName} unless it names another machine, against {results.machine['reference'] ?? 'the official BLAKE3'}: the same bytes, the same digests,
+        medians of interleaved rounds. A result within {TIE_TEXT} either way is called a tie, and the ties are shown as plainly as the wins. Below the
+        numbers: how the engine works, what Bend's checker proves, the limits every tool hits, and how to reproduce all of it.
+      </p>
+      <nav class="toc" aria-label="On this page">
+        {links.map((l) => <a href={l.href}>{l.label}</a>)}
+      </nav>
+    </div>
+  </section>
+
+  <Section id="in-memory" kicker="Benchmark · library" title="Hashing data in memory, on CPU and GPU">
+    <Fragment slot="lede">
+      <p>
+        Warm data already in memory, the same bytes and the same digest on every side. Bars are GB/s, computed from the input size and the measured time, so
+        longer is faster. The baseline is the official <code>blake3</code> crate in its fastest configuration, NEON plus rayon.
+      </p>
+    </Fragment>
+    <Note text={inMemory.note} />
+    <Scorecard tallies={inMemoryTallies} />
+    <div class="charts">
+      {inMemoryCharts.map((c) => <BarChart chart={c} />)}
+    </div>
+    <p class="aside prose">
+      The GPU is the throughput path for long-running, in-memory hashing. A one-shot <code>b3sum</code> stays on the CPU: the GPU has to set up its Metal
+      heap first, which costs more than the whole CPU run (see <a href="#floors">the floors</a>).
+    </p>
+    <DataTable id="in-memory-table" view={tableView(inMemory, `In-memory hashing, times in ${inMemory.unit} with GB/s below each time.`, { throughput: true })} />
+  </Section>
+
+  <Section id="cli" kicker="Benchmark · command line" title="One command, against b3sum" tone="alt">
+    <Fragment slot="lede">
+      <p>
+        <code>turboblake FILE...</code> against the official <code>b3sum FILE...</code>, process start included, output byte for byte the same. These
+        runs measured <code>bend/b3sum.bend</code>, the Bend engine and loader that turboblake ships behind upstream's interface.
+        {
+          cliTally && cliBest && cliWins.length > 0 && (
+            <>
+              {' '}
+              turboblake is faster by more than {TIE_TEXT} on {cliWins.length} of {cliTally.all.length} workloads, by up to {fmtSpeedup(cliBest)} on {cliBest.row.label}.
+            </>
+          )
+        }
+        {
+          cliTies.length > 0 && (
+            <>
+              {' '}
+              It ties on {fmtList(cliTies.map((c) => c.row.label))} ({fmtRange(Math.min(...cliTies.map((c) => c.ratio)), Math.max(...cliTies.map((c) => c.ratio)))}),
+              where both tools sit on the same floors.
+            </>
+          )
+        }
+      </p>
+    </Fragment>
+    <Note text={cli.note} />
+    <Scorecard tallies={cliTallies} />
+    <BarChart chart={cliChart} />
+    <DataTable id="cli-table" view={tableView(cli, `One-shot command line runs, ${cli.unit}.`)} />
+  </Section>
+
+  {
+    models && modelsChart && (
+      <Section id="models" kicker="Benchmark · real files" title="Hashing a model bigger than RAM">
+        <Fragment slot="lede">
+          <p>
+            Shards of <a href="https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017">DeepSeek-V4.1-Flash</a>, the kind of file people hash after a
+            download: one shard is 101.5 GB, more than this Mac's RAM, so it lives on the SSD, not in the page cache. Mapping it and faulting pages in, as
+            <code>b3sum</code> does, reads the SSD 16 KiB at a time; Bend sees the file is not cached and streams it in 1 GiB segments with large parallel
+            reads while every core hashes the segment before.
+          </p>
+        </Fragment>
+        {/deepseek/i.test(models.note ?? '') && (
+          <p class="sources" data-reveal>
+            <span><BrandMark name="deepseek" tone="brand" /> DeepSeek-V4.1-Flash</span>
+            <span><BrandMark name="huggingface" tone="brand" /> from Hugging Face</span>
+          </p>
+        )}
+        <Note text={models.note} />
+        <Scorecard tallies={modelsTallies} />
+        <BarChart chart={modelsChart} />
+        <DataTable id="models-table" view={tableView(models, `Real model files, one shot, ${models.unit}.`)} />
+      </Section>
+    )
+  }
+
+  {
+    daemon && daemonChart && (
+      <Section id="daemon" kicker="Benchmark · long-running" title="A long-running process, against the strongest baseline">
+        <Fragment slot="lede">
+          <p>
+            A long-running process re-opens, re-maps and re-hashes the files every round, so process start drops out. Rust runs two ways: one file at a time,
+            as <code>b3sum</code> does, and with rayon across files, the strongest baseline we have.
+            {daemonLevel && daemonStrongest && (
+              <>
+                {' '}
+                Against {daemonStrongest.against}, Bend is <strong>{daemonLevel}</strong> ({fmtRange(daemonStrongest.min, daemonStrongest.max)}). The big one-shot
+                wins on many files come from hashing files in parallel, and Rust with rayon does that too.
+              </>
+            )}
+          </p>
+        </Fragment>
+        <Note text={daemon.note} />
+        <Scorecard tallies={daemonTallies} />
+        <BarChart chart={daemonChart} />
+        <DataTable id="daemon-table" view={tableView(daemon, `Long-running process, ${daemon.unit}.`)} />
+      </Section>
+    )
+  }
+
+  {
+    iroh && irohChart && (
+      <Section id="iroh" kicker="Benchmark · integration" title="Content-addressed storage with iroh-blobs" tone="alt">
+        <Fragment slot="lede">
+          <p>
+            <a href="https://github.com/n0-computer/iroh-blobs">iroh-blobs</a> adds a file by hashing it with BLAKE3 and writing a bao outboard, the tree of
+            hashes it needs to verify streamed ranges. It runs here into a fresh store, in memory or on disk, copying the data in or referencing the file in
+            place.
+          </p>
+        </Fragment>
+        <p class="sources" data-reveal>
+          <span><BrandMark name="iroh" tone="brand" class="wordmark" label="iroh" /> iroh-blobs, by n0</span>
+        </p>
+        <Note label={irohCaveat ? 'Not like for like yet' : 'How it was measured'} tone={irohCaveat ? 'caveat' : 'info'} text={iroh.note}>
+          {irohCaveat && <p class="note-more">Read these speedups as an upper bound until the Bend side writes the outboard too.</p>}
+        </Note>
+        <Scorecard tallies={irohTallies} />
+        <BarChart chart={irohChart} />
+        <DataTable id="iroh-table" view={tableView(iroh, `iroh-blobs ingest, ${iroh.unit}.`)} />
+      </Section>
+    )
+  }
+
+
+  <Engine />
+
+  <Section id="techniques" kicker="Under the hood" title="How it got fast, one decision record each">
+    <Fragment slot="lede">
+      <p>
+        Each step is written up as an architecture decision record: what the emitted C looked like, what was tried, what was measured, and what was
+        rejected. <a href={ADR_INDEX_URL}>All ADRs</a>.
+      </p>
+    </Fragment>
+    <ol class="techniques" role="list">
+      {
+        results.techniques.map((t, i) => {
+          const record = adr(t.adr);
+          return (
+            <li class="card technique" data-reveal style={`--i: ${i % 3}`}>
+              <p class="adr-meta">
+                <span class="adr-n">ADR {t.adr}</span>
+                {record.status && <span>{record.status}</span>}
+                {record.date && <time datetime={record.date}>{record.date}</time>}
+              </p>
+              <h3>{t.title}</h3>
+              <p class="technique-summary">{t.summary}</p>
+              <a class="adr-link" href={record.url}>
+                <Icon svg={FileText} />
+                Read ADR {t.adr}
+                <span class="sr-only">: {record.title ?? t.title}</span>
+                <span class="arrow" aria-hidden="true">→</span>
+              </a>
+            </li>
+          );
+        })
+      }
+    </ol>
+  </Section>
+
+  <Proofs />
+
+  <Section id="floors" kicker="Under the hood" title="Limits that bind every tool">
+    <Fragment slot="lede">
+      <p>
+        Where the time goes once Bend stops pulling ahead. These limits come from the kernel, the chip and the GPU runtime rather than from either
+        implementation, and most of them bind the official tools just as hard.
+      </p>
+    </Fragment>
+    <ol class="floors" role="list">
+      {
+        floors.map((f, i) => (
+          <li class="card" data-reveal style={`--i: ${i}`}>
+            <span class="floor-top">
+              <span class="floor-n" aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <span class="floor-icon">
+                {floorIcon(f.title).mark ? <BrandMark name={floorIcon(f.title).mark!} /> : <Icon svg={floorIcon(f.title).svg!} />}
+              </span>
+            </span>
+            <h3>{f.title}</h3>
+            {f.body && <p>{f.body}</p>}
+          </li>
+        ))
+      }
+    </ol>
+  </Section>
+
+  <Section id="reproduce" kicker="Under the hood" title="Reproduce the numbers" tone="alt">
+    <Fragment slot="lede">
+      <p>
+        On an Apple Silicon Mac with <a href={BEND_URL}>Bend2</a> installed at <code>~/.bend/bin/bend</code>, Apple clang, Rust and Python 3. The commands come
+        from <a href={blobUrl('bend/README.md')}>bend/README.md</a>.
+      </p>
+    </Fragment>
+    <ol class="steps" role="list">
+      {
+        reproduce.map((s, i) => (
+          <li data-reveal>
+            <span class="step-n" aria-hidden="true">
+              {i + 1}
+            </span>
+            <div class="step-body">
+              <h3>
+                <span class="step-icon">{s.icon.mark ? <BrandMark name={s.icon.mark} /> : <Icon svg={s.icon.svg!} />}</span>
+                {s.title}
+              </h3>
+              <p>{s.body}</p>
+              <div class="term">
+                <pre><code>{s.code}</code></pre>
+                <button class="copy" type="button" data-copy>
+                  <span data-copy-label>Copy</span>
+                  <span class="sr-only">: {s.title}</span>
+                </button>
+              </div>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+    <p class="aside prose">
+      The in-memory numbers come from <a href={blobUrl('bend/bench/mem.bend')}>bend/bench/mem.bend</a> against the Rust reference in{' '}
+      <a href={treeUrl('bend/bench/rust')}>bend/bench/rust</a>. Every number on this page is read from{' '}
+      <a href={blobUrl('bend/bench/results/results.json')}>bend/bench/results/results.json</a> when the site builds.
+    </p>
+  </Section>
+
+  <Section id="machine" kicker="Under the hood" title="Test machine">
+    <Fragment slot="lede">
+      <p>Every result above comes from this machine unless it names another. Other hardware will move the numbers, and maybe the verdicts.</p>
+    </Fragment>
+    <dl class="specs card">
+      {
+        machine.map((m) => (
+          <div>
+            <dt>
+              {SPEC_ICONS[m.label]?.mark ? <BrandMark name={SPEC_ICONS[m.label]!.mark!} /> : SPEC_ICONS[m.label]?.svg && <Icon svg={SPEC_ICONS[m.label]!.svg!} />}
+              {m.label}
+            </dt>
+            <dd>{m.value}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </Section>
+
+  <SiteFooter slot="footer" />
+</Base>
+
+<script>
+  // Copy buttons on the reproduce steps.
+  for (const button of document.querySelectorAll<HTMLButtonElement>('[data-copy]')) {
+    const label = button.querySelector<HTMLElement>('[data-copy-label]');
+    button.addEventListener('click', async () => {
+      const code = button.parentElement?.querySelector('code')?.textContent ?? '';
+      try {
+        await navigator.clipboard.writeText(code);
+        if (label) label.textContent = 'Copied';
+        button.classList.add('done');
+      } catch {
+        if (label) label.textContent = 'Select it';
+      }
+      setTimeout(() => {
+        if (label) label.textContent = 'Copy';
+        button.classList.remove('done');
+      }, 1500);
+    });
+  }
+</script>
+
+<style>
+  .page-head {
+    padding-block: calc(var(--header-h) + clamp(3rem, 2rem + 4vw, 6rem)) clamp(2rem, 1rem + 2vw, 3rem);
+  }
+
+  .page-head .wrap {
+    display: grid;
+    gap: 1.1rem;
+  }
+
+  .page-head h1 {
+    font-size: clamp(2.5rem, 1.5rem + 4vw, 4.5rem);
+    letter-spacing: -0.055em;
+  }
+
+  .page-head .prose {
+    font-size: 1.0625rem;
+  }
+
+  .page-head .kicker a {
+    color: var(--ink-2);
+    text-decoration: none;
+  }
+
+  .toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+  }
+
+  .toc a {
+    padding: 0.35rem 0.8rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    color: var(--ink-2);
+    font-size: 0.875rem;
+    text-decoration: none;
+  }
+
+  .toc a:hover {
+    color: var(--ink);
+    background: rgb(255 255 255 / 0.05);
+  }
+
+  /* Group heads: the start of the benchmarks and of the under-the-hood part. */
+  .group {
+    padding-block: clamp(5rem, 3rem + 6vw, 8rem) clamp(1rem, 0.5rem + 1vw, 2rem);
+    border-top: 1px solid var(--line);
+  }
+
+  .group .wrap {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .group h2 {
+    max-width: 22ch;
+  }
+
+  .group .prose {
+    font-size: 1.0625rem;
+  }
+
+  .group a {
+    color: var(--ink);
+  }
+
+  .charts {
+    display: grid;
+    gap: 3rem;
+  }
+
+  .aside {
+    margin-top: 1.75rem;
+    font-size: 0.9375rem;
+  }
+
+  .note-more {
+    margin-top: 0.5rem;
+  }
+
+  /* Floors: the pit wall. Big numerals, short facts. */
+  .floors {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: floor;
+  }
+
+  .floors li {
+    display: grid;
+    align-content: start;
+    gap: 0.6rem;
+    padding: 1.4rem 1.35rem 1.5rem;
+  }
+
+  .floor-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .floor-icon {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    color: var(--ink);
+    font-size: 1.125rem;
+  }
+
+  .floor-n {
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .floors h3 {
+    font-size: 1.0625rem;
+    line-height: 1.3;
+  }
+
+  .floors p {
+    color: var(--ink-2);
+    font-size: 0.9375rem;
+  }
+
+  /* Techniques: one card per decision record. */
+  .techniques {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .technique {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    padding: 1.4rem 1.35rem 1.25rem;
+    transition:
+      transform var(--t-med) var(--ease-out),
+      border-color var(--t-med) var(--ease-out);
+  }
+
+  .technique:hover {
+    transform: translateY(-3px);
+    border-color: var(--line-strong);
+  }
+
+  .adr-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-stretch: 90%;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .adr-n {
+    padding: 0.15rem 0.45rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    color: var(--ink);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .technique-summary {
+    color: var(--ink-2);
+    font-size: 0.9375rem;
+    flex: 1;
+  }
+
+  .adr-link {
+    align-self: flex-start;
+    gap: 0.45rem;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-stretch: 90%;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+
+  .adr-link:hover {
+    text-decoration: underline;
+  }
+
+  .arrow {
+    margin-left: 0.4em;
+    transition: transform var(--t-fast) var(--ease-out);
+  }
+
+  .adr-link:hover .arrow {
+    transform: translateX(4px);
+  }
+
+  /* Reproduce: numbered steps with a terminal each. */
+  .steps {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2rem;
+    max-width: 56rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .steps li {
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr);
+    gap: 1rem;
+  }
+
+  .step-n {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .step-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.45rem;
+    min-width: 0;
+  }
+
+  .step-body h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 1.125rem;
+    line-height: 1.3;
+    min-height: 2.5rem;
+  }
+
+  .step-icon {
+    display: inline-grid;
+    place-items: center;
+    color: var(--ink-2);
+    font-size: 1.15rem;
+  }
+
+  .step-body p {
+    color: var(--ink-2);
+    font-size: 0.9375rem;
+  }
+
+  .term {
+    position: relative;
+    margin-top: 0.35rem;
+  }
+
+  .term pre {
+    padding-right: 5.5rem;
+  }
+
+  .term pre::before {
+    content: '$ ';
+    color: var(--volt);
+  }
+
+  .copy {
+    position: absolute;
+    top: 0.55rem;
+    right: 0.55rem;
+    min-height: 32px;
+    padding: 0.3rem 0.7rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 6px;
+    background: var(--surface-3);
+    color: var(--ink-2);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-stretch: 90%;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition:
+      color var(--t-fast),
+      border-color var(--t-fast),
+      background var(--t-fast);
+  }
+
+  .copy:hover {
+    color: var(--ink);
+    border-color: var(--ink-3);
+  }
+
+  .copy.done {
+    background: var(--volt);
+    border-color: var(--volt);
+    color: var(--volt-ink);
+  }
+
+  /* Machine */
+  .specs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+    column-gap: 1.5rem;
+    margin: 0;
+    padding: 0 1.35rem;
+    overflow: hidden;
+  }
+
+  .specs div {
+    padding-block: 1rem;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: -1px;
+  }
+
+  .specs dt {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-stretch: 90%;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .specs dt :global(svg),
+  .specs dt :global(img) {
+    font-size: 1rem;
+    color: var(--ion);
+  }
+
+  .specs dd {
+    margin: 0.35rem 0 0;
+    font-weight: 600;
+  }
+
+  /* Where a workload comes from, with the owners' marks. */
+  .sources {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    margin: -0.5rem 0 1.5rem;
+    color: var(--ink-2);
+    font-size: 0.9375rem;
+  }
+
+  .sources span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .sources :global(.brandmark) {
+    font-size: 1.35rem;
+  }
+
+  .sources :global(.wordmark) {
+    font-size: 1.1rem;
+  }
+</style>

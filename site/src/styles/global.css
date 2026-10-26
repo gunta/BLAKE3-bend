@@ -415,3 +415,129 @@ pre {
     color: #000;
   }
 }
+
+/* Bento grids ---------------------------------------------------------------- */
+
+.bento {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 61.99rem) {
+  .bento {
+    --cols: 2;
+  }
+}
+
+@media (max-width: 39.99rem) {
+  .bento {
+    --cols: 1;
+  }
+  .bento > * {
+    grid-column: auto !important;
+    grid-row: auto !important;
+  }
+}
+
+.tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: clamp(1.2rem, 0.9rem + 1vw, 1.75rem);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgb(255 255 255 / 0.035), transparent 60%),
+    var(--surface);
+  isolation: isolate;
+}
+
+/* Tiles space their children with gap, not the running-text paragraph margin. */
+.tile > * {
+  margin-block: 0;
+}
+
+/* A border that lights up under the pointer (Base.astro sets --mx/--my on .tile). */
+.tile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  padding: 1px;
+  border-radius: inherit;
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, -200%), rgb(212 255 58 / 0.55), rgb(70 227 255 / 0.25) 40%, transparent 70%);
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  opacity: 0;
+  transition: opacity var(--t-med) var(--ease-out);
+  pointer-events: none;
+}
+
+.tile:hover::after {
+  opacity: 1;
+}
+
+.tile-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+}
+
+.tile-kicker svg {
+  width: 1rem;
+  height: 1rem;
+  color: var(--ink-2);
+}
+
+.mega {
+  font-family: var(--font-display);
+  font-weight: 650;
+  letter-spacing: -0.06em;
+  line-height: 0.95;
+  font-variant-numeric: tabular-nums;
+}
+
+.tile-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.tile-body {
+  color: var(--ink-2);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+/* Section heads for the home page. */
+.home-head {
+  display: grid;
+  gap: 1rem;
+  max-width: 48rem;
+  margin-bottom: clamp(2rem, 1.5rem + 2vw, 3rem);
+}
+
+.home-head h2 {
+  font-size: clamp(2.25rem, 1.4rem + 3.2vw, 4rem);
+  letter-spacing: -0.055em;
+  line-height: 1;
+}
+
+.home-head p:not(.kicker) {
+  color: var(--ink-2);
+  font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);
+}
+
+.home-section {
+  position: relative;
+  padding-block: clamp(5rem, 3rem + 6vw, 9rem);
+}

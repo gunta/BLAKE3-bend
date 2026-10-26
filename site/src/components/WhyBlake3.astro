@@ -1,287 +1,483 @@
 ---
 /**
- * Why BLAKE3 over the hashes people already use, in the BLAKE3 team's own
- * numbers and claims (src/lib/official.ts), then why a faster tool still
- * matters: the algorithm is fast, the tools around it leave time on the table.
+ * Why BLAKE3, as a bento: faster than SHA-256 (the BLAKE3 team's own chart),
+ * secure where MD5 and SHA-1 are broken, a tree inside, one function for every
+ * job, and who already ships it (the README's adoption list). Nothing here is
+ * measured by this project; src/lib/official.ts says where each claim is from.
  */
-import { BLAKE3_README, COMPARISON, OFFICIAL_SPEED } from '../lib/official';
+import { Binary, KeyRound, Network, ShieldCheck, Zap } from 'lucide-static';
+import BrandMark from './BrandMark.astro';
+import Icon from './Icon.astro';
+import type { MarkName } from '../lib/brands';
+import { official } from '../lib/home';
+import { BLAKE3_README } from '../lib/official';
 
-const max = Math.max(...OFFICIAL_SPEED.bars.map((b) => b.value));
-const sha256 = OFFICIAL_SPEED.bars.find((b) => b.name === 'SHA-256')?.value ?? 1;
-const blake3 = OFFICIAL_SPEED.bars.find((b) => b.name === 'BLAKE3')?.value ?? 1;
-const times = Math.round(blake3 / sha256);
 const fmt = new Intl.NumberFormat('en-US');
-const good = (cell: string) => cell === 'Yes' || cell === 'Built in';
+
+const safety = [
+  { name: 'MD5', ok: false, note: 'Broken' },
+  { name: 'SHA‑1', ok: false, note: 'Broken' },
+  { name: 'SHA‑256', ok: true, note: 'Secure' },
+  { name: 'BLAKE3', ok: true, note: 'Secure' },
+];
+
+const jobs = [
+  { icon: Binary, name: 'Hash', flag: 'default' },
+  { icon: KeyRound, name: 'MAC', flag: '--keyed' },
+  { icon: KeyRound, name: 'Key derivation', flag: '--derive-key' },
+  { icon: Zap, name: 'Any length', flag: '--length' },
+];
+
+// The README's "Adoption & deployment" list, where the project has a mark.
+const adopters: { name: string; mark: MarkName }[] = [
+  { name: 'LLVM', mark: 'llvm' },
+  { name: 'Cargo', mark: 'rust' },
+  { name: 'Bazel', mark: 'bazel' },
+  { name: 'Nix', mark: 'nixos' },
+  { name: 'OpenZFS', mark: 'openzfs' },
+  { name: 'IPFS', mark: 'ipfs' },
+  { name: 'ClickHouse', mark: 'clickhouse' },
+  { name: 'Solana', mark: 'solana' },
+  { name: 'Wasmer', mark: 'wasmer' },
+  { name: 'Redox', mark: 'redox' },
+  { name: 'Farcaster', mark: 'farcaster' },
+];
+
+// The tree tile: 8 chunks, 4, 2, 1, in a 200 x 150 box.
+const rows = [8, 4, 2, 1].map((n, k) => Array.from({ length: n }, (_, i) => ({ x: ((i + 0.5) * 200) / n, y: 132 - k * 38, k })));
+const edges = rows.slice(1).flatMap((row, k) =>
+  row.flatMap((p, j) => [rows[k]![2 * j]!, rows[k]![2 * j + 1]!].map((c) => ({ d: `M${c.x} ${c.y}C${c.x} ${(c.y + p.y) / 2} ${p.x} ${(c.y + p.y) / 2} ${p.x} ${p.y}`, k }))),
+);
 ---
 
-<section id="why" class="why" aria-labelledby="why-title">
+<section id="why" class="home-section why" aria-labelledby="why-title">
   <div class="wrap">
-    <header class="head">
+    <header class="home-head">
       <p class="kicker" data-reveal>Why BLAKE3</p>
-      <h2 id="why-title" data-reveal style="--i: 1">Faster than SHA‑256. Safer than MD5.</h2>
-      <p class="lede prose" data-reveal style="--i: 2">
-        On one core BLAKE3 hashes about {times}x faster than SHA-256, and it is a tree inside, so a single file can be split across every core you
-        have. It is secure where MD5 and SHA-1 are broken, and safe from the length-extension attacks that make SHA-256 awkward to use as a MAC.
+      <h2 id="why-title" data-reveal style="--i: 1">The modern fingerprint. <span class="glow">Fast and safe.</span></h2>
+      <p data-reveal style="--i: 2">
+        MD5 dates from 1992 and SHA‑256 from 2001. BLAKE3 arrived in 2020 from the cryptographers behind BLAKE2, built for the many-core machines we
+        actually have.
       </p>
     </header>
 
-    <div class="grid">
-      <figure class="speed card" data-reveal>
-        <figcaption class="fig-head">
-          <span class="fig-title">Hashing speed, {OFFICIAL_SPEED.unit}</span>
-          <span class="fig-note">{OFFICIAL_SPEED.setup}</span>
-        </figcaption>
+    <div class="bento">
+      <article class="tile t-fast" data-reveal data-bars>
+        <p class="tile-kicker"><Icon svg={Zap} /> Speed</p>
+        <p class="mega fast-num">{official.times}<span class="x">×</span></p>
+        <p class="tile-title">faster than SHA‑256, on a single core.</p>
         <ul class="bars" role="list">
           {
-            OFFICIAL_SPEED.bars.map((b) => (
-              <li class:list={['bar-row', { hero: b.name === 'BLAKE3' }]}>
-                <span class="name">{b.name}</span>
+            official.bars.map((b) => (
+              <li class:list={{ us: b.name === 'BLAKE3' }} style={`--f: ${(b.value / official.max).toFixed(4)}`}>
+                <span class="name">{b.name.replace('-', '‑')}</span>
                 <span class="track" aria-hidden="true">
-                  <span class="fill" style={`--f: ${(b.value / max).toFixed(4)}`} />
+                  <span class="fill" />
                 </span>
-                <span class="value num">{fmt.format(b.value)}</span>
+                <span class="value">{fmt.format(b.value)}</span>
               </li>
             ))
           }
         </ul>
-        <p class="source">
-          Source: the BLAKE3 team's <a href={OFFICIAL_SPEED.source}>benchmark</a>. MD5 and the SHA family are OpenSSL's.
+        <p class="src">
+          MiB/s, {official.setup}. From the BLAKE3 team's <a href={official.source}>benchmark</a>.
         </p>
-      </figure>
+      </article>
 
-      <div class="table-wrap card" data-reveal style="--i: 1">
-        <table>
-          <caption class="sr-only">BLAKE3 compared with MD5, SHA-1 and SHA-256</caption>
-          <thead>
-            <tr>
-              <th scope="col"><span class="sr-only">Property</span></th>
-              {COMPARISON.columns.map((c) => <th scope="col" class:list={{ us: c === 'BLAKE3' }}>{c}</th>)}
-            </tr>
-          </thead>
-          <tbody>
-            {
-              COMPARISON.rows.map((r) => (
-                <tr>
-                  <th scope="row">{r.label}</th>
-                  {r.cells.map((cell, i) => (
-                    <td class:list={[good(cell) ? 'yes' : 'no', { us: COMPARISON.columns[i] === 'BLAKE3' }]}>
-                      <span class="mark" aria-hidden="true">{good(cell) ? '✓' : cell === 'With HMAC, HKDF' ? '–' : '✕'}</span>
-                      <span class="cell">{cell}</span>
-                    </td>
-                  ))}
-                </tr>
-              ))
-            }
-          </tbody>
-        </table>
-        <p class="source">From the <a href={BLAKE3_README}>BLAKE3 README</a> and paper.</p>
-      </div>
-    </div>
+      <article class="tile t-safe" data-reveal style="--i: 1">
+        <p class="tile-kicker"><Icon svg={ShieldCheck} /> Security</p>
+        <p class="tile-title">Secure where MD5 and SHA‑1 are broken.</p>
+        <ul class="chips" role="list">
+          {
+            safety.map((s) => (
+              <li class:list={{ ok: s.ok }}>
+                <span class="dot" aria-hidden="true" />
+                <span>{s.name}</span>
+                <span class="note">{s.note}</span>
+              </li>
+            ))
+          }
+        </ul>
+        <p class="tile-body">And unlike SHA‑256, safe from length-extension attacks, so it works as a MAC on its own.</p>
+      </article>
 
-    <div class="bridge" data-reveal>
-      <h3>So why make it faster?</h3>
-      <p class="prose">
-        Because a tree this parallel deserves an engine to match, and because the algorithm is rarely the slow part. A file bigger than RAM gets read
-        16 KiB at a time through page faults, and a folder of small files gets opened and hashed one file after another. turboblake keeps BLAKE3
-        exactly as it is, same function, same fingerprints. Its engine is written in Bend2, a language that runs tree-shaped work on every CPU core
-        and on the GPU, and it streams big files at SSD speed and hashes many files at once. <a href="#engine">How the engine works</a>.
-      </p>
+      <article class="tile t-tree" data-reveal style="--i: 2">
+        <p class="tile-kicker"><Icon svg={Network} /> Parallel by design</p>
+        <svg class="tree" viewBox="0 0 200 150" aria-hidden="true" focusable="false">
+          <g class="edges">{edges.map((e) => <path d={e.d} class={`k${e.k}`} />)}</g>
+          <g class="edges flow">{edges.map((e) => <path d={e.d} class={`k${e.k}`} />)}</g>
+          {rows.flat().map((n) => <circle cx={n.x} cy={n.y} r={n.k === 3 ? 6 : 3.5} class={`n${n.k}`} />)}
+        </svg>
+        <p class="tile-body">A tree inside: one big file splits into chunks that every core hashes at once.</p>
+      </article>
+
+      <article class="tile t-one" data-reveal style="--i: 3">
+        <p class="tile-kicker"><Icon svg={KeyRound} /> One function</p>
+        <ul class="jobs" role="list">
+          {
+            jobs.map((j) => (
+              <li>
+                <span>{j.name}</span>
+                <code>{j.flag}</code>
+              </li>
+            ))
+          }
+        </ul>
+        <p class="tile-body">Hashing, MACs and key derivation built in. No HMAC or HKDF wrappers.</p>
+      </article>
+
+      <article class="tile t-adopt" data-reveal>
+        <p class="tile-kicker">Already shipping BLAKE3</p>
+        <ul class="logos" role="list">
+          {
+            adopters.map((a) => (
+              <li>
+                <BrandMark name={a.mark} />
+                <span>{a.name}</span>
+              </li>
+            ))
+          }
+          <li class="more">
+            <a href={BLAKE3_README}>and more →</a>
+          </li>
+        </ul>
+      </article>
     </div>
   </div>
 </section>
 
+<script>
+  // The speed bars grow from zero the first time the tile is on screen.
+  for (const tile of document.querySelectorAll<HTMLElement>('[data-bars]')) {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) continue;
+    tile.classList.add('armed');
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        io.disconnect();
+        tile.classList.add('grown');
+      },
+      { threshold: 0.35 },
+    );
+    io.observe(tile);
+  }
+</script>
+
 <style>
-  .why {
-    padding-block: clamp(5rem, 3rem + 6vw, 8rem);
-    border-top: 1px solid var(--line);
+  .bento {
+    grid-template-areas:
+      'fast fast safe safe'
+      'fast fast tree one'
+      'adopt adopt adopt adopt';
   }
 
-  .head {
-    display: grid;
-    gap: 1rem;
-    max-width: 46rem;
-    margin-bottom: 2.5rem;
+  .t-fast {
+    grid-area: fast;
+  }
+  .t-safe {
+    grid-area: safe;
+  }
+  .t-tree {
+    grid-area: tree;
+  }
+  .t-one {
+    grid-area: one;
+  }
+  .t-adopt {
+    grid-area: adopt;
   }
 
-  .lede {
-    font-size: 1.0625rem;
-  }
-
-  .grid {
-    display: grid;
-    gap: 1rem;
-  }
-
-  @media (min-width: 62rem) {
-    .grid {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  @media (max-width: 61.99rem) {
+    .bento {
+      grid-template-areas:
+        'fast fast'
+        'safe safe'
+        'tree one'
+        'adopt adopt';
     }
   }
 
-  .speed,
-  .table-wrap {
-    padding: clamp(1.1rem, 0.8rem + 1vw, 1.5rem);
+  @media (max-width: 39.99rem) {
+    .bento {
+      grid-template-areas: none;
+    }
+    .bento > * {
+      grid-area: auto;
+    }
   }
 
-  .fig-head {
-    display: grid;
-    gap: 0.2rem;
-    margin-bottom: 1rem;
+  /* Speed */
+  .t-fast {
+    justify-content: space-between;
+    background:
+      radial-gradient(70% 60% at 0% 0%, rgb(212 255 58 / 0.09), transparent 70%),
+      var(--surface);
   }
 
-  .fig-title {
-    font-weight: 600;
+  .fast-num {
+    font-size: clamp(5rem, 3rem + 7vw, 9rem);
+    background: linear-gradient(120deg, #fff 20%, var(--volt) 90%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 
-  .fig-note,
-  .source {
-    color: var(--ink-3);
-    font-size: 0.8125rem;
-  }
-
-  .source {
-    margin-top: 1rem;
+  .x {
+    font-size: 0.6em;
+    margin-left: 0.04em;
   }
 
   .bars {
     display: grid;
-    gap: 0.45rem;
-    margin: 0;
+    gap: 0.6rem;
+    margin: 0.5rem 0 0;
     padding: 0;
     list-style: none;
   }
 
-  .bar-row {
+  .bars li {
     display: grid;
-    grid-template-columns: 5.5rem minmax(0, 1fr) 3.5rem;
+    grid-template-columns: 5rem minmax(0, 1fr) 3.5rem;
     align-items: center;
     gap: 0.75rem;
+    color: var(--ink-2);
     font-size: 0.875rem;
   }
 
-  .name {
-    color: var(--ink-2);
+  .bars .us {
+    color: var(--ink);
+    font-weight: 600;
   }
 
   .track {
-    height: 10px;
+    height: 12px;
     border-radius: 999px;
-    background: var(--surface-2);
+    background: var(--surface-3);
     overflow: hidden;
   }
 
   .fill {
     display: block;
-    height: 100%;
     width: calc(var(--f) * 100%);
+    height: 100%;
     border-radius: inherit;
     background: var(--s-base-2);
+    transition: width 1.4s var(--ease-out);
+  }
+
+  .us .fill {
+    background: var(--heat);
+    box-shadow: 0 0 18px rgb(212 255 58 / 0.5);
+  }
+
+  :global(.armed:not(.grown)) .fill {
+    width: 0;
   }
 
   .value {
     color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
     text-align: right;
   }
 
-  .hero .name,
-  .hero .value {
-    color: var(--ink);
-    font-weight: 600;
-  }
-
-  .hero .fill {
-    background: var(--heat);
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.875rem;
-  }
-
-  th,
-  td {
-    padding: 0.7rem 0.6rem;
-    border-bottom: 1px solid var(--line);
-    text-align: left;
-    vertical-align: middle;
-  }
-
-  thead th {
+  .src {
     color: var(--ink-3);
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    font-weight: 500;
-  }
-
-  thead th.us {
-    color: var(--volt);
-  }
-
-  tbody th {
-    font-weight: 500;
-    color: var(--ink);
-  }
-
-  tbody tr:last-child > * {
-    border-bottom: 0;
-  }
-
-  td {
-    color: var(--ink-3);
-    white-space: nowrap;
-  }
-
-  td.us {
-    background: rgb(212 255 58 / 0.04);
-  }
-
-  td.yes {
-    color: var(--ink);
-  }
-
-  .mark {
-    display: inline-block;
-    width: 1.1em;
-  }
-
-  td.yes .mark {
-    color: var(--volt);
-  }
-
-  .cell {
     font-size: 0.8125rem;
   }
 
-  @media (max-width: 40rem) {
-    .table-wrap {
-      overflow-x: auto;
-    }
-    .cell {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      clip-path: inset(50%);
-    }
-    td {
-      text-align: center;
-    }
+  .tile a {
+    color: var(--ink-2);
   }
 
-  .bridge {
+  /* Security */
+  .chips {
     display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin: 0.25rem 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .chips li {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--void);
+    color: var(--ink-2);
+    font-size: 0.9375rem;
+  }
+
+  .chips .note {
+    margin-left: auto;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .chips .dot {
+    flex: none;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: #ff5d5d;
+    box-shadow: 0 0 10px rgb(255 93 93 / 0.6);
+  }
+
+  .chips .ok .dot {
+    background: var(--volt);
+    box-shadow: 0 0 10px rgb(212 255 58 / 0.6);
+  }
+
+  .chips li:last-child {
+    border-color: rgb(212 255 58 / 0.35);
+    color: var(--ink);
+  }
+
+  /* Tree */
+  .tree {
+    width: 100%;
+    max-height: 9.5rem;
+  }
+
+  .edges path {
+    fill: none;
+    stroke: var(--ion);
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    opacity: 0.3;
+  }
+
+  .flow path {
+    stroke-width: 2.2;
+    opacity: 0;
+  }
+
+  .edges .k1 {
+    stroke: color-mix(in oklab, var(--ion), var(--volt));
+  }
+
+  .edges .k2 {
+    stroke: var(--volt);
+  }
+
+  .tree circle {
+    fill: var(--ion);
+  }
+
+  .tree .n2,
+  .tree .n3 {
+    fill: var(--volt);
+  }
+
+  .tree .n3 {
+    filter: drop-shadow(0 0 6px rgb(212 255 58 / 0.9));
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .flow path {
+      opacity: 1;
+      stroke-dasharray: 8 70;
+      animation: climb 2.4s linear infinite;
+    }
+    .flow .k1 {
+      animation-delay: 0.3s;
+    }
+    .flow .k2 {
+      animation-delay: 0.6s;
+    }
+    @keyframes climb {
+      from {
+        stroke-dashoffset: 78;
+      }
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+    .tree .n3 {
+      animation: beat 2.4s ease-in-out infinite;
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+    @keyframes beat {
+      0%,
+      70%,
+      100% {
+        transform: scale(1);
+      }
+      80% {
+        transform: scale(1.5);
+      }
+    }
+  }
+
+  /* One function */
+  .jobs {
+    display: grid;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .jobs li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     gap: 0.75rem;
-    max-width: 46rem;
-    margin-top: 3rem;
+    padding-block: 0.45rem;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink);
+    font-size: 0.9375rem;
   }
 
-  .bridge h3 {
-    font-size: 1.375rem;
-    letter-spacing: -0.03em;
+  .jobs code {
+    color: var(--volt);
+    font-size: 0.75rem;
   }
 
-  .bridge a {
+  /* Adopters */
+  .logos {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem 1.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .logos li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--ink-3);
+    font-size: 0.9375rem;
+    font-weight: 550;
+    transition: color var(--t-fast);
+  }
+
+  .logos li:hover {
+    color: var(--ink);
+  }
+
+  .logos :global(.brandmark) {
+    font-size: 1.3rem;
+  }
+
+  .logos .more a {
+    color: var(--ink-3);
+    text-decoration: none;
+  }
+
+  .logos .more a:hover {
     color: var(--ink);
   }
 </style>
