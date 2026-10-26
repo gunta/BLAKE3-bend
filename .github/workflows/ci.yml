@@ -245,10 +245,13 @@ jobs:
         targets: wasm32-wasip1
     - name: install Wasmtime
       run: |
-        curl https://wasmtime.dev/install.sh -sSf | bash
+        # A pinned version: without one, install.sh asks GitHub's API for the
+        # latest release, and a rate-limited reply leaves it nothing to install.
+        curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v50.0.0
         echo PATH: $PATH
         mkdir -p ~/.local/bin
         ln -s ~/.wasmtime/bin/wasmtime ~/.local/bin/wasmtime
+        ~/.local/bin/wasmtime --version
     - run: cargo test --target wasm32-wasip1
     - run: cargo test --target wasm32-wasip1 --no-default-features
     - run: cargo test --target wasm32-wasip1 --features wasm32_simd
