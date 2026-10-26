@@ -46,13 +46,21 @@ static b3u32 bend_k(b3u32 nch) {
   return 1u << ((d - 14) / 2 * 2);
 }
 
+// b3.cu's Span: the default mode (the IV, no flags), counters from 0, warps
+// folded whole.
+static Span span(b3u32 nch, b3u32 last, b3u32 n, b3u32 whole) {
+  Span s = {nch, last, n, whole, 5, 0, 0, 0,
+            {B3_IV0, B3_IV1, B3_IV2, B3_IV3, B3_IV4, B3_IV5, B3_IV6, B3_IV7}};
+  return s;
+}
+
 static void launch_leaf(b3u32 k, const uint4 *in, Span s, b3u32 nth) {
   dim3 g((nth + TPB - 1) / TPB), b(TPB);
   switch (k) {
-    case 1: leaf<1><<<g, b>>>(in, cv_a, s); break;
-    case 4: leaf<4><<<g, b>>>(in, cv_a, s); break;
-    case 16: leaf<16><<<g, b>>>(in, cv_a, s); break;
-    case 64: leaf<64><<<g, b>>>(in, cv_a, s); break;
+    case 1: leaf1<<<g, b>>>(in, cv_a, s); break;
+    case 4: leaf4<<<g, b>>>(in, cv_a, s); break;
+    case 16: leaf16<<<g, b>>>(in, cv_a, s); break;
+    case 64: leaf64<<<g, b>>>(in, cv_a, s); break;
     default: fprintf(stderr, "K is 0, 1, 4, 16 or 64\n"); exit(2);
   }
 }
@@ -69,11 +77,11 @@ static void hash(const uint4 *in, unsigned long long len, b3u32 k, b3u32 out[8],
   double t0 = now_us();
   CK(cudaEventRecord(e0));
   b3u32 nth = (nch + k - 1) / k;
-  Span s = {nch, last, 0, nth <= 32};
+  Span s = span(nch, last, 0, nth <= 32);
   launch_leaf(k, in, s, nth);
   b3u32 *src = cv_a, *dst = cv_b;
   for (b3u32 n = (nth + 31) / 32; n > 1; n = (n + 31) / 32) {
-    Span m = {nch, last, n, n <= 32};
+    Span m = span(nch, last, n, n <= 32);
     merge<<<(n + TPB - 1) / TPB, TPB>>>(src, dst, m);
     b3u32 *t = src; src = dst; dst = t;
   }

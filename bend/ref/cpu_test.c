@@ -12,13 +12,15 @@
 
 typedef struct { b3u32 nch, last, n, whole; } Span;
 
+static const b3u32 IV[8] = {B3_IV0, B3_IV1, B3_IV2, B3_IV3, B3_IV4, B3_IV5, B3_IV6, B3_IV7};
+
 static void chunk_cv(b3u32 *cv, const b3u32 *in, b3u32 c, b3u32 n, b3u32 blen,
                      b3u32 root) {
   b3_iv(cv);
   for (b3u32 b = 0; b < n; b++) {
     int end = b + 1 == n;
     b3u32 fl = (b == 0 ? B3_CHUNK_START : 0u) | (end ? B3_CHUNK_END | root : 0u);
-    b3_compress(cv, in + c * 256 + b * 16, c, end ? blen : 64u, fl);
+    b3_compress(cv, in + c * 256 + b * 16, c, 0, end ? blen : 64u, fl);
   }
 }
 
@@ -27,7 +29,7 @@ static void push(b3u32 (*st)[8], b3u32 *sd, b3u32 *cv, b3u32 i, b3u32 cnt) {
     b3u32 r[8];
     memcpy(r, cv, 32);
     --*sd;
-    b3_parent(cv, st[*sd], r, 0u);
+    b3_parent(cv, IV, st[*sd], r, 0u);
   }
   memcpy(st[*sd], cv, 32);
   ++*sd;
@@ -44,7 +46,7 @@ static void simd_fold(b3u32 cv[32][8], b3u32 c, int whole) {
       if ((lane & (2 * s - 1)) == 0 && lane + s < c) {
         b3u32 l[8];
         memcpy(l, cv[lane], 32);
-        b3_parent(cv[lane], l, r[lane], whole && lane == 0 && c <= 2 * s ? B3_ROOT : 0u);
+        b3_parent(cv[lane], IV, l, r[lane], whole && lane == 0 && c <= 2 * s ? B3_ROOT : 0u);
       }
   }
 }
@@ -74,7 +76,7 @@ static b3u32 leaf(const b3u32 *in, b3u32 *out, Span sp, b3u32 k) {
         b3u32 r[8];
         memcpy(r, cv[lane], 32);
         sd--;
-        b3_parent(cv[lane], st[sd], r, solo && sd == 0 ? B3_ROOT : 0u);
+        b3_parent(cv[lane], IV, st[sd], r, solo && sd == 0 ? B3_ROOT : 0u);
       }
     }
     b3u32 c = nth - base < 32 ? nth - base : 32;

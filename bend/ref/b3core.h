@@ -55,13 +55,13 @@ typedef unsigned int b3u32;
   B3_G(v2, v7, v8, v13, m[s12], m[s13])                                        \
   B3_G(v3, v4, v9, v14, m[s14], m[s15])
 
-// cv <- the first 8 words of compress(cv, m, counter t, blen, flags).
+// cv <- the first 8 words of compress(cv, m, counter th:t, blen, flags).
 B3_FN void b3_compress(B3_THR b3u32 *cv, B3_THR const b3u32 *m, b3u32 t,
-                       b3u32 blen, b3u32 flags) {
+                       b3u32 th, b3u32 blen, b3u32 flags) {
   b3u32 v0 = cv[0], v1 = cv[1], v2 = cv[2], v3 = cv[3];
   b3u32 v4 = cv[4], v5 = cv[5], v6 = cv[6], v7 = cv[7];
   b3u32 v8 = B3_IV0, v9 = B3_IV1, v10 = B3_IV2, v11 = B3_IV3;
-  b3u32 v12 = t, v13 = 0, v14 = blen, v15 = flags;
+  b3u32 v12 = t, v13 = th, v14 = blen, v15 = flags;
   B3_ROUND(m, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
   B3_ROUND(m, 2, 6, 3, 10, 7, 0, 4, 13, 1, 11, 12, 5, 9, 14, 15, 8)
   B3_ROUND(m, 3, 4, 10, 12, 13, 2, 7, 14, 6, 5, 9, 0, 11, 15, 8, 1)
@@ -78,13 +78,14 @@ B3_FN void b3_iv(B3_THR b3u32 *cv) {
   cv[4] = B3_IV4; cv[5] = B3_IV5; cv[6] = B3_IV6; cv[7] = B3_IV7;
 }
 
-// cv <- parent(l, r): l and r are the two children's CVs.
-B3_FN void b3_parent(B3_THR b3u32 *cv, B3_THR const b3u32 *l,
+// cv <- parent(l, r) under key k: l and r are the two children's CVs, k is
+// the IV, or the key of keyed hashing and key derivation.
+B3_FN void b3_parent(B3_THR b3u32 *cv, B3_THR const b3u32 *k, B3_THR const b3u32 *l,
                      B3_THR const b3u32 *r, b3u32 flags) {
   b3u32 m[16];
   for (int i = 0; i < 8; i++) { m[i] = l[i]; m[8 + i] = r[i]; }
-  b3_iv(cv);
-  b3_compress(cv, m, 0, 64, B3_PARENT | flags);
+  for (int i = 0; i < 8; i++) cv[i] = k[i];
+  b3_compress(cv, m, 0, 0, 64, B3_PARENT | flags);
 }
 
 // The tree

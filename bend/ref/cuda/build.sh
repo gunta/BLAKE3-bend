@@ -3,7 +3,8 @@
 #   bend/ref/cuda/build.sh [out]
 # On a machine with no CUDA, `build.sh --ptx` still compiles the kernels
 # (b3.cu) to PTX with an LLVM clang that has the NVPTX backend, over a few
-# stand-ins for the CUDA headers: a compile check, not a run.
+# stand-ins for the CUDA headers: a compile check, and the PTX libturboblake
+# ships (bend/lib/gen_gpu.sh; PTX_ARCH, PTX_ISA and PTX_DEFS set its target).
 set -e
 here=$(cd "$(dirname "$0")" && pwd)
 mkdir -p "$here/build"
@@ -32,8 +33,8 @@ static __device__ __forceinline__ unsigned __funnelshift_r(unsigned lo, unsigned
 static __device__ __forceinline__ unsigned min(unsigned a, unsigned b) { return a < b ? a : b; }
 static __device__ __forceinline__ unsigned max(unsigned a, unsigned b) { return a > b ? a : b; }
 EOF
-  "$CLANG" -x cuda --cuda-device-only --cuda-gpu-arch=sm_80 -nocudainc -nocudalib \
-    -Xclang -target-feature -Xclang +ptx70 -O3 -S -include "$here/build/cuda_stub.h" "$here/b3.cu" -o "$here/build/b3.ptx"
+  "$CLANG" -x cuda --cuda-device-only --cuda-gpu-arch="${PTX_ARCH:-sm_80}" -nocudainc -nocudalib \
+    -Xclang -target-feature -Xclang +"${PTX_ISA:-ptx70}" -O3 -S $PTX_DEFS -include "$here/build/cuda_stub.h" "$here/b3.cu" -o "$here/build/b3.ptx"
   echo "compiled $here/build/b3.ptx ($(grep -c '^.visible .entry' "$here/build/b3.ptx") kernels)"
   exit 0
 fi

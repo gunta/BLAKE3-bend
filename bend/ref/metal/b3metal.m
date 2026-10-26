@@ -22,7 +22,16 @@
 
 #include "b3_src.h"  // b3_all_metal: ../b3core.h then b3.metal (build.sh)
 
-typedef struct { uint32_t nch, last, n, whole; } Span;
+// b3.metal's Span: the default mode (the IV, no flags), counters from 0,
+// SIMD groups folded whole.
+typedef struct { uint32_t nch, last, n, whole, fold, flags, ctr_lo, ctr_hi, key[8]; } Span;
+
+static Span span(uint32_t nch, uint32_t last, uint32_t n, uint32_t whole) {
+  Span s = {nch, last, n, whole, 5, 0, 0, 0,
+            {0x6A09E667u, 0xBB67AE85u, 0x3C6EF372u, 0xA54FF53Au,
+             0x510E527Fu, 0x9B05688Cu, 0x1F83D9ABu, 0x5BE0CD19u}};
+  return s;
+}
 
 static id<MTLDevice> dev;
 static id<MTLCommandQueue> que;
@@ -118,11 +127,11 @@ static void hash(id<MTLBuffer> in, uint64_t len, uint32_t k, uint32_t out[8],
   id<MTLCommandBuffer> cb = [que commandBufferWithUnretainedReferences];
   id<MTLComputeCommandEncoder> e = [cb computeCommandEncoder];
   uint32_t nth = (nch + k - 1) / k;
-  Span s = {nch, last, 0, nth <= 32};
+  Span s = span(nch, last, 0, nth <= 32);
   dispatch(e, leaf_pso(k), in, cv_a, s, nth);
   id<MTLBuffer> src = cv_a, dst = cv_b;
   for (uint32_t n = (nth + 31) / 32; n > 1; n = (n + 31) / 32) {
-    Span m = {nch, last, n, n <= 32};
+    Span m = span(nch, last, n, n <= 32);
     dispatch(e, merge_pso, src, dst, m, n);
     id<MTLBuffer> t = src; src = dst; dst = t;
   }
@@ -197,7 +206,7 @@ static void time1(id<MTLComputePipelineState> p, id<MTLBuffer> in, uint32_t nch,
   double t0 = now_us();
   id<MTLCommandBuffer> cb = [que commandBufferWithUnretainedReferences];
   id<MTLComputeCommandEncoder> e = [cb computeCommandEncoder];
-  Span s = {nch, 1024, group, 0};
+  Span s = span(nch, 1024, group, 0);
   [e setBuffer:cells offset:0 atIndex:3];
   dispatch(e, p, in, cv_a, s, nch / k);
   [e endEncoding];
