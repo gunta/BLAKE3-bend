@@ -52,7 +52,7 @@ for comparison: `cargo build --release --features neon` in `../b3sum`.
 ## Laws
 
 `LAWS.bend` states what the code must satisfy and `PROOF.bend` proves it
-(ADRs 0007, 0010, 0014 and 0015): 40 laws, 412 lemmas. The gate, about four
+(ADRs 0007, 0010, 0014 and 0015): 41 laws, 412 lemmas. The gate, about four
 minutes, most of it the checker computing BLAKE3 itself:
 
 ```bash

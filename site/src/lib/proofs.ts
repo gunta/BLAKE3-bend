@@ -73,10 +73,16 @@ const GROUPS: (Omit<LawGroup, 'cards'> & { cards: LawCard[] })[] = [
         covers: 'every array, every span',
       },
       {
+        names: ['span.nocarry'],
+        claim:
+          'A chunk’s counter is the span’s high word and its base plus the chunk’s index, the low word added with no carry. For a span inside one 2^32-chunk block that is BLAKE3’s 64-bit counter exactly; b3sum and the library hand the engine only such spans, and the engine turns any other away.',
+        covers: 'every span base, chunk index and bound',
+      },
+      {
         names: ['cpu.at', 'cpu.hash'],
         claim:
           'The CPU tree b3sum runs (eight chunks at once through compress8, 32-chunk leaves, node kinds from a U32 copy of the depth) is blake3.bend’s plain scalar tree, one chunk at a time: the same CV, bit for bit.',
-        covers: 'every array, every span: any 64-bit chunk counter, chunk count, last-chunk length and root flag',
+        covers: 'every array, every span: both chunk-counter words, chunk count, last-chunk length and root flag',
       },
       {
         names: ['gpu.at', 'gpu.hash'],

@@ -23,7 +23,10 @@
 #   tree of the keyed and key-derivation modes is the scalar keyed tree.
 # - BLAKE3's tree: the scalar, CPU, GPU and keyed trees compute BLAKE3's
 #   left-full tree over the chunks (ev of the tree model below), so the
-#   tree laws are about the code.
+#   tree laws are about the code. A chunk's counter is the span's high word
+#   and cb + c, the low word added with no carry: for a span inside one
+#   2^32-chunk block, as every span Bend is handed, that is the 64-bit
+#   counter exactly (span.nocarry).
 # - The message schedule: perm iterated is the C code's MSG_SCHEDULE.
 # - Constants: the IV and the flags are the C code's.
 # - Outboards: for every input, the tree that writes iroh's bao outboard
@@ -722,6 +725,23 @@ law keyed.spec:
   for +kf: U32
   {B3.hash8.at.k(~share, a, cb, hi, nch, last, rf, key, kf) ==
     ev.k(tree(digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), share(a), 0, cb, hi, nch, last, rf, key, kf) : B3.CV}
+
+# ev compresses chunk c with the counter words hi and cb + c, the low one
+# added mod 2^32, nothing carried into hi (compress8 does the same for its
+# lanes). BLAKE3's counter is hi * 2^32 + cb + c, so the two agree when no
+# chunk's sum wraps: when the span's top chunk, cb + top for top = nch - 1,
+# is at most some word's value (2^32 - 1 at most), every chunk c <= top
+# has the low word cb + c exactly. Every span Bend is handed is one (ADR
+# 0014): b3sum's parts are aligned 1 GiB, the library's spans aligned
+# powers of two, and the engine turns any other away (b3e_hash_k).
+law span.nocarry:
+  for +cb: U32
+  for +c: U32
+  for +top: U32
+  for +z: U32
+  for +e1: {Nat.is_le(U32.to_nat(c), U32.to_nat(top)) == True{} : Bool}
+  for +e2: {Nat.is_le(Nat.add(U32.to_nat(cb), U32.to_nat(top)), U32.to_nat(z)) == True{} : Bool}
+  {U32.to_nat((cb + c : U32)) == Nat.add(U32.to_nat(cb), U32.to_nat(c)) : Nat}
 
 # Streaming
 # ---------

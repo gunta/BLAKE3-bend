@@ -42,8 +42,11 @@ to BLAKE3's tree, in generated proof modules under `bend/proof/`
 `words.bend` (95 lemmas) holds the arithmetic: U32 as Nat while it fits,
 comparisons, carries, shifts and powers of two, each an induction over
 the bits. Every law above holds for both words of the chunk counter: the
-span's base `cb` and its high word `hi` (ADR 0014). The gate is 40 laws
-and 412 lemmas.
+span's base `cb` and its high word `hi` (ADR 0014). The low word is added
+with no carry, so the spec laws' counters are BLAKE3's 64-bit ones for
+every span inside a 2^32-chunk block, which every span that runs is
+(`span.nocarry`, ADR 0014's follow-up). The gate is 40 laws and 412
+lemmas (41 laws with `span.nocarry`).
 
 ### How
 
