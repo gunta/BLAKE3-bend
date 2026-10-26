@@ -73,8 +73,8 @@ blake3_hasher_update(&h, p, len);     // big subtrees split between the CPU and 
 
 - GPU memory is hashed where it is, in any mode and between host updates:
   the GPU hashes each subtree into the two CVs `blake3.c` pushes, and the
-  few bytes that finish a chunk come to the CPU. 1 GiB in 5.6 ms on the M5
-  Pro's GPU.
+  few bytes that finish a chunk come to the CPU. 1 GiB in 5.85 ms on the
+  M5 Pro's GPU, 0.686 ms on a B200 (ADR 0017).
 - Host memory from `turboblake_alloc` (a shared Metal buffer, CUDA pinned
   memory) or `turboblake_register` splits each subtree from 16 MiB (Metal)
   or 64 MiB (CUDA) between the engine (the last slices) and the GPU (the
