@@ -159,8 +159,9 @@ compress8 per tree.
   of each 16 KiB page faults (1 GiB hashed in 41.7 ms) and unmapping costs
   8 ms more.
 - **AVX-512 wants 16 lanes.** On an x86-64 with AVX-512 the official crate's
-  16-way kernel beats the 8-lane engine at 1 GiB (14.4 ms against 24.7 ms on
-  Modal), though the engine wins at 64 MiB (1.7 against 4.6 ms). A 16-lane
+  16-way kernel beats the 8-lane engine at 1 GiB (15.0 ms against 28.2 ms on
+  Modal's 32 vCPUs, after the fix), though the engine wins up to 256 MiB
+  (8.2 against 9.0 ms; 64 MiB 2.9 against 4.9). A 16-lane
   `compress16` vectorizes to `zmm` registers with
   `-mprefer-vector-width=512 -mllvm -slp-max-reg-size=1024`, but it cannot be
   the generator's `L = 16`: Bend keeps constructor and function arity in a
