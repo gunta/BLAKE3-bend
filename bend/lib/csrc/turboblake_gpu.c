@@ -647,32 +647,32 @@ static int cu_init(void) {
   return 1;
 }
 
-static void cu_launch(cu_ctx *c, CUfunction f, CUdeviceptr in, CUdeviceptr out, span_t *s,
-                      uint64_t threads, CUstream st) {
+static int cu_launch(CUfunction f, CUdeviceptr in, CUdeviceptr out, span_t *s, uint64_t threads,
+                     CUstream st) {
   void *args[] = {&in, &out, s};
   unsigned blocks = (unsigned)ceil_div(threads, 256);
-  ck(cu.LaunchKernel(f, blocks, 1, 1, 256, 1, 1, 0, st, args, NULL), "launch");
-  (void)c;
+  return ck(cu.LaunchKernel(f, blocks, 1, 1, 256, 1, 1, 0, st, args, NULL), "launch");
 }
 
 // The dispatches of one piece: len bytes at device pointer in, its CVs to
-// out (device).
-static void cu_piece(cu_ctx *c, CUdeviceptr in, uint64_t len, const uint32_t key[8],
-                     uint8_t flags, uint64_t ctr, unsigned glog, CUdeviceptr out, CUstream st) {
+// out (device). 0 if one could not launch.
+static int cu_piece(cu_ctx *c, CUdeviceptr in, uint64_t len, const uint32_t key[8],
+                    uint8_t flags, uint64_t ctr, unsigned glog, CUdeviceptr out, CUstream st) {
   uint64_t nch = ceil_div(len, CHUNK);
   plan_t p = plan(nch, glog);
   uint64_t nth = ceil_div(nch, p.k), nodes = ceil_div(nth, 1ull << p.f0);
   span_t s = make_span(nch, len, key, flags, ctr);
   s.fold = p.f0;
-  cu_launch(c, p.k == 4 ? c->leaf4 : c->leaf1, in, p.nm == 0 ? out : c->cv[0], &s, nth, st);
+  int ok = cu_launch(p.k == 4 ? c->leaf4 : c->leaf1, in, p.nm == 0 ? out : c->cv[0], &s, nth, st);
   int src = 0;
-  for (unsigned i = 0; i < p.nm; i += 1) {
+  for (unsigned i = 0; ok && i < p.nm; i += 1) {
     s.n = (uint32_t)nodes;
     s.fold = p.fm[i];
-    cu_launch(c, c->merge, c->cv[src], i + 1 == p.nm ? out : c->cv[1 - src], &s, nodes, st);
+    ok = cu_launch(c->merge, c->cv[src], i + 1 == p.nm ? out : c->cv[1 - src], &s, nodes, st);
     nodes = ceil_div(nodes, 1ull << p.fm[i]);
     src = 1 - src;
   }
+  return ok;
 }
 
 // Starts a job over len bytes: at device pointer dev (when host is NULL),
@@ -698,16 +698,21 @@ static int cu_start(cu_ctx *c, const uint8_t *host, CUdeviceptr dev, uint64_t le
     CUdeviceptr in = dev + at;
     if (host != NULL) {
       if (!ck(cu.MemcpyHtoDAsync(c->stage, host + at, n, st), "copy to the GPU")) {
+        cu.StreamSynchronize(st);
         return 0;
       }
       in = c->stage;
     } else if (copy) {
       if (!ck(cu.MemcpyDtoDAsync(c->stage, dev + at, n, st), "copy on the GPU")) {
+        cu.StreamSynchronize(st);
         return 0;
       }
       in = c->stage;
     }
-    cu_piece(c, in, n, key, flags, ctr + at / CHUNK, glog, c->res + at / group * 32, st);
+    if (!cu_piece(c, in, n, key, flags, ctr + at / CHUNK, glog, c->res + at / group * 32, st)) {
+      cu.StreamSynchronize(st);
+      return 0;
+    }
   }
   ck(cu.EventRecord(c->e1, st), "event");
   job.ctx = c;
