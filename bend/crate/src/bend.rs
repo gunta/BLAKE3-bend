@@ -227,6 +227,11 @@ pub(crate) fn subtree(
     platform: Platform,
     rayon: bool,
 ) -> Option<[u8; BLOCK_LEN]> {
+    // memory the GPU was given goes there first (gpu.rs)
+    #[cfg(turboblake_gpu)]
+    if let Some(pair) = crate::gpu::subtree(input, key, chunk_counter, flags) {
+        return Some(pair);
+    }
     if input.len() <= CHUNK_LEN || input.len() < min_len(input, platform) {
         return None;
     }

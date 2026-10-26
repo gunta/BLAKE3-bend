@@ -18,10 +18,15 @@ HOOK = """    debug_assert!(input.len() > CHUNK_LEN);
 ENGINE_BUILD = r'''
 // turboblake: the Bend engine (csrc/engine.c, the C that Bend2 emits for
 // bend/lib/engine.bend), compiled with clang's SLP vectorizer tuned as in
-// bend/build.sh. Without clang the crate builds as upstream's, engine-less.
+// bend/build.sh, and beside it the GPU backend (csrc/turboblake_gpu.c,
+// ADR 0017), which loads Metal or CUDA at run time; TURBOBLAKE_NO_GPU=1
+// leaves that out. Without clang the crate builds as upstream's, engine-less.
 fn build_bend_engine() {
     println!("cargo::rerun-if-changed=csrc/engine.c");
+    println!("cargo::rerun-if-changed=csrc/turboblake_gpu.c");
+    println!("cargo::rerun-if-changed=csrc/turboblake_kernels.h");
     println!("cargo::rerun-if-env-changed=TURBOBLAKE_TARGET_CPU");
+    println!("cargo::rerun-if-env-changed=TURBOBLAKE_NO_GPU");
     if env::var_os("CARGO_FEATURE_STD").is_none() || env::var_os("CARGO_FEATURE_PURE").is_some() {
         return;
     }
@@ -68,9 +73,20 @@ fn build_bend_engine() {
     ] {
         b.flag("-mllvm").flag(f);
     }
+    let os = env::var("CARGO_CFG_TARGET_OS").unwrap_or_default();
+    let gpu = (os == "macos" || os == "linux") && env::var_os("TURBOBLAKE_NO_GPU").is_none();
+    if gpu {
+        b.file("csrc/turboblake_gpu.c");
+    }
     b.compile("turboblake_engine");
     println!("cargo::rustc-link-lib=pthread");
     println!("cargo::rustc-cfg=turboblake");
+    if gpu {
+        println!("cargo::rustc-cfg=turboblake_gpu");
+        if os == "linux" {
+            println!("cargo::rustc-link-lib=dl");
+        }
+    }
 }
 '''
 
@@ -89,7 +105,8 @@ PATCHES = {
         ('[features]\n', '[lib]\nname = "blake3"\n\n[features]\n'),
     ],
     "build.rs": [
-        ('        "blake3_wasm32_simd",\n    ];', '        "blake3_wasm32_simd",\n        "turboblake",\n    ];'),
+        ('        "blake3_wasm32_simd",\n    ];',
+         '        "blake3_wasm32_simd",\n        "turboblake",\n        "turboblake_gpu",\n    ];'),
         ('    if is_wasm32() && is_wasm32_simd() {\n        build_wasm32_simd();\n    }\n',
          '    if is_wasm32() && is_wasm32_simd() {\n        build_wasm32_simd();\n    }\n\n'
          '    if !is_wasm32() {\n        build_bend_engine();\n    }\n'),
@@ -108,7 +125,7 @@ PATCHES = {
     ],
     "src/lib.rs": [
         ('mod io;\nmod join;\n',
-         'mod io;\nmod join;\n\n#[cfg(feature = "std")]\npub mod bend;\n'),
+         'mod io;\nmod join;\n\n#[cfg(feature = "std")]\npub mod bend;\n#[cfg(feature = "std")]\npub mod gpu;\n'),
         (HOOK, HOOK.replace("    let mut cv_array",
                             "    // turboblake: a big subtree goes to the Bend engine, on every core\n"
                             "    #[cfg(all(turboblake, feature = \"std\"))]\n"

@@ -21,12 +21,16 @@ mkdir -p "$out/src" "$out/c" "$out/csrc" "$out/reference_impl"
 cp "$root/Cargo.toml" "$root/build.rs" "$root/LICENSE_A2" "$root/LICENSE_A2LLVM" "$root/LICENSE_CC0" "$out/"
 cp "$root"/src/*.rs "$out/src/"
 cp "$here/bend.rs" "$out/src/bend.rs"
+cp "$here/gpu.rs" "$out/src/gpu.rs"
 for f in "$root"/c/blake3*.c "$root"/c/blake3*.h "$root"/c/blake3*.S "$root"/c/blake3*.asm; do
   cp "$f" "$out/c/"
 done
 rm -f "$out/c/blake3_tbb.cpp"
 cp "$root"/reference_impl/Cargo.toml "$root"/reference_impl/reference_impl.rs "$out/reference_impl/"
 cp "$root/bend/lib/csrc/engine.c" "$out/csrc/engine.c"
+for f in turboblake_gpu.c turboblake_gpu.h turboblake_kernels.h b3core.h; do
+  cp "$root/bend/lib/csrc/$f" "$out/csrc/$f"
+done
 cp "$here/README.md" "$out/README.md"
 printf 'target/\nCargo.lock\n' > "$out/.gitignore"
 python3 "$here/patch_crate.py" "$out" "$name"

@@ -141,6 +141,8 @@ mod join;
 
 #[cfg(feature = "std")]
 pub mod bend;
+#[cfg(feature = "std")]
+pub mod gpu;
 
 use arrayvec::{ArrayString, ArrayVec};
 use core::cmp;
