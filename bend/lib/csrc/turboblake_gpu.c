@@ -25,7 +25,8 @@
 // Environment:
 //   TURBOBLAKE_GPU=0        no GPU
 //   TURBOBLAKE_GPU=all      the GPU takes every subtree of 2+ chunks (tests)
-//   TURBOBLAKE_GPU_MIN=n    smallest subtree in bytes for the GPU (default 8 MiB)
+//   TURBOBLAKE_GPU_MIN=n    smallest subtree in bytes for the GPU (default 16 MiB,
+//                           where the split starts to beat the engine alone)
 //   TURBOBLAKE_GPU_SHARE=f  the GPU's share of a split, 0..1 (default: balanced)
 //   TURBOBLAKE_GPU_DEVICE=i the CUDA device for host memory (default 0)
 //   TURBOBLAKE_TRACE=1      prints the backend and every split
@@ -769,7 +770,7 @@ static void cu_leave(void) {
 // -------
 
 static int gpu_off, gpu_all, gpu_min_set, engine_off;
-static uint64_t gpu_min = 8ull << 20;
+static uint64_t gpu_min = 16ull << 20;
 static double gpu_share = -1;
 
 static void read_env(void) {
@@ -1004,7 +1005,8 @@ int tbg_subtree(const uint8_t *input, uint64_t len, const uint32_t key[8], uint6
   }
   // Slices: ~32 to 64 whole subtrees, the GPU taking the first g of them.
   uint64_t left = left_len(len);
-  uint64_t most = b3e_inside(input, len - len % 64) ? SPAN_MAX : SPAN_COPY;
+  int inside = b3e_inside(input, len - len % 64);
+  uint64_t most = inside ? SPAN_MAX : SPAN_COPY;
   uint64_t slice = left / 32 > CHUNK ? left / 32 : CHUNK;
   if (slice > most) {
     slice = most;
@@ -1017,7 +1019,11 @@ int tbg_subtree(const uint8_t *input, uint64_t len, const uint32_t key[8], uint6
     rate_gpu = backend == 1 ? 150e9 : 40e9;
     rate_cpu = 35e9;
   }
-  double share = engine_off ? 1.0 : gpu_share >= 0 ? gpu_share
+  // On Apple silicon the engine's side pays only when it reads the input in
+  // place: copying it spends the memory bandwidth the GPU runs on, and the
+  // split loses to the GPU alone (ADR 0017).
+  double share = engine_off || (backend == 1 && !inside && gpu_share < 0) ? 1.0
+               : gpu_share >= 0 ? gpu_share
                : gpu_all ? 1.0 : rate_gpu / (rate_gpu + rate_cpu);
   uint64_t g = (uint64_t)llround(share * (double)n);
   if (g > n) {
