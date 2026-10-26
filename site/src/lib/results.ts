@@ -15,10 +15,19 @@ const table = z.object({
   rows: z.array(z.record(z.string(), cell)).min(1),
 });
 
+/** A step of the engine: its ADR, a technical summary, and how the changelog tells it. */
 const technique = z.object({
   adr: z.string().regex(/^\d{4}$/, 'ADR numbers are four digits, e.g. "0002"'),
   title: z.string().min(1),
   summary: z.string().min(1),
+  /** When it landed, ISO 8601; the ADR's own Date: line otherwise. */
+  date: z.string().optional(),
+  tag: z.enum(['Launch', 'Speed', 'GPU', 'Big files', 'Proofs', 'Libraries']).optional(),
+  /** The changelog's headline and standfirst, for people who use turboblake rather than build it. */
+  headline: z.string().optional(),
+  dek: z.string().optional(),
+  stat: z.object({ value: z.string().min(1), label: z.string().min(1) }).optional(),
+  points: z.array(z.string()).default([]),
 });
 
 const proofs = z.object({

@@ -10,6 +10,7 @@
 import { blake3Hex } from '../lib/blake3';
 import { treePaths } from '../lib/tree';
 import { CLI_VERSION } from '../lib/site';
+import { latest } from '../lib/news';
 import InstallCommand from './InstallCommand.astro';
 
 const SEED = 'hello, world';
@@ -46,9 +47,9 @@ const { edges, root } = treePaths({ x0: 0.42 * W, rootX: 0.84 * W, y: 0.5 * H, h
   </div>
 
   <div class="wrap content">
-    <a class="pill" href="#install" data-reveal>
+    <a class="pill" href={latest?.href ?? '#install'} data-reveal>
       <span class="pill-tag">New</span>
-      <span>turboblake {CLI_VERSION} on Homebrew and crates.io</span>
+      <span>{latest?.headline ?? `turboblake ${CLI_VERSION} on Homebrew and crates.io`}</span>
       <span class="arrow" aria-hidden="true">→</span>
     </a>
 

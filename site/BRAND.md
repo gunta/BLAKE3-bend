@@ -38,11 +38,24 @@ Each section is one idea, shown before it is explained, laid out as bento tiles:
 4. **Why BLAKE3:** faster than SHA-256, safer than MD5, who already ships it,
    in the BLAKE3 team's own numbers and claims (`src/lib/official.ts`), linked.
 5. **How it works:** split, spread, fold, on one diagram. Bend2 in one line.
-6. **Install:** one line, over the aurora.
+6. **What's new:** the three newest changelog stories, the newest one large.
+   The hero's "New" pill names the newest too.
+7. **Install:** one line, over the aurora.
 
 Everything else (every table, ties, floors, techniques, proofs, how to
 reproduce) lives on `/benchmarks/`, with `/install/`, `/languages/` and `/gpu/`
 beside it.
+
+## The changelog (`/changelog/`)
+
+Every ADR is told as news, newest first: a headline, a two-sentence standfirst
+for someone who uses turboblake, one stat, and up to three points. Readers never
+see ADR numbers or the words "decision record"; the full write-up is a link at
+the foot of each story. The words live beside the technical summary in
+`results.json` `techniques` (`headline`, `dek`, `stat`, `points`, `tag`, `date`),
+so the numbers keep one source. An ADR without them still appears, under its
+own title. Headlines say what changed for the reader ("Files past 4 TiB"), not
+what the code does ("the chunk counter's high word").
 
 ## Why Bend2 (the under-the-hood story)
 
