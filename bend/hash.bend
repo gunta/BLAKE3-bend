@@ -5,6 +5,7 @@
 # (LAWS.bend) import only blake3.bend, whose defs are all proof-safe.
 import Base
 import ./blake3.bend as B3
+import ./split.bend as S
 
 def fork(a: Array<U32>) -> Array<U32> & Array<U32>:
   Array.fork(U32, a)
@@ -33,3 +34,21 @@ def hash.ob.at(a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32) ->
 # The hash of `len` bytes held in `a`, with its outboard pairs.
 def hash.ob(a: Array<U32>, +len: U32) -> B3.CV & B3.OB:
   B3.hash.ob(~fork, a, len)
+
+# One device's share of a span split between the CPU and the GPU (see
+# split.bend): the GPU's (call with !) and the CPU's CVs along the spine.
+def side.g(j: Nat, a: Array<U32>, +nch: U32, +last: U32, +plan: U32,
+  +lv: U32) -> List<B3.CV>:
+  S.side.g(~fork, j, a, nch, last, plan, lv)
+
+def side.c(j: Nat, a: Array<U32>, +nch: U32, +last: U32, +plan: U32) ->
+  List<B3.CV>:
+  S.side.c(~fork, j, a, nch, last, plan)
+
+# The same split by slices (see split.bend): the GPU's first g of 16 slices
+# of a whole input of 2^(k+6) chunks (call with !), and the CPU's rest.
+def slice.g(+k: Nat, a: Array<U32>, +g: Nat) -> List<B3.CV>:
+  S.slice.g(~fork, k, a, g)
+
+def slice.c(+k: Nat, a: Array<U32>, +g: U32) -> List<B3.CV>:
+  S.slice.c(~fork, k, a, g)

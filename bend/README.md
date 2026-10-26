@@ -12,13 +12,14 @@ appears only in the effects that move bytes in and out (`effs/`).
 |-------------------------|-------------------------------------------------------|
 | `blake3.bend`           | the hash: compress, compress8, the trees (generated; no `@unsafe` def) |
 | `hash.bend`             | the entry points that run: the trees with Array.fork   |
+| `split.bend`            | one input hashed by the CPU and the GPU at once (ADR 0011) |
 | `tools/gen_blake3.py`   | generates `blake3.bend` (unrolled rounds and loaders)  |
 | `LAWS.bend`, `PROOF.bend` | the laws and their proofs (`tools/gen_laws.py`); `prove.sh` is the gate |
 | `b3sum.bend`            | the CLI                                               |
 | `b3io.bend`, `effs/`    | `B3IO.load` (parallel, mmap) and `B3IO.emit` effects  |
 | `build.sh`              | bend -> C -> clang with the tuned flags (ADR 0002)    |
 | `test/`                 | official test vectors (both paths), big-file test     |
-| `bench/`                | in-memory bench, file bench, race vs b3sum, Rust ref  |
+| `bench/`                | in-memory bench, file bench, race vs b3sum, Rust ref; `duo` (CPU + GPU), `gpusum` |
 | `ref/`                  | native Metal and CUDA BLAKE3, the GPU path's yardstick (ADR 0006) |
 | `../adr/`               | what we did for speed, and what we measured           |
 
@@ -46,8 +47,8 @@ for comparison: `cargo build --release --features neon` in `../b3sum`.
 ## Laws
 
 `LAWS.bend` states what the code must satisfy and `PROOF.bend` proves it
-(ADR 0007). The gate, about four minutes, almost all of it the checker
-computing BLAKE3 itself:
+(ADRs 0007 and 0010): 28 laws, 45 lemmas. The gate, about four minutes,
+almost all of it the checker computing BLAKE3 itself:
 
 ```bash
 bend/prove.sh
@@ -60,12 +61,18 @@ It prints ALL PROOFS CHECK when every law holds:
   `g4`, and two spans merged as b3sum merges a big file's parts.
 - **The 8-lane path, for every input**: each lane of `compress8` and
   `par8` is the scalar `compress` or `parent` of that lane; `perm` gives the
-  C code's `MSG_SCHEDULE`.
+  C code's `MSG_SCHEDULE`. The IV and flags are the C code's too.
+- **Outboards, for every input**: the tree that writes iroh's bao outboard
+  (`hash.ob`, `hash.ob.at`) gives the plain tree's CV for every array,
+  length and span.
 - **Tree shapes, for any compression function**: BLAKE3's tree splits into
   its 2^k-chunk segments (what b3sum's 1 GiB parts rely on), and a
   level-by-level reduction (pair neighbours, carry the odd one) builds the
-  same tree; `tree1`'s split rule matches the digit form for every input up
-  to 1024 chunks.
+  same tree, with n leaves and n - 1 parents for n chunks; `tree1`'s split
+  rule matches the digit form for every input up to 1024 chunks.
+- **Streaming, for any segment count**: `b3io.bend`'s lazy merge stack
+  (modelled with Nat counts) builds that tree, every segment once and in
+  order.
 
 `python3 bend/tools/gen_laws.py` regenerates both files.
 
@@ -80,7 +87,7 @@ official `blake3` crate with NEON + rayon):
 | 16 MiB, all    | 1.13 ms          | **0.50 ms**   | 0.88 ms               |
 | 64 MiB, all    | 1.95 ms          | 1.74 ms       | **1.21 ms**           |
 | 256 MiB, all   | 6.9 ms           | 6.3-7.1 ms    | **2.43 ms (110 GB/s)**|
-| 1 GiB, all     | 27.3-28.4 ms     | 25.9-28.1 ms  | **11.6 ms (93 GB/s)** |
+| 1 GiB, all     | 27.3-28.4 ms     | 25.9-28.1 ms  | **9.4 ms (114 GB/s)** |
 
 End to end, `b3sum FILE...` vs the official `b3sum` 1.8.7 (15 interleaved
 rounds, medians, `bench/race.py`; output byte-identical):
@@ -96,11 +103,17 @@ rounds, medians, `bench/race.py`; output byte-identical):
 | SDK headers (3460 files)   | 129.1 ms | 37.5 ms    | 3.45x faster  |
 | cargo sources (8000 files) | 259.5 ms | 73.5 ms    | 3.53x faster  |
 
-Hand-written Metal (`ref/`, ADR 0006) hashes the same 1 GiB in ~6 ms
-(178 GB/s), and 256 MiB in 1.7 ms. The GPU hash is bound by reads, in Bend
-too (its compressions alone run at native speed): Bend loses ~1.5x to its
-lane cube's memory locality and ~1.3x to its array reads, and ~0.9 ms per
-bang below 64 MiB.
+The CPU and the GPU can share one input (`split.bend`, two processes,
+ADR 0011): with 13 of 16 slices on the GPU, 1 GiB takes 7.93-8.06 ms
+against 8.54-8.85 for the GPU alone in the same runs (`bench/duo.py`).
+
+Hand-written Metal (`ref/`, ADR 0006) hashes the same 1 GiB in 6-6.7 ms,
+and 256 MiB in 1.7-1.9 ms. The GPU hash is bound by reads, in Bend too (its
+compressions alone run at native speed). Past 512 MiB, Bend's lanes read
+interleaved 16-chunk groups, so the lanes running together read neighbouring
+memory (ADR 0011: 1 GiB 13.2 -> 9.4 ms, as fast as the native kernel in
+Bend's old lane shape); what is left is ~1.3x in its array reads and
+~0.9 ms per bang below 64 MiB.
 
 Big single files sit on two floors that `b3sum` shares: ~15 ms of page
 faults per GiB of a mapped file, and an all-core compute ceiling near

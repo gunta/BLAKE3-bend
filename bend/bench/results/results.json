@@ -41,13 +41,13 @@
         "input": "1 GiB, all cores",
         "rust": 27.8,
         "bend_cpu": 26.9,
-        "bend_gpu": 11.6
+        "bend_gpu": 9.43
       }
     ]
   },
   "gpu_reference": {
     "unit": "ms",
-    "note": "Bend's GPU path (hash1!) against hand-written Metal (bend/ref, ADR 0006), warm, in memory, same digest; medians of 6 interleaved rounds on a loaded machine (+-10%). metal_bend_leaves runs the native kernel in hash1!'s shape: one thread per leaf, ~16,384 leaves.",
+    "note": "Bend's GPU path (hash1!) against hand-written Metal (bend/ref, ADR 0006), warm, in memory, same digest; medians of 6 interleaved rounds on a loaded machine (+-10%); the 1 GiB row is from ADR 0011, after Bend's lanes began reading interleaved groups. metal_bend_leaves runs the native kernel in hash1!'s shape: one thread per leaf, ~16,384 leaves.",
     "rows": [
       {
         "input": "16 MiB",
@@ -69,9 +69,9 @@
       },
       {
         "input": "1 GiB",
-        "bend_gpu": 12.82,
-        "metal_bend_leaves": 8.95,
-        "metal": 6.04
+        "bend_gpu": 9.43,
+        "metal_bend_leaves": 9.19,
+        "metal": 6.69
       }
     ]
   },
@@ -203,6 +203,10 @@
     "NVIDIA GPUs: Bend 2.0.39's CUDA runtime hangs inside Modal's sandbox, even for the guide's pow2! example, while plain CUDA managed memory works there; NVIDIA numbers wait on that.",
     "GPU reads: ~5.5-6.8 ms per GiB natively; BLAKE3's compressions fit under them, natively and in Bend, so the GPU hash is read-bound."
   ],
+  "proofs": {
+    "seconds": 229,
+    "note": "bend/prove.sh (bend PROOF.bend with a deep stack), one run on the M5 Pro under outside load: ALL PROOFS CHECK for 28 laws and 45 lemmas. The known answers take nearly all of it; the other laws check in ~36 s."
+  },
   "techniques": [
     {
       "adr": "0001",
@@ -248,6 +252,16 @@
       "adr": "0009",
       "title": "Streaming and a GPU daemon",
       "summary": "Files not in the page cache stream in 1 GiB segments with 16 F_NOCACHE readers while Bend hashes (101.5 GB in ~7.6 s); a daemon refills reused GPU-heap blocks and hashes in one bang."
+    },
+    {
+      "adr": "0010",
+      "title": "More laws: outboards, counts, streaming",
+      "summary": "28 laws now: the outboard tree gives the plain hash for every input, the tree over n chunks has n leaves and n - 1 parents, and the streaming merge stack builds BLAKE3's tree, every segment once and in order."
+    },
+    {
+      "adr": "0011",
+      "title": "Strided GPU lanes; CPU + GPU on one input",
+      "summary": "Past 512 MiB, lane l hashes 16-chunk groups l, l + S, l + 2S, l + 3S, so lanes running together read neighbouring memory: 1 GiB 13.2 -> 9.4 ms on the GPU. split.bend lets the CPU and the GPU hash one input at once by slices (13 of 16 on the GPU: 1 GiB in 8.0 ms, 1.06-1.12x the GPU alone)."
     }
   ],
   "models": {
