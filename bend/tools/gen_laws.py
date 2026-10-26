@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Generates bend/LAWS.bend and bend/PROOF.bend.
+"""Generates bend/LAWS.bend and bend/PROOF.bend, and the proof modules under
+bend/proof/ (tools/proofs/).
 
 The laws need the official vectors' digests and the 64- and 128-field
 patterns of CV8 and B128, so they are written out here; the rest is plain
@@ -9,6 +10,8 @@ Bend kept verbatim in the templates below. `bend PROOF.bend` is the gate.
 import json
 import pathlib
 import re
+
+import proofs
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 VECTORS = ROOT.parent / "test_vectors" / "test_vectors.json"
@@ -72,6 +75,9 @@ LAWS_HEAD = '''\
 #   span with a chunk-counter base, as b3sum hashes a big file's parts).
 # - The 8-lane path: for every input, each lane of compress8 and of par8 is
 #   the scalar compress or parent of that lane.
+# - The CPU tree: for every array and every span, H.hash's 8-lane tree is
+#   blake3.bend's scalar tree (tree1, one chunk at a time), and the laws'
+#   copy of the input (share) is Array.fork's own body.
 # - The message schedule: perm iterated is the C code's MSG_SCHEDULE.
 # - Constants: the IV and the flags are the C code's.
 # - Outboards: for every input, the tree that writes iroh's bao outboard
@@ -399,6 +405,7 @@ PROOF_HEAD = '''\
 import Base
 import ./blake3.bend as B3
 import ./LAWS.bend as Laws
+import ./proof/cpu.bend as C
 
 '''
 
@@ -636,6 +643,54 @@ law ob.at:
   for +rf: U32
   {Pair.fst(B3.CV, B3.OB, B3.hash.ob.at(~share, a, cb, nch, last, rf)) ==
     B3.hash.at(~share, a, cb, nch, last, rf) : B3.CV}
+
+'''
+
+CPU = '''\
+# The CPU tree, for every input
+# -----------------------------
+#
+# The reference is blake3.bend's scalar tree: tree1 over the chunks, each
+# chunk chained block by block through compress, one at a time. H.hash runs
+# tree8 instead: eight chunks at once through compress8, 32-chunk leaves,
+# and node kinds computed from a U32 copy of the depth. For every array and
+# every span (any counter base, chunk count, last chunk's length and root
+# flag) the two give the same CV (proof/cpu.bend).
+
+def ref.go(+k: Nat, a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32) -> B3.CV:
+  match k:
+    case 0n:
+      B3.chunk(a, 0, cb, nch, last, rf)
+    case 1n+p:
+      B3.tree1(~share, 1n+p, B3.big(1n+p, nch), share(a), 0, nch, cb, nch, last, rf)
+
+# The scalar tree over a span, as hash.at takes it.
+def ref.at(a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32) -> B3.CV:
+  ref.go(B3.depth(nch), a, cb, nch, last, rf)
+
+# The scalar tree over a len-byte input, as hash takes it.
+def ref(a: Array<U32>, +len: U32) -> B3.CV:
+  +n = B3.chunks(len)
+  ref.at(a, 0, n, B3.tail(len, n), B3.ROOT())
+
+# The laws' copy is Array.fork's own body, (a, a): Base defines Array.fork
+# as `(a, a)` (it is @unsafe because the runtime then shares one buffer).
+law share.fork:
+  for a: Array<U32>
+  {share(a) == (a, a) : Array<U32> & Array<U32>}
+
+law cpu.at:
+  for a: Array<U32>
+  for +cb: U32
+  for +nch: U32
+  for +last: U32
+  for +rf: U32
+  {B3.hash.at(~share, a, cb, nch, last, rf) == ref.at(a, cb, nch, last, rf) : B3.CV}
+
+law cpu.hash:
+  for a: Array<U32>
+  for +len: U32
+  {B3.hash(~share, a, len) == ref(a, len) : B3.CV}
 
 '''
 
@@ -1635,27 +1690,38 @@ def lanes_section():
 
 
 def proof_lanes():
-    cv8, b128 = cv8_pat(), b128_pat()
-    xs = cv8.replace("h", "x")
-    ys = cv8.replace("h", "y")
-    c8 = "".join(f"    case Laws.L{l}{{}} B3.CV8{{{cv8}}} B3.B128{{{b128}}}:\n      {{==}}\n"
-                 for l in range(L))
-    p8 = "".join(f"    case Laws.L{l}{{}} B3.CV8{{{xs}}} B3.CV8{{{ys}}}:\n      {{==}}\n"
-                 for l in range(L))
     m16 = ", ".join(f"m{i}" for i in range(16))
     return (
-        "# The 8-lane path\n# ---------------\n\n"
+        "# The 8-lane path\n# ---------------\n#\n"
+        "# Proven in proof/cpu.bend, which the CPU tree's proof builds on.\n\n"
         "def Laws.compress8.lane(l, cv, m, ctr, step, blen, flags):\n"
-        "  match l cv m:\n" + c8 + "\n"
+        "  C.compress8.lane(l, cv, m, ctr, step, blen, flags)\n\n"
         "def Laws.par8.lane(l, x, y):\n"
-        "  match l x y:\n" + p8 + "\n"
+        "  C.par8.lane(l, x, y)\n\n"
         f"def Laws.schedule({m16}):\n"
         "  {==}\n\n")
 
 
+PROOF_CPU = '''# The CPU tree
+# ------------
+#
+# Proven in proof/cpu.bend.
+
+def Laws.share.fork(a):
+  C.clone.dup(a)
+
+def Laws.cpu.at(a, cb, nch, last, rf):
+  C.cpu.at(a, cb, nch, last, rf)
+
+def Laws.cpu.hash(a, len):
+  C.cpu.at(a, 0, B3.chunks(len), B3.tail(len, B3.chunks(len)), B3.ROOT())
+
+'''
+
+
 def laws_file():
     return (LAWS_HEAD + kat_laws(digests()) + lanes_section() + consts() +
-            OUTBOARDS + TREES + COUNTS + STREAM)
+            CPU + OUTBOARDS + TREES + COUNTS + STREAM)
 
 
 def proof_file():
@@ -1669,14 +1735,17 @@ def proof_file():
             "# Constants\n# ---------\n\n"
             "def Laws.consts.iv():\n  {==}\n\n"
             "def Laws.consts.flags():\n  {==}\n\n" +
-            proof_outboards() + PROOF_TREES + laws_names(PROOF_COUNTS) +
+            PROOF_CPU + proof_outboards() + PROOF_TREES + laws_names(PROOF_COUNTS) +
             laws_names(PROOF_STREAM))
 
 
 def main():
     (ROOT / "LAWS.bend").write_text(laws_file())
     (ROOT / "PROOF.bend").write_text(proof_file())
-    print(f"wrote {ROOT / 'LAWS.bend'} and {ROOT / 'PROOF.bend'}")
+    (ROOT / "proof").mkdir(exist_ok=True)
+    (ROOT / "proof" / "words.bend").write_text(proofs.words_file())
+    (ROOT / "proof" / "cpu.bend").write_text(proofs.cpu_file())
+    print(f"wrote {ROOT / 'LAWS.bend'}, {ROOT / 'PROOF.bend'} and {ROOT / 'proof'}/")
 
 
 if __name__ == "__main__":

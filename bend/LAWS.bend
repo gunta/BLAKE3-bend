@@ -11,6 +11,9 @@
 #   span with a chunk-counter base, as b3sum hashes a big file's parts).
 # - The 8-lane path: for every input, each lane of compress8 and of par8 is
 #   the scalar compress or parent of that lane.
+# - The CPU tree: for every array and every span, H.hash's 8-lane tree is
+#   blake3.bend's scalar tree (tree1, one chunk at a time), and the laws'
+#   copy of the input (share) is Array.fork's own body.
 # - The message schedule: perm iterated is the C code's MSG_SCHEDULE.
 # - Constants: the IV and the flags are the C code's.
 # - Outboards: for every input, the tree that writes iroh's bao outboard
@@ -287,6 +290,51 @@ law consts.iv:
 law consts.flags:
   {[B3.CHUNK_START(), B3.CHUNK_END(), B3.PARENT(), B3.ROOT()] == [1, 2, 4, 8] :
     List<&2, U32>}
+
+# The CPU tree, for every input
+# -----------------------------
+#
+# The reference is blake3.bend's scalar tree: tree1 over the chunks, each
+# chunk chained block by block through compress, one at a time. H.hash runs
+# tree8 instead: eight chunks at once through compress8, 32-chunk leaves,
+# and node kinds computed from a U32 copy of the depth. For every array and
+# every span (any counter base, chunk count, last chunk's length and root
+# flag) the two give the same CV (proof/cpu.bend).
+
+def ref.go(+k: Nat, a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32) -> B3.CV:
+  match k:
+    case 0n:
+      B3.chunk(a, 0, cb, nch, last, rf)
+    case 1n+p:
+      B3.tree1(~share, 1n+p, B3.big(1n+p, nch), share(a), 0, nch, cb, nch, last, rf)
+
+# The scalar tree over a span, as hash.at takes it.
+def ref.at(a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32) -> B3.CV:
+  ref.go(B3.depth(nch), a, cb, nch, last, rf)
+
+# The scalar tree over a len-byte input, as hash takes it.
+def ref(a: Array<U32>, +len: U32) -> B3.CV:
+  +n = B3.chunks(len)
+  ref.at(a, 0, n, B3.tail(len, n), B3.ROOT())
+
+# The laws' copy is Array.fork's own body, (a, a): Base defines Array.fork
+# as `(a, a)` (it is @unsafe because the runtime then shares one buffer).
+law share.fork:
+  for a: Array<U32>
+  {share(a) == (a, a) : Array<U32> & Array<U32>}
+
+law cpu.at:
+  for a: Array<U32>
+  for +cb: U32
+  for +nch: U32
+  for +last: U32
+  for +rf: U32
+  {B3.hash.at(~share, a, cb, nch, last, rf) == ref.at(a, cb, nch, last, rf) : B3.CV}
+
+law cpu.hash:
+  for a: Array<U32>
+  for +len: U32
+  {B3.hash(~share, a, len) == ref(a, len) : B3.CV}
 
 # Outboards
 # ---------

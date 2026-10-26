@@ -6,7 +6,7 @@
  */
 import { blobUrl } from './site';
 
-const files = import.meta.glob<string>(['../../../bend/LAWS.bend', '../../../bend/PROOF.bend'], {
+const files = import.meta.glob<string>(['../../../bend/LAWS.bend', '../../../bend/PROOF.bend', '../../../bend/proof/*.bend'], {
   query: '?raw',
   import: 'default',
   eager: true,
@@ -20,6 +20,10 @@ function source(name: string): string {
 
 const LAWS = source('LAWS.bend');
 const PROOF = source('PROOF.bend');
+/** The proof modules PROOF.bend imports (bend/proof/*.bend). */
+const MODULES = Object.entries(files)
+  .filter(([path]) => path.includes('/bend/proof/'))
+  .map(([, text]) => text);
 
 /** The names of the `law` blocks in a Bend file, in order. */
 function lawNames(text: string): string[] {
@@ -61,6 +65,18 @@ const GROUPS: (Omit<LawGroup, 'cards'> & { cards: LawCard[] })[] = [
         names: ['par8.lane'],
         claim: 'Each lane of par8, a level of eight parent compressions at once, is the parent of the right two lanes.',
         covers: 'every pair of 8-lane CVs: 2^4,099 inputs',
+      },
+      {
+        names: ['cpu.at', 'cpu.hash'],
+        claim:
+          'The CPU tree b3sum runs (eight chunks at once through compress8, 32-chunk leaves, node kinds from a U32 copy of the depth) is blake3.bend’s plain scalar tree, one chunk at a time: the same CV, bit for bit.',
+        covers: 'every array, every span: any counter base, chunk count, last-chunk length and root flag',
+      },
+      {
+        names: ['share.fork'],
+        claim:
+          'The copy of the input the laws hand each tree node is Array.fork’s own body, (a, a), so the laws are about the code that runs; what stays trusted is the runtime sharing one buffer for it.',
+        covers: 'every array',
       },
       {
         names: ['schedule'],
@@ -172,7 +188,7 @@ export const lawCount = lawNames(LAWS).length;
 export const universalCount = lawGroups
   .filter((g) => g.scope !== 'computed')
   .reduce((n, g) => n + g.cards.reduce((m, c) => m + c.laws.length, 0), 0);
-export const lemmaCount = lawNames(PROOF).length;
+export const lemmaCount = lawNames(PROOF).length + MODULES.reduce((n, text) => n + lawNames(text).length, 0);
 
 /** A block of a Bend file: from its `law` or `def` line to the next blank line. */
 function block(text: string, head: string, file: string): string {
