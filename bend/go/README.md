@@ -35,8 +35,8 @@ AVX2) and linux/arm64 (`bend/bench/modal_linux.py --steps go`). Elsewhere
 cgo compiles the engine at plain flags (`c_engine.c`), slower and still on
 every core.
 
-On an Apple M5 Pro, `Sum256` of 1 GiB in memory: 33 ms, against 107 ms
-(lukechampine.com/blake3), 1237 ms (github.com/zeebo/blake3) and 383 ms
+On an Apple M5 Pro, `Sum256` of 1 GiB in memory: 41 ms, against 100 ms
+(lukechampine.com/blake3), 1144 ms (github.com/zeebo/blake3) and 404 ms
 (crypto/sha256); `cd bench && go run .` re-runs it. `go test` checks the
 official vectors in every mode and both reference modules on random inputs.
 
