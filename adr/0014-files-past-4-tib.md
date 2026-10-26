@@ -1,4 +1,4 @@
-# ADR 0013: Files past 4 TiB: the chunk counter's high word
+# ADR 0014: Files past 4 TiB: the chunk counter's high word
 
 Date: 2026-10-26
 Status: accepted

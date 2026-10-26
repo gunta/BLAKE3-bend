@@ -226,7 +226,7 @@
     {
       "adr": "0004",
       "title": "Files past 4 GiB",
-      "summary": "1 GiB segments are complete BLAKE3 subtrees, hashed in parallel and merged as parents (past 4 TiB since ADR 0013)."
+      "summary": "1 GiB segments are complete BLAKE3 subtrees, hashed in parallel and merged as parents (past 4 TiB since ADR 0014)."
     },
     {
       "adr": "0005",
@@ -264,7 +264,7 @@
       "summary": "Past 512 MiB, lane l hashes 16-chunk groups l, l + S, l + 2S, l + 3S, so lanes running together read neighbouring memory: 1 GiB 13.2 -> 9.4 ms on the GPU. split.bend lets the CPU and the GPU hash one input at once by slices (13 of 16 on the GPU: 1 GiB in 8.0 ms, 1.06-1.12x the GPU alone)."
     },
     {
-      "adr": "0013",
+      "adr": "0014",
       "title": "Files past 4 TiB",
       "summary": "Every span carries its chunk counter's high word, down to compress8, so files go past 2^32 chunks: a 4 TiB + 1 GiB file matches the official crate, at no measurable cost."
     }
@@ -540,28 +540,28 @@
         },
         {
           "input": "64 KiB",
-          "official": 0.043,
-          "bend": 0.04
+          "official": 0.03,
+          "bend": 0.03
         },
         {
           "input": "1 MiB",
-          "official": 0.507,
-          "bend": 0.178
+          "official": 0.497,
+          "bend": 0.179
         },
         {
           "input": "16 MiB",
-          "official": 6.846,
-          "bend": 1.041
+          "official": 6.981,
+          "bend": 0.848
         },
         {
           "input": "256 MiB",
-          "official": 109.036,
-          "bend": 11.559
+          "official": 114.232,
+          "bend": 10.093
         },
         {
           "input": "1 GiB",
-          "official": 451.693,
-          "bend": 46.453
+          "official": 480.542,
+          "bend": 38.691
         }
       ],
       "series": {
@@ -585,45 +585,45 @@
       "rows": [
         {
           "input": "1 KiB",
-          "blake3": 0.0008,
+          "blake3": 0.0009,
           "blake3_rayon": 0.0008,
           "bend": 0.0008,
           "bend_rayon": 0.0008
         },
         {
           "input": "64 KiB",
-          "blake3": 0.027,
-          "blake3_rayon": 0.1185,
-          "bend": 0.028,
-          "bend_rayon": 0.1167
+          "blake3": 0.0298,
+          "blake3_rayon": 0.1483,
+          "bend": 0.03,
+          "bend_rayon": 0.1577
         },
         {
           "input": "1 MiB",
-          "blake3": 0.4617,
-          "blake3_rayon": 0.262,
-          "bend": 0.2424,
-          "bend_rayon": 0.2006
+          "blake3": 0.4982,
+          "blake3_rayon": 0.2366,
+          "bend": 0.2023,
+          "bend_rayon": 0.1465
         },
         {
           "input": "16 MiB",
-          "blake3": 7.9294,
-          "blake3_rayon": 0.9336,
-          "bend": 1.0865,
-          "bend_rayon": 1.1068
+          "blake3": 7.7037,
+          "blake3_rayon": 0.7788,
+          "bend": 0.9097,
+          "bend_rayon": 0.8722
         },
         {
           "input": "256 MiB",
-          "blake3": 117.5212,
-          "blake3_rayon": 7.3947,
-          "bend": 11.6479,
-          "bend_rayon": 11.6266
+          "blake3": 124.3561,
+          "blake3_rayon": 7.8604,
+          "bend": 9.6641,
+          "bend_rayon": 9.7379
         },
         {
           "input": "1 GiB",
-          "blake3": 470.3757,
-          "blake3_rayon": 30.135,
-          "bend": 44.3038,
-          "bend_rayon": 45.6399
+          "blake3": 507.3732,
+          "blake3_rayon": 31.8518,
+          "bend": 37.8074,
+          "bend_rayon": 39.7522
         }
       ],
       "series": {
@@ -657,81 +657,81 @@
       "rows": [
         {
           "input": "1 KiB",
-          "pypi": 0.0011,
-          "pypi_auto": 0.0011,
-          "bend": 0.0009,
-          "sha256": 0.0006,
-          "sha512": 0.0009,
-          "sha1": 0.0006,
-          "md5": 0.0014,
-          "blake2b": 0.0008,
-          "blake2s": 0.0013,
-          "sha3_256": 0.0013
+          "pypi": 0.0012,
+          "pypi_auto": 0.0012,
+          "bend": 0.001,
+          "sha256": 0.0007,
+          "sha512": 0.001,
+          "sha1": 0.0007,
+          "md5": 0.0015,
+          "blake2b": 0.0009,
+          "blake2s": 0.0014,
+          "sha3_256": 0.0015
         },
         {
           "input": "64 KiB",
-          "pypi": 0.0278,
-          "pypi_auto": 0.0943,
-          "bend": 0.027,
-          "sha256": 0.0202,
-          "sha512": 0.0363,
-          "sha1": 0.0203,
-          "md5": 0.0699,
-          "blake2b": 0.0415,
-          "blake2s": 0.0724,
-          "sha3_256": 0.0596
+          "pypi": 0.03,
+          "pypi_auto": 0.1429,
+          "bend": 0.029,
+          "sha256": 0.0219,
+          "sha512": 0.0392,
+          "sha1": 0.022,
+          "md5": 0.0762,
+          "blake2b": 0.0447,
+          "blake2s": 0.0784,
+          "sha3_256": 0.064
         },
         {
           "input": "1 MiB",
-          "pypi": 0.4473,
-          "pypi_auto": 0.2063,
-          "bend": 0.229,
-          "sha256": 0.3278,
-          "sha512": 0.5817,
-          "sha1": 0.3258,
-          "md5": 1.1412,
-          "blake2b": 0.6783,
-          "blake2s": 1.1829,
-          "sha3_256": 0.9954
+          "pypi": 0.4697,
+          "pypi_auto": 0.2483,
+          "bend": 0.2393,
+          "sha256": 0.3547,
+          "sha512": 0.642,
+          "sha1": 0.351,
+          "md5": 1.2167,
+          "blake2b": 0.7426,
+          "blake2s": 1.3357,
+          "sha3_256": 1.0854
         },
         {
           "input": "16 MiB",
-          "pypi": 6.7818,
-          "pypi_auto": 0.9646,
-          "bend": 1.251,
-          "sha256": 5.1649,
-          "sha512": 9.1525,
-          "sha1": 5.224,
-          "md5": 18.1246,
-          "blake2b": 10.6954,
-          "blake2s": 18.7103,
-          "sha3_256": 15.7037
+          "pypi": 7.6853,
+          "pypi_auto": 1.0216,
+          "bend": 1.0227,
+          "sha256": 5.898,
+          "sha512": 10.7796,
+          "sha1": 6.0667,
+          "md5": 20.8358,
+          "blake2b": 12.786,
+          "blake2s": 22.5107,
+          "sha3_256": 18.9411
         },
         {
           "input": "256 MiB",
-          "pypi": 114.3443,
-          "pypi_auto": 8.124,
-          "bend": 12.8392,
-          "sha256": 83.4188,
-          "sha512": 147.3429,
-          "sha1": 83.0427,
-          "md5": 291.9802,
-          "blake2b": 172.6505,
-          "blake2s": 300.1384,
-          "sha3_256": 250.9214
+          "pypi": 123.0666,
+          "pypi_auto": 8.3002,
+          "bend": 11.4668,
+          "sha256": 101.6361,
+          "sha512": 171.421,
+          "sha1": 94.6439,
+          "md5": 322.5698,
+          "blake2b": 205.6876,
+          "blake2s": 352.0474,
+          "sha3_256": 300.3881
         },
         {
           "input": "1 GiB",
-          "pypi": 443.7997,
-          "pypi_auto": 29.824,
-          "bend": 44.5977,
-          "sha256": 347.2367,
-          "sha512": 583.4057,
-          "sha1": 329.0005,
-          "md5": 1154.6722,
-          "blake2b": 681.9373,
-          "blake2s": 1195.7677,
-          "sha3_256": 1003.3028
+          "pypi": 504.7675,
+          "pypi_auto": 34.0099,
+          "bend": 41.869,
+          "sha256": 400.5635,
+          "sha512": 651.5975,
+          "sha1": 376.8528,
+          "md5": 1312.7576,
+          "blake2b": 776.0584,
+          "blake2s": 1400.8763,
+          "sha3_256": 1206.2958
         }
       ],
       "series": {
@@ -795,93 +795,93 @@
       "rows": [
         {
           "input": "1 KiB",
-          "bend": 0.0016,
-          "bend_js": 0.034,
-          "napi_rs": 0.0023,
-          "hash_wasm": 0.0083,
-          "noble": 0.0215,
-          "sha256": 0.002,
-          "sha512": 0.0017,
-          "sha1": 0.0013,
-          "md5": 0.0021,
-          "blake2b": 0.0017,
-          "blake2s": 0.0023,
-          "sha3_256": 0.002
+          "bend": 0.0025,
+          "bend_js": 0.0764,
+          "napi_rs": 0.0041,
+          "hash_wasm": 0.0131,
+          "noble": 0.0381,
+          "sha256": 0.0042,
+          "sha512": 0.0022,
+          "sha1": 0.0015,
+          "md5": 0.0025,
+          "blake2b": 0.0023,
+          "blake2s": 0.0024,
+          "sha3_256": 0.0024
         },
         {
           "input": "64 KiB",
-          "bend": 0.0292,
-          "bend_js": 0.5827,
-          "napi_rs": 0.0311,
-          "hash_wasm": 0.068,
-          "noble": 0.6263,
-          "sha256": 0.0276,
-          "sha512": 0.0377,
-          "sha1": 0.0215,
-          "md5": 0.0713,
-          "blake2b": 0.0425,
-          "blake2s": 0.0691,
-          "sha3_256": 0.061
+          "bend": 0.0345,
+          "bend_js": 0.9096,
+          "napi_rs": 0.045,
+          "hash_wasm": 0.0928,
+          "noble": 0.9292,
+          "sha256": 0.0404,
+          "sha512": 0.0399,
+          "sha1": 0.023,
+          "md5": 0.0766,
+          "blake2b": 0.0481,
+          "blake2s": 0.083,
+          "sha3_256": 0.0828
         },
         {
           "input": "1 MiB",
-          "bend": 0.2516,
-          "bend_js": 7.5222,
-          "napi_rs": 0.4504,
-          "hash_wasm": 0.9547,
-          "noble": 8.9286,
-          "sha256": 0.3475,
-          "sha512": 0.5783,
-          "sha1": 0.3244,
-          "md5": 1.1385,
-          "blake2b": 0.6572,
-          "blake2s": 1.0942,
-          "sha3_256": 0.9818
+          "bend": 0.2227,
+          "bend_js": 7.8233,
+          "napi_rs": 0.4615,
+          "hash_wasm": 0.9882,
+          "noble": 9.4291,
+          "sha256": 0.352,
+          "sha512": 0.5865,
+          "sha1": 0.3324,
+          "md5": 1.1695,
+          "blake2b": 0.6686,
+          "blake2s": 1.127,
+          "sha3_256": 1.0012
         },
         {
           "input": "16 MiB",
-          "bend": 1.2827,
-          "bend_js": 110.026,
-          "napi_rs": 6.7717,
-          "hash_wasm": 14.8795,
-          "noble": 138.3403,
-          "sha256": 5.1869,
-          "sha512": 9.1222,
-          "sha1": 5.291,
-          "md5": 18.1202,
-          "blake2b": 10.3696,
-          "blake2s": 17.5371,
-          "sha3_256": 15.6561
+          "bend": 1.1868,
+          "bend_js": 137.4691,
+          "napi_rs": 7.7063,
+          "hash_wasm": 17.4022,
+          "noble": 173.2949,
+          "sha256": 5.8516,
+          "sha512": 10.535,
+          "sha1": 5.9565,
+          "md5": 20.1879,
+          "blake2b": 12.1032,
+          "blake2s": 20.0299,
+          "sha3_256": 18.6064
         },
         {
           "input": "256 MiB",
-          "bend": 12.974,
-          "bend_js": 1748.8342,
-          "napi_rs": 110.0741,
-          "hash_wasm": 237.429,
-          "noble": 2347.4743,
-          "sha256": 86.6827,
-          "sha512": 147.7897,
-          "sha1": 84.5707,
-          "md5": 287.6985,
-          "blake2b": 165.8404,
-          "blake2s": 282.2733,
-          "sha3_256": 251.2008
+          "bend": 10.125,
+          "bend_js": 2012.6258,
+          "napi_rs": 121.2822,
+          "hash_wasm": 299.0875,
+          "noble": 2657.3474,
+          "sha256": 86.7123,
+          "sha512": 154.911,
+          "sha1": 87.6726,
+          "md5": 307.6075,
+          "blake2b": 183.1593,
+          "blake2s": 296.8629,
+          "sha3_256": 280.8884
         },
         {
           "input": "1 GiB",
-          "bend": 43.8786,
-          "bend_js": 7204.5895,
-          "napi_rs": 453.9177,
-          "hash_wasm": 954.4796,
-          "noble": 9240.1171,
-          "sha256": 332.238,
-          "sha512": 583.5462,
-          "sha1": 331.2943,
-          "md5": 1158.8297,
-          "blake2b": 665.3667,
-          "blake2s": 1131.7657,
-          "sha3_256": 1005.714
+          "bend": 38.1703,
+          "bend_js": 7686.7308,
+          "napi_rs": 482.4939,
+          "hash_wasm": 963.88,
+          "noble": 10891.9746,
+          "sha256": 334.5359,
+          "sha512": 605.4845,
+          "sha1": 345.9827,
+          "md5": 1236.6946,
+          "blake2b": 744.985,
+          "blake2s": 1256.4009,
+          "sha3_256": 1125.8773
         }
       ],
       "series": {
@@ -1254,80 +1254,80 @@
         {
           "input": "1 KiB",
           "bend": 0.0015,
-          "luke": 0.0019,
+          "luke": 0.002,
           "zeebo": 0.0013,
           "sha256": 0.0008,
-          "sha512": 0.0018,
-          "sha1": 0.0007,
-          "md5": 0.0016,
-          "blake2b": 0.0013,
+          "sha512": 0.0019,
+          "sha1": 0.0008,
+          "md5": 0.0017,
+          "blake2b": 0.0014,
           "blake2s": 0.0018,
-          "sha3_256": 0.0032
+          "sha3_256": 0.0034
         },
         {
           "input": "64 KiB",
-          "bend": 0.0187,
-          "luke": 0.0821,
-          "zeebo": 0.0217,
-          "sha256": 0.0412,
-          "sha512": 0.0964,
-          "sha1": 0.0386,
-          "md5": 0.0917,
-          "blake2b": 0.0799,
-          "blake2s": 0.107,
-          "sha3_256": 0.1907
+          "bend": 0.0207,
+          "luke": 0.0838,
+          "zeebo": 0.0228,
+          "sha256": 0.046,
+          "sha512": 0.1053,
+          "sha1": 0.0424,
+          "md5": 0.1018,
+          "blake2b": 0.0868,
+          "blake2s": 0.1198,
+          "sha3_256": 0.2045
         },
         {
           "input": "1 MiB",
-          "bend": 0.4886,
-          "luke": 0.8151,
-          "zeebo": 0.3575,
-          "sha256": 0.6754,
-          "sha512": 1.5668,
-          "sha1": 0.6307,
-          "md5": 1.4948,
-          "blake2b": 1.3038,
-          "blake2s": 1.7468,
-          "sha3_256": 3.0639
+          "bend": 0.3348,
+          "luke": 0.7547,
+          "zeebo": 0.3826,
+          "sha256": 0.7126,
+          "sha512": 1.6371,
+          "sha1": 0.6606,
+          "md5": 1.5674,
+          "blake2b": 1.3709,
+          "blake2s": 1.8262,
+          "sha3_256": 3.2208
         },
         {
           "input": "16 MiB",
-          "bend": 1.6208,
-          "luke": 7.3566,
-          "zeebo": 6.8638,
-          "sha256": 10.7192,
-          "sha512": 24.9212,
-          "sha1": 9.9524,
-          "md5": 23.8499,
-          "blake2b": 20.8927,
-          "blake2s": 27.8566,
-          "sha3_256": 48.9572
+          "bend": 1.2595,
+          "luke": 6.4367,
+          "zeebo": 5.716,
+          "sha256": 11.2202,
+          "sha512": 26.3916,
+          "sha1": 10.7203,
+          "md5": 25.3439,
+          "blake2b": 22.054,
+          "blake2s": 29.6714,
+          "sha3_256": 52.3965
         },
         {
           "input": "256 MiB",
-          "bend": 9.9156,
-          "luke": 17.6254,
-          "zeebo": 109.48,
-          "sha256": 170.6294,
-          "sha512": 397.5839,
-          "sha1": 159.6928,
-          "md5": 381.5058,
-          "blake2b": 333.5571,
-          "blake2s": 446.2403,
-          "sha3_256": 782.6708
+          "bend": 7.2188,
+          "luke": 16.2748,
+          "zeebo": 111.1197,
+          "sha256": 182.5212,
+          "sha512": 433.7625,
+          "sha1": 170.6748,
+          "md5": 409.4877,
+          "blake2b": 360.5624,
+          "blake2s": 492.4309,
+          "sha3_256": 849.2601
         },
         {
           "input": "1 GiB",
-          "bend": 36.7116,
-          "luke": 64.2179,
-          "zeebo": 440.2794,
-          "sha256": 683.2265,
-          "sha512": 1591.7033,
-          "sha1": 638.7205,
-          "md5": 1523.632,
-          "blake2b": 1332.0484,
-          "blake2s": 1783.8763,
-          "sha3_256": 3133.029
+          "bend": 23.8666,
+          "luke": 57.4351,
+          "zeebo": 392.1221,
+          "sha256": 722.6758,
+          "sha512": 1682.9655,
+          "sha1": 673.3128,
+          "md5": 1626.4304,
+          "blake2b": 1414.2512,
+          "blake2s": 1891.0207,
+          "sha3_256": 3316.9159
         }
       ],
       "series": {
@@ -1381,6 +1381,84 @@
           "kind": "other",
           "description": "crypto/sha3"
         }
+      }
+    }
+  },
+  "versus": {
+    "title": "1 GiB, from SHA-256 to the GPU",
+    "input": "1 GiB",
+    "unit": "ms",
+    "note": "One 1 GiB buffer already in memory, hashed once per run; medians. Every BLAKE3 side gives the same digest. On the B200 the GPU sides read the buffer from the GPU's own memory (the first run, which moves it there, is left out); SHA-256 there is a separate run on the same Modal B200 host. On the Mac, CPU and GPU share one memory.",
+    "rows": [
+      {
+        "input": "NVIDIA B200",
+        "sha256": 574.447,
+        "blake3": 193.382,
+        "blake3_all": 13.872,
+        "bend_cpu": 15.345,
+        "bend_gpu": 3.202,
+        "bend_native": 0.683
+      },
+      {
+        "input": "Apple M5 Pro",
+        "sha256": 334.536,
+        "blake3": 448,
+        "blake3_all": 27.8,
+        "bend_cpu": 26.9,
+        "bend_gpu": 9.43,
+        "bend_native": 6.69
+      }
+    ],
+    "machines": [
+      {
+        "id": "b200",
+        "title": "NVIDIA B200",
+        "where": "on Modal, 16 x86 cores",
+        "api": "CUDA",
+        "cores": 16,
+        "sha256": "OpenSSL 3.0.16 (Python's hashlib), SHA-NI",
+        "gpu_memory": true
+      },
+      {
+        "id": "metal",
+        "title": "Apple M5 Pro",
+        "where": "18 cores, 20-core GPU",
+        "api": "Metal",
+        "cores": 18,
+        "sha256": "Node's crypto (OpenSSL), ARMv8 SHA-2 instructions",
+        "gpu_memory": false
+      }
+    ],
+    "series": {
+      "sha256": {
+        "label": "SHA-256",
+        "kind": "other",
+        "description": "the fastest SHA-256 measured on the machine, with the CPU's SHA instructions; one core, since each block waits for the one before"
+      },
+      "blake3": {
+        "label": "BLAKE3, one core",
+        "kind": "blake3",
+        "description": "the official blake3 crate on one thread"
+      },
+      "blake3_all": {
+        "label": "BLAKE3, every core",
+        "kind": "blake3",
+        "description": "the official blake3 crate on every core (rayon)"
+      },
+      "bend_cpu": {
+        "label": "turboblake, CPU",
+        "kind": "bend",
+        "description": "Bend's 8-lane tree on every core"
+      },
+      "bend_gpu": {
+        "label": "turboblake, Bend on the GPU",
+        "kind": "bend",
+        "description": "Bend's GPU path (hash1!)"
+      },
+      "bend_native": {
+        "label": "turboblake, native GPU kernel",
+        "kind": "bend",
+        "description": "the hand-written CUDA or Metal kernel in bend/ref (ADR 0013)"
       }
     }
   }
