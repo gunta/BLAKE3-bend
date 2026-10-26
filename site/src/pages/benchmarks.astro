@@ -146,7 +146,7 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
       <p class="kicker"><a href={withBase()}>turboblake</a> / Benchmarks</p>
       <h1 id="benchmarks-title">Benchmarks and method.</h1>
       <p class="prose">
-        Every result on one {machineName}, against {results.machine['reference'] ?? 'the official BLAKE3'}: the same bytes, the same digests,
+        Every result on one {machineName} unless it names another machine, against {results.machine['reference'] ?? 'the official BLAKE3'}: the same bytes, the same digests,
         medians of interleaved rounds. A result within {TIE_TEXT} either way is called a tie, and the ties are shown as plainly as the wins. Below the
         numbers: how the engine works, what Bend's checker proves, the limits every tool hits, and how to reproduce all of it.
       </p>
@@ -383,7 +383,7 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
 
   <Section id="machine" kicker="Under the hood" title="Test machine">
     <Fragment slot="lede">
-      <p>Every result above comes from this one machine. Other hardware will move the numbers, and maybe the verdicts.</p>
+      <p>Every result above comes from this machine unless it names another. Other hardware will move the numbers, and maybe the verdicts.</p>
     </Fragment>
     <dl class="specs card">
       {

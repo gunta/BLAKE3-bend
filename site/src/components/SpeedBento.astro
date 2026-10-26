@@ -7,7 +7,7 @@
 import { BookOpen, FolderTree, Gpu, HardDriveDownload, ShieldCheck, Terminal } from 'lucide-static';
 import BrandMark from './BrandMark.astro';
 import Icon from './Icon.astro';
-import { folders, gpu, laws, model, universalLaws } from '../lib/home';
+import { folders, gpu, laws, machine, model, universalLaws } from '../lib/home';
 import { withBase } from '../lib/site';
 
 const pct = model ? ((model.bend / model.baseline) * 100).toFixed(1) : '0';
@@ -106,7 +106,8 @@ const cells = Array.from({ length: 96 }, (_, i) => ((i * 37) % 23) / 23);
               <span />
             </div>
             <p class="tile-body">
-              {gpu.size} in memory in {gpu.ms} ms: {gpu.ratio} the official crate on every CPU core.
+              {gpu.size} in memory in {gpu.ms} ms on the {gpu.machine}: {gpu.ratio} the official crate on all its CPU cores.{' '}
+              <a href={gpu.href}>Every GPU →</a>
             </p>
           </article>
         )
@@ -148,8 +149,9 @@ const cells = Array.from({ length: 96 }, (_, i) => ((i * 37) % 23) / 23);
     </div>
 
     <p class="footnote" data-reveal>
-      Measured against the official BLAKE3 tools on one Apple M5 Pro, same files, same fingerprints. Some workloads only tie; every number, and how
-      it was measured, is on <a href={withBase('benchmarks/')}>the benchmarks page</a>.
+      Measured against the official BLAKE3 tools, same files, same fingerprints, on one {machine}{
+        gpu && gpu.machine !== machine && <>; the GPU figure on the {gpu.machine}</>
+      }. Some workloads only tie; every number, and how it was measured, is on <a href={withBase('benchmarks/')}>the benchmarks page</a>.
     </p>
   </div>
 </section>

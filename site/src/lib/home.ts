@@ -6,8 +6,9 @@
 import { fmtMeasured, fmtRate } from './format';
 import { fmtSpeedup, gbPerSecond, parseBytes, splitInput } from './model';
 import { OFFICIAL_SPEED } from './official';
-import { cliTallies, headlines, sizeIn } from './page';
+import { cliTallies, headlines, machineName, sizeIn } from './page';
 import { lawCount, universalCount } from './proofs';
+import { withBase } from './site';
 
 const x = (ratio: string) => ratio.replace(/x$/, '×');
 
@@ -41,7 +42,7 @@ export const folders = (() => {
   };
 })();
 
-/** In memory on the GPU: the biggest input, as throughput. */
+/** In memory on the GPU: the biggest input, as throughput, on the machine the headline picked. */
 export const gpu = (() => {
   const h = headlines.gpu;
   if (!h) return undefined;
@@ -54,8 +55,15 @@ export const gpu = (() => {
     gbps: bytes ? fmtRate(gbPerSecond(bytes, c.bendValue)) : undefined,
     ratio: x(h.value),
     baselineLabel: c.baseline.label,
+    // The context ends in "on the <machine>" when the GPU is not this one's.
+    machine: / on (?:the )?(.+)$/.exec(h.context)?.[1] ?? machineName,
+    // The GPU page has every GPU; an in-page anchor would point at the old home sections.
+    href: h.href.startsWith('#') ? withBase('gpu/') : h.href,
   };
 })();
+
+/** The machine every CPU figure was measured on. */
+export const machine = machineName;
 
 /** BLAKE3 against SHA-256 on one core, in the BLAKE3 team's own benchmark. */
 export const official = (() => {
