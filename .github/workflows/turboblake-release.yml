@@ -52,9 +52,10 @@ jobs:
         run: |
           bin=bend/crate/target/${{ matrix.target }}/release/turboblake
           if [ "${{ matrix.target }}" = "x86_64-apple-darwin" ]; then
-            # Built on Apple silicon: run it under Rosetta when the runner has it.
+            # Built on Apple silicon: when the runner has Rosetta, macOS runs the
+            # x86_64 binary through it (the script's own python stays arm64).
             if arch -x86_64 /usr/bin/true 2>/dev/null; then
-              arch -x86_64 python3 bend/rust/check_vectors.py "$bin"
+              python3 bend/rust/check_vectors.py "$bin"
             else
               echo "::notice::Rosetta is not available; x86_64 binary built but not run"
             fi
