@@ -55,7 +55,7 @@ const GROUPS: (Omit<LawGroup, 'cards'> & { cards: LawCard[] })[] = [
         names: ['compress8.lane'],
         claim:
           'Each of the eight lanes of compress8, the vectorized kernel that hashes the CPU tree’s full 8- and 32-chunk groups, is the scalar compression of that lane: no lane reads another lane’s words, the wrong message word in any round, or the wrong counter.',
-        covers: 'every CV, block, counter and flag set: 2^6,275 inputs',
+        covers: 'every CV, block, 64-bit counter and flag set: 2^6,307 inputs',
       },
       {
         names: ['par8.lane'],
@@ -116,8 +116,8 @@ const GROUPS: (Omit<LawGroup, 'cards'> & { cards: LawCard[] })[] = [
       {
         names: ['kat.*'],
         claim:
-          'The official test vectors, through the CPU tree, the GPU tree, a GPU flat leaf, and two spans merged by a ROOT parent as b3sum merges a big file’s parts.',
-        covers: '13 vectors, 0 to 8,193 bytes',
+          'The official test vectors, through the CPU tree, the GPU tree, a GPU flat leaf, and two spans merged by a ROOT parent as b3sum merges a big file’s parts; and a chunk at 4 TiB, past 32-bit counters, against the official crate.',
+        covers: '13 vectors, 0 to 8,193 bytes, and one span at 4 TiB',
       },
       {
         names: ['consts.iv', 'consts.flags'],

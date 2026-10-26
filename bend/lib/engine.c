@@ -27,7 +27,7 @@
 typedef struct B3EJob {
   const unsigned char* p[B3E_SPANS];
   u64 len[B3E_SPANS];  // bytes, at most 1 GiB
-  u64 cb[B3E_SPANS];   // chunk counter of the first chunk
+  u64 cb[B3E_SPANS];   // chunk counter of the first chunk (both words)
   u32 n;
   u32 key[8];           // the mode: the key words and flag (IV and 0 by default)
   u32 kf;
@@ -328,16 +328,16 @@ static Term b3e_arr(Env e, B3EJob* j, u32 i, u32* k) {
 
 static Term b3e_spans(Env e, B3EJob* j, u32 lo, u32 hi, u32* k) {
   if (hi - lo == 1) {
-    // bend flattens the key's CV into SpOne: arr, cb, nch, last, eight key
-    // words, kf (13 fields)
+    // bend flattens the key's CV into SpOne: arr, cb, hi (the counter's two
+    // words), nch, last, eight key words, kf (14 fields)
     u64 len = j->len[lo], nch = (len + 1023) / 1024;
-    Term v[13] = { b3e_arr(e, j, lo, k), (Term)(u32)j->cb[lo], (Term)(u32)nch,
-      (Term)(u32)(len - (nch - 1) * 1024) };
+    Term v[14] = { b3e_arr(e, j, lo, k), (Term)(u32)j->cb[lo], (Term)(u32)(j->cb[lo] >> 32),
+      (Term)(u32)nch, (Term)(u32)(len - (nch - 1) * 1024) };
     for (u32 i = 0; i < 8; i += 1) {
-      v[4 + i] = (Term)j->key[i];
+      v[5 + i] = (Term)j->key[i];
     }
-    v[12] = (Term)j->kf;
-    return b3e_ctr(e, CID(SpOne), 13, v);
+    v[13] = (Term)j->kf;
+    return b3e_ctr(e, CID(SpOne), 14, v);
   }
   u32 mid = lo + (hi - lo) / 2;
   Term l = b3e_spans(e, j, lo, mid, k);
@@ -553,14 +553,23 @@ const void* b3e_window(void) {
   return b3e_heap;
 }
 
-// Hashes n spans (each at most 1 GiB) into out[0..n-1], in the mode of
+// 1: spans take whole 64-bit chunk counters, so they may lie past 4 TiB
+// (2^32 chunks), each within one 2^32-chunk block. blake3_bend.c asks
+// through a weak reference: an engine built before (a stale prebuilt
+// object) has no such symbol and gets counters below 2^32 only.
+int b3e_hi(void) {
+  return 1;
+}
+
+// Hashes n spans (each at most 1 GiB, none across a multiple of 2^32
+// chunks) into out[0..n-1], in the mode of
 // key (8 words) and kf: B3E_SPANS a job while they can be read in place,
 // B3E_STAGE copied ones a job, every job queued at once. 1 on success, 0 if
 // the engine is not running (the caller then hashes in C).
 int b3e_hash_k(uint32_t n, const unsigned char* const* p, const uint64_t* len,
                const uint64_t* cb, const uint32_t* key, uint32_t kf,
                unsigned char (*out)[32]) {
-  if (n == 0 || cid_arity(CID(SpOne)) != 13) {
+  if (n == 0 || cid_arity(CID(SpOne)) != 14) {
     return 0;
   }
   if (b3e_hint == 0) {

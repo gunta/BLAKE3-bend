@@ -215,17 +215,17 @@ def compress(cv: CV, +m1: M16, +t0: U32, +t1: U32, +blen: U32, +flags: U32) -> C
 
 # Chains one chunk's blocks. `r` is the block at word w, already loaded; n
 # counts the blocks after it. Only the last block takes `endf` and `lastlen`.
-def chunk.go(n: Nat, r: Array<U32> & M16, +w: U32, cv: CV, +ctr: U32, +fl: U32,
-  +endf: U32, +lastlen: U32) -> Array<U32> & CV:
+def chunk.go(n: Nat, r: Array<U32> & M16, +w: U32, cv: CV, +ctr: U32, +hi: U32,
+  +fl: U32, +endf: U32, +lastlen: U32) -> Array<U32> & CV:
   match n:
     case 0n:
       (a, m) = r
-      (a, compress(cv, m, ctr, 0, lastlen, (fl .|. endf : U32)))
+      (a, compress(cv, m, ctr, hi, lastlen, (fl .|. endf : U32)))
     case 1n+p:
       (a, m) = r
       +w2 = (w + 16 : U32)
-      chunk.go(p, ld(a, w2), w2, compress(cv, m, ctr, 0, 64, fl), ctr, 0, endf,
-        lastlen)
+      chunk.go(p, ld(a, w2), w2, compress(cv, m, ctr, hi, 64, fl), ctr, hi, 0,
+        endf, lastlen)
 
 def chunk.fin(r: Array<U32> & CV) -> CV:
   (a, cv) = r
@@ -234,7 +234,7 @@ def chunk.fin(r: Array<U32> & CV) -> CV:
 
 # The CV of chunk c of a span (see hash.at); rf is ROOT for a one-chunk
 # input. Every chunk holds 1024 bytes but the span's last, which holds last.
-def chunk(a: Array<U32>, +c: U32, +cb: U32, +nch: U32, +last: U32,
+def chunk(a: Array<U32>, +c: U32, +cb: U32, +hi: U32, +nch: U32, +last: U32,
   +rf: U32) -> CV:
   +w = (c << 8n : U32)
   +m = (0 - Bool.to_u32(U32.is_eq((c + 1 : U32), nch)) : U32)
@@ -242,7 +242,7 @@ def chunk(a: Array<U32>, +c: U32, +cb: U32, +nch: U32, +last: U32,
   +nb = U32.max(((rem + 63 : U32) >> 6n : U32), 1)
   +lastlen = (rem - ((nb - 1 : U32) << 6n : U32) : U32)
   chunk.fin(chunk.go(U32.to_nat((nb - 1 : U32)), ld(a, w), w, IV(),
-    (cb + c : U32), CHUNK_START(), (CHUNK_END() .|. rf : U32), lastlen))
+    (cb + c : U32), hi, CHUNK_START(), (CHUNK_END() .|. rf : U32), lastlen))
 
 def parent(l: CV, r: CV, +rf: U32) -> CV:
   match l r:
@@ -264,19 +264,19 @@ def big(+k: Nat, +n: U32) -> Bool:
 # halves read it at once.
 def tree1(~dup: Array<U32> -> Array<U32> & Array<U32>,
   +k: Nat, b: Bool, aa: Array<U32> & Array<U32>, +c: U32, +n: U32,
-  +cb: U32, +nch: U32, +last: U32, +rf: U32) -> CV:
+  +cb: U32, +hi: U32, +nch: U32, +last: U32, +rf: U32) -> CV:
   match k b:
     case 0n _:
       (a1, a2) = aa
       _ = a2
-      chunk(a1, c, cb, nch, last, rf)
+      chunk(a1, c, cb, hi, nch, last, rf)
     case 1n+p False{}:
-      tree1(~dup, p, big(p, n), aa, c, n, cb, nch, last, rf)
+      tree1(~dup, p, big(p, n), aa, c, n, cb, hi, nch, last, rf)
     case 1n+p True{}:
       (a1, a2) = aa
       +h = U32.shln(1, p)
       +n2 = (n - h : U32)
-      l r = tree1(~dup, p, big(p, h), dup(a1), c, h, cb, nch, last, 0) tree1(~dup, p, big(p, n2), dup(a2), (c + h : U32), n2, cb, nch, last, 0)
+      l r = tree1(~dup, p, big(p, h), dup(a1), c, h, cb, hi, nch, last, 0) tree1(~dup, p, big(p, n2), dup(a2), (c + h : U32), n2, cb, hi, nch, last, 0)
       parent(l, r, rf)
 
 def chunks(+len: U32) -> U32:
@@ -313,19 +313,19 @@ def DERIVE_KEY_CONTEXT() -> U32:
 def DERIVE_KEY_MATERIAL() -> U32:
   64
 
-def chunk.go.k(n: Nat, r: Array<U32> & M16, +w: U32, cv: CV, +ctr: U32, +fl: U32,
-  +endf: U32, +lastlen: U32, +kf: U32) -> Array<U32> & CV:
+def chunk.go.k(n: Nat, r: Array<U32> & M16, +w: U32, cv: CV, +ctr: U32, +hi: U32,
+  +fl: U32, +endf: U32, +lastlen: U32, +kf: U32) -> Array<U32> & CV:
   match n:
     case 0n:
       (a, m) = r
-      (a, compress(cv, m, ctr, 0, lastlen, ((fl .|. endf : U32) .|. kf : U32)))
+      (a, compress(cv, m, ctr, hi, lastlen, ((fl .|. endf : U32) .|. kf : U32)))
     case 1n+p:
       (a, m) = r
       +w2 = (w + 16 : U32)
-      chunk.go.k(p, ld(a, w2), w2, compress(cv, m, ctr, 0, 64, (fl .|. kf : U32)), ctr, 0,
+      chunk.go.k(p, ld(a, w2), w2, compress(cv, m, ctr, hi, 64, (fl .|. kf : U32)), ctr, hi, 0,
         endf, lastlen, kf)
 
-def chunk.k(a: Array<U32>, +c: U32, +cb: U32, +nch: U32, +last: U32,
+def chunk.k(a: Array<U32>, +c: U32, +cb: U32, +hi: U32, +nch: U32, +last: U32,
   +rf: U32, +key: CV, +kf: U32) -> CV:
   +w = (c << 8n : U32)
   +m = (0 - Bool.to_u32(U32.is_eq((c + 1 : U32), nch)) : U32)
@@ -333,7 +333,7 @@ def chunk.k(a: Array<U32>, +c: U32, +cb: U32, +nch: U32, +last: U32,
   +nb = U32.max(((rem + 63 : U32) >> 6n : U32), 1)
   +lastlen = (rem - ((nb - 1 : U32) << 6n : U32) : U32)
   chunk.fin(chunk.go.k(U32.to_nat((nb - 1 : U32)), ld(a, w), w, key,
-    (cb + c : U32), CHUNK_START(), (CHUNK_END() .|. rf : U32), lastlen, kf))
+    (cb + c : U32), hi, CHUNK_START(), (CHUNK_END() .|. rf : U32), lastlen, kf))
 
 def parent.k(l: CV, r: CV, +rf: U32, +key: CV, +kf: U32) -> CV:
   match l r:
@@ -342,26 +342,26 @@ def parent.k(l: CV, r: CV, +rf: U32, +key: CV, +kf: U32) -> CV:
 
 def tree1.k(~dup: Array<U32> -> Array<U32> & Array<U32>,
   +k: Nat, b: Bool, aa: Array<U32> & Array<U32>, +c: U32, +n: U32,
-  +cb: U32, +nch: U32, +last: U32, +rf: U32, +key: CV, +kf: U32) -> CV:
+  +cb: U32, +hi: U32, +nch: U32, +last: U32, +rf: U32, +key: CV, +kf: U32) -> CV:
   match k b:
     case 0n _:
       (a1, a2) = aa
       _ = a2
-      chunk.k(a1, c, cb, nch, last, rf, key, kf)
+      chunk.k(a1, c, cb, hi, nch, last, rf, key, kf)
     case 1n+p False{}:
-      tree1.k(~dup, p, big(p, n), aa, c, n, cb, nch, last, rf, key, kf)
+      tree1.k(~dup, p, big(p, n), aa, c, n, cb, hi, nch, last, rf, key, kf)
     case 1n+p True{}:
       (a1, a2) = aa
       +h = U32.shln(1, p)
       +n2 = (n - h : U32)
-      l r = tree1.k(~dup, p, big(p, h), dup(a1), c, h, cb, nch, last, 0, key, kf) tree1.k(~dup, p, big(p, n2), dup(a2), (c + h : U32), n2, cb, nch, last, 0, key, kf)
+      l r = tree1.k(~dup, p, big(p, h), dup(a1), c, h, cb, hi, nch, last, 0, key, kf) tree1.k(~dup, p, big(p, n2), dup(a2), (c + h : U32), n2, cb, hi, nch, last, 0, key, kf)
       parent.k(l, r, rf, key, kf)
 
 # The CV of a span (as hash.at) in any mode, on the scalar tree.
 def hash.at.k(~dup: Array<U32> -> Array<U32> & Array<U32>,
-  a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32, +key: CV, +kf: U32) -> CV:
+  a: Array<U32>, +cb: U32, +hi: U32, +nch: U32, +last: U32, +rf: U32, +key: CV, +kf: U32) -> CV:
   +k = depth(nch)
-  tree1.k(~dup, k, big(k, nch), dup(a), 0, nch, cb, nch, last, rf, key, kf)
+  tree1.k(~dup, k, big(k, nch), dup(a), 0, nch, cb, hi, nch, last, rf, key, kf)
 
 # The root's node before its last compression: what the extended output
 # expands, a block of 64 bytes for each counter (root.out).
@@ -426,18 +426,18 @@ def root.out(r: Root, +t0: U32, +t1: U32) -> CV & CV:
 def tail(+len: U32, +n: U32) -> U32:
   (len - ((n - 1 : U32) << 10n : U32) : U32)
 
-# The CV of a span: nch chunks counted from cb, the last holding `last`
+# The CV of a span: nch chunks counted from hi:cb, the last holding `last`
 # bytes; rf is ROOT for a whole input, 0 for a subtree.
 def hash.at(~dup: Array<U32> -> Array<U32> & Array<U32>,
-  a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32) -> CV:
+  a: Array<U32>, +cb: U32, +hi: U32, +nch: U32, +last: U32, +rf: U32) -> CV:
   +k = depth(nch)
-  tree1(~dup, k, big(k, nch), dup(a), 0, nch, cb, nch, last, rf)
+  tree1(~dup, k, big(k, nch), dup(a), 0, nch, cb, hi, nch, last, rf)
 
 # The BLAKE3 hash (first 32 bytes) of `len` bytes held in `a`.
 def hash(~dup: Array<U32> -> Array<U32> & Array<U32>,
   a: Array<U32>, +len: U32) -> CV:
   +n = chunks(len)
-  hash.at(~dup, a, 0, n, tail(len, n), ROOT())
+  hash.at(~dup, a, 0, 0, n, tail(len, n), ROOT())
 
 
 # Hex

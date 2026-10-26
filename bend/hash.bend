@@ -10,17 +10,20 @@ import ./split.bend as S
 def fork(a: Array<U32>) -> Array<U32> & Array<U32>:
   Array.fork(U32, a)
 
-# The CV of a span (see blake3.bend's hash.at), on the CPU's 8-lane tree.
-def hash.at(a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32) -> B3.CV:
-  B3.hash.at(~fork, a, cb, nch, last, rf)
+# The CV of a span (see blake3.bend's hash.at): nch chunks counted from
+# hi:cb, on the CPU's 8-lane tree.
+def hash.at(a: Array<U32>, +cb: U32, +hi: U32, +nch: U32, +last: U32,
+  +rf: U32) -> B3.CV:
+  B3.hash.at(~fork, a, cb, hi, nch, last, rf)
 
 # The BLAKE3 hash (first 32 bytes) of `len` bytes held in `a`, for the CPU.
 def hash(a: Array<U32>, +len: U32) -> B3.CV:
   B3.hash(~fork, a, len)
 
 # A span on the GPU-shaped tree (call with !).
-def hash1.at(a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32) -> B3.CV:
-  B3.hash1.at(~fork, a, cb, nch, last, rf)
+def hash1.at(a: Array<U32>, +cb: U32, +hi: U32, +nch: U32, +last: U32,
+  +rf: U32) -> B3.CV:
+  B3.hash1.at(~fork, a, cb, hi, nch, last, rf)
 
 # The hash on the GPU-shaped tree: `H.hash1!(a, len)` runs it on the GPU.
 def hash1(a: Array<U32>, +len: U32) -> B3.CV:
@@ -28,14 +31,14 @@ def hash1(a: Array<U32>, +len: U32) -> B3.CV:
 
 # A span's CV in BLAKE3's keyed or key-derivation mode (key, and the mode
 # flag kf: 16, 32 or 64), on the CPU's 8-lane tree.
-def hash8.at.k(a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32,
-  +key: B3.CV, +kf: U32) -> B3.CV:
-  B3.hash8.at.k(~fork, a, cb, nch, last, rf, key, kf)
+def hash8.at.k(a: Array<U32>, +cb: U32, +hi: U32, +nch: U32, +last: U32,
+  +rf: U32, +key: B3.CV, +kf: U32) -> B3.CV:
+  B3.hash8.at.k(~fork, a, cb, hi, nch, last, rf, key, kf)
 
 # A span with its bao outboard pairs (see blake3.bend's tree8o).
-def hash.ob.at(a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32) ->
-  B3.CV & B3.OB:
-  B3.hash.ob.at(~fork, a, cb, nch, last, rf)
+def hash.ob.at(a: Array<U32>, +cb: U32, +hi: U32, +nch: U32, +last: U32,
+  +rf: U32) -> B3.CV & B3.OB:
+  B3.hash.ob.at(~fork, a, cb, hi, nch, last, rf)
 
 # The hash of `len` bytes held in `a`, with its outboard pairs.
 def hash.ob(a: Array<U32>, +len: U32) -> B3.CV & B3.OB:

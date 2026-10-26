@@ -23,6 +23,9 @@ KAT_HASH = [0, 1, 64, 65, 1023, 1025, 2049, 3073, 8193]
 # The GPU tree's GSplit and GDown (its flat leaves start at 64 MiB; g4 has
 # its own law below).
 KAT_HASH1 = [0, 2049]
+# The CV of a 1024-byte span (byte i = i % 251) at chunk counter 2^32, from
+# the official crate: `test/hiref/target/release/hiref chunk 1024 4294967296`.
+KAT_HI = "914cde8216c9ee1db824ab6305d66ae92c1ceadf92189229a0f815a6190ee791"
 
 
 def digests():
@@ -68,10 +71,11 @@ LAWS_HEAD = '''\
 # proves every one, and `bend PROOF.bend` is the gate: ALL PROOFS CHECK.
 #
 # - Known answers: the official test vectors, computed by the checker itself
-#   through the defs that run (the CPU tree, the GPU tree, a GPU leaf, and a
-#   span with a chunk-counter base, as b3sum hashes a big file's parts).
+#   through the defs that run (the CPU tree, the GPU tree, a GPU leaf, and
+#   spans with a chunk-counter base, as b3sum hashes a big file's parts: one
+#   past 4 TiB, whose counter has a high word).
 # - The 8-lane path: for every input, each lane of compress8 and of par8 is
-#   the scalar compress or parent of that lane.
+#   the scalar compress or parent of that lane (both counter words too).
 # - The message schedule: perm iterated is the C code's MSG_SCHEDULE.
 # - Constants: the IV and the flags are the C code's.
 # - Outboards: for every input, the tree that writes iroh's bao outboard
@@ -156,11 +160,12 @@ law compress8.lane:
   for +m: B3.B128
   for +ctr: U32
   for +step: U32
+  for +hi: U32
   for +blen: U32
   for +flags: U32
-  {{cv.at(l, B3.compress8(cv, m, ctr, step, blen, flags)) ==
+  {{cv.at(l, B3.compress8(cv, m, ctr, step, hi, blen, flags)) ==
     B3.compress(cv.at(l, cv), m.at(l, m), (ctr + (step * Lane.u32(l) : U32) : U32),
-      0, blen, flags) : B3.CV}}
+      hi, blen, flags) : B3.CV}}
 
 law par8.lane:
   for +l: Lane
@@ -631,11 +636,12 @@ law ob.hash:
 law ob.at:
   for a: Array<U32>
   for +cb: U32
+  for +hi: U32
   for +nch: U32
   for +last: U32
   for +rf: U32
-  {Pair.fst(B3.CV, B3.OB, B3.hash.ob.at(~share, a, cb, nch, last, rf)) ==
-    B3.hash.at(~share, a, cb, nch, last, rf) : B3.CV}
+  {Pair.fst(B3.CV, B3.OB, B3.hash.ob.at(~share, a, cb, hi, nch, last, rf)) ==
+    B3.hash.at(~share, a, cb, hi, nch, last, rf) : B3.CV}
 
 '''
 
@@ -835,13 +841,14 @@ law tree8o.eta:
   for +c: U32
   for +n: U32
   for +cb: U32
+  for +hi: U32
   for +nch: U32
   for +last: U32
   for +rf: U32
   {(@T8(k, ku, d, aa, c, n, rf)@, Pair.snd(B3.CV, B3.OB, @T8O(k, ku, d, aa, c, n, rf)@)) ==
     @T8O(k, ku, d, aa, c, n, rf)@ : B3.CV & B3.OB}
 
-def tree8o.eta(k, ku, d, aa, c, n, cb, nch, last, rf):
+def tree8o.eta(k, ku, d, aa, c, n, cb, hi, nch, last, rf):
   match k d:
     case 0n _:
       match aa:
@@ -849,11 +856,11 @@ def tree8o.eta(k, ku, d, aa, c, n, cb, nch, last, rf):
           {==}
     case 1n+p B3.Down{}:
       tree8o.eta(p, (ku - 1 : U32), B3.kind((ku - 1 : U32), n, c, nch, last), aa, c, n,
-        cb, nch, last, rf)
+        cb, hi, nch, last, rf)
     case 1n+p B3.Leaf32{}:
       match aa:
         case (a1, a2):
-          fin.eta(B3.leaf32.s0(B3.group(a1, c, (cb + c : U32)), c, (cb + c : U32)), rf)
+          fin.eta(B3.leaf32.s0(B3.group(a1, c, (cb + c : U32), hi), c, (cb + c : U32), hi), rf)
     case 1n+p B3.Leaf8{}:
       match aa:
         case (a1, a2):
@@ -865,11 +872,11 @@ def tree8o.eta(k, ku, d, aa, c, n, cb, nch, last, rf):
           +h = U32.shln(1, p)
           +n2 = (n - h : U32)
           +c2 = (c + h : U32)
-          %tree8o.eta(p, kp, B3.kind(kp, h, c, nch, last), share(a1), c, h, cb, nch, last, 0) :
+          %tree8o.eta(p, kp, B3.kind(kp, h, c, nch, last), share(a1), c, h, cb, hi, nch, last, 0) :
             {(B3.parent(@TL@, @TR@, rf), Pair.snd(B3.CV, B3.OB, B3.join.o(_, @Y@, rf,
               U32.is_ge(ku, 5)))) == B3.join.o(_, @Y@, rf, U32.is_ge(ku, 5)) :
               B3.CV & B3.OB}
-          %tree8o.eta(p, kp, B3.kind(kp, n2, c2, nch, last), share(a2), c2, n2, cb, nch, last, 0) :
+          %tree8o.eta(p, kp, B3.kind(kp, n2, c2, nch, last), share(a2), c2, n2, cb, hi, nch, last, 0) :
             {(B3.parent(@TL@, @TR@, rf), Pair.snd(B3.CV, B3.OB, B3.join.o((@TL@,
               Pair.snd(B3.CV, B3.OB, @X@)), _, rf, U32.is_ge(ku, 5)))) ==
               B3.join.o((@TL@, Pair.snd(B3.CV, B3.OB, @X@)), _, rf, U32.is_ge(ku, 5)) :
@@ -881,13 +888,14 @@ law ob.go:
   for +k: Nat
   for a: Array<U32>
   for +cb: U32
+  for +hi: U32
   for +nch: U32
   for +last: U32
   for +rf: U32
-  {Pair.fst(B3.CV, B3.OB, B3.hash.ob.go(~share, k, a, cb, nch, last, rf)) ==
-    B3.hash.go(~share, k, a, cb, nch, last, rf) : B3.CV}
+  {Pair.fst(B3.CV, B3.OB, B3.hash.ob.go(~share, k, a, cb, hi, nch, last, rf)) ==
+    B3.hash.go(~share, k, a, cb, hi, nch, last, rf) : B3.CV}
 
-def ob.go(k, a, cb, nch, last, rf):
+def ob.go(k, a, cb, hi, nch, last, rf):
   match k:
     case 0n:
       {==}
@@ -897,14 +905,14 @@ def ob.go(k, a, cb, nch, last, rf):
       Equal.sym(B3.CV, @T8TOP@, Pair.fst(B3.CV, B3.OB, @T8OTOP@),
         Equal.cong(B3.CV & B3.OB, B3.CV, x => Pair.fst(B3.CV, B3.OB, x),
           (@T8TOP@, Pair.snd(B3.CV, B3.OB, @T8OTOP@)), @T8OTOP@,
-          tree8o.eta(1n+p, ku, d, share(a), 0, nch, cb, nch, last, rf)))
+          tree8o.eta(1n+p, ku, d, share(a), 0, nch, cb, hi, nch, last, rf)))
 
 def ob.hash(a, len):
-  ob.go(B3.depth(B3.chunks(len)), a, 0, B3.chunks(len), B3.tail(len, B3.chunks(len)),
+  ob.go(B3.depth(B3.chunks(len)), a, 0, 0, B3.chunks(len), B3.tail(len, B3.chunks(len)),
     B3.ROOT())
 
-def ob.at(a, cb, nch, last, rf):
-  ob.go(B3.depth(nch), a, cb, nch, last, rf)
+def ob.at(a, cb, hi, nch, last, rf):
+  ob.go(B3.depth(nch), a, cb, hi, nch, last, rf)
 
 '''
 
@@ -1563,7 +1571,7 @@ def laws_names(text):
 
 def proof_outboards():
     def t8(name, k, ku, d, aa, c, n, rf):
-        return f"B3.{name}(~share, {k}, {ku}, {d}, {aa}, {c}, {n}, cb, nch, last, {rf})"
+        return f"B3.{name}(~share, {k}, {ku}, {d}, {aa}, {c}, {n}, cb, hi, nch, last, {rf})"
     left = ("p", "kp", "B3.kind(kp, h, c, nch, last)", "share(a1)", "c", "h", "0")
     right = ("p", "kp", "B3.kind(kp, n2, c2, nch, last)", "share(a2)", "c2", "n2", "0")
     top = ("1n+p", "ku", "d", "share(a)", "0", "nch", "rf")
@@ -1595,16 +1603,23 @@ def kat_laws(h):
         "# are the same generated code one and two levels up); with ROOT it is\n"
         "# the whole 4096-byte input.\n"
         "law kat.g4.len4096:\n"
-        "  {B3.hex(B3.g.fin(B3.g4(vec(4096), 0, 0, B3.ROOT()))) ==\n"
+        "  {B3.hex(B3.g.fin(B3.g4(vec(4096), 0, 0, 0, B3.ROOT()))) ==\n"
         f"    \"{h[4096]}\" : String}}\n")
     out.append(
         "# Two spans of one chunk each, the second with counter base 1, merged\n"
         "# by a ROOT parent: how b3sum hashes a big file's parts (b3io.bend's\n"
         "# segs), here with one-chunk parts. See the law `segments` below.\n"
         "law kat.segs.len2048:\n"
-        "  {B3.hex(B3.parent(B3.hash.at(~share, vec.fill(8n, 0, 2048), 0, 1, 1024, 0),\n"
-        "    B3.hash.at(~share, vec.fill(8n, 256, 2048), 1, 1, 1024, 0), B3.ROOT())) ==\n"
+        "  {B3.hex(B3.parent(B3.hash.at(~share, vec.fill(8n, 0, 2048), 0, 0, 1, 1024, 0),\n"
+        "    B3.hash.at(~share, vec.fill(8n, 256, 2048), 1, 0, 1, 1024, 0), B3.ROOT())) ==\n"
         f"    \"{h[2048]}\" : String}}\n")
+    out.append(
+        "# A span past 4 TiB: one chunk (the vector input's first 1024 bytes) at\n"
+        "# chunk counter 2^32, its high word 1, as b3sum hashes a file's parts\n"
+        "# past 4 TiB. The official crate's CV for that subtree (test/hiref).\n"
+        "law kat.span.hi:\n"
+        "  {B3.hex(B3.hash.at(~share, vec.fill(8n, 0, 1024), 0, 1, 1, 1024, 0)) ==\n"
+        f"    \"{KAT_HI}\" : String}}\n")
     return "\n".join(out) + "\n"
 
 
@@ -1645,7 +1660,7 @@ def proof_lanes():
     m16 = ", ".join(f"m{i}" for i in range(16))
     return (
         "# The 8-lane path\n# ---------------\n\n"
-        "def Laws.compress8.lane(l, cv, m, ctr, step, blen, flags):\n"
+        "def Laws.compress8.lane(l, cv, m, ctr, step, hi, blen, flags):\n"
         "  match l cv m:\n" + c8 + "\n"
         "def Laws.par8.lane(l, x, y):\n"
         "  match l x y:\n" + p8 + "\n"
@@ -1662,7 +1677,7 @@ def proof_file():
     # The laws proven by {==}: the checker computes both sides.
     computed = ([f"kat.hash.len{n}" for n in KAT_HASH] +
                 [f"kat.hash1.len{n}" for n in KAT_HASH1] +
-                ["kat.g4.len4096", "kat.segs.len2048", "tree1.digits"])
+                ["kat.g4.len4096", "kat.segs.len2048", "kat.span.hi", "tree1.digits"])
     return (PROOF_HEAD + "# Known answers\n# -------------\n\n" +
             "".join(f"def Laws.{n}():\n  {{==}}\n\n" for n in computed) +
             proof_lanes() +

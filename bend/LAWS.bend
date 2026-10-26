@@ -7,10 +7,11 @@
 # proves every one, and `bend PROOF.bend` is the gate: ALL PROOFS CHECK.
 #
 # - Known answers: the official test vectors, computed by the checker itself
-#   through the defs that run (the CPU tree, the GPU tree, a GPU leaf, and a
-#   span with a chunk-counter base, as b3sum hashes a big file's parts).
+#   through the defs that run (the CPU tree, the GPU tree, a GPU leaf, and
+#   spans with a chunk-counter base, as b3sum hashes a big file's parts: one
+#   past 4 TiB, whose counter has a high word).
 # - The 8-lane path: for every input, each lane of compress8 and of par8 is
-#   the scalar compress or parent of that lane.
+#   the scalar compress or parent of that lane (both counter words too).
 # - The message schedule: perm iterated is the C code's MSG_SCHEDULE.
 # - Constants: the IV and the flags are the C code's.
 # - Outboards: for every input, the tree that writes iroh's bao outboard
@@ -109,16 +110,23 @@ law kat.hash1.len2049:
 # are the same generated code one and two levels up); with ROOT it is
 # the whole 4096-byte input.
 law kat.g4.len4096:
-  {B3.hex(B3.g.fin(B3.g4(vec(4096), 0, 0, B3.ROOT()))) ==
+  {B3.hex(B3.g.fin(B3.g4(vec(4096), 0, 0, 0, B3.ROOT()))) ==
     "015094013f57a5277b59d8475c0501042c0b642e531b0a1c8f58d2163229e969" : String}
 
 # Two spans of one chunk each, the second with counter base 1, merged
 # by a ROOT parent: how b3sum hashes a big file's parts (b3io.bend's
 # segs), here with one-chunk parts. See the law `segments` below.
 law kat.segs.len2048:
-  {B3.hex(B3.parent(B3.hash.at(~share, vec.fill(8n, 0, 2048), 0, 1, 1024, 0),
-    B3.hash.at(~share, vec.fill(8n, 256, 2048), 1, 1, 1024, 0), B3.ROOT())) ==
+  {B3.hex(B3.parent(B3.hash.at(~share, vec.fill(8n, 0, 2048), 0, 0, 1, 1024, 0),
+    B3.hash.at(~share, vec.fill(8n, 256, 2048), 1, 0, 1, 1024, 0), B3.ROOT())) ==
     "e776b6028c7cd22a4d0ba182a8bf62205d2ef576467e838ed6f2529b85fba24a" : String}
+
+# A span past 4 TiB: one chunk (the vector input's first 1024 bytes) at
+# chunk counter 2^32, its high word 1, as b3sum hashes a file's parts
+# past 4 TiB. The official crate's CV for that subtree (test/hiref).
+law kat.span.hi:
+  {B3.hex(B3.hash.at(~share, vec.fill(8n, 0, 1024), 0, 1, 1, 1024, 0)) ==
+    "914cde8216c9ee1db824ab6305d66ae92c1ceadf92189229a0f815a6190ee791" : String}
 
 # The 8-lane path
 # ---------------
@@ -225,11 +233,12 @@ law compress8.lane:
   for +m: B3.B128
   for +ctr: U32
   for +step: U32
+  for +hi: U32
   for +blen: U32
   for +flags: U32
-  {cv.at(l, B3.compress8(cv, m, ctr, step, blen, flags)) ==
+  {cv.at(l, B3.compress8(cv, m, ctr, step, hi, blen, flags)) ==
     B3.compress(cv.at(l, cv), m.at(l, m), (ctr + (step * Lane.u32(l) : U32) : U32),
-      0, blen, flags) : B3.CV}
+      hi, blen, flags) : B3.CV}
 
 law par8.lane:
   for +l: Lane
@@ -306,11 +315,12 @@ law ob.hash:
 law ob.at:
   for a: Array<U32>
   for +cb: U32
+  for +hi: U32
   for +nch: U32
   for +last: U32
   for +rf: U32
-  {Pair.fst(B3.CV, B3.OB, B3.hash.ob.at(~share, a, cb, nch, last, rf)) ==
-    B3.hash.at(~share, a, cb, nch, last, rf) : B3.CV}
+  {Pair.fst(B3.CV, B3.OB, B3.hash.ob.at(~share, a, cb, hi, nch, last, rf)) ==
+    B3.hash.at(~share, a, cb, hi, nch, last, rf) : B3.CV}
 
 # Tree shapes
 # -----------
