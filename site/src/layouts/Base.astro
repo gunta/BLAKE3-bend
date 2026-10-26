@@ -17,7 +17,7 @@ const { title, description = SITE_DESCRIPTION, path = '', noindex = false } = As
 const pageTitle = title ? `${title} · ${SITE_NAME}` : SITE_TITLE;
 const canonical = absoluteUrl(path, Astro.site);
 const ogImage = absoluteUrl('og.png', Astro.site);
-const ogAlt = 'turboblake, BLAKE3 written in Bend2: the Merge logo and the headline speedups against the official Rust/C BLAKE3.';
+const ogAlt = 'turboblake: checksum anything at the speed of your SSD. BLAKE3, turbocharged.';
 ---
 
 <!doctype html>
@@ -79,11 +79,11 @@ const ogAlt = 'turboblake, BLAKE3 written in Bend2: the Merge logo and the headl
         else io.observe(el);
       }
 
-      // Cards catch the light under the pointer (.card::before reads --mx/--my).
+      // Cards and bento tiles catch the light under the pointer (they read --mx/--my).
       document.addEventListener(
         'pointermove',
         (e) => {
-          const card = (e.target as Element | null)?.closest?.<HTMLElement>('.card');
+          const card = (e.target as Element | null)?.closest?.<HTMLElement>('.card, .tile');
           if (!card) return;
           const r = card.getBoundingClientRect();
           card.style.setProperty('--mx', `${e.clientX - r.left}px`);

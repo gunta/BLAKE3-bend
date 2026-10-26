@@ -5,11 +5,37 @@
  * - vgpu: the wordmark on https://vgpu.sh.
  * - iroh: https://www.iroh.computer/img/logo/iroh-wordmark-purple.svg.
  * - Bend: the icon on https://bend-lang.com, as src/assets/brands/bend.png.
- * - Rust, C, GitHub, DeepSeek, Hugging Face, NVIDIA, WebGPU, Astro, LLVM, Python:
- *   Simple Icons (https://simpleicons.org), read from the package at build time.
+ * - Rust, C, GitHub, DeepSeek, Hugging Face, NVIDIA, WebGPU, Astro, LLVM, Python,
+ *   the BLAKE3 adopters (Bazel, ClickHouse, Farcaster, IPFS, Nix, OpenZFS,
+ *   Redox, Solana, Wasmer), Apple, Linux and Homebrew: Simple Icons
+ *   (https://simpleicons.org), read from the package at build time.
  * Each mark stays its owner's trademark; it is shown here only to name the project.
  */
-import { siAstro, siC, siDeepseek, siGithub, siGithubpages, siHuggingface, siLlvm, siNvidia, siPython, siRust, siWebgpu } from 'simple-icons';
+import {
+  siApple,
+  siAstro,
+  siBazel,
+  siC,
+  siClickhouse,
+  siDeepseek,
+  siFarcaster,
+  siGithub,
+  siGithubpages,
+  siHomebrew,
+  siHuggingface,
+  siIpfs,
+  siLinux,
+  siLlvm,
+  siNixos,
+  siNvidia,
+  siOpenzfs,
+  siPython,
+  siRedox,
+  siRust,
+  siSolana,
+  siWasmer,
+  siWebgpu,
+} from 'simple-icons';
 
 export interface Mark {
   title: string;
@@ -47,6 +73,18 @@ export const MARKS = {
   astro: simple(siAstro),
   llvm: simple(siLlvm),
   python: simple(siPython),
+  bazel: simple(siBazel),
+  clickhouse: simple(siClickhouse),
+  farcaster: simple(siFarcaster),
+  ipfs: simple(siIpfs),
+  nixos: simple(siNixos),
+  openzfs: simple(siOpenzfs),
+  redox: simple(siRedox),
+  solana: simple(siSolana),
+  wasmer: simple(siWasmer),
+  apple: simple(siApple),
+  linux: simple(siLinux),
+  homebrew: simple(siHomebrew),
 } satisfies Record<string, Mark>;
 
 export type MarkName = keyof typeof MARKS;

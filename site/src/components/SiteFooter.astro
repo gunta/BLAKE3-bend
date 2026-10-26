@@ -3,7 +3,7 @@ import BrandMark from './BrandMark.astro';
 import Logo from './Logo.astro';
 import { ADR_INDEX_URL } from '../lib/adr';
 import { TIE_TEXT } from '../lib/model';
-import { BEND_URL, REPO_URL, RELEASES_URL, UPSTREAM_URL, blobUrl, buildCommit } from '../lib/site';
+import { BEND_URL, REPO_URL, RELEASES_URL, UPSTREAM_URL, blobUrl, buildCommit, withBase } from '../lib/site';
 
 const commit = buildCommit();
 
@@ -11,10 +11,19 @@ const columns = [
   {
     title: 'Product',
     links: [
-      { href: '#install', label: 'Install' },
-      { href: '#blake3', label: 'What is BLAKE3' },
-      { href: '#outcomes', label: 'Performance' },
-      { href: '#benchmarks', label: 'Benchmarks' },
+      { href: withBase('install/'), label: 'Install' },
+      { href: withBase('languages/'), label: 'Languages' },
+      { href: withBase('gpu/'), label: 'GPU' },
+      { href: withBase('benchmarks/'), label: 'Benchmarks' },
+    ],
+  },
+  {
+    title: 'Learn',
+    links: [
+      { href: withBase('#checksum'), label: 'What is a checksum' },
+      { href: withBase('#why'), label: 'Why BLAKE3' },
+      { href: withBase('#how'), label: 'How it works' },
+      { href: withBase('benchmarks/#proofs'), label: 'Proofs' },
     ],
   },
   {
@@ -47,7 +56,7 @@ const builtWith = [
 <footer class="site-footer">
   <div class="wrap top">
     <div class="brand-col">
-      <a class="home" href="#top" aria-label="turboblake: back to the top">
+      <a class="home" href={withBase()} aria-label="turboblake: home">
         <Logo wordmark />
       </a>
       <p class="pitch">BLAKE3, turbocharged. A drop-in b3sum for macOS and Linux.</p>
@@ -108,9 +117,21 @@ const builtWith = [
     padding-block: 3.5rem 2.5rem;
   }
 
-  @media (min-width: 48rem) {
+  @media (min-width: 36rem) {
     .top {
-      grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .brand-col {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .top {
+      grid-template-columns: minmax(0, 1.6fr) repeat(4, minmax(0, 1fr));
+    }
+    .brand-col {
+      grid-column: auto;
     }
   }
 
