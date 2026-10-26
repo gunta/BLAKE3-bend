@@ -6,7 +6,11 @@ against the official b3sum) and its benchmark against the official C
 library; generates the blake3-bend crate, runs upstream's own tests through
 the engine and races it against the official crate. Prints the logs.
 
-    modal run bend/bench/modal_linux.py
+    modal run bend/bench/modal_linux.py                        # lib, rust
+    modal run bend/bench/modal_linux.py --steps go,python,node  # the bindings
+
+`go` also builds the Linux engine objects for the Go module
+(bend/go/engine_linux_{amd64,arm64}.syso) and writes them here.
 """
 
 import pathlib
@@ -18,19 +22,28 @@ import modal
 _HERE = pathlib.Path(__file__).resolve()
 REPO = _HERE.parents[2] if modal.is_local() else pathlib.Path("/repo")
 LLVM = 20
+GO = "1.27.2"
+NODE = "26.12.0"
+BUN = "1.4.3"
 
 image = (
     modal.Image.from_registry("ubuntu:24.04", add_python="3.12")
     .apt_install("curl", "ca-certificates", "wget", "gnupg", "lsb-release",
-                 "software-properties-common", "build-essential", "unzip")
+                 "software-properties-common", "build-essential", "unzip", "xz-utils",
+                 "libc6-dev-arm64-cross", "libgcc-13-dev-arm64-cross")
     .run_commands(
         f"wget -qO /tmp/llvm.sh https://apt.llvm.org/llvm.sh && bash /tmp/llvm.sh {LLVM}",
         "curl -fsSL https://sh.rustup.rs | sh -s -- -y --profile minimal",
         "curl -fsSL https://bend-lang.com/install.sh | BEND_NO_TELEMETRY=1 sh",
+        f"curl -fsSL https://go.dev/dl/go{GO}.linux-amd64.tar.gz | tar -C /usr/local -xz",
+        f"curl -fsSL https://nodejs.org/dist/v{NODE}/node-v{NODE}-linux-x64.tar.xz"
+        " | tar -xJ -C /usr/local --strip-components=1",
+        f"curl -fsSL https://bun.sh/install | bash -s bun-v{BUN}",
+        "pip install pytest numpy",
     )
     .env({
-        "PATH": f"/root/.bend/bin:/root/.cargo/bin:/usr/lib/llvm-{LLVM}/bin:/usr/local/sbin:"
-                "/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "PATH": f"/root/.bend/bin:/root/.cargo/bin:/root/.bun/bin:/usr/local/go/bin:"
+                f"/usr/lib/llvm-{LLVM}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
         "CC": "clang",
         "BEND_NO_TELEMETRY": "1",
         "JSC_maxPerThreadStackUsage": "60000000",
@@ -46,7 +59,7 @@ app = modal.App("blake3-bend-linux", image=image)
 
 
 @app.function(cpu=16, memory=32768, timeout=3600)
-def check(steps: str = "lib,rust") -> str:
+def check(steps: str = "lib,rust") -> dict:
     log = []
 
     def step(name, cmd, cwd="/work"):
@@ -78,9 +91,41 @@ def check(steps: str = "lib,rust") -> str:
              cwd="/work")
         step("rust bench", "cargo build --release --quiet 2>/dev/null; ./target/release/blake3-bend-bench 7",
              cwd="/work/bend/rust/bench")
-    return "\n".join(log)
+    files = {}
+    if "go" in steps:
+        # the prebuilt engines for Linux: amd64 here, arm64 against the cross sysroot
+        slp = ("-mllvm -slp-max-reg-size=512 -mllvm -slp-recursion-max-depth=100000 "
+               "-mllvm -slp-threshold=-20 -mllvm -inline-threshold=20000")
+        step("go: csrc", "bend/lib/gen.sh >/dev/null && rm -rf bend/go/csrc && cp -R bend/lib/csrc bend/go/csrc")
+        for goarch, flags in (("amd64", "-march=x86-64-v3"),
+                              ("arm64", "--target=aarch64-linux-gnu --sysroot=/usr/aarch64-linux-gnu "
+                                        "-mcpu=neoverse-n1")):
+            out = f"bend/go/engine_linux_{goarch}.syso"
+            if step(f"go: engine_linux_{goarch}.syso",
+                    f"clang -x c -std=c11 -O3 {flags} {slp} -fPIC -w -DBEND_EMBED -Dmain=b3e_bend_main "
+                    f"-c bend/go/csrc/engine.c -o {out} && ls -la {out}"):
+                files[out] = pathlib.Path(f"/work/{out}").read_bytes()
+        step("go: gen.sh (amd64 again, and c_engine.c)", "bend/go/gen.sh && head -1 bend/go/c_engine.c")
+        step("go test", "go test -count=1 ./... 2>&1 | tail -5", cwd="/work/bend/go")
+        step("go bench", "go run . 2>&1 | tail -12", cwd="/work/bend/go/bench")
+        files["bend/bench/results/lang-go-linux.json"] = pathlib.Path(
+            "/work/bend/bench/results/lang-go.json").read_bytes()
+    if "python" in steps:
+        step("python: build", "pip install -q . 2>&1 | tail -3", cwd="/work/bend/python")
+        step("python: blake3-py's tests",
+             "BLAKE3_BEND_MIN=2048 python -m pytest -q /work/bend/python/tests 2>&1 | tail -3 && "
+             "python -m pytest -q /work/bend/python/tests 2>&1 | tail -1", cwd="/tmp")
+    if "node" in steps:
+        step("node: build", "npm install --silent 2>&1 | tail -3; ls build/*.node", cwd="/work/bend/node")
+        step("node: test", "node test/test.mjs && bun test/test.mjs", cwd="/work/bend/node")
+        step("node: bench", "node bench.mjs 2>&1 | tail -10", cwd="/work/bend/node")
+    return {"log": "\n".join(log), "files": files}
 
 
 @app.local_entrypoint()
 def main(steps: str = "lib,rust"):
-    print(check.remote(steps))
+    res = check.remote(steps)
+    print(res["log"])
+    for rel, data in res["files"].items():
+        (REPO / rel).write_bytes(data)
+        print(f"wrote {rel} ({len(data)} bytes)")
