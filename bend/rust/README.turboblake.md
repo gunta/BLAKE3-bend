@@ -38,14 +38,22 @@ cargo install turboblake --features replace --force
 
 or keep both and alias it: `alias b3sum=turboblake`.
 
-`--keyed`, `--derive-key`, `--length`, `--seek`, `--check`, `--no-mmap` and
-stdin go through upstream's code (on blake3-bend, so a big input still
-takes every core); `BLAKE3_BEND=0` turns the engine off. Error messages
-start with `turboblake:`, or `b3sum:` for the `replace` install.
+Each batch of files goes to whichever is faster on it: the engine for many
+files, several big ones, or a big one not in the page cache; upstream's code
+for a few small files and for one big file in the cache, where page faults
+bound both alike. `--check` hashes its files the same way, a batch of lines
+at a time. stdin and `--no-mmap` read big blocks while the block before
+hashes on every core (upstream reads 64 KiB at a time on one). `--keyed`,
+`--derive-key`, `--length` and `--seek` run upstream's code. rayon's threads
+start only when a file needs them, and a small file hashes on one thread.
+`BLAKE3_BEND=0` turns the engine off. Error messages start with
+`turboblake:`, or `b3sum:` for the `replace` install.
 
 Against the official `b3sum` on an Apple M5 Pro: a 101.5 GB DeepSeek-V4.1
 model shard bigger than RAM in 7.65 s against 211 s; 2,000 x 64 KiB files
-10.7x faster, 8,000 cargo source files 3.5x. Benchmarks and method:
+10.9x faster, 8,000 cargo source files 4.0x, stdin and `--no-mmap` 9x on
+1 GiB, and never slower on any case measured (ADR 0013). Benchmarks and
+method:
 [gunta.github.io/BLAKE3-bend](https://gunta.github.io/BLAKE3-bend/).
 
 License: CC0-1.0 OR Apache-2.0 OR Apache-2.0 WITH LLVM-exception, as

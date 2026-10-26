@@ -11,11 +11,14 @@ the engine taking every subtree.
 blake3 = { package = "blake3-bend", version = "1.8" }
 ```
 
-Your code keeps `use blake3::…`. `blake3::hash`, `Hasher::update`, and
-`update_rayon` all go through the engine past a size it calibrates at the
-first big input (about 256 KiB on an Apple M5 Pro), in every mode (keyed
-hashing and key derivation too). Below that, and in `no_std` builds, it is
-upstream's code.
+Your code keeps `use blake3::…`. `blake3::hash` and `Hasher::update` go
+through the engine past a size it calibrates at the first big input (about
+256 KiB on an Apple M5 Pro), in every mode (keyed hashing and key derivation
+too). `update_rayon` hands it only what it beats rayon on: input it reads in
+place, in the default mode, up to 16 MiB (1.3-2x faster there); the rest is
+upstream's rayon. Below that, and in `no_std` builds, it is upstream's code.
+On macOS the library reserves its heap's room when it loads, so the buffers
+your program allocates afterwards are read in place.
 
 To swap it in for every crate in a dependency graph (iroh, for example),
 generate a copy named `blake3` and patch it in:
