@@ -72858,12 +72858,21 @@ int b3e_hi(void) {
 // chunks) into out[0..n-1], in the mode of
 // key (8 words) and kf: B3E_SPANS a job while they can be read in place,
 // B3E_STAGE copied ones a job, every job queued at once. 1 on success, 0 if
-// the engine is not running (the caller then hashes in C).
+// the engine is not running or a span breaks those limits (the caller then
+// hashes in C). Bend adds a chunk's index to the span's low counter word
+// with no carry into the high one (law span.nocarry), so a span across a
+// 2^32-chunk block would hash with wrong counters: it is turned away here.
 int b3e_hash_k(uint32_t n, const unsigned char* const* p, const uint64_t* len,
                const uint64_t* cb, const uint32_t* key, uint32_t kf,
                unsigned char (*out)[32]) {
   if (n == 0 || cid_arity(CID_SpOne) != 14) {
     return 0;
+  }
+  for (u32 i = 0; i < n; i += 1) {
+    u64 nch = (len[i] + 1023) / 1024;
+    if (len[i] > (1ull << 30) || (cb[i] & 0xffffffffull) + nch > (1ull << 32)) {
+      return 0;
+    }
   }
   if (b3e_hint == 0) {
     b3e_hint = (uintptr_t)p[0];

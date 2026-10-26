@@ -441,6 +441,12 @@ def Laws.gpu.spec(a, cb, hi, nch, last, rf):
 def Laws.keyed.spec(a, cb, hi, nch, last, rf, key, kf):
   K.keyed.spec(a, cb, hi, nch, last, rf, key, kf)
 
+# cb + c <= cb + top <= z, and a sum at most a word's value does not wrap.
+def Laws.span.nocarry(cb, c, top, z, e1, e2):
+  A.u.tn_add(cb, c, z,
+    A.n.le_trans(Nat.add(U32.to_nat(cb), U32.to_nat(c)), Nat.add(U32.to_nat(cb), U32.to_nat(top)),
+      U32.to_nat(z), A.n.add_le(U32.to_nat(cb), U32.to_nat(c), U32.to_nat(top), e1), e2))
+
 
 # Counts
 # ------

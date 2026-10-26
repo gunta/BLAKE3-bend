@@ -205,7 +205,7 @@
   ],
   "proofs": {
     "seconds": 252,
-    "note": "bend/prove.sh (bend PROOF.bend with a deep stack), one run on the M5 Pro at load 8-10: ALL PROOFS CHECK for 40 laws and 412 lemmas (ADR 0015). The known answers take most of it; the other laws check in about a minute."
+    "note": "bend/prove.sh (bend PROOF.bend with a deep stack), one run on the M5 Pro at load 8-10: ALL PROOFS CHECK for 40 laws and 412 lemmas (ADR 0015). The known answers take most of it; the other laws check in about a minute. The 41st, span.nocarry (ADR 0014's follow-up), checks in under a second on its own."
   },
   "techniques": [
     {
@@ -407,13 +407,13 @@
       },
       "points": [
         "A 4.4 TB test file streamed in 241 s, identical to the official crate",
-        "The proofs now cover every counter value"
+        "The proofs cover both counter words, and the engine refuses any span that would need a carry"
       ]
     },
     {
       "adr": "0015",
       "title": "Proofs for every input",
-      "summary": "The CPU, GPU and keyed trees are proven equal to the scalar tree for every array, span and 64-bit counter, and that tree is BLAKE3's; the streaming loop as b3io runs it is BLAKE3's tree over a file's segments. 40 laws, 412 lemmas.",
+      "summary": "The CPU, GPU and keyed trees are proven equal to the scalar tree for every array, span and both counter words, and that tree is BLAKE3's; the streaming loop as b3io runs it is BLAKE3's tree over a file's segments. 40 laws, 412 lemmas.",
       "date": "2026-10-26T13:15:43+09:00",
       "tag": "Proofs",
       "headline": "Every hashing path, proven for every input",

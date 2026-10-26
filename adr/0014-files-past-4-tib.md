@@ -99,6 +99,33 @@ machine was shared: load average 7-13, so CPU numbers swing):
 
 Every run printed the same digest on both builds.
 
+## Follow-up: the no-carry rule, stated and enforced
+
+Date: 2026-10-27
+
+A review of this change (Graphify, on the pull request) flagged
+`compress8.lane`: lane l's counter words are `hi` and `ctr + step * l` mod
+2^32, so a carry out of the low word is dropped. The law is right about
+the code: compress8 does exactly that, and so does `chunk` (`cb + c`). What
+no law said was when that is BLAKE3's 64-bit counter, and nothing below the
+callers checked the rule that makes it so. Now:
+
+- **A law.** `span.nocarry` (proven from `words.bend`'s `u.tn_add`): when
+  a span's top chunk, `cb + (nch - 1)`, is at most a word's value, every
+  chunk c of it has the low word `cb + c` exactly, so there is nothing to
+  carry. The spec laws' `ev` counts its chunks that way, so the trees are
+  BLAKE3's tree, 64-bit counters included, for every span inside one
+  2^32-chunk block. The other laws compare the code with the code and hold
+  for every pair of words.
+- **The engine checks the rule.** `b3e_hash_k` trusted its callers; it now
+  returns 0 for any span with `(cb mod 2^32) + nch > 2^32`, or over 1 GiB,
+  and the caller hashes in C. The C glue, the Rust bridge and the Node
+  engine send only aligned subtrees, and the loader's parts are aligned
+  1 GiB, so nothing that runs today takes the new branch. Called directly,
+  `b3e_hash` returns 0 for two chunks at 2^32 - 1, 1,025 bytes at
+  5 * 2^32 - 1, and 1 GiB + 64 bytes. Two chunks ending on the block's edge
+  (at 2^32 - 2), and two at 2^32, match the official crate.
+
 ## Consequences
 
 - `b3sum`, turboblake's file path and the library hash any file up to
@@ -109,4 +136,5 @@ Every run printed the same digest on both builds.
   built on Ubuntu 24.04 and need glibc 2.38; on Debian bookworm they do not
   link, before and after this change.)
 - Any new tree in `blake3.bend` takes `hi` beside its counter, and any new
-  producer of spans keeps each inside one 2^32-chunk block.
+  producer of spans keeps each inside one 2^32-chunk block: the engine
+  turns away any span that is not.
