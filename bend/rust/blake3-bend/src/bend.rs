@@ -78,6 +78,15 @@ use std::time::Instant;
 
 unsafe extern "C" {
     fn b3e_hash(n: u32, p: *const *const u8, len: *const u64, cb: *const u64, out: *mut [u8; 32]) -> i32;
+    fn b3e_hash_k(
+        n: u32,
+        p: *const *const u8,
+        len: *const u64,
+        cb: *const u64,
+        key: *const u32,
+        kf: u32,
+        out: *mut [u8; 32],
+    ) -> i32;
     fn b3e_inside(p: *const u8, len: u64) -> i32;
     pub(super) fn b3e_files(n: u32, paths: *const *const core::ffi::c_char, out: *mut [u8; 32], err: *mut i32) -> i32;
 }
@@ -182,7 +191,7 @@ fn merge(key: &CVWords, flags: u8, cvs: &[[u8; 32]], platform: Platform) -> [u8;
 
 /// The two child CVs of `input` (2+ chunks, any length) as a subtree from
 /// `chunk_counter`, hashed by the engine; `None` when upstream's code should
-/// hash it (small, keyed or derive-key for now, or no engine).
+/// hash it (too small to beat the trip, or no engine).
 pub(crate) fn subtree(
     input: &[u8],
     key: &CVWords,
@@ -194,7 +203,8 @@ pub(crate) fn subtree(
         return None;
     }
     let chunks = input.len().div_ceil(CHUNK_LEN) as u64;
-    if flags != 0 || key != IV || chunk_counter + chunks > 1 << 32 {
+    // every mode (key and flags); 32-bit chunk counters
+    if chunk_counter + chunks > 1 << 32 {
         return None;
     }
     // Spans the engine reads in place are up to 1 GiB; copied ones 64 MiB,
@@ -215,7 +225,10 @@ pub(crate) fn subtree(
         cb.push(chunk_counter + (at / CHUNK_LEN) as u64);
     }
     let mut cvs = vec![[0u8; 32]; n];
-    if unsafe { b3e_hash(n as u32, p.as_ptr(), len.as_ptr(), cb.as_ptr(), cvs.as_mut_ptr()) } != 1 {
+    let ok = unsafe {
+        b3e_hash_k(n as u32, p.as_ptr(), len.as_ptr(), cb.as_ptr(), key.as_ptr(), flags as u32, cvs.as_mut_ptr())
+    };
+    if ok != 1 {
         return None;
     }
     let mut out = [0u8; BLOCK_LEN];

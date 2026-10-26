@@ -13,8 +13,8 @@ blake3 = { package = "blake3-bend", version = "1.8" }
 
 Your code keeps `use blake3::…`. `blake3::hash`, `Hasher::update`, and
 `update_rayon` all go through the engine past a size it calibrates at the
-first big input (about 256 KiB on an Apple M5 Pro). Below that, for keyed
-hashing and key derivation (for now), and in `no_std` builds, it is
+first big input (about 256 KiB on an Apple M5 Pro), in every mode (keyed
+hashing and key derivation too). Below that, and in `no_std` builds, it is
 upstream's code.
 
 To swap it in for every crate in a dependency graph (iroh, for example),

@@ -8,7 +8,7 @@
 # Eng.next waits for a caller's job, Bend hashes it all at once (every
 # span's tree in parallel), and Eng.done hands the CVs back. The CV stack,
 # keys, flags, finalization and extended output stay in C. A job can also
-# be a list of files (b3bend's fast path), hashed as bend/b3sum.bend does.
+# be a list of files (turboblake's fast path), hashed as bend/b3sum.bend does.
 
 import Base
 import ../blake3.bend as B3

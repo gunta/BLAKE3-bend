@@ -7,7 +7,7 @@
 // edge the hook sees; the output must not change. --whole hands the whole
 // input (2+ chunks, any length) to the hook at once, as the Rust crate's
 // hash() does, and prints the root of its two CVs. --files hashes the
-// paths as one engine file job (b3bend's fast path) and prints them as
+// paths as one engine file job (turboblake's fast path) and prints them as
 // b3sum does.
 #include <stdio.h>
 #include <stdlib.h>
