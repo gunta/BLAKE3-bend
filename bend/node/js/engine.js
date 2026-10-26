@@ -24,6 +24,11 @@ function words(bytes) {
   return w;
 }
 
+// A chunk counter's two 32-bit words, as Bend's spans take it: past 2^32
+// chunks (4 TiB) the high word is no longer 0.
+const lo = (c) => c >>> 0;
+const hi = (c) => Math.floor(c / 0x100000000);
+
 function cvOf(b) {
   const w = [];
   for (let i = 0; i < 8; i += 1) {
@@ -92,7 +97,7 @@ function consume(st, stack, bytes, len, keep, chunksAt) {
   let off = 0, chunks = chunksAt;
   while (len - off - keep >= CHUNK) {
     const s = subtree(chunks, len - off - keep);
-    const cv = B.span(words(bytes.subarray(off, off + s * CHUNK)), chunks, s, CHUNK, 0, st.key, st.kf);
+    const cv = B.span(words(bytes.subarray(off, off + s * CHUNK)), lo(chunks), hi(chunks), s, CHUNK, 0, st.key, st.kf);
     merge(stack, chunks, st.key, st.kf);
     stack.push(cv);
     chunks += s;
@@ -107,7 +112,7 @@ function root(st) {
   const tail = st.buf.subarray(off, st.len);
   merge(stack, chunks, st.key, st.kf);
   if (stack.length === 0) return B["chunk.root"](words(tail), chunks, tail.length, st.key, st.kf);
-  let cur = B.span(words(tail), chunks, 1, tail.length, 0, st.key, st.kf);
+  let cur = B.span(words(tail), lo(chunks), hi(chunks), 1, tail.length, 0, st.key, st.kf);
   while (stack.length > 1) cur = B.parent(stack.pop(), cur, st.key, st.kf);
   return B["parent.root"](stack.pop(), cur, st.key, st.kf);
 }

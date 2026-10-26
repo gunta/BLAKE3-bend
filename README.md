@@ -115,9 +115,11 @@ effects that move bytes in and out.
   One parallel pass opens and reads every file; big files are mapped read-only
   into a zone of their own (the array *is* the page cache); one `write` prints
   everything.
-- **Any size** ([ADR 0004](adr/0004-big-files-and-the-gpu.md)). Files past
-  1 GiB are 1 GiB segments, each a complete BLAKE3 subtree, hashed in parallel
-  and merged as parents: up to 4 TiB.
+- **Any size** ([ADR 0004](adr/0004-big-files-and-the-gpu.md),
+  [0014](adr/0014-files-past-4-tib.md)). Files past 1 GiB are 1 GiB segments,
+  each a complete BLAKE3 subtree, hashed in parallel and merged as parents;
+  each segment carries its chunk counter's high word, so files go past 4 TiB
+  (2^32 chunks), as BLAKE3 does.
 - **SSD speed for files not in RAM** ([ADR 0009](adr/0009-streaming-uncached-files-and-gpu-daemon.md)).
   Page faults read the SSD 16 KiB at a time; a file mostly not in the page
   cache streams instead, 1 GiB at a time, read by 16 `F_NOCACHE` threads into

@@ -61,13 +61,16 @@ def Laws.kat.g4.len4096():
 def Laws.kat.segs.len2048():
   {==}
 
+def Laws.kat.span.hi():
+  {==}
+
 # The 8-lane path
 # ---------------
 #
 # Proven in proof/cpu.bend, which the CPU tree's proof builds on.
 
-def Laws.compress8.lane(l, cv, m, ctr, step, blen, flags):
-  C.compress8.lane(l, cv, m, ctr, step, blen, flags)
+def Laws.compress8.lane(l, cv, m, ctr, step, hi, blen, flags):
+  C.compress8.lane(l, cv, m, ctr, step, blen, flags, hi)
 
 def Laws.par8.lane(l, x, y):
   C.par8.lane(l, x, y)
@@ -92,25 +95,25 @@ def Laws.consts.flags():
 def Laws.share.fork(a):
   C.clone.dup(a)
 
-def Laws.cpu.at(a, cb, nch, last, rf):
-  C.cpu.at(a, cb, nch, last, rf)
+def Laws.cpu.at(a, cb, hi, nch, last, rf):
+  C.cpu.at(a, cb, nch, last, rf, hi)
 
 def Laws.cpu.hash(a, len):
-  C.cpu.at(a, 0, B3.chunks(len), B3.tail(len, B3.chunks(len)), B3.ROOT())
+  C.cpu.at(a, 0, B3.chunks(len), B3.tail(len, B3.chunks(len)), B3.ROOT(), 0)
 
 # The GPU tree
 # ------------
 #
 # Proven in proof/gpu.bend.
 
-def Laws.gpu.at(a, cb, nch, last, rf):
-  G.gpu.at(a, cb, nch, last, rf)
+def Laws.gpu.at(a, cb, hi, nch, last, rf):
+  G.gpu.at(a, cb, nch, last, rf, hi)
 
 def Laws.gpu.hash(a, len):
-  G.gpu.at(a, 0, B3.chunks(len), B3.tail(len, B3.chunks(len)), B3.ROOT())
+  G.gpu.at(a, 0, B3.chunks(len), B3.tail(len, B3.chunks(len)), B3.ROOT(), 0)
 
-def Laws.keyed.at(a, cb, nch, last, rf, key, kf):
-  K.keyed.at(a, cb, nch, last, rf, key, kf)
+def Laws.keyed.at(a, cb, hi, nch, last, rf, key, kf):
+  K.keyed.at(a, cb, hi, nch, last, rf, key, kf)
 
 # Outboards
 # ---------
@@ -157,13 +160,14 @@ law tree8o.eta:
   for +c: U32
   for +n: U32
   for +cb: U32
+  for +hi: U32
   for +nch: U32
   for +last: U32
   for +rf: U32
-  {(B3.tree8(~Laws.share, k, ku, d, aa, c, n, cb, nch, last, rf), Pair.snd(B3.CV, B3.OB, B3.tree8o(~Laws.share, k, ku, d, aa, c, n, cb, nch, last, rf))) ==
-    B3.tree8o(~Laws.share, k, ku, d, aa, c, n, cb, nch, last, rf) : B3.CV & B3.OB}
+  {(B3.tree8(~Laws.share, k, ku, d, aa, c, n, cb, hi, nch, last, rf), Pair.snd(B3.CV, B3.OB, B3.tree8o(~Laws.share, k, ku, d, aa, c, n, cb, hi, nch, last, rf))) ==
+    B3.tree8o(~Laws.share, k, ku, d, aa, c, n, cb, hi, nch, last, rf) : B3.CV & B3.OB}
 
-def tree8o.eta(k, ku, d, aa, c, n, cb, nch, last, rf):
+def tree8o.eta(k, ku, d, aa, c, n, cb, hi, nch, last, rf):
   match k d:
     case 0n _:
       match aa:
@@ -171,11 +175,11 @@ def tree8o.eta(k, ku, d, aa, c, n, cb, nch, last, rf):
           {==}
     case 1n+p B3.Down{}:
       tree8o.eta(p, (ku - 1 : U32), B3.kind((ku - 1 : U32), n, c, nch, last), aa, c, n,
-        cb, nch, last, rf)
+        cb, hi, nch, last, rf)
     case 1n+p B3.Leaf32{}:
       match aa:
         case (a1, a2):
-          fin.eta(B3.leaf32.s0(B3.group(a1, c, (cb + c : U32)), c, (cb + c : U32)), rf)
+          fin.eta(B3.leaf32.s0(B3.group(a1, c, (cb + c : U32), hi), c, (cb + c : U32), hi), rf)
     case 1n+p B3.Leaf8{}:
       match aa:
         case (a1, a2):
@@ -187,46 +191,47 @@ def tree8o.eta(k, ku, d, aa, c, n, cb, nch, last, rf):
           +h = U32.shln(1, p)
           +n2 = (n - h : U32)
           +c2 = (c + h : U32)
-          %tree8o.eta(p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, nch, last, 0) :
-            {(B3.parent(B3.tree8(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, nch, last, 0), B3.tree8(~Laws.share, p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, nch, last, 0), rf), Pair.snd(B3.CV, B3.OB, B3.join.o(_, B3.tree8o(~Laws.share, p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, nch, last, 0), rf,
-              U32.is_ge(ku, 5)))) == B3.join.o(_, B3.tree8o(~Laws.share, p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, nch, last, 0), rf, U32.is_ge(ku, 5)) :
+          %tree8o.eta(p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, hi, nch, last, 0) :
+            {(B3.parent(B3.tree8(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, hi, nch, last, 0), B3.tree8(~Laws.share, p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, hi, nch, last, 0), rf), Pair.snd(B3.CV, B3.OB, B3.join.o(_, B3.tree8o(~Laws.share, p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, hi, nch, last, 0), rf,
+              U32.is_ge(ku, 5)))) == B3.join.o(_, B3.tree8o(~Laws.share, p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, hi, nch, last, 0), rf, U32.is_ge(ku, 5)) :
               B3.CV & B3.OB}
-          %tree8o.eta(p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, nch, last, 0) :
-            {(B3.parent(B3.tree8(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, nch, last, 0), B3.tree8(~Laws.share, p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, nch, last, 0), rf), Pair.snd(B3.CV, B3.OB, B3.join.o((B3.tree8(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, nch, last, 0),
-              Pair.snd(B3.CV, B3.OB, B3.tree8o(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, nch, last, 0))), _, rf, U32.is_ge(ku, 5)))) ==
-              B3.join.o((B3.tree8(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, nch, last, 0), Pair.snd(B3.CV, B3.OB, B3.tree8o(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, nch, last, 0))), _, rf, U32.is_ge(ku, 5)) :
+          %tree8o.eta(p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, hi, nch, last, 0) :
+            {(B3.parent(B3.tree8(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, hi, nch, last, 0), B3.tree8(~Laws.share, p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, hi, nch, last, 0), rf), Pair.snd(B3.CV, B3.OB, B3.join.o((B3.tree8(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, hi, nch, last, 0),
+              Pair.snd(B3.CV, B3.OB, B3.tree8o(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, hi, nch, last, 0))), _, rf, U32.is_ge(ku, 5)))) ==
+              B3.join.o((B3.tree8(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, hi, nch, last, 0), Pair.snd(B3.CV, B3.OB, B3.tree8o(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, hi, nch, last, 0))), _, rf, U32.is_ge(ku, 5)) :
               B3.CV & B3.OB}
-          pick.eta(U32.is_ge(ku, 5), B3.tree8(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, nch, last, 0), B3.tree8(~Laws.share, p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, nch, last, 0), Pair.snd(B3.CV, B3.OB, B3.tree8o(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, nch, last, 0)),
-            Pair.snd(B3.CV, B3.OB, B3.tree8o(~Laws.share, p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, nch, last, 0)), rf)
+          pick.eta(U32.is_ge(ku, 5), B3.tree8(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, hi, nch, last, 0), B3.tree8(~Laws.share, p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, hi, nch, last, 0), Pair.snd(B3.CV, B3.OB, B3.tree8o(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, hi, nch, last, 0)),
+            Pair.snd(B3.CV, B3.OB, B3.tree8o(~Laws.share, p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, hi, nch, last, 0)), rf)
 
 law ob.go:
   for +k: Nat
   for a: Array<U32>
   for +cb: U32
+  for +hi: U32
   for +nch: U32
   for +last: U32
   for +rf: U32
-  {Pair.fst(B3.CV, B3.OB, B3.hash.ob.go(~Laws.share, k, a, cb, nch, last, rf)) ==
-    B3.hash.go(~Laws.share, k, a, cb, nch, last, rf) : B3.CV}
+  {Pair.fst(B3.CV, B3.OB, B3.hash.ob.go(~Laws.share, k, a, cb, hi, nch, last, rf)) ==
+    B3.hash.go(~Laws.share, k, a, cb, hi, nch, last, rf) : B3.CV}
 
-def ob.go(k, a, cb, nch, last, rf):
+def ob.go(k, a, cb, hi, nch, last, rf):
   match k:
     case 0n:
       {==}
     case 1n+p:
       +ku = U32.from_nat(1n+p)
       +d = B3.kind(ku, nch, 0, nch, last)
-      Equal.sym(B3.CV, B3.tree8(~Laws.share, 1n+p, ku, d, Laws.share(a), 0, nch, cb, nch, last, rf), Pair.fst(B3.CV, B3.OB, B3.tree8o(~Laws.share, 1n+p, ku, d, Laws.share(a), 0, nch, cb, nch, last, rf)),
+      Equal.sym(B3.CV, B3.tree8(~Laws.share, 1n+p, ku, d, Laws.share(a), 0, nch, cb, hi, nch, last, rf), Pair.fst(B3.CV, B3.OB, B3.tree8o(~Laws.share, 1n+p, ku, d, Laws.share(a), 0, nch, cb, hi, nch, last, rf)),
         Equal.cong(B3.CV & B3.OB, B3.CV, x => Pair.fst(B3.CV, B3.OB, x),
-          (B3.tree8(~Laws.share, 1n+p, ku, d, Laws.share(a), 0, nch, cb, nch, last, rf), Pair.snd(B3.CV, B3.OB, B3.tree8o(~Laws.share, 1n+p, ku, d, Laws.share(a), 0, nch, cb, nch, last, rf))), B3.tree8o(~Laws.share, 1n+p, ku, d, Laws.share(a), 0, nch, cb, nch, last, rf),
-          tree8o.eta(1n+p, ku, d, Laws.share(a), 0, nch, cb, nch, last, rf)))
+          (B3.tree8(~Laws.share, 1n+p, ku, d, Laws.share(a), 0, nch, cb, hi, nch, last, rf), Pair.snd(B3.CV, B3.OB, B3.tree8o(~Laws.share, 1n+p, ku, d, Laws.share(a), 0, nch, cb, hi, nch, last, rf))), B3.tree8o(~Laws.share, 1n+p, ku, d, Laws.share(a), 0, nch, cb, hi, nch, last, rf),
+          tree8o.eta(1n+p, ku, d, Laws.share(a), 0, nch, cb, hi, nch, last, rf)))
 
 def Laws.ob.hash(a, len):
-  ob.go(B3.depth(B3.chunks(len)), a, 0, B3.chunks(len), B3.tail(len, B3.chunks(len)),
+  ob.go(B3.depth(B3.chunks(len)), a, 0, 0, B3.chunks(len), B3.tail(len, B3.chunks(len)),
     B3.ROOT())
 
-def Laws.ob.at(a, cb, nch, last, rf):
-  ob.go(B3.depth(nch), a, cb, nch, last, rf)
+def Laws.ob.at(a, cb, hi, nch, last, rf):
+  ob.go(B3.depth(nch), a, cb, hi, nch, last, rf)
 
 # Tree shapes
 # -----------
@@ -424,17 +429,17 @@ def Laws.levels.root(k, r, e):
 def Laws.tree1.digits(k, r, e):
   S.t1d(k, r, e, Laws.big(k, 1n+r), {==})
 
-def Laws.ref.spec(a, cb, nch, last, rf):
-  S.ref.spec(a, cb, nch, last, rf)
+def Laws.ref.spec(a, cb, hi, nch, last, rf):
+  S.ref.spec(a, cb, nch, last, rf, hi)
 
-def Laws.cpu.spec(a, cb, nch, last, rf):
-  S.cpu.spec(a, cb, nch, last, rf)
+def Laws.cpu.spec(a, cb, hi, nch, last, rf):
+  S.cpu.spec(a, cb, nch, last, rf, hi)
 
-def Laws.gpu.spec(a, cb, nch, last, rf):
-  S.gpu.spec(a, cb, nch, last, rf)
+def Laws.gpu.spec(a, cb, hi, nch, last, rf):
+  S.gpu.spec(a, cb, nch, last, rf, hi)
 
-def Laws.keyed.spec(a, cb, nch, last, rf, key, kf):
-  K.keyed.spec(a, cb, nch, last, rf, key, kf)
+def Laws.keyed.spec(a, cb, hi, nch, last, rf, key, kf):
+  K.keyed.spec(a, cb, hi, nch, last, rf, key, kf)
 
 
 # Counts

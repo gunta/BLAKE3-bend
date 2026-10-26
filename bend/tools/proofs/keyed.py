@@ -264,20 +264,20 @@ def par.ref.k(l: Laws.Lane, +x: B3.CV8, +y: B3.CV8, +key: B3.CV, +kf: U32) -> B3
 ''' + "".join(f"    case Laws.L{l}{{}}:\n      B3.parent.k(Laws.cv.at(Laws.L{2 * (l % 4)}{{}}, {'x' if l < 4 else 'y'}), "
               f"Laws.cv.at(Laws.L{2 * (l % 4) + 1}{{}}, {'x' if l < 4 else 'y'}), 0, key, kf)\n" for l in range(8)) + '''
 # The scalar keyed tree over a span, at depth k (Laws.ref.go's twin).
-def ref.go.k(+k: Nat, a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32, +key: B3.CV, +kf: U32) -> B3.CV:
+def ref.go.k(+k: Nat, a: Array<U32>, +cb: U32, +hi: U32, +nch: U32, +last: U32, +rf: U32, +key: B3.CV, +kf: U32) -> B3.CV:
   match k:
     case 0n:
-      B3.chunk.k(a, 0, cb, nch, last, rf, key, kf)
+      B3.chunk.k(a, 0, cb, hi, nch, last, rf, key, kf)
     case 1n+p:
-      B3.tree1.k(~Laws.share, 1n+p, B3.big(1n+p, nch), Laws.share(a), 0, nch, cb, nch, last, rf, key, kf)
+      B3.tree1.k(~Laws.share, 1n+p, B3.big(1n+p, nch), Laws.share(a), 0, nch, cb, hi, nch, last, rf, key, kf)
 
-def ref.at.k(a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32, +key: B3.CV, +kf: U32) -> B3.CV:
-  ref.go.k(B3.depth(nch), a, cb, nch, last, rf, key, kf)
+def ref.at.k(a: Array<U32>, +cb: U32, +hi: U32, +nch: U32, +last: U32, +rf: U32, +key: B3.CV, +kf: U32) -> B3.CV:
+  ref.go.k(B3.depth(nch), a, cb, hi, nch, last, rf, key, kf)
 '''
 
 
 def top():
-    span = "cb, nch, last, rf"
+    span = "cb, hi, nch, last, rf"
     h8 = lambda a, key: f"B3.hash8.at.k(~Laws.share, {a}, {span}, {key}, kf)"
     hk = lambda a, key: f"B3.hash.at.k(~Laws.share, {a}, {span}, {key}, kf)"
     rg = lambda a, key, k="B3.depth(nch)": f"ref.go.k({k}, {a}, {span}, {key}, kf)"
@@ -289,6 +289,7 @@ law ref.hash.k:
   for +k: Nat
   for a: Array<U32>
   for +cb: U32
+  for +hi: U32
   for +nch: U32
   for +last: U32
   for +rf: U32
@@ -296,7 +297,7 @@ law ref.hash.k:
   for +kf: U32
   {{{rg('a', 'key', 'k')} == B3.tree1.k(~Laws.share, k, B3.big(k, nch), Laws.share(a), 0, nch, {span}, key, kf) : B3.CV}}
 
-def ref.hash.k(k, a, cb, nch, last, rf, key, kf):
+def ref.hash.k(k, a, cb, hi, nch, last, rf, key, kf):
   match k:
     case 0n:
       %Equal.sym(Array<U32> & Array<U32>, Array.clone(U32, a), (a, a), C.clone.dup(a)) :
@@ -306,7 +307,7 @@ def ref.hash.k(k, a, cb, nch, last, rf, key, kf):
       _ = a
       {{==}}
 
-def keyed.at.h(-a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32, +key: B3.CV, +kf: U32, w: C.Wits(a, 2n)) -> {goal}:
+def keyed.at.h(-a: Array<U32>, +cb: U32, +hi: U32, +nch: U32, +last: U32, +rf: U32, +key: B3.CV, +kf: U32, w: C.Wits(a, 2n)) -> {goal}:
   match key:
     case B3.CV{{{", ".join(KEYW)}}}:
       match w:
@@ -319,7 +320,7 @@ def keyed.at.h(-a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32, +key: 
                     case (+ez20, w2b):
                       _ = w2b
                       Equal.trans(B3.CV, {h8('a', KEY)}, {rg('a', KEY)}, {hk('a', KEY)},
-                        C.tr(arr => {{{h8('arr', KEY)} == {rg('arr', KEY)} : B3.CV}}, z1, a, ez10, cpu.at(z1, {span}, {", ".join(EXTRA)})),
+                        C.tr(arr => {{{h8('arr', KEY)} == {rg('arr', KEY)} : B3.CV}}, z1, a, ez10, cpu.at(z1, cb, nch, last, rf, hi, {", ".join(EXTRA)})),
                         C.tr(arr => {{{rg('arr', KEY)} == {hk('arr', KEY)} : B3.CV}}, z2, a, ez20, ref.hash.k(B3.depth(nch), z2, {span}, {KEY}, kf)))
 
 # The CPU's keyed tree is the scalar keyed tree, for every array, span, key
@@ -327,6 +328,7 @@ def keyed.at.h(-a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32, +key: 
 law keyed.at:
   for a: Array<U32>
   for +cb: U32
+  for +hi: U32
   for +nch: U32
   for +last: U32
   for +rf: U32
@@ -334,8 +336,8 @@ law keyed.at:
   for +kf: U32
   {goal}
 
-def keyed.at(a, cb, nch, last, rf, key, kf):
-  keyed.at.h(a, cb, nch, last, rf, key, kf, C.wits(1n, a))
+def keyed.at(a, cb, hi, nch, last, rf, key, kf):
+  keyed.at.h(a, cb, hi, nch, last, rf, key, kf, C.wits(1n, a))
 '''
 
 
@@ -345,18 +347,19 @@ SPEC_TOP = f'''
 law keyed.spec:
   for a: Array<U32>
   for +cb: U32
+  for +hi: U32
   for +nch: U32
   for +last: U32
   for +rf: U32
   for +key: B3.CV
   for +kf: U32
-  {{B3.hash8.at.k(~Laws.share, a, cb, nch, last, rf, key, kf) ==
-    Laws.ev.k(Laws.tree(Laws.digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), Laws.share(a), 0, cb, nch, last, rf, key, kf) : B3.CV}}
+  {{B3.hash8.at.k(~Laws.share, a, cb, hi, nch, last, rf, key, kf) ==
+    Laws.ev.k(Laws.tree(Laws.digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), Laws.share(a), 0, cb, hi, nch, last, rf, key, kf) : B3.CV}}
 
-def keyed.spec(a, cb, nch, last, rf, key, kf):
+def keyed.spec(a, cb, hi, nch, last, rf, key, kf):
   match key:
     case B3.CV{{{", ".join(KEYW)}}}:
-      cpu.spec(a, cb, nch, last, rf, {", ".join(EXTRA)})
+      cpu.spec(a, cb, nch, last, rf, hi, {", ".join(EXTRA)})
 '''
 
 

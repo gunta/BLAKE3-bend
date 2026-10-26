@@ -59,7 +59,7 @@ const GROUPS: (Omit<LawGroup, 'cards'> & { cards: LawCard[] })[] = [
         names: ['compress8.lane'],
         claim:
           'Each of the eight lanes of compress8, the vectorized kernel that hashes the CPU tree’s full 8- and 32-chunk groups, is the scalar compression of that lane: no lane reads another lane’s words, the wrong message word in any round, or the wrong counter.',
-        covers: 'every CV, block, counter and flag set: 2^6,275 inputs',
+        covers: 'every CV, block, 64-bit counter and flag set: 2^6,307 inputs',
       },
       {
         names: ['par8.lane'],
@@ -76,7 +76,7 @@ const GROUPS: (Omit<LawGroup, 'cards'> & { cards: LawCard[] })[] = [
         names: ['cpu.at', 'cpu.hash'],
         claim:
           'The CPU tree b3sum runs (eight chunks at once through compress8, 32-chunk leaves, node kinds from a U32 copy of the depth) is blake3.bend’s plain scalar tree, one chunk at a time: the same CV, bit for bit.',
-        covers: 'every array, every span: any counter base, chunk count, last-chunk length and root flag',
+        covers: 'every array, every span: any 64-bit chunk counter, chunk count, last-chunk length and root flag',
       },
       {
         names: ['gpu.at', 'gpu.hash'],
@@ -155,8 +155,8 @@ const GROUPS: (Omit<LawGroup, 'cards'> & { cards: LawCard[] })[] = [
       {
         names: ['kat.*'],
         claim:
-          'The official test vectors, through the CPU tree, the GPU tree, a GPU flat leaf, and two spans merged by a ROOT parent as b3sum merges a big file’s parts.',
-        covers: '13 vectors, 0 to 8,193 bytes',
+          'The official test vectors, through the CPU tree, the GPU tree, a GPU flat leaf, and two spans merged by a ROOT parent as b3sum merges a big file’s parts; and a chunk at 4 TiB, past 32-bit counters, against the official crate.',
+        covers: '13 vectors, 0 to 8,193 bytes, and one span at 4 TiB',
       },
       {
         names: ['consts.iv', 'consts.flags'],

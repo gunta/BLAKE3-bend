@@ -15,7 +15,7 @@ import ./stack.bend as St
 # The 1 GiB parts of a big file, in BLAKE3's left-full shape: a leaf is a
 # span (see blake3.bend's hash.at) of 2^20 chunks, or fewer for the last.
 type Segs is Type:
-  SLeaf{arr: Array<U32>, cb: U32, nch: U32, last: U32}
+  SLeaf{arr: Array<U32>, cb: U32, hi: U32, nch: U32, last: U32}
   SNode{l: Segs, r: Segs}
 
 type Files is Type:
@@ -35,7 +35,7 @@ type Out is Data:
 
 # One segment of a streamed file: a span (see blake3.bend's hash.at).
 type Part is Type:
-  Part{arr: Array<U32>, cb: U32, nch: U32, last: U32}
+  Part{arr: Array<U32>, cb: U32, hi: U32, nch: U32, last: U32}
 
 # Segment k of stream id, once read; the read of k + 1 starts at once.
 def B3IO.seg(id: U32, k: U32) -> IO(Part):
@@ -118,8 +118,8 @@ def B3IO.ob_fold(o: Obo) -> IO(U32):
 # last, and merge as BLAKE3's parents; only the top one is the root.
 def segs(s: Segs, +rf: U32) -> B3.CV:
   match s:
-    case SLeaf{a, cb, nch, last}:
-      H.hash.at(a, cb, nch, last, rf)
+    case SLeaf{a, cb, hi, nch, last}:
+      H.hash.at(a, cb, hi, nch, last, rf)
     case SNode{l, r}:
       x y = segs(l, 0) segs(r, 0)
       B3.parent(x, y, rf)
@@ -144,8 +144,8 @@ def hash(t: Files) -> Out:
 
 def segs.o(s: Segs, +rf: U32) -> B3.CV & B3.OB:
   match s:
-    case SLeaf{a, cb, nch, last}:
-      H.hash.ob.at(a, cb, nch, last, rf)
+    case SLeaf{a, cb, hi, nch, last}:
+      H.hash.ob.at(a, cb, hi, nch, last, rf)
     case SNode{l, r}:
       x y = segs.o(l, 0) segs.o(r, 0)
       B3.join.o(x, y, rf, True{})
@@ -176,8 +176,8 @@ def hash_ob(t: Files) -> Obo:
 # (hashg!), from a pure def: the whole tree runs on the GPU.
 def segs.g(s: Segs, +rf: U32) -> B3.CV:
   match s:
-    case SLeaf{a, cb, nch, last}:
-      H.hash1.at(a, cb, nch, last, rf)
+    case SLeaf{a, cb, hi, nch, last}:
+      H.hash1.at(a, cb, hi, nch, last, rf)
     case SNode{l, r}:
       x y = segs.g(l, 0) segs.g(r, 0)
       B3.parent(x, y, rf)
@@ -205,8 +205,8 @@ def hashg(t: Files) -> Out:
 
 def part.cv(p: Part, +rf: U32) -> B3.CV:
   match p:
-    case Part{a, cb, nch, last}:
-      H.hash.at(a, cb, nch, last, rf)
+    case Part{a, cb, hi, nch, last}:
+      H.hash.at(a, cb, hi, nch, last, rf)
 
 # Segment k of stream id, read and hashed: stk.go's reads.
 def stream.seg(id: U32, k: U32) -> IO(B3.CV):

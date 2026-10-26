@@ -65,6 +65,28 @@ pub fn hash_files(paths: &[&Path]) -> Option<Vec<io::Result<Hash>>> {
     }
 }
 
+/// Whether the file at `path` is mostly in the page cache, sampled as
+/// [`hash_files`] samples it, without starting the engine: `Some(false)` for
+/// a file mostly on disk (which `hash_files` streams), `None` when this
+/// build has no engine or the path is not a readable regular file.
+pub fn cached(path: &Path) -> Option<bool> {
+    #[cfg(all(blake3_bend, unix))]
+    {
+        use std::os::unix::ffi::OsStrExt;
+        let c = std::ffi::CString::new(path.as_os_str().as_bytes()).ok()?;
+        match unsafe { engine::b3e_cached(c.as_ptr()) } {
+            1 => Some(true),
+            0 => Some(false),
+            _ => None,
+        }
+    }
+    #[cfg(not(all(blake3_bend, unix)))]
+    {
+        let _ = path;
+        None
+    }
+}
+
 #[cfg(blake3_bend)]
 pub(crate) use engine::subtree;
 
@@ -88,11 +110,15 @@ unsafe extern "C" {
         out: *mut [u8; 32],
     ) -> i32;
     fn b3e_inside(p: *const u8, len: u64) -> i32;
+    fn b3e_start() -> i32;
+    fn b3e_window() -> Option<core::ptr::NonNull<u8>>;
     pub(super) fn b3e_files(n: u32, paths: *const *const core::ffi::c_char, out: *mut [u8; 32], err: *mut i32) -> i32;
+    pub(super) fn b3e_cached(path: *const core::ffi::c_char) -> i32;
 }
 
 const SPAN_MAX: usize = 1 << 30;
 const SPAN_COPY: usize = 64 << 20;
+const RAYON_MAX: usize = 16 << 20;
 const PROBE: usize = 256 * 1024;
 const UNSET: usize = usize::MAX - 1;
 
@@ -191,30 +217,49 @@ fn merge(key: &CVWords, flags: u8, cvs: &[[u8; 32]], platform: Platform) -> [u8;
 
 /// The two child CVs of `input` (2+ chunks, any length) as a subtree from
 /// `chunk_counter`, hashed by the engine; `None` when upstream's code should
-/// hash it (too small to beat the trip, or no engine).
+/// hash it (too small to beat the trip, no engine, or a rayon caller whose
+/// input the engine would have to copy).
 pub(crate) fn subtree(
     input: &[u8],
     key: &CVWords,
     chunk_counter: u64,
     flags: u8,
     platform: Platform,
+    rayon: bool,
 ) -> Option<[u8; BLOCK_LEN]> {
     if input.len() <= CHUNK_LEN || input.len() < min_len(input, platform) {
         return None;
     }
-    let chunks = input.len().div_ceil(CHUNK_LEN) as u64;
-    // every mode (key and flags); 32-bit chunk counters
-    if chunk_counter + chunks > 1 << 32 {
-        return None;
-    }
     // Spans the engine reads in place are up to 1 GiB; copied ones 64 MiB,
-    // so their copies overlap the hashing of the ones before.
+    // so their copies overlap the hashing of the ones before. Against rayon
+    // on every core the engine wins only reading in place, in the default
+    // mode (its keyed tree runs ~2.3x slower per core), and up to 16 MiB: a
+    // job after the engine has idled pays up to ~1 ms waking it, which
+    // loses 32-64 MiB to rayon. A rayon caller keeps the rest (ADR 0016).
     let left = crate::hazmat::left_subtree_len(input.len() as u64) as usize;
     let whole = input.len() - input.len() % 64;
-    let most = if unsafe { b3e_inside(input.as_ptr(), whole as u64) } != 0 { SPAN_MAX } else { SPAN_COPY };
+    // The window is known once the engine runs, and on macOS before: its
+    // heap goes in the room reserved when the library loaded. Elsewhere a
+    // rayon caller starts the engine to find out (the heap goes near the
+    // first input); on macOS one whose input lies outside never does.
+    let inside = |p: *const u8| unsafe { b3e_inside(p, whole as u64) } != 0;
+    let unknown = unsafe { b3e_window() }.is_none() && !cfg!(target_os = "macos");
+    let inside = inside(input.as_ptr())
+        || (rayon && unknown && unsafe { b3e_start() } == 1 && inside(input.as_ptr()));
+    if rayon && (!inside || flags != 0 || input.len() > RAYON_MAX) {
+        return None;
+    }
+    let most = if inside { SPAN_MAX } else { SPAN_COPY };
     let span = left.min(most);
     let nl = left / span;
     let n = nl + (input.len() - left).div_ceil(span);
+    // Every mode (key and flags), and 64-bit chunk counters: each span keeps
+    // its counter's high word, since a subtree's counter is a multiple of its
+    // size, so spans (powers of two of at most 2^20 chunks) start at multiples
+    // of theirs and none crosses a multiple of 2^32.
+    if chunk_counter % (span / CHUNK_LEN) as u64 != 0 {
+        return None;
+    }
     let mut p = Vec::with_capacity(n);
     let mut len = Vec::with_capacity(n);
     let mut cb = Vec::with_capacity(n);

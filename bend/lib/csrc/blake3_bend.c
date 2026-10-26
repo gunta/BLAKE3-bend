@@ -34,6 +34,10 @@ int b3e_hash_k(uint32_t n, const unsigned char* const* p, const uint64_t* len,
                unsigned char (*out)[32]);
 const void* b3e_window(void);
 int b3e_inside(const void* p, uint64_t len);
+// 1 when the engine takes chunk counters past 2^32 (engine.c). Weak: a
+// prebuilt engine older than it (a Go module's .syso) has none, and then
+// subtrees past 4 TiB stay with the C library.
+int b3e_hi(void) __attribute__((weak));
 
 #define SPAN_MAX (1ull << 30)
 #define SPAN_COPY (64ull << 20)
@@ -147,9 +151,10 @@ int blake3_bend_subtree(const uint8_t* input, size_t input_len, const uint32_t k
   if (input_len <= BLAKE3_CHUNK_LEN || input_len < bend_min(input, input_len)) {
     return 0;
   }
-  // The engine takes every mode (key and flags), and 32-bit chunk counters.
+  // The engine takes every mode (key and flags), and 64-bit chunk counters
+  // if it says so.
   uint64_t chunks = (input_len + BLAKE3_CHUNK_LEN - 1) / BLAKE3_CHUNK_LEN;
-  if (chunk_counter + chunks > (1ull << 32)) {
+  if (chunk_counter + chunks > (1ull << 32) && (b3e_hi == NULL || !b3e_hi())) {
     return 0;
   }
   // The two children: below a span, one span each; past it, the left is
@@ -160,7 +165,10 @@ int blake3_bend_subtree(const uint8_t* input, size_t input_len, const uint32_t k
   uint64_t most = b3e_inside(input, input_len - input_len % 64) ? SPAN_MAX : SPAN_COPY;
   uint64_t span = left < most ? left : most;
   uint64_t nl = left / span, n = nl + (input_len - left + span - 1) / span;
-  if (n > 1u << 16) {
+  // Each span keeps its counter's high word: a subtree's counter is a
+  // multiple of its size, so spans (powers of two of at most 2^20 chunks)
+  // start at multiples of theirs and none crosses a multiple of 2^32.
+  if (n > 1u << 16 || chunk_counter % (span / BLAKE3_CHUNK_LEN) != 0) {
     return 0;
   }
   const unsigned char** p = malloc(n * sizeof *p);

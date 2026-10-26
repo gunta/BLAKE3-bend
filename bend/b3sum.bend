@@ -1,7 +1,7 @@
 # b3sum in Bend2
 # ==============
 #
-# usage: b3sum [FILE]...   (any size up to 4 TiB; none, or "-", is stdin)
+# usage: b3sum [FILE]...   (any size; none, or "-", is stdin)
 # Prints "<hash>  <name>" per file, like the official b3sum. B3IO.load reads
 # every file in parallel into its own Array<U32>; the fork over the Files
 # tree hashes the files in parallel, and each file's BLAKE3 tree is itself

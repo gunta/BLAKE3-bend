@@ -24,7 +24,8 @@ class field is 5 bits).
   takes the largest power of two of parts below the count (`b3_segs`).
 - Bend hashes the parts with a parallel let and merges them with the same
   `parent` (`b3sum.bend:segs`); only the top merge takes ROOT. Chunk
-  counters are U32, so files go to 4 TiB.
+  counters are U32, so files go to 4 TiB. (ADR 0014 adds the counter's
+  high word: files go past 4 TiB.)
 - `test/big.py` checks 13 sparse files, 1 GiB - 1 to 8 GiB + 12345 bytes,
   with random bytes at every segment edge: all match the official b3sum.
   A 5 GiB + 1 byte random file: 0.204 s vs 0.219 s.

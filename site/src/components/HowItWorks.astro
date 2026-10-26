@@ -26,10 +26,40 @@ const curve = (a: { x: number; y: number }, b: { x: number; y: number }) => {
 };
 const root = nodes[3]![0]!;
 
+// The Spread step: the left of the tree on GPU threads, the rest on CPU cores,
+// the shape of the CPU + GPU split (ADR 0011), drawn without its numbers.
+const GPU_LEAVES = 6;
+
 const steps = [
   { n: '01', title: 'Split', body: 'BLAKE3 cuts every file into 1 KiB chunks. Each chunk can be hashed on its own.' },
-  { n: '02', title: 'Spread', body: 'Bend2 hands the chunks to every CPU core at once, eight at a time in SIMD lanes, or to thousands of GPU threads.' },
+  {
+    n: '02',
+    title: 'Spread',
+    body: 'Bend2 hands the chunks to every CPU core at once, eight at a time in SIMD lanes. Hashing in memory, it can give most of one tree to thousands of GPU threads and the rest to the cores, both at once.',
+  },
   { n: '03', title: 'Fold', body: 'Results merge pair by pair up the tree into one root: the fingerprint, identical to the official b3sum.' },
+];
+
+// One tree, three engines, each said where it runs (ADR 0012, 0011, 0013).
+const engines: { marks: ('bend' | 'apple' | 'nvidia')[]; title: string; body: string; where: string }[] = [
+  {
+    marks: ['bend'],
+    title: 'Bend2 on the CPU',
+    body: 'Every core, eight chunks per SIMD call: pure Bend, with C only moving bytes in and out.',
+    where: 'Every turboblake command and library today',
+  },
+  {
+    marks: ['apple', 'nvidia'],
+    title: 'Bend2 on the GPU',
+    body: 'The same Bend source, compiled for Metal and for CUDA, alone or beside the CPU cores on one input.',
+    where: 'Long-running, in-memory hashing',
+  },
+  {
+    marks: ['apple', 'nvidia'],
+    title: 'Native kernels',
+    body: 'Hand-written Metal and CUDA for the same tree, the same fingerprint, taking over where they measure faster.',
+    where: 'The fastest GPU numbers on this page',
+  },
 ];
 ---
 
@@ -40,14 +70,16 @@ const steps = [
       <h2 id="how-title" data-reveal style="--i: 1">BLAKE3 is a tree. <span class="glow">Bend2 runs trees.</span></h2>
       <p data-reveal style="--i: 2">
         The algorithm was always parallel; most tools still feed it one piece at a time. turboblake's engine is written in <a href={BEND_URL}>Bend2</a>,
-        a language that spreads tree-shaped work over every core you have, with no threads or locks in sight.
+        a language that spreads tree-shaped work over every CPU core and GPU thread you have, with no threads or locks in sight.
       </p>
     </header>
 
     <div class="layout" data-how data-stage="0">
       <figure class="tile diagram" data-reveal>
         <svg viewBox={`0 0 ${W} 290`} role="img" aria-labelledby="how-desc" focusable="false">
-          <desc id="how-desc">A file is cut into eight chunks, hashed side by side on four cores, and merged pairwise into one root: the fingerprint.</desc>
+          <desc id="how-desc">
+            A file is cut into eight chunks, hashed side by side, six on GPU threads and two on CPU cores, and merged pairwise into one root: the fingerprint.
+          </desc>
           <defs>
             <linearGradient id="how-heat" x1="0" y1="250" x2="0" y2="30" gradientUnits="userSpaceOnUse">
               <stop offset="0" style="stop-color: var(--ion)" />
@@ -67,13 +99,13 @@ const steps = [
 
           {
             nodes[0]!.map((n, i) => (
-              <g class={`chunk core-${i % 4}`} style={`--i: ${i}`}>
+              <g class={`chunk ${i < GPU_LEAVES ? 'gpu' : 'cpu'}`} style={`--i: ${i}`}>
                 <rect x={n.x - 32} y={n.y - 14} width="64" height="28" rx="7" />
                 <text class="lbl-a" x={n.x} y={n.y + 4}>
                   1 KiB
                 </text>
                 <text class="lbl-b" x={n.x} y={n.y + 4}>
-                  core {(i % 4) + 1}
+                  {i < GPU_LEAVES ? 'GPU' : `core ${i - GPU_LEAVES + 1}`}
                 </text>
               </g>
             ))
@@ -84,6 +116,16 @@ const steps = [
           </g>
           <text class="digest" x={root.x} y={root.y - 26}>{digest.slice(0, 16)}…</text>
         </svg>
+        <figcaption class="legend">
+          <span class="key gpu">
+            <i aria-hidden="true"></i>
+            <span><strong>GPU threads</strong> Bend on Metal or CUDA, or a native kernel</span>
+          </span>
+          <span class="key cpu">
+            <i aria-hidden="true"></i>
+            <span><strong>CPU cores</strong> Bend, eight chunks per SIMD call</span>
+          </span>
+        </figcaption>
       </figure>
 
       <ol class="steps" role="list">
@@ -101,6 +143,23 @@ const steps = [
         }
       </ol>
     </div>
+
+    <ul class="engines" role="list" aria-label="One tree, three engines">
+      {
+        engines.map((e, i) => (
+          <li class="tile engine" data-reveal style={`--i: ${i}`}>
+            <span class="e-marks">
+              {e.marks.map((m) => (
+                <BrandMark name={m} />
+              ))}
+            </span>
+            <span class="t">{e.title}</span>
+            <span class="b">{e.body}</span>
+            <span class="where">{e.where}</span>
+          </li>
+        ))
+      }
+    </ul>
 
     <p class="more" data-reveal>
       <span class="marks">
@@ -270,21 +329,63 @@ const steps = [
     fill: var(--ink);
   }
 
-  [data-stage='1'] .core-0 rect {
+  /* Spread: ion for GPU threads, volt for CPU cores, as in the legend. */
+  [data-stage='1'] .gpu rect {
     fill: rgb(70 227 255 / 0.22);
     stroke: var(--ion);
   }
-  [data-stage='1'] .core-1 rect {
-    fill: rgb(130 240 200 / 0.2);
-    stroke: #82f0c8;
-  }
-  [data-stage='1'] .core-2 rect {
-    fill: rgb(180 250 120 / 0.2);
-    stroke: #b4fa78;
-  }
-  [data-stage='1'] .core-3 rect {
+  [data-stage='1'] .cpu rect {
     fill: rgb(212 255 58 / 0.2);
     stroke: var(--volt);
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem 1.75rem;
+    margin-top: 1.25rem;
+    color: var(--ink-3);
+    font-size: 0.875rem;
+    transition: color var(--t-med) var(--ease-out);
+  }
+
+  .key {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  .key i {
+    flex: none;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 3px;
+    border: 1.5px solid currentColor;
+    transform: translateY(0.05rem);
+  }
+
+  .key.gpu i {
+    color: var(--ion);
+    background: rgb(70 227 255 / 0.22);
+  }
+
+  .key.cpu i {
+    color: var(--volt);
+    background: rgb(212 255 58 / 0.2);
+  }
+
+  .key strong {
+    color: var(--ink-2);
+    font-weight: 600;
+  }
+
+  [data-stage='1'] .legend {
+    color: var(--ink-2);
+  }
+
+  [data-stage='1'] .key strong {
+    color: var(--ink);
   }
 
   @media (prefers-reduced-motion: no-preference) {
@@ -409,6 +510,46 @@ const steps = [
     to {
       transform: scaleX(1);
     }
+  }
+
+  /* One tree, three engines */
+  .engines {
+    display: grid;
+    gap: 1rem;
+    margin: 1rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 48rem) {
+    .engines {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .engine {
+    gap: 0.4rem;
+  }
+
+  .e-marks {
+    display: inline-flex;
+    gap: 0.6rem;
+    margin-bottom: 0.25rem;
+    color: var(--ink);
+    font-size: 1.25rem;
+  }
+
+  .engine .t {
+    font-size: 1.125rem;
+  }
+
+  .where {
+    margin-top: auto;
+    padding-top: 0.5rem;
+    color: var(--ion);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
   }
 
   .more {

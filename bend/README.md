@@ -48,7 +48,7 @@ for comparison: `cargo build --release --features neon` in `../b3sum`.
 ## Laws
 
 `LAWS.bend` states what the code must satisfy and `PROOF.bend` proves it
-(ADRs 0007, 0010 and 0015): 39 laws, 412 lemmas. The gate, under four
+(ADRs 0007, 0010, 0014 and 0015): 40 laws, 412 lemmas. The gate, about four
 minutes, most of it the checker computing BLAKE3 itself:
 
 ```bash
@@ -66,8 +66,9 @@ It prints ALL PROOFS CHECK when every law holds:
 - **The trees that run, for every input**: the CPU's 8-lane tree
   (`hash.at`, `hash`), the GPU's tree (`hash1.at`, `hash1`: flat leaves and
   strided lanes) and the keyed tree (`hash8.at.k`, keyed hashing and key
-  derivation) give blake3.bend's scalar tree's CV for every array and span
-  (and key and mode flag), and that tree is BLAKE3's: the left-full binary
+  derivation) give blake3.bend's scalar tree's CV for every array and span,
+  both words of its chunk counter included (and every key and mode flag),
+  and that tree is BLAKE3's: the left-full binary
   tree over the chunks, each leaf a chunk and each node a parent.
 - **Outboards, for every input**: the tree that writes iroh's bao outboard
   (`hash.ob`, `hash.ob.at`) gives the plain tree's CV for every array,

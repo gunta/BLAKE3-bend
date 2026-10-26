@@ -7,13 +7,15 @@
 # proves every one, and `bend PROOF.bend` is the gate: ALL PROOFS CHECK.
 #
 # - Known answers: the official test vectors, computed by the checker itself
-#   through the defs that run (the CPU tree, the GPU tree, a GPU leaf, and a
-#   span with a chunk-counter base, as b3sum hashes a big file's parts).
+#   through the defs that run (the CPU tree, the GPU tree, a GPU leaf, and
+#   spans with a chunk-counter base, as b3sum hashes a big file's parts: one
+#   past 4 TiB, whose counter has a high word).
 # - The 8-lane path: for every input, each lane of compress8 and of par8 is
-#   the scalar compress or parent of that lane.
-# - The CPU tree: for every array and every span, H.hash's 8-lane tree is
-#   blake3.bend's scalar tree (tree1, one chunk at a time), and the laws'
-#   copy of the input (share) is Array.fork's own body.
+#   the scalar compress or parent of that lane (both counter words too).
+# - The CPU tree: for every array and every span (both words of its chunk
+#   counter), H.hash's 8-lane tree is blake3.bend's scalar tree (tree1, one
+#   chunk at a time), and the laws' copy of the input (share) is
+#   Array.fork's own body.
 # - The GPU tree: for every array and every span, hash1's tree (flat 4-,
 #   16- and 64-chunk leaves, strided lanes for bigger subtrees) is the
 #   scalar tree too.
@@ -122,16 +124,23 @@ law kat.hash1.len2049:
 # are the same generated code one and two levels up); with ROOT it is
 # the whole 4096-byte input.
 law kat.g4.len4096:
-  {B3.hex(B3.g.fin(B3.g4(vec(4096), 0, 0, B3.ROOT()))) ==
+  {B3.hex(B3.g.fin(B3.g4(vec(4096), 0, 0, 0, B3.ROOT()))) ==
     "015094013f57a5277b59d8475c0501042c0b642e531b0a1c8f58d2163229e969" : String}
 
 # Two spans of one chunk each, the second with counter base 1, merged
 # by a ROOT parent: how b3sum hashes a big file's parts (b3io.bend's
 # segs), here with one-chunk parts. See the law `segments` below.
 law kat.segs.len2048:
-  {B3.hex(B3.parent(B3.hash.at(~share, vec.fill(8n, 0, 2048), 0, 1, 1024, 0),
-    B3.hash.at(~share, vec.fill(8n, 256, 2048), 1, 1, 1024, 0), B3.ROOT())) ==
+  {B3.hex(B3.parent(B3.hash.at(~share, vec.fill(8n, 0, 2048), 0, 0, 1, 1024, 0),
+    B3.hash.at(~share, vec.fill(8n, 256, 2048), 1, 0, 1, 1024, 0), B3.ROOT())) ==
     "e776b6028c7cd22a4d0ba182a8bf62205d2ef576467e838ed6f2529b85fba24a" : String}
+
+# A span past 4 TiB: one chunk (the vector input's first 1024 bytes) at
+# chunk counter 2^32, its high word 1, as b3sum hashes a file's parts
+# past 4 TiB. The official crate's CV for that subtree (test/hiref).
+law kat.span.hi:
+  {B3.hex(B3.hash.at(~share, vec.fill(8n, 0, 1024), 0, 1, 1, 1024, 0)) ==
+    "914cde8216c9ee1db824ab6305d66ae92c1ceadf92189229a0f815a6190ee791" : String}
 
 # The 8-lane path
 # ---------------
@@ -238,11 +247,12 @@ law compress8.lane:
   for +m: B3.B128
   for +ctr: U32
   for +step: U32
+  for +hi: U32
   for +blen: U32
   for +flags: U32
-  {cv.at(l, B3.compress8(cv, m, ctr, step, blen, flags)) ==
+  {cv.at(l, B3.compress8(cv, m, ctr, step, hi, blen, flags)) ==
     B3.compress(cv.at(l, cv), m.at(l, m), (ctr + (step * Lane.u32(l) : U32) : U32),
-      0, blen, flags) : B3.CV}
+      hi, blen, flags) : B3.CV}
 
 law par8.lane:
   for +l: Lane
@@ -308,24 +318,24 @@ law consts.flags:
 # chunk chained block by block through compress, one at a time. H.hash runs
 # tree8 instead: eight chunks at once through compress8, 32-chunk leaves,
 # and node kinds computed from a U32 copy of the depth. For every array and
-# every span (any counter base, chunk count, last chunk's length and root
-# flag) the two give the same CV (proof/cpu.bend).
+# every span (any counter base and high word, chunk count, last chunk's
+# length and root flag) the two give the same CV (proof/cpu.bend).
 
-def ref.go(+k: Nat, a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32) -> B3.CV:
+def ref.go(+k: Nat, a: Array<U32>, +cb: U32, +hi: U32, +nch: U32, +last: U32, +rf: U32) -> B3.CV:
   match k:
     case 0n:
-      B3.chunk(a, 0, cb, nch, last, rf)
+      B3.chunk(a, 0, cb, hi, nch, last, rf)
     case 1n+p:
-      B3.tree1(~share, 1n+p, B3.big(1n+p, nch), share(a), 0, nch, cb, nch, last, rf)
+      B3.tree1(~share, 1n+p, B3.big(1n+p, nch), share(a), 0, nch, cb, hi, nch, last, rf)
 
 # The scalar tree over a span, as hash.at takes it.
-def ref.at(a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32) -> B3.CV:
-  ref.go(B3.depth(nch), a, cb, nch, last, rf)
+def ref.at(a: Array<U32>, +cb: U32, +hi: U32, +nch: U32, +last: U32, +rf: U32) -> B3.CV:
+  ref.go(B3.depth(nch), a, cb, hi, nch, last, rf)
 
 # The scalar tree over a len-byte input, as hash takes it.
 def ref(a: Array<U32>, +len: U32) -> B3.CV:
   +n = B3.chunks(len)
-  ref.at(a, 0, n, B3.tail(len, n), B3.ROOT())
+  ref.at(a, 0, 0, n, B3.tail(len, n), B3.ROOT())
 
 # The laws' copy is Array.fork's own body, (a, a): Base defines Array.fork
 # as `(a, a)` (it is @unsafe because the runtime then shares one buffer).
@@ -336,10 +346,11 @@ law share.fork:
 law cpu.at:
   for a: Array<U32>
   for +cb: U32
+  for +hi: U32
   for +nch: U32
   for +last: U32
   for +rf: U32
-  {B3.hash.at(~share, a, cb, nch, last, rf) == ref.at(a, cb, nch, last, rf) : B3.CV}
+  {B3.hash.at(~share, a, cb, hi, nch, last, rf) == ref.at(a, cb, hi, nch, last, rf) : B3.CV}
 
 law cpu.hash:
   for a: Array<U32>
@@ -357,10 +368,11 @@ law cpu.hash:
 law gpu.at:
   for a: Array<U32>
   for +cb: U32
+  for +hi: U32
   for +nch: U32
   for +last: U32
   for +rf: U32
-  {B3.hash1.at(~share, a, cb, nch, last, rf) == ref.at(a, cb, nch, last, rf) : B3.CV}
+  {B3.hash1.at(~share, a, cb, hi, nch, last, rf) == ref.at(a, cb, hi, nch, last, rf) : B3.CV}
 
 law gpu.hash:
   for a: Array<U32>
@@ -379,12 +391,13 @@ law gpu.hash:
 law keyed.at:
   for a: Array<U32>
   for +cb: U32
+  for +hi: U32
   for +nch: U32
   for +last: U32
   for +rf: U32
   for +key: B3.CV
   for +kf: U32
-  {B3.hash8.at.k(~share, a, cb, nch, last, rf, key, kf) == B3.hash.at.k(~share, a, cb, nch, last, rf, key, kf) : B3.CV}
+  {B3.hash8.at.k(~share, a, cb, hi, nch, last, rf, key, kf) == B3.hash.at.k(~share, a, cb, hi, nch, last, rf, key, kf) : B3.CV}
 
 # Outboards
 # ---------
@@ -404,11 +417,12 @@ law ob.hash:
 law ob.at:
   for a: Array<U32>
   for +cb: U32
+  for +hi: U32
   for +nch: U32
   for +last: U32
   for +rf: U32
-  {Pair.fst(B3.CV, B3.OB, B3.hash.ob.at(~share, a, cb, nch, last, rf)) ==
-    B3.hash.at(~share, a, cb, nch, last, rf) : B3.CV}
+  {Pair.fst(B3.CV, B3.OB, B3.hash.ob.at(~share, a, cb, hi, nch, last, rf)) ==
+    B3.hash.at(~share, a, cb, hi, nch, last, rf) : B3.CV}
 
 # Tree shapes
 # -----------
@@ -636,74 +650,78 @@ law tree.parents:
 # chunk (blake3.bend's chunk), a Fork the parent of its two sides, the
 # right one from c + (the left side's leaf count). Each side takes its own
 # copy of the input (share), as tree1's nodes do.
-def ev(+t: Shape, aa: Array<U32> & Array<U32>, +c: U32, +cb: U32, +nch: U32,
-  +last: U32, +rf: U32) -> B3.CV:
+def ev(+t: Shape, aa: Array<U32> & Array<U32>, +c: U32, +cb: U32, +hi: U32,
+  +nch: U32, +last: U32, +rf: U32) -> B3.CV:
   match t:
     case Tip{}:
       (a1, a2) = aa
       _ = a2
-      B3.chunk(a1, c, cb, nch, last, rf)
+      B3.chunk(a1, c, cb, hi, nch, last, rf)
     case Fork{l, r}:
       (a1, a2) = aa
-      B3.parent(ev(l, share(a1), c, cb, nch, last, 0),
-        ev(r, share(a2), (c + U32.from_nat(tips(l)) : U32), cb, nch, last, 0), rf)
+      B3.parent(ev(l, share(a1), c, cb, hi, nch, last, 0),
+        ev(r, share(a2), (c + U32.from_nat(tips(l)) : U32), cb, hi, nch, last, 0), rf)
 
 # So the tree laws are about the code: for every array and every span, the
 # scalar tree is BLAKE3's tree over the span's chunks, tree(digits) of the
 # last chunk's index, each leaf a chunk and each node a parent
 # (proof/spec.bend)...
 # ev with a key and a mode flag: BLAKE3's keyed and key-derivation modes.
-def ev.k(+t: Shape, aa: Array<U32> & Array<U32>, +c: U32, +cb: U32, +nch: U32,
-  +last: U32, +rf: U32, +key: B3.CV, +kf: U32) -> B3.CV:
+def ev.k(+t: Shape, aa: Array<U32> & Array<U32>, +c: U32, +cb: U32, +hi: U32,
+  +nch: U32, +last: U32, +rf: U32, +key: B3.CV, +kf: U32) -> B3.CV:
   match t:
     case Tip{}:
       (a1, a2) = aa
       _ = a2
-      B3.chunk.k(a1, c, cb, nch, last, rf, key, kf)
+      B3.chunk.k(a1, c, cb, hi, nch, last, rf, key, kf)
     case Fork{l, r}:
       (a1, a2) = aa
-      B3.parent.k(ev.k(l, share(a1), c, cb, nch, last, 0, key, kf),
-        ev.k(r, share(a2), (c + U32.from_nat(tips(l)) : U32), cb, nch, last, 0, key, kf), rf, key, kf)
+      B3.parent.k(ev.k(l, share(a1), c, cb, hi, nch, last, 0, key, kf),
+        ev.k(r, share(a2), (c + U32.from_nat(tips(l)) : U32), cb, hi, nch, last, 0, key, kf), rf, key, kf)
 
 law ref.spec:
   for a: Array<U32>
   for +cb: U32
+  for +hi: U32
   for +nch: U32
   for +last: U32
   for +rf: U32
-  {ref.at(a, cb, nch, last, rf) ==
-    ev(tree(digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), share(a), 0, cb, nch, last, rf) : B3.CV}
+  {ref.at(a, cb, hi, nch, last, rf) ==
+    ev(tree(digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), share(a), 0, cb, hi, nch, last, rf) : B3.CV}
 
 # ...and so are the trees that run: the CPU's (cpu.at) and the GPU's (gpu.at).
 law cpu.spec:
   for a: Array<U32>
   for +cb: U32
+  for +hi: U32
   for +nch: U32
   for +last: U32
   for +rf: U32
-  {B3.hash.at(~share, a, cb, nch, last, rf) ==
-    ev(tree(digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), share(a), 0, cb, nch, last, rf) : B3.CV}
+  {B3.hash.at(~share, a, cb, hi, nch, last, rf) ==
+    ev(tree(digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), share(a), 0, cb, hi, nch, last, rf) : B3.CV}
 
 law gpu.spec:
   for a: Array<U32>
   for +cb: U32
+  for +hi: U32
   for +nch: U32
   for +last: U32
   for +rf: U32
-  {B3.hash1.at(~share, a, cb, nch, last, rf) ==
-    ev(tree(digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), share(a), 0, cb, nch, last, rf) : B3.CV}
+  {B3.hash1.at(~share, a, cb, hi, nch, last, rf) ==
+    ev(tree(digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), share(a), 0, cb, hi, nch, last, rf) : B3.CV}
 
 # The keyed tree that runs (keyed.at) is BLAKE3's keyed tree.
 law keyed.spec:
   for a: Array<U32>
   for +cb: U32
+  for +hi: U32
   for +nch: U32
   for +last: U32
   for +rf: U32
   for +key: B3.CV
   for +kf: U32
-  {B3.hash8.at.k(~share, a, cb, nch, last, rf, key, kf) ==
-    ev.k(tree(digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), share(a), 0, cb, nch, last, rf, key, kf) : B3.CV}
+  {B3.hash8.at.k(~share, a, cb, hi, nch, last, rf, key, kf) ==
+    ev.k(tree(digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), share(a), 0, cb, hi, nch, last, rf, key, kf) : B3.CV}
 
 # Streaming
 # ---------

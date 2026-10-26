@@ -204,8 +204,8 @@
     "GPU reads: ~5.5-6.8 ms per GiB natively; BLAKE3's compressions fit under them, natively and in Bend, so the GPU hash is read-bound."
   ],
   "proofs": {
-    "seconds": 221,
-    "note": "bend/prove.sh (bend PROOF.bend with a deep stack), one run on the M5 Pro at load 5-7: ALL PROOFS CHECK for 39 laws and 412 lemmas (ADR 0015). The known answers take most of it; the other laws check in about a minute."
+    "seconds": 252,
+    "note": "bend/prove.sh (bend PROOF.bend with a deep stack), one run on the M5 Pro at load 8-10: ALL PROOFS CHECK for 40 laws and 412 lemmas (ADR 0015). The known answers take most of it; the other laws check in about a minute."
   },
   "techniques": [
     {
@@ -226,7 +226,7 @@
     {
       "adr": "0004",
       "title": "Files past 4 GiB",
-      "summary": "1 GiB segments are complete BLAKE3 subtrees, hashed in parallel and merged as parents; up to 4 TiB."
+      "summary": "1 GiB segments are complete BLAKE3 subtrees, hashed in parallel and merged as parents (past 4 TiB since ADR 0014)."
     },
     {
       "adr": "0005",
@@ -262,6 +262,11 @@
       "adr": "0011",
       "title": "Strided GPU lanes; CPU + GPU on one input",
       "summary": "Past 512 MiB, lane l hashes 16-chunk groups l, l + S, l + 2S, l + 3S, so lanes running together read neighbouring memory: 1 GiB 13.2 -> 9.4 ms on the GPU. split.bend lets the CPU and the GPU hash one input at once by slices (13 of 16 on the GPU: 1 GiB in 8.0 ms, 1.06-1.12x the GPU alone)."
+    },
+    {
+      "adr": "0014",
+      "title": "Files past 4 TiB",
+      "summary": "Every span carries its chunk counter's high word, down to compress8, so files go past 2^32 chunks: a 4 TiB + 1 GiB file matches the official crate, at no measurable cost."
     }
   ],
   "models": {

@@ -33,9 +33,11 @@ cc -I bend/lib/build/include app.c bend/lib/build/lib/libblake3.a -lpthread -o a
 - Bend's arrays live in an 8 TiB window past its heap's base. On Linux the
   engine puts that window over the region where `mmap` (and so `malloc`)
   places big buffers, and reads the caller's memory where it lies: no
-  copy. On macOS every big allocation sits below 512 GiB, where no heap can
-  go, so spans are copied (by a few helper threads) into two warm heap
-  blocks.
+  copy. On macOS big allocations come from the bottom of a zone above a
+  384 GiB guard, so the library reserves the heap's room there when it
+  loads (and fills the holes below it with placeholders): buffers the
+  program allocates afterwards lie in the window too (ADR 0016). Anything
+  outside it is copied (by a few helper threads) into two warm heap blocks.
 - The engine starts on the first big update. Before that, and for small
   subtrees, keyed hashing and key derivation (for now), and in a forked
   child, the official C code hashes as it always does.

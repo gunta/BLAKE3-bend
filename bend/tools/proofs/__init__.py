@@ -1,10 +1,13 @@
 """Generators of the proof modules under bend/proof/ (tools/gen_laws.py
 writes them): words.bend, the arithmetic; cpu.bend, the proof that the CPU's
 8-lane tree is the scalar tree for every input; gpu.bend, the same for the
-GPU's tree."""
+GPU's tree; spec.bend, that they are BLAKE3's tree; keyed.bend, the keyed
+modes. Each is written without the counter's high word and threaded with it
+by hi.py."""
+import functools
 import re
 
-from . import words, reads, loop, group, leaf8, leaf32, tree, gpu, quads, gtree, spec, keyed
+from . import words, reads, loop, group, leaf8, leaf32, tree, gpu, quads, gtree, spec, keyed, hi
 from .common import L, laws_names
 
 CPU_HEAD = '''\
@@ -84,10 +87,15 @@ def words_file():
     return words.text()
 
 
-def cpu_file():
+@functools.cache
+def cpu_hi():
     body = (reads.HEAD + reads.ld_eta() + reads.ld8_words() + reads.b128_lane() + lanes() + reads.WITS +
             loop.text() + group.text() + leaf8.text() + leaf32.text() + tree.text())
-    return CPU_HEAD + laws_names(body)
+    return hi.module(CPU_HEAD + laws_names(body), "import ./words.bend as A\n")
+
+
+def cpu_file():
+    return cpu_hi()[0]
 
 
 GPU_HEAD = '''\
@@ -120,13 +128,24 @@ import ./cpu.bend as C
 '''
 
 
-def gpu_file():
+@functools.cache
+def gpu_hi():
     names = set(re.findall(r"^(?:def|law) ([\w.]+)", cpu_file(), re.M))
     pat = re.compile(r"(?<![\w.])(" + "|".join(re.escape(n) for n in sorted(names, key=len, reverse=True)) + r")(?![\w.])")
     body = laws_names(gpu.text() + quads.text() + gtree.text())
-    return GPU_HEAD + "".join(l if l.lstrip().startswith("#") else pat.sub(r"C.\1", l)
+    text = GPU_HEAD + "".join(l if l.lstrip().startswith("#") else pat.sub(r"C.\1", l)
                               for l in body.splitlines(keepends=True))
+    return hi.module(text, "import ./cpu.bend as C\n", {"C." + n for n in cpu_hi()[1]})
+
+
+def gpu_file():
+    return gpu_hi()[0]
+
+
+def spec_file():
+    ext = {"C." + n for n in cpu_hi()[1]} | {"G." + n for n in gpu_hi()[1]}
+    return hi.module(spec.text(), "import ./gpu.bend as G\n", ext)[0]
 
 
 def keyed_file():
-    return keyed.text(cpu_file(), spec.text())
+    return keyed.text(cpu_file(), spec_file())

@@ -696,9 +696,10 @@ law t1ev:
   for b: Bool
   for +eb: {B3.big(k, n) == b : Bool}
   for w: C.Wits(x, 3n)
-  {B3.tree1(~Laws.share, k, b, (x, x), c, n, cb, nch, last, rf) == Laws.ev(Laws.tree1(k, b, U32.to_nat(n)), (x, x), c, cb, nch, last, rf) : B3.CV}
+  for +hi: U32
+  {B3.tree1(~Laws.share, k, b, (x, x), c, n, cb, hi, nch, last, rf) == Laws.ev(Laws.tree1(k, b, U32.to_nat(n)), (x, x), c, cb, hi, nch, last, rf) : B3.CV}
 
-def t1ev(k, x, ek, c, n, cb, nch, last, rf, b, eb, w):
+def t1ev(k, x, ek, c, n, cb, nch, last, rf, b, eb, w, hi):
   match k b:
     case 0n _:
       _ = w
@@ -721,8 +722,8 @@ def t1ev(k, x, ek, c, n, cb, nch, last, rf, b, eb, w):
                               _ = z3
                               +ekp = A.le.succ_le(p, 32n, ek)
                               %big.br(p, n, ekp) :
-                                {B3.tree1(~Laws.share, p, B3.big(p, n), (x, x), c, n, cb, nch, last, rf) == Laws.ev(Laws.tree1(p, _, U32.to_nat(n)), (x, x), c, cb, nch, last, rf) : B3.CV}
-                              t1ev(p, x, ekp, c, n, cb, nch, last, rf, B3.big(p, n), {==}, C.tr(arr => C.Wits(arr, 3n), z1, x, ez10, C.wits(2n, z1)))
+                                {B3.tree1(~Laws.share, p, B3.big(p, n), (x, x), c, n, cb, hi, nch, last, rf) == Laws.ev(Laws.tree1(p, _, U32.to_nat(n)), (x, x), c, cb, hi, nch, last, rf) : B3.CV}
+                              t1ev(p, x, ekp, c, n, cb, nch, last, rf, B3.big(p, n), {==}, C.tr(arr => C.Wits(arr, 3n), z1, x, ez10, C.wits(2n, z1)), hi)
     case 1n+p True{}:
       match w:
         case (z1, w1):
@@ -746,23 +747,23 @@ def t1ev(k, x, ek, c, n, cb, nch, last, rf, b, eb, w):
                               +tp = Equal.trans(Nat, Laws.tips(Laws.tree1(p, Laws.big(p, Laws.pow2(p)), Laws.pow2(p))), Laws.tips(Laws.full(p)), Laws.pow2(p), Equal.cong(Laws.Shape, Nat, s => Laws.tips(s), Laws.tree1(p, Laws.big(p, Laws.pow2(p)), Laws.pow2(p)), Laws.full(p), t1.full(p)), tips.full(p))
                               +fh = fn.pow(p, ek)
                               %Equal.sym(Array<U32> & Array<U32>, Array.clone(U32, x), (x, x), C.tr(arr => {Array.clone(U32, arr) == (arr, arr) : Array<U32> & Array<U32>}, z1, x, ez10, C.clone.dup(z1))) :
-                                {B3.parent(B3.tree1(~Laws.share, p, B3.big(p, U32.shln(1, p)), _, c, U32.shln(1, p), cb, nch, last, 0), B3.tree1(~Laws.share, p, B3.big(p, (n - U32.shln(1, p) : U32)), _, (c + U32.shln(1, p) : U32), (n - U32.shln(1, p) : U32), cb, nch, last, 0), rf) == B3.parent(Laws.ev(Laws.tree1(p, Laws.big(p, Laws.pow2(p)), Laws.pow2(p)), _, c, cb, nch, last, 0), Laws.ev(Laws.tree1(p, Laws.big(p, Nat.sub(U32.to_nat(n), Laws.pow2(p))), Nat.sub(U32.to_nat(n), Laws.pow2(p))), _, (c + U32.from_nat(Laws.tips(Laws.tree1(p, Laws.big(p, Laws.pow2(p)), Laws.pow2(p)))) : U32), cb, nch, last, 0), rf) : B3.CV}
-                              %Equal.sym(B3.CV, B3.tree1(~Laws.share, p, B3.big(p, U32.shln(1, p)), (x, x), c, U32.shln(1, p), cb, nch, last, 0), Laws.ev(Laws.tree1(p, B3.big(p, U32.shln(1, p)), U32.to_nat(U32.shln(1, p))), (x, x), c, cb, nch, last, 0), t1ev(p, x, ekp, c, U32.shln(1, p), cb, nch, last, 0, B3.big(p, U32.shln(1, p)), {==}, C.tr(arr => C.Wits(arr, 3n), z2, x, ez20, C.wits(2n, z2)))) :
-                                {B3.parent(_, B3.tree1(~Laws.share, p, B3.big(p, (n - U32.shln(1, p) : U32)), (x, x), (c + U32.shln(1, p) : U32), (n - U32.shln(1, p) : U32), cb, nch, last, 0), rf) == B3.parent(Laws.ev(Laws.tree1(p, Laws.big(p, Laws.pow2(p)), Laws.pow2(p)), (x, x), c, cb, nch, last, 0), Laws.ev(Laws.tree1(p, Laws.big(p, Nat.sub(U32.to_nat(n), Laws.pow2(p))), Nat.sub(U32.to_nat(n), Laws.pow2(p))), (x, x), (c + U32.from_nat(Laws.tips(Laws.tree1(p, Laws.big(p, Laws.pow2(p)), Laws.pow2(p)))) : U32), cb, nch, last, 0), rf) : B3.CV}
-                              %Equal.sym(B3.CV, B3.tree1(~Laws.share, p, B3.big(p, (n - U32.shln(1, p) : U32)), (x, x), (c + U32.shln(1, p) : U32), (n - U32.shln(1, p) : U32), cb, nch, last, 0), Laws.ev(Laws.tree1(p, B3.big(p, (n - U32.shln(1, p) : U32)), U32.to_nat((n - U32.shln(1, p) : U32))), (x, x), (c + U32.shln(1, p) : U32), cb, nch, last, 0), t1ev(p, x, ekp, (c + U32.shln(1, p) : U32), (n - U32.shln(1, p) : U32), cb, nch, last, 0, B3.big(p, (n - U32.shln(1, p) : U32)), {==}, C.tr(arr => C.Wits(arr, 3n), z3, x, ez30, C.wits(2n, z3)))) :
-                                {B3.parent(Laws.ev(Laws.tree1(p, B3.big(p, U32.shln(1, p)), U32.to_nat(U32.shln(1, p))), (x, x), c, cb, nch, last, 0), _, rf) == B3.parent(Laws.ev(Laws.tree1(p, Laws.big(p, Laws.pow2(p)), Laws.pow2(p)), (x, x), c, cb, nch, last, 0), Laws.ev(Laws.tree1(p, Laws.big(p, Nat.sub(U32.to_nat(n), Laws.pow2(p))), Nat.sub(U32.to_nat(n), Laws.pow2(p))), (x, x), (c + U32.from_nat(Laws.tips(Laws.tree1(p, Laws.big(p, Laws.pow2(p)), Laws.pow2(p)))) : U32), cb, nch, last, 0), rf) : B3.CV}
+                                {B3.parent(B3.tree1(~Laws.share, p, B3.big(p, U32.shln(1, p)), _, c, U32.shln(1, p), cb, hi, nch, last, 0), B3.tree1(~Laws.share, p, B3.big(p, (n - U32.shln(1, p) : U32)), _, (c + U32.shln(1, p) : U32), (n - U32.shln(1, p) : U32), cb, hi, nch, last, 0), rf) == B3.parent(Laws.ev(Laws.tree1(p, Laws.big(p, Laws.pow2(p)), Laws.pow2(p)), _, c, cb, hi, nch, last, 0), Laws.ev(Laws.tree1(p, Laws.big(p, Nat.sub(U32.to_nat(n), Laws.pow2(p))), Nat.sub(U32.to_nat(n), Laws.pow2(p))), _, (c + U32.from_nat(Laws.tips(Laws.tree1(p, Laws.big(p, Laws.pow2(p)), Laws.pow2(p)))) : U32), cb, hi, nch, last, 0), rf) : B3.CV}
+                              %Equal.sym(B3.CV, B3.tree1(~Laws.share, p, B3.big(p, U32.shln(1, p)), (x, x), c, U32.shln(1, p), cb, hi, nch, last, 0), Laws.ev(Laws.tree1(p, B3.big(p, U32.shln(1, p)), U32.to_nat(U32.shln(1, p))), (x, x), c, cb, hi, nch, last, 0), t1ev(p, x, ekp, c, U32.shln(1, p), cb, nch, last, 0, B3.big(p, U32.shln(1, p)), {==}, C.tr(arr => C.Wits(arr, 3n), z2, x, ez20, C.wits(2n, z2)), hi)) :
+                                {B3.parent(_, B3.tree1(~Laws.share, p, B3.big(p, (n - U32.shln(1, p) : U32)), (x, x), (c + U32.shln(1, p) : U32), (n - U32.shln(1, p) : U32), cb, hi, nch, last, 0), rf) == B3.parent(Laws.ev(Laws.tree1(p, Laws.big(p, Laws.pow2(p)), Laws.pow2(p)), (x, x), c, cb, hi, nch, last, 0), Laws.ev(Laws.tree1(p, Laws.big(p, Nat.sub(U32.to_nat(n), Laws.pow2(p))), Nat.sub(U32.to_nat(n), Laws.pow2(p))), (x, x), (c + U32.from_nat(Laws.tips(Laws.tree1(p, Laws.big(p, Laws.pow2(p)), Laws.pow2(p)))) : U32), cb, hi, nch, last, 0), rf) : B3.CV}
+                              %Equal.sym(B3.CV, B3.tree1(~Laws.share, p, B3.big(p, (n - U32.shln(1, p) : U32)), (x, x), (c + U32.shln(1, p) : U32), (n - U32.shln(1, p) : U32), cb, hi, nch, last, 0), Laws.ev(Laws.tree1(p, B3.big(p, (n - U32.shln(1, p) : U32)), U32.to_nat((n - U32.shln(1, p) : U32))), (x, x), (c + U32.shln(1, p) : U32), cb, hi, nch, last, 0), t1ev(p, x, ekp, (c + U32.shln(1, p) : U32), (n - U32.shln(1, p) : U32), cb, nch, last, 0, B3.big(p, (n - U32.shln(1, p) : U32)), {==}, C.tr(arr => C.Wits(arr, 3n), z3, x, ez30, C.wits(2n, z3)), hi)) :
+                                {B3.parent(Laws.ev(Laws.tree1(p, B3.big(p, U32.shln(1, p)), U32.to_nat(U32.shln(1, p))), (x, x), c, cb, hi, nch, last, 0), _, rf) == B3.parent(Laws.ev(Laws.tree1(p, Laws.big(p, Laws.pow2(p)), Laws.pow2(p)), (x, x), c, cb, hi, nch, last, 0), Laws.ev(Laws.tree1(p, Laws.big(p, Nat.sub(U32.to_nat(n), Laws.pow2(p))), Nat.sub(U32.to_nat(n), Laws.pow2(p))), (x, x), (c + U32.from_nat(Laws.tips(Laws.tree1(p, Laws.big(p, Laws.pow2(p)), Laws.pow2(p)))) : U32), cb, hi, nch, last, 0), rf) : B3.CV}
                               %Equal.sym(Nat, Laws.tips(Laws.tree1(p, Laws.big(p, Laws.pow2(p)), Laws.pow2(p))), Laws.pow2(p), tp) :
-                                {B3.parent(Laws.ev(Laws.tree1(p, B3.big(p, U32.shln(1, p)), U32.to_nat(U32.shln(1, p))), (x, x), c, cb, nch, last, 0), Laws.ev(Laws.tree1(p, B3.big(p, (n - U32.shln(1, p) : U32)), U32.to_nat((n - U32.shln(1, p) : U32))), (x, x), (c + U32.shln(1, p) : U32), cb, nch, last, 0), rf) == B3.parent(Laws.ev(Laws.tree1(p, Laws.big(p, Laws.pow2(p)), Laws.pow2(p)), (x, x), c, cb, nch, last, 0), Laws.ev(Laws.tree1(p, Laws.big(p, Nat.sub(U32.to_nat(n), Laws.pow2(p))), Nat.sub(U32.to_nat(n), Laws.pow2(p))), (x, x), (c + U32.from_nat(_) : U32), cb, nch, last, 0), rf) : B3.CV}
+                                {B3.parent(Laws.ev(Laws.tree1(p, B3.big(p, U32.shln(1, p)), U32.to_nat(U32.shln(1, p))), (x, x), c, cb, hi, nch, last, 0), Laws.ev(Laws.tree1(p, B3.big(p, (n - U32.shln(1, p) : U32)), U32.to_nat((n - U32.shln(1, p) : U32))), (x, x), (c + U32.shln(1, p) : U32), cb, hi, nch, last, 0), rf) == B3.parent(Laws.ev(Laws.tree1(p, Laws.big(p, Laws.pow2(p)), Laws.pow2(p)), (x, x), c, cb, hi, nch, last, 0), Laws.ev(Laws.tree1(p, Laws.big(p, Nat.sub(U32.to_nat(n), Laws.pow2(p))), Nat.sub(U32.to_nat(n), Laws.pow2(p))), (x, x), (c + U32.from_nat(_) : U32), cb, hi, nch, last, 0), rf) : B3.CV}
                               %Equal.sym(U32, U32.from_nat(Laws.pow2(p)), U32.shln(1, p), fh) :
-                                {B3.parent(Laws.ev(Laws.tree1(p, B3.big(p, U32.shln(1, p)), U32.to_nat(U32.shln(1, p))), (x, x), c, cb, nch, last, 0), Laws.ev(Laws.tree1(p, B3.big(p, (n - U32.shln(1, p) : U32)), U32.to_nat((n - U32.shln(1, p) : U32))), (x, x), (c + U32.shln(1, p) : U32), cb, nch, last, 0), rf) == B3.parent(Laws.ev(Laws.tree1(p, Laws.big(p, Laws.pow2(p)), Laws.pow2(p)), (x, x), c, cb, nch, last, 0), Laws.ev(Laws.tree1(p, Laws.big(p, Nat.sub(U32.to_nat(n), Laws.pow2(p))), Nat.sub(U32.to_nat(n), Laws.pow2(p))), (x, x), (c + _ : U32), cb, nch, last, 0), rf) : B3.CV}
+                                {B3.parent(Laws.ev(Laws.tree1(p, B3.big(p, U32.shln(1, p)), U32.to_nat(U32.shln(1, p))), (x, x), c, cb, hi, nch, last, 0), Laws.ev(Laws.tree1(p, B3.big(p, (n - U32.shln(1, p) : U32)), U32.to_nat((n - U32.shln(1, p) : U32))), (x, x), (c + U32.shln(1, p) : U32), cb, hi, nch, last, 0), rf) == B3.parent(Laws.ev(Laws.tree1(p, Laws.big(p, Laws.pow2(p)), Laws.pow2(p)), (x, x), c, cb, hi, nch, last, 0), Laws.ev(Laws.tree1(p, Laws.big(p, Nat.sub(U32.to_nat(n), Laws.pow2(p))), Nat.sub(U32.to_nat(n), Laws.pow2(p))), (x, x), (c + _ : U32), cb, hi, nch, last, 0), rf) : B3.CV}
                               %bh :
-                                {B3.parent(Laws.ev(Laws.tree1(p, B3.big(p, U32.shln(1, p)), U32.to_nat(U32.shln(1, p))), (x, x), c, cb, nch, last, 0), Laws.ev(Laws.tree1(p, B3.big(p, (n - U32.shln(1, p) : U32)), U32.to_nat((n - U32.shln(1, p) : U32))), (x, x), (c + U32.shln(1, p) : U32), cb, nch, last, 0), rf) == B3.parent(Laws.ev(Laws.tree1(p, _, Laws.pow2(p)), (x, x), c, cb, nch, last, 0), Laws.ev(Laws.tree1(p, Laws.big(p, Nat.sub(U32.to_nat(n), Laws.pow2(p))), Nat.sub(U32.to_nat(n), Laws.pow2(p))), (x, x), (c + U32.shln(1, p) : U32), cb, nch, last, 0), rf) : B3.CV}
+                                {B3.parent(Laws.ev(Laws.tree1(p, B3.big(p, U32.shln(1, p)), U32.to_nat(U32.shln(1, p))), (x, x), c, cb, hi, nch, last, 0), Laws.ev(Laws.tree1(p, B3.big(p, (n - U32.shln(1, p) : U32)), U32.to_nat((n - U32.shln(1, p) : U32))), (x, x), (c + U32.shln(1, p) : U32), cb, hi, nch, last, 0), rf) == B3.parent(Laws.ev(Laws.tree1(p, _, Laws.pow2(p)), (x, x), c, cb, hi, nch, last, 0), Laws.ev(Laws.tree1(p, Laws.big(p, Nat.sub(U32.to_nat(n), Laws.pow2(p))), Nat.sub(U32.to_nat(n), Laws.pow2(p))), (x, x), (c + U32.shln(1, p) : U32), cb, hi, nch, last, 0), rf) : B3.CV}
                               %th :
-                                {B3.parent(Laws.ev(Laws.tree1(p, B3.big(p, U32.shln(1, p)), U32.to_nat(U32.shln(1, p))), (x, x), c, cb, nch, last, 0), Laws.ev(Laws.tree1(p, B3.big(p, (n - U32.shln(1, p) : U32)), U32.to_nat((n - U32.shln(1, p) : U32))), (x, x), (c + U32.shln(1, p) : U32), cb, nch, last, 0), rf) == B3.parent(Laws.ev(Laws.tree1(p, B3.big(p, U32.shln(1, p)), _), (x, x), c, cb, nch, last, 0), Laws.ev(Laws.tree1(p, Laws.big(p, Nat.sub(U32.to_nat(n), Laws.pow2(p))), Nat.sub(U32.to_nat(n), Laws.pow2(p))), (x, x), (c + U32.shln(1, p) : U32), cb, nch, last, 0), rf) : B3.CV}
+                                {B3.parent(Laws.ev(Laws.tree1(p, B3.big(p, U32.shln(1, p)), U32.to_nat(U32.shln(1, p))), (x, x), c, cb, hi, nch, last, 0), Laws.ev(Laws.tree1(p, B3.big(p, (n - U32.shln(1, p) : U32)), U32.to_nat((n - U32.shln(1, p) : U32))), (x, x), (c + U32.shln(1, p) : U32), cb, hi, nch, last, 0), rf) == B3.parent(Laws.ev(Laws.tree1(p, B3.big(p, U32.shln(1, p)), _), (x, x), c, cb, hi, nch, last, 0), Laws.ev(Laws.tree1(p, Laws.big(p, Nat.sub(U32.to_nat(n), Laws.pow2(p))), Nat.sub(U32.to_nat(n), Laws.pow2(p))), (x, x), (c + U32.shln(1, p) : U32), cb, hi, nch, last, 0), rf) : B3.CV}
                               %bn2 :
-                                {B3.parent(Laws.ev(Laws.tree1(p, B3.big(p, U32.shln(1, p)), U32.to_nat(U32.shln(1, p))), (x, x), c, cb, nch, last, 0), Laws.ev(Laws.tree1(p, B3.big(p, (n - U32.shln(1, p) : U32)), U32.to_nat((n - U32.shln(1, p) : U32))), (x, x), (c + U32.shln(1, p) : U32), cb, nch, last, 0), rf) == B3.parent(Laws.ev(Laws.tree1(p, B3.big(p, U32.shln(1, p)), U32.to_nat(U32.shln(1, p))), (x, x), c, cb, nch, last, 0), Laws.ev(Laws.tree1(p, _, Nat.sub(U32.to_nat(n), Laws.pow2(p))), (x, x), (c + U32.shln(1, p) : U32), cb, nch, last, 0), rf) : B3.CV}
+                                {B3.parent(Laws.ev(Laws.tree1(p, B3.big(p, U32.shln(1, p)), U32.to_nat(U32.shln(1, p))), (x, x), c, cb, hi, nch, last, 0), Laws.ev(Laws.tree1(p, B3.big(p, (n - U32.shln(1, p) : U32)), U32.to_nat((n - U32.shln(1, p) : U32))), (x, x), (c + U32.shln(1, p) : U32), cb, hi, nch, last, 0), rf) == B3.parent(Laws.ev(Laws.tree1(p, B3.big(p, U32.shln(1, p)), U32.to_nat(U32.shln(1, p))), (x, x), c, cb, hi, nch, last, 0), Laws.ev(Laws.tree1(p, _, Nat.sub(U32.to_nat(n), Laws.pow2(p))), (x, x), (c + U32.shln(1, p) : U32), cb, hi, nch, last, 0), rf) : B3.CV}
                               %tn2 :
-                                {B3.parent(Laws.ev(Laws.tree1(p, B3.big(p, U32.shln(1, p)), U32.to_nat(U32.shln(1, p))), (x, x), c, cb, nch, last, 0), Laws.ev(Laws.tree1(p, B3.big(p, (n - U32.shln(1, p) : U32)), U32.to_nat((n - U32.shln(1, p) : U32))), (x, x), (c + U32.shln(1, p) : U32), cb, nch, last, 0), rf) == B3.parent(Laws.ev(Laws.tree1(p, B3.big(p, U32.shln(1, p)), U32.to_nat(U32.shln(1, p))), (x, x), c, cb, nch, last, 0), Laws.ev(Laws.tree1(p, B3.big(p, (n - U32.shln(1, p) : U32)), _), (x, x), (c + U32.shln(1, p) : U32), cb, nch, last, 0), rf) : B3.CV}
+                                {B3.parent(Laws.ev(Laws.tree1(p, B3.big(p, U32.shln(1, p)), U32.to_nat(U32.shln(1, p))), (x, x), c, cb, hi, nch, last, 0), Laws.ev(Laws.tree1(p, B3.big(p, (n - U32.shln(1, p) : U32)), U32.to_nat((n - U32.shln(1, p) : U32))), (x, x), (c + U32.shln(1, p) : U32), cb, hi, nch, last, 0), rf) == B3.parent(Laws.ev(Laws.tree1(p, B3.big(p, U32.shln(1, p)), U32.to_nat(U32.shln(1, p))), (x, x), c, cb, hi, nch, last, 0), Laws.ev(Laws.tree1(p, B3.big(p, (n - U32.shln(1, p) : U32)), _), (x, x), (c + U32.shln(1, p) : U32), cb, hi, nch, last, 0), rf) : B3.CV}
                               {==}
 
 # BLAKE3's tree, for every span
@@ -782,9 +783,10 @@ law spec.go:
   for +ed: {Laws.shr(k, q) == 0n : Nat}
   for +ent: {U32.to_nat(nch) == 1n+q : Nat}
   for w: C.Wits(a, 2n)
-  {Laws.ref.go(k, a, cb, nch, last, rf) == Laws.ev(Laws.tree(Laws.digits(k, q, [])), Laws.share(a), 0, cb, nch, last, rf) : B3.CV}
+  for +hi: U32
+  {Laws.ref.go(k, a, cb, hi, nch, last, rf) == Laws.ev(Laws.tree(Laws.digits(k, q, [])), Laws.share(a), 0, cb, hi, nch, last, rf) : B3.CV}
 
-def spec.go(k, a, cb, nch, last, rf, ek, q, ed, ent, w):
+def spec.go(k, a, cb, nch, last, rf, ek, q, ed, ent, w, hi):
   match k:
     case 0n:
       match w:
@@ -798,7 +800,7 @@ def spec.go(k, a, cb, nch, last, rf, ek, q, ed, ent, w):
                       _ = w2b
                       _ = z2
                       %Equal.sym(Array<U32> & Array<U32>, Array.clone(U32, a), (a, a), C.tr(arr => {Array.clone(U32, arr) == (arr, arr) : Array<U32> & Array<U32>}, z1, a, ez10, C.clone.dup(z1))) :
-                        {B3.chunk(a, 0, cb, nch, last, rf) == Laws.ev(Laws.Tip{}, _, 0, cb, nch, last, rf) : B3.CV}
+                        {B3.chunk(a, 0, cb, hi, nch, last, rf) == Laws.ev(Laws.Tip{}, _, 0, cb, hi, nch, last, rf) : B3.CV}
                       {==}
     case 1n+p:
       match w:
@@ -811,15 +813,15 @@ def spec.go(k, a, cb, nch, last, rf, ek, q, ed, ent, w):
                     case (+ez20, w2b):
                       _ = w2b
                       %Equal.sym(Array<U32> & Array<U32>, Array.clone(U32, a), (a, a), C.tr(arr => {Array.clone(U32, arr) == (arr, arr) : Array<U32> & Array<U32>}, z1, a, ez10, C.clone.dup(z1))) :
-                        {B3.tree1(~Laws.share, 1n+p, B3.big(1n+p, nch), _, 0, nch, cb, nch, last, rf) == Laws.ev(Laws.tree(Laws.digits(1n+p, q, [])), _, 0, cb, nch, last, rf) : B3.CV}
-                      %Equal.sym(B3.CV, B3.tree1(~Laws.share, 1n+p, B3.big(1n+p, nch), (a, a), 0, nch, cb, nch, last, rf), Laws.ev(Laws.tree1(1n+p, B3.big(1n+p, nch), U32.to_nat(nch)), (a, a), 0, cb, nch, last, rf), t1ev(1n+p, a, ek, 0, nch, cb, nch, last, rf, B3.big(1n+p, nch), {==}, C.tr(arr => C.Wits(arr, 3n), z2, a, ez20, C.wits(2n, z2)))) :
-                        {_ == Laws.ev(Laws.tree(Laws.digits(1n+p, q, [])), (a, a), 0, cb, nch, last, rf) : B3.CV}
+                        {B3.tree1(~Laws.share, 1n+p, B3.big(1n+p, nch), _, 0, nch, cb, hi, nch, last, rf) == Laws.ev(Laws.tree(Laws.digits(1n+p, q, [])), _, 0, cb, hi, nch, last, rf) : B3.CV}
+                      %Equal.sym(B3.CV, B3.tree1(~Laws.share, 1n+p, B3.big(1n+p, nch), (a, a), 0, nch, cb, hi, nch, last, rf), Laws.ev(Laws.tree1(1n+p, B3.big(1n+p, nch), U32.to_nat(nch)), (a, a), 0, cb, hi, nch, last, rf), t1ev(1n+p, a, ek, 0, nch, cb, nch, last, rf, B3.big(1n+p, nch), {==}, C.tr(arr => C.Wits(arr, 3n), z2, a, ez20, C.wits(2n, z2)), hi)) :
+                        {_ == Laws.ev(Laws.tree(Laws.digits(1n+p, q, [])), (a, a), 0, cb, hi, nch, last, rf) : B3.CV}
                       %Equal.sym(Bool, B3.big(1n+p, nch), Laws.big(1n+p, U32.to_nat(nch)), big.br(1n+p, nch, ek)) :
-                        {Laws.ev(Laws.tree1(1n+p, _, U32.to_nat(nch)), (a, a), 0, cb, nch, last, rf) == Laws.ev(Laws.tree(Laws.digits(1n+p, q, [])), (a, a), 0, cb, nch, last, rf) : B3.CV}
+                        {Laws.ev(Laws.tree1(1n+p, _, U32.to_nat(nch)), (a, a), 0, cb, hi, nch, last, rf) == Laws.ev(Laws.tree(Laws.digits(1n+p, q, [])), (a, a), 0, cb, hi, nch, last, rf) : B3.CV}
                       %Equal.sym(Nat, U32.to_nat(nch), 1n+q, ent) :
-                        {Laws.ev(Laws.tree1(1n+p, Laws.big(1n+p, _), _), (a, a), 0, cb, nch, last, rf) == Laws.ev(Laws.tree(Laws.digits(1n+p, q, [])), (a, a), 0, cb, nch, last, rf) : B3.CV}
+                        {Laws.ev(Laws.tree1(1n+p, Laws.big(1n+p, _), _), (a, a), 0, cb, hi, nch, last, rf) == Laws.ev(Laws.tree(Laws.digits(1n+p, q, [])), (a, a), 0, cb, hi, nch, last, rf) : B3.CV}
                       %Equal.sym(Laws.Shape, Laws.tree1(1n+p, Laws.big(1n+p, 1n+q), 1n+q), Laws.tree(Laws.digits(1n+p, q, [])), t1d(1n+p, q, ed, Laws.big(1n+p, 1n+q), {==})) :
-                        {Laws.ev(_, (a, a), 0, cb, nch, last, rf) == Laws.ev(Laws.tree(Laws.digits(1n+p, q, [])), (a, a), 0, cb, nch, last, rf) : B3.CV}
+                        {Laws.ev(_, (a, a), 0, cb, hi, nch, last, rf) == Laws.ev(Laws.tree(Laws.digits(1n+p, q, [])), (a, a), 0, cb, hi, nch, last, rf) : B3.CV}
                       {==}
 
 law ref.spec.b:
@@ -831,9 +833,10 @@ law ref.spec.b:
   for +last: U32
   for +rf: U32
   for w: C.Wits(a, 2n)
-  {Laws.ref.at(a, cb, nch, last, rf) == Laws.ev(Laws.tree(Laws.digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), Laws.share(a), 0, cb, nch, last, rf) : B3.CV}
+  for +hi: U32
+  {Laws.ref.at(a, cb, hi, nch, last, rf) == Laws.ev(Laws.tree(Laws.digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), Laws.share(a), 0, cb, hi, nch, last, rf) : B3.CV}
 
-def ref.spec.b(nch, b, eb, a, cb, last, rf, w):
+def ref.spec.b(nch, b, eb, a, cb, last, rf, w, hi):
   match b:
     case True{}:
       match w:
@@ -847,9 +850,9 @@ def ref.spec.b(nch, b, eb, a, cb, last, rf, w):
                       _ = w2b
                       _ = z2
                       %Equal.sym(Bool, U32.is_le(nch, 1), True{}, eb) :
-                        {Laws.ref.go(B3.depth.go(_, nch), a, cb, nch, last, rf) == Laws.ev(Laws.tree(Laws.digits(B3.depth.go(_, nch), Nat.sub(U32.to_nat(nch), 1n), [])), Laws.share(a), 0, cb, nch, last, rf) : B3.CV}
+                        {Laws.ref.go(B3.depth.go(_, nch), a, cb, hi, nch, last, rf) == Laws.ev(Laws.tree(Laws.digits(B3.depth.go(_, nch), Nat.sub(U32.to_nat(nch), 1n), [])), Laws.share(a), 0, cb, hi, nch, last, rf) : B3.CV}
                       %Equal.sym(Array<U32> & Array<U32>, Array.clone(U32, a), (a, a), C.tr(arr => {Array.clone(U32, arr) == (arr, arr) : Array<U32> & Array<U32>}, z1, a, ez10, C.clone.dup(z1))) :
-                        {B3.chunk(a, 0, cb, nch, last, rf) == Laws.ev(Laws.Tip{}, _, 0, cb, nch, last, rf) : B3.CV}
+                        {B3.chunk(a, 0, cb, hi, nch, last, rf) == Laws.ev(Laws.Tip{}, _, 0, cb, hi, nch, last, rf) : B3.CV}
                       {==}
     case False{}:
       match w:
@@ -863,7 +866,7 @@ def ref.spec.b(nch, b, eb, a, cb, last, rf, w):
                       _ = w2b
                       _ = z2
                       +e1 = nle1(U32.to_nat(nch), Equal.trans(Bool, Nat.is_le(U32.to_nat(nch), 1n), U32.is_le(nch, 1), False{}, Equal.sym(Bool, U32.is_le(nch, 1), Nat.is_le(U32.to_nat(nch), 1n), u.is_le_nat(nch, 1)), eb))
-                      spec.go(B3.depth(nch), a, cb, nch, last, rf, C.depth.le32(nch), Nat.sub(U32.to_nat(nch), 1n), depth.bound(nch), Equal.sym(Nat, 1n+Nat.sub(U32.to_nat(nch), 1n), U32.to_nat(nch), A.n.add_sub(1n, U32.to_nat(nch), e1)), C.tr(arr => C.Wits(arr, 2n), z1, a, ez10, C.wits(1n, z1)))
+                      spec.go(B3.depth(nch), a, cb, nch, last, rf, C.depth.le32(nch), Nat.sub(U32.to_nat(nch), 1n), depth.bound(nch), Equal.sym(Nat, 1n+Nat.sub(U32.to_nat(nch), 1n), U32.to_nat(nch), A.n.add_sub(1n, U32.to_nat(nch), e1)), C.tr(arr => C.Wits(arr, 2n), z1, a, ez10, C.wits(1n, z1)), hi)
 
 # The scalar tree over a span is BLAKE3's tree over its chunks.
 law ref.spec:
@@ -872,10 +875,11 @@ law ref.spec:
   for +nch: U32
   for +last: U32
   for +rf: U32
-  {Laws.ref.at(a, cb, nch, last, rf) == Laws.ev(Laws.tree(Laws.digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), Laws.share(a), 0, cb, nch, last, rf) : B3.CV}
+  for +hi: U32
+  {Laws.ref.at(a, cb, hi, nch, last, rf) == Laws.ev(Laws.tree(Laws.digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), Laws.share(a), 0, cb, hi, nch, last, rf) : B3.CV}
 
-def ref.spec(a, cb, nch, last, rf):
-  ref.spec.b(nch, U32.is_le(nch, 1), {==}, a, cb, last, rf, C.wits(1n, a))
+def ref.spec(a, cb, nch, last, rf, hi):
+  ref.spec.b(nch, U32.is_le(nch, 1), {==}, a, cb, last, rf, C.wits(1n, a), hi)
 
 law cpu.spec:
   for a: Array<U32>
@@ -883,9 +887,10 @@ law cpu.spec:
   for +nch: U32
   for +last: U32
   for +rf: U32
-  {B3.hash.at(~Laws.share, a, cb, nch, last, rf) == Laws.ev(Laws.tree(Laws.digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), Laws.share(a), 0, cb, nch, last, rf) : B3.CV}
+  for +hi: U32
+  {B3.hash.at(~Laws.share, a, cb, hi, nch, last, rf) == Laws.ev(Laws.tree(Laws.digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), Laws.share(a), 0, cb, hi, nch, last, rf) : B3.CV}
 
-def cpu.spec.h(-a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32, w: C.Wits(a, 2n)) -> {B3.hash.at(~Laws.share, a, cb, nch, last, rf) == Laws.ev(Laws.tree(Laws.digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), Laws.share(a), 0, cb, nch, last, rf) : B3.CV}:
+def cpu.spec.h(-a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32, w: C.Wits(a, 2n), +hi: U32) -> {B3.hash.at(~Laws.share, a, cb, hi, nch, last, rf) == Laws.ev(Laws.tree(Laws.digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), Laws.share(a), 0, cb, hi, nch, last, rf) : B3.CV}:
   match w:
     case (z1, w1):
       match w1:
@@ -895,12 +900,12 @@ def cpu.spec.h(-a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32, w: C.W
               match w2:
                 case (+ez20, w2b):
                   _ = w2b
-                  Equal.trans(B3.CV, B3.hash.at(~Laws.share, a, cb, nch, last, rf), Laws.ref.at(a, cb, nch, last, rf), Laws.ev(Laws.tree(Laws.digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), Laws.share(a), 0, cb, nch, last, rf),
-                    C.tr(arr => {B3.hash.at(~Laws.share, arr, cb, nch, last, rf) == Laws.ref.at(arr, cb, nch, last, rf) : B3.CV}, z1, a, ez10, C.cpu.at(z1, cb, nch, last, rf)),
-                    C.tr(arr => {Laws.ref.at(arr, cb, nch, last, rf) == Laws.ev(Laws.tree(Laws.digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), Laws.share(arr), 0, cb, nch, last, rf) : B3.CV}, z2, a, ez20, ref.spec(z2, cb, nch, last, rf)))
+                  Equal.trans(B3.CV, B3.hash.at(~Laws.share, a, cb, hi, nch, last, rf), Laws.ref.at(a, cb, hi, nch, last, rf), Laws.ev(Laws.tree(Laws.digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), Laws.share(a), 0, cb, hi, nch, last, rf),
+                    C.tr(arr => {B3.hash.at(~Laws.share, arr, cb, hi, nch, last, rf) == Laws.ref.at(arr, cb, hi, nch, last, rf) : B3.CV}, z1, a, ez10, C.cpu.at(z1, cb, nch, last, rf, hi)),
+                    C.tr(arr => {Laws.ref.at(arr, cb, hi, nch, last, rf) == Laws.ev(Laws.tree(Laws.digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), Laws.share(arr), 0, cb, hi, nch, last, rf) : B3.CV}, z2, a, ez20, ref.spec(z2, cb, nch, last, rf, hi)))
 
-def cpu.spec(a, cb, nch, last, rf):
-  cpu.spec.h(a, cb, nch, last, rf, C.wits(1n, a))
+def cpu.spec(a, cb, nch, last, rf, hi):
+  cpu.spec.h(a, cb, nch, last, rf, C.wits(1n, a), hi)
 
 law gpu.spec:
   for a: Array<U32>
@@ -908,9 +913,10 @@ law gpu.spec:
   for +nch: U32
   for +last: U32
   for +rf: U32
-  {B3.hash1.at(~Laws.share, a, cb, nch, last, rf) == Laws.ev(Laws.tree(Laws.digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), Laws.share(a), 0, cb, nch, last, rf) : B3.CV}
+  for +hi: U32
+  {B3.hash1.at(~Laws.share, a, cb, hi, nch, last, rf) == Laws.ev(Laws.tree(Laws.digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), Laws.share(a), 0, cb, hi, nch, last, rf) : B3.CV}
 
-def gpu.spec.h(-a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32, w: C.Wits(a, 2n)) -> {B3.hash1.at(~Laws.share, a, cb, nch, last, rf) == Laws.ev(Laws.tree(Laws.digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), Laws.share(a), 0, cb, nch, last, rf) : B3.CV}:
+def gpu.spec.h(-a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32, w: C.Wits(a, 2n), +hi: U32) -> {B3.hash1.at(~Laws.share, a, cb, hi, nch, last, rf) == Laws.ev(Laws.tree(Laws.digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), Laws.share(a), 0, cb, hi, nch, last, rf) : B3.CV}:
   match w:
     case (z1, w1):
       match w1:
@@ -920,9 +926,9 @@ def gpu.spec.h(-a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32, w: C.W
               match w2:
                 case (+ez20, w2b):
                   _ = w2b
-                  Equal.trans(B3.CV, B3.hash1.at(~Laws.share, a, cb, nch, last, rf), Laws.ref.at(a, cb, nch, last, rf), Laws.ev(Laws.tree(Laws.digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), Laws.share(a), 0, cb, nch, last, rf),
-                    C.tr(arr => {B3.hash1.at(~Laws.share, arr, cb, nch, last, rf) == Laws.ref.at(arr, cb, nch, last, rf) : B3.CV}, z1, a, ez10, G.gpu.at(z1, cb, nch, last, rf)),
-                    C.tr(arr => {Laws.ref.at(arr, cb, nch, last, rf) == Laws.ev(Laws.tree(Laws.digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), Laws.share(arr), 0, cb, nch, last, rf) : B3.CV}, z2, a, ez20, ref.spec(z2, cb, nch, last, rf)))
+                  Equal.trans(B3.CV, B3.hash1.at(~Laws.share, a, cb, hi, nch, last, rf), Laws.ref.at(a, cb, hi, nch, last, rf), Laws.ev(Laws.tree(Laws.digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), Laws.share(a), 0, cb, hi, nch, last, rf),
+                    C.tr(arr => {B3.hash1.at(~Laws.share, arr, cb, hi, nch, last, rf) == Laws.ref.at(arr, cb, hi, nch, last, rf) : B3.CV}, z1, a, ez10, G.gpu.at(z1, cb, nch, last, rf, hi)),
+                    C.tr(arr => {Laws.ref.at(arr, cb, hi, nch, last, rf) == Laws.ev(Laws.tree(Laws.digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), Laws.share(arr), 0, cb, hi, nch, last, rf) : B3.CV}, z2, a, ez20, ref.spec(z2, cb, nch, last, rf, hi)))
 
-def gpu.spec(a, cb, nch, last, rf):
-  gpu.spec.h(a, cb, nch, last, rf, C.wits(1n, a))
+def gpu.spec(a, cb, nch, last, rf, hi):
+  gpu.spec.h(a, cb, nch, last, rf, C.wits(1n, a), hi)

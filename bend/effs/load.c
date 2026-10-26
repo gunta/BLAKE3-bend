@@ -10,8 +10,9 @@
 // A file of up to 1 GiB is one block (FFile). A larger one is cut into
 // 1 GiB parts (FSegs): 2^20 chunks each, so every part but the last is a
 // complete subtree of the file's BLAKE3 tree, and the Segs tree has the
-// left-full shape of BLAKE3's own top levels. Files up to 4 TiB (2^32
-// chunk counters) work this way.
+// left-full shape of BLAKE3's own top levels. Each part's chunk counters
+// share their high word (off >> 42), which Bend takes beside the low one, so
+// files go past 4 TiB (2^32 chunks), to 2^32 - 1 parts (4 EiB - 1 GiB).
 //
 // One pass of pthreads opens, stats, allocates and reads each file. A
 // thread allocates from an ALC row of its own past the pool's (rows
@@ -28,7 +29,7 @@
 static u64* b3_heap;
 #define B3_MAP_MIN (1ull << 20)
 #define B3_SEG     (1ull << 30)
-#define B3_MAX     (1ull << 42)
+#define B3_MAX     (0xffffffffull * B3_SEG)  // 2^32 - 1 parts
 #define B3_NOTREG  (-1)  // f->err of a pipe or device
 
 typedef struct {
@@ -244,7 +245,7 @@ static void b3_stdin(Env e, B3File* f) {
     }
     n += (u64)r;
   }
-  if (!f->err && n >= B3_MAX) {
+  if (!f->err && n > B3_MAX) {
     f->err = EFBIG;
   }
   if (!f->err) {
@@ -289,14 +290,16 @@ static void b3_stdin(Env e, B3File* f) {
 #define MINCORE_INCORE 1  // Linux: bit 0 of each mincore byte
 #endif
 
-// The fraction of the file's pages in the page cache, from 4096 samples.
+// The fraction of the file's pages in the page cache, from 256 samples: a
+// mincore call costs ~0.7 us, so 4096 of them were 3 ms of a 1 GiB file's
+// ~45 (ADR 0016), and 256 still tell 90% cached from not.
 static double b3_resident(int fd, u64 len) {
   u64 pg = (u64)getpagesize();
   char* at = mmap(NULL, len, PROT_READ, MAP_SHARED, fd, 0);
   if (at == MAP_FAILED) {
     return 1.0;
   }
-  u64 pages = (len + pg - 1) / pg, hit = 0, n = pages < 4096 ? pages : 4096;
+  u64 pages = (len + pg - 1) / pg, hit = 0, n = pages < 256 ? pages : 256;
   for (u64 i = 0; i < n; i += 1) {
     unsigned char v = 0;
     u64 page = i * pages / n;
@@ -409,7 +412,7 @@ static void b3_file(Env e, B3File* f) {
   } else if (!S_ISREG(st.st_mode)) {
     // pipes and devices have no size to map or read up to
     f->err = B3_NOTREG;
-  } else if ((u64)st.st_size >= B3_MAX) {
+  } else if ((u64)st.st_size > B3_MAX) {
     f->err = EFBIG;
   } else if (!io_gpu && f->slot == 0 && (u64)st.st_size >= B3_STREAM_MIN
       && b3_stream_pick(f->fd, (u64)st.st_size)) {
@@ -555,15 +558,16 @@ static Term b3_segs(Env e, B3File* f, u32 lo, u32 hi) {
   if (hi - lo == 1) {
     B3Part* p = &f->parts[lo];
     u64 nch = (p->len + 1023) / 1024;
-    Term v[4] = { b3_arr(e, p), (Term)(u32)(p->off >> 10), (Term)(u32)nch,
-      (Term)(u32)(p->len - (nch - 1) * 1024) };
-    return b3_ctr(e, CID(SLeaf), 4, v);
+    Term v[5] = { b3_arr(e, p), (Term)(u32)(p->off >> 10), (Term)(u32)(p->off >> 42),
+      (Term)(u32)nch, (Term)(u32)(p->len - (nch - 1) * 1024) };
+    return b3_ctr(e, CID(SLeaf), 5, v);
   }
-  u32 left = 1;
+  u64 left = 1;
   while (left * 2 < hi - lo) {
     left *= 2;
   }
-  Term v[2] = { b3_segs(e, f, lo, lo + left), b3_segs(e, f, lo + left, hi) };
+  u32 mid = lo + (u32)left;
+  Term v[2] = { b3_segs(e, f, lo, mid), b3_segs(e, f, mid, hi) };
   return b3_ctr(e, CID(SNode), 2, v);
 }
 
@@ -721,15 +725,24 @@ static Term b3_load(Env e, B3File* fs, u32 n, u32 threads, bool trace, u64 t0) {
 
 // B3IO.seg(id, k): segment k of stream id, read by now; reading k + 1
 // into the other block starts before this returns.
+// The two blocks every stream reads into, kept for the process: streams
+// are hashed one at a time, and a stream's last segment starts no read, so
+// one pair serves them all. (A pair a stream once held 2 GiB of heap per
+// streamed file, ADR 0016.)
+static Term b3_sblk[2];
+static u64  b3_sloc[2];
+
 Term b3io_seg_run(Env e, Term* f, IoWork* w) {
   B3Stream* st = &b3_streams[(u32)f[0]];
   u32 k = (u32)f[1];
   u32 cls = b3_cls(B3_SEG);
   for (u32 b = 0; b < 2; b += 1) {
-    if (st->arr[b] == 0) {
-      st->loc[b] = heap_alloc(e, blk_wcls(0, cls));
-      st->arr[b] = term_keep(e, term_blk(0, cls, st->loc[b]), 0);
+    if (b3_sblk[b] == 0) {
+      b3_sloc[b] = heap_alloc(e, blk_wcls(0, cls));
+      b3_sblk[b] = term_keep(e, term_blk(0, cls, b3_sloc[b]), 0);
     }
+    st->arr[b] = b3_sblk[b];
+    st->loc[b] = b3_sloc[b];
   }
   if (st->busy) {
     pthread_join(st->reader, NULL);
@@ -757,9 +770,9 @@ Term b3io_seg_run(Env e, Term* f, IoWork* w) {
   }
   u64 nch = (len + 1023) / 1024;
   nch = nch ? nch : 1;
-  Term v[4] = { term_keep(e, st->arr[k % 2], 1), (Term)(u32)(off >> 10),
-    (Term)(u32)nch, (Term)(u32)(len - (nch - 1) * 1024) };
-  return b3_ctr(e, CID(Part), 4, v);
+  Term v[5] = { term_keep(e, st->arr[k % 2], 1), (Term)(u32)(off >> 10),
+    (Term)(u32)(off >> 42), (Term)(u32)nch, (Term)(u32)(len - (nch - 1) * 1024) };
+  return b3_ctr(e, CID(Part), 5, v);
 }
 
 #endif
@@ -968,6 +981,7 @@ Term b3io_release_run(Env e, Term* f, IoWork* w) {
     b3_zone_used = 0;
   }
   b3_nkept = 0;
+  b3_nstreams = 0;  // every stream of the round is hashed by now
   if (getenv("B3IO_TRACE") != NULL) {
     fprintf(stderr, "b3io release %u maps %llu us\n", kept,
       (unsigned long long)(b3_us() - t0));

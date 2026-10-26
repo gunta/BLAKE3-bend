@@ -3,8 +3,6 @@
 Date: 2026-10-26
 Status: accepted
 
-(0014 is taken by the 4 TiB branch, `claude/file-size-limit-4tib-a72dee`.)
-
 ## Context
 
 ADRs 0007 and 0010 proved the 8-lane lanes, the outboard tree and the tree
@@ -43,7 +41,9 @@ to BLAKE3's tree, in generated proof modules under `bend/proof/`
 
 `words.bend` (95 lemmas) holds the arithmetic: U32 as Nat while it fits,
 comparisons, carries, shifts and powers of two, each an induction over
-the bits. The gate is 39 laws and 412 lemmas.
+the bits. Every law above holds for both words of the chunk counter: the
+span's base `cb` and its high word `hi` (ADR 0014). The gate is 40 laws
+and 412 lemmas.
 
 ### How
 
@@ -76,6 +76,17 @@ the bits. The gate is 39 laws and 412 lemmas.
   `k0..k7, kf` are threaded through the lemmas that then need them; the
   others are cpu.bend's and spec.bend's, referenced as `C.` and `S.`. It
   checked the first time.
+- **The counter's high word.** ADR 0014 gave every counter-taking def in
+  blake3.bend a `hi` beside its counter, down to `compress8` and
+  `compress`'s second counter word. `tools/proofs/hi.py` threads it
+  through the generated proofs, as `keyed.py` threads the key: every call
+  of such a def gets `hi` at its place (`compress`'s 0 becomes `hi`), a
+  lemma whose statement then mentions `hi` takes it as its last parameter,
+  and one whose statement does not (its counter fixed by an entry point)
+  passes 0. It runs on cpu.bend, then gpu.bend and spec.bend (which call
+  cpu.bend's lemmas), and keyed.bend is built from the results. It
+  checked the first time; only the laws and keyed.py's own lemmas were
+  edited by hand.
 - **Streaming.** b3io's merge stack moved to `stack.bend`, which imports
   only blake3.bend. Its loop, `stk.go`, takes the segment reads as a
   template (`~rd`): b3io passes its read-and-hash (`stream.seg`), the law a
@@ -96,7 +107,8 @@ gate took with only the CPU proof added, because `tree1.digits` no longer
 computes 1,024 trees. Without the known answers (a scratch copy with the
 `kat.*` laws stripped) the rest checks in 41 s, ~12 s of it the keyed
 module. With `stream.hash` added the gate took 3:41 (259 s user, load 5-7)
-and the stripped copy 58 s (load ~7). The generated modules are
+and the stripped copy 58 s (load ~7). Merged with ADR 0014's high word, the
+gate takes 4:12 (284 s user, load 8-10); the stripped copy 54 s. The generated modules are
 large (cpu.bend 476 KB, keyed.bend 518 KB, gpu.bend 238 KB) because each
 rewrite states its motive in full; they are build products of
 `tools/proofs/`.
@@ -132,12 +144,14 @@ rewrite states its motive in full; they are build products of
 - A change to blake3.bend's trees now fails the gate unless its proof is
   updated: the generators in `tools/proofs/` follow the code's shape (a
   new node kind is a new case in `cpu.tree` or `gpu.tree`).
-- The 4 TiB branch adds a high counter word to every compression; merging
-  it means regenerating the proofs (the counters are terms in every lane
-  and chain lemma), which the generators make mechanical.
+- A new def that takes the counter needs its place for `hi` in `hi.py`'s
+  table, or its calls keep the old arity and the gate fails.
 - Moving the stack changes the engine's C, so `bend/lib/csrc`, the Rust
   crate's copy and the Go module's C and macOS objects are regenerated;
   they also pick up `ld8` as eight scalar loads (ab5b899), which they had
-  not followed yet. The Go Linux objects are built on Modal
-  (`bench/modal_linux.py --steps go`) and still hold the previous engine,
-  which hashes the same.
+  not followed yet. Against master's engine (the old `ld8`, with `hi`) the
+  merged one hashes the same: one core, 64 MiB, 24.00 ms against 23.93
+  (and 23.97 with the old `ld8` put back); all cores, 1 GiB, 28.54 ms
+  against 28.94 (`bench/mem.bend`, load ~9). The Go Linux objects are
+  built on Modal (`bench/modal_linux.py --steps go`) and still hold an
+  earlier engine, which hashes the same.
