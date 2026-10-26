@@ -43,11 +43,28 @@ EMBED = [
     # io_loop: SIGPIPE ignored process-wide
     ('  io_stk = pool_stack();\n  signal(SIGPIPE, SIG_IGN);\n',
      '  io_stk = pool_stack();\n#ifndef BEND_EMBED\n  signal(SIGPIPE, SIG_IGN);\n#endif\n'),
-    # corpus_map: on Linux, put the heap 7 TiB below where mmap hands out
-    # memory, so the 8 TiB a Term can name cover the host's big buffers
-    # (malloc maps them there) and the engine reads them with no copy
+    # corpus_map: put the heap a few TiB below the first big input the engine
+    # sees (engine.c's b3e_hint), so the 8 TiB a Term can name cover the
+    # host's memory and the engine reads it where it lies; else, on Linux,
+    # 7 TiB below where mmap hands out memory (malloc maps big buffers
+    # there); or at B3E_HEAP_AT, if the build fixes it
     ('static void* corpus_map(u64 size) {\n',
      'static void* corpus_map(u64 size) {\n'
+     '#if defined(BEND_EMBED) && defined(B3E_HEAP_AT)\n'
+     '  if (corpus_at((void*)(uintptr_t)(B3E_HEAP_AT), size)) {\n'
+     '    return (void*)(uintptr_t)(B3E_HEAP_AT);\n'
+     '  }\n'
+     '#endif\n'
+     '#if defined(BEND_EMBED)\n'
+     '  extern uintptr_t b3e_hint;\n'
+     '  u64 near = (u64)b3e_hint & ~((1ull << 30) - 1);\n'
+     '  for (u32 d = 0; near != 0 && d < 6; d += 1) {\n'
+     '    u64 back = (u64[]){ 4, 2, 6, 1, 3, 5 }[d] << 40;\n'
+     '    if (near > back + (1ull << 40) && corpus_at((void*)(uintptr_t)(near - back), size)) {\n'
+     '      return (void*)(uintptr_t)(near - back);\n'
+     '    }\n'
+     '  }\n'
+     '#endif\n'
      '#if defined(BEND_EMBED) && defined(__linux__)\n'
      '  void* probe = mmap(NULL, 4096, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);\n'
      '  if (probe != MAP_FAILED) {\n'

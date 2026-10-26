@@ -64400,6 +64400,21 @@ static bool corpus_at(void* at, u64 size) {
 }
 
 static void* corpus_map(u64 size) {
+#if defined(BEND_EMBED) && defined(B3E_HEAP_AT)
+  if (corpus_at((void*)(uintptr_t)(B3E_HEAP_AT), size)) {
+    return (void*)(uintptr_t)(B3E_HEAP_AT);
+  }
+#endif
+#if defined(BEND_EMBED)
+  extern uintptr_t b3e_hint;
+  u64 near = (u64)b3e_hint & ~((1ull << 30) - 1);
+  for (u32 d = 0; near != 0 && d < 6; d += 1) {
+    u64 back = (u64[]){ 4, 2, 6, 1, 3, 5 }[d] << 40;
+    if (near > back + (1ull << 40) && corpus_at((void*)(uintptr_t)(near - back), size)) {
+      return (void*)(uintptr_t)(near - back);
+    }
+  }
+#endif
 #if defined(BEND_EMBED) && defined(__linux__)
   void* probe = mmap(NULL, 4096, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
   if (probe != MAP_FAILED) {
@@ -65671,6 +65686,10 @@ int b3e_bend_main(int argc, char** argv);  // Bend's main, renamed
 
 static pthread_once_t b3e_once = PTHREAD_ONCE_INIT;
 
+// The first big input's address: the heap goes a few TiB below it, so the
+// engine's window covers the host's memory (corpus_map, patched).
+uintptr_t b3e_hint;
+
 static void* b3e_thread(void* arg) {
   // BLAKE3_BEND_THREADS caps the engine's threads (default: every core)
   static char threads[24];
@@ -65735,7 +65754,13 @@ const void* b3e_window(void) {
 // then hashes in C).
 int b3e_hash(uint32_t n, const unsigned char* const* p, const uint64_t* len,
              const uint64_t* cb, unsigned char (*out)[32]) {
-  if (n == 0 || !b3e_start()) {
+  if (n == 0) {
+    return 0;
+  }
+  if (b3e_hint == 0) {
+    b3e_hint = (uintptr_t)p[0];
+  }
+  if (!b3e_start()) {
     return 0;
   }
   B3EJob one;

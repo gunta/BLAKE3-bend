@@ -483,6 +483,10 @@ int b3e_bend_main(int argc, char** argv);  // Bend's main, renamed
 
 static pthread_once_t b3e_once = PTHREAD_ONCE_INIT;
 
+// The first big input's address: the heap goes a few TiB below it, so the
+// engine's window covers the host's memory (corpus_map, patched).
+uintptr_t b3e_hint;
+
 static void* b3e_thread(void* arg) {
   // BLAKE3_BEND_THREADS caps the engine's threads (default: every core)
   static char threads[24];
@@ -547,7 +551,13 @@ const void* b3e_window(void) {
 // then hashes in C).
 int b3e_hash(uint32_t n, const unsigned char* const* p, const uint64_t* len,
              const uint64_t* cb, unsigned char (*out)[32]) {
-  if (n == 0 || !b3e_start()) {
+  if (n == 0) {
+    return 0;
+  }
+  if (b3e_hint == 0) {
+    b3e_hint = (uintptr_t)p[0];
+  }
+  if (!b3e_start()) {
     return 0;
   }
   B3EJob one;
