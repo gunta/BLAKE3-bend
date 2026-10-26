@@ -8,7 +8,9 @@
 #   bin/blake3                                the test CLI (cli.c)
 # Needs clang (Apple's, or LLVM 19+); Bend2 (~/.bend/bin/bend) only to
 # regenerate csrc/engine.c (gen.sh).
-# PORTABLE=1 builds for the baseline CPU instead of this one.
+# PORTABLE=1 builds for the baseline CPU instead of this one; GPU=0 leaves
+# out the GPU backend (turboblake_gpu.c, which loads Metal or CUDA at run
+# time, ADR 0017).
 set -e
 here=$(cd "$(dirname "$0")" && pwd)
 root=$(cd "$here/../.." && pwd)
@@ -32,6 +34,7 @@ TUNE="-O3 $cpu -mllvm -slp-max-reg-size=512 -mllvm -slp-recursion-max-depth=1000
 # 1. the C (gen.sh makes csrc from engine.bend and c/; REGEN=1 remakes it)
 stale=""
 for f in "$here/engine.bend" "$here/engine.c" "$here/turboblake.c" "$here/turboblake.h" \
+         "$here/turboblake_gpu.c" "$here/turboblake_gpu.h" \
          "$here/patch.py" "$root/bend/hash.bend" "$root/bend/b3io.bend" "$root/bend/effs/load.c" \
          "$root/bend/effs/emit.c" "$root/bend/tools/gen_blake3.py"; do
   [ "$f" -nt "$here/csrc/engine.c" ] && stale=1
@@ -47,11 +50,18 @@ cp "$here"/csrc/* "$src/"
 
 # 3. objects
 C="-O3 -std=c11 -fPIC -fvisibility=default -DTURBOBLAKE -I$src"
+glue="turboblake.c"
+libs="-lpthread -lm"
+if [ "$GPU" != 0 ]; then
+  C="$C -DTURBOBLAKE_GPU"
+  glue="turboblake.c turboblake_gpu.c"
+  [ "$(uname -s)" = Darwin ] || libs="$libs -ldl"
+fi
 objs=""
 cd "$src"
 "$CC" -x c -std=c11 $TUNE -fPIC -w -DBEND_EMBED -Dmain=b3e_bend_main -c engine.c -o engine.o
 objs="engine.o"
-for f in blake3.c blake3_dispatch.c blake3_portable.c turboblake.c; do
+for f in blake3.c blake3_dispatch.c blake3_portable.c $glue; do
   "$CC" $C $cpu -c "$f" -o "${f%.c}.o"
   objs="$objs ${f%.c}.o"
 done
@@ -78,10 +88,10 @@ esac
 rm -f "$out/lib/libblake3.a"
 ar rcs "$out/lib/libblake3.a" $objs
 if [ "$(uname -s)" = Darwin ]; then
-  "$CC" -dynamiclib -install_name @rpath/libblake3.0.dylib -o "$out/lib/libblake3.0.dylib" $objs -lpthread -lm
+  "$CC" -dynamiclib -install_name @rpath/libblake3.0.dylib -o "$out/lib/libblake3.0.dylib" $objs $libs
   ln -sf libblake3.0.dylib "$out/lib/libblake3.dylib"
 else
-  "$CC" -shared -Wl,-soname,libblake3.so.0 -o "$out/lib/libblake3.so.0" $objs -lpthread -lm
+  "$CC" -shared -Wl,-soname,libblake3.so.0 -o "$out/lib/libblake3.so.0" $objs $libs
   ln -sf libblake3.so.0 "$out/lib/libblake3.so"
 fi
 # the same library under its own name: -lturboblake links it as -lblake3 does
@@ -89,5 +99,6 @@ for f in "$out"/lib/libblake3.*; do
   ln -sf "$(basename "$f")" "$out/lib/libturboblake${f##*/libblake3}"
 done
 cp "$src/blake3.h" "$here/turboblake.h" "$out/include/"
-"$CC" -O2 -I"$out/include" "$here/cli.c" "$out/lib/libblake3.a" -lpthread -lm -o "$out/bin/blake3"
+"$CC" -O2 $([ "$GPU" != 0 ] && echo -DTURBOBLAKE_GPU) -I"$out/include" "$here/cli.c" \
+  "$out/lib/libblake3.a" $libs -o "$out/bin/blake3"
 echo "built $out (libblake3.a, $(ls "$out/lib" | grep -v '\.a$' | head -1), bin/blake3)"

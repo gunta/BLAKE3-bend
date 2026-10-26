@@ -28,7 +28,10 @@ for f in blake3.c blake3.h blake3_impl.h blake3_dispatch.c blake3_portable.c bla
          blake3_avx2_x86-64_unix.S blake3_avx512_x86-64_unix.S; do
   cp "$root/c/$f" "$here/csrc/$f"
 done
-cp "$here/turboblake.c" "$here/turboblake.h" "$here/csrc/"
+cp "$here/turboblake.c" "$here/turboblake.h" "$here/turboblake_gpu.c" "$here/turboblake_gpu.h" \
+  "$root/bend/ref/b3core.h" "$here/csrc/"
+# csrc/turboblake_kernels.h, the GPU kernels, comes from gen_gpu.sh
+[ -s "$here/csrc/turboblake_kernels.h" ] || "$here/gen_gpu.sh"
 python3 "$here/patch.py" hook "$here/csrc/blake3.c"
 cp "$out" "$root/bend/crate/csrc/engine.c" 2>/dev/null || true
 echo "wrote $here/csrc ($(wc -c < "$out") bytes of engine, $("$BEND" version))"
