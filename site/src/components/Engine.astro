@@ -1,0 +1,279 @@
+---
+/**
+ * Why the engine is Bend2: BLAKE3 is a Merkle tree, chunks hashed on their
+ * own and merged pairwise up to one root, and Bend2 runs tree-shaped work in
+ * parallel on every CPU core or the GPU. The diagram is that tree, small.
+ */
+import { Cpu, Gpu } from 'lucide-static';
+import BrandMark from './BrandMark.astro';
+import Icon from './Icon.astro';
+import { fmtMeasured } from '../lib/format';
+import { headlines } from '../lib/page';
+import { BEND_URL } from '../lib/site';
+import { lawCount, universalCount } from '../lib/proofs';
+
+const { gpu, perCore } = headlines;
+
+// The diagram: eight 1 KiB chunks, three levels of parents, one root.
+const W = 640;
+const leafY = 214;
+const levels = [8, 4, 2, 1];
+const ys = [leafY, 150, 92, 38];
+const xs = (n: number) => Array.from({ length: n }, (_, i) => ((i + 0.5) * W) / n);
+const nodes = levels.map((n, k) => xs(n).map((x) => ({ x, y: ys[k]! })));
+const links = nodes.slice(1).flatMap((row, k) =>
+  row.flatMap((parent, j) => [nodes[k]![2 * j]!, nodes[k]![2 * j + 1]!].map((child) => ({ child, parent, k }))),
+);
+const curve = (a: { x: number; y: number }, b: { x: number; y: number }) => {
+  const my = (a.y + b.y) / 2;
+  return `M${a.x} ${a.y - 14}C${a.x} ${my} ${b.x} ${my} ${b.x} ${b.y + 12}`;
+};
+---
+
+<section id="engine" class="engine" aria-labelledby="engine-title">
+  <div class="wrap">
+    <header class="head">
+      <p class="kicker" data-reveal>Under the hood</p>
+      <h2 id="engine-title" data-reveal style="--i: 1">A tree-shaped hash, run by a tree-shaped language.</h2>
+      <p class="lede prose" data-reveal style="--i: 2">
+        BLAKE3 is a Merkle tree on the inside: it cuts the input into 1 KiB chunks, hashes every chunk on its own, then merges the results pair by pair
+        until one root is left. Every branch is independent, so the work splits as wide as the hardware allows. That is exactly the shape{' '}
+        <a href={BEND_URL}>Bend2</a> is built for: a Bend program forks into a tree of independent work, and its runtime spreads that tree over every
+        CPU core, or over thousands of GPU threads, with no threads or locks in the source.
+      </p>
+    </header>
+
+    <div class="grid">
+      <figure class="diagram card" data-reveal>
+        <svg viewBox={`0 0 ${W} 250`} role="img" aria-labelledby="tree-desc" focusable="false">
+          <desc id="tree-desc">Eight 1 KiB chunks are hashed side by side, merged pairwise into four, two, and one root: the digest.</desc>
+          <defs>
+            <linearGradient id="engine-heat" x1="0" y1="250" x2="0" y2="0" gradientUnits="userSpaceOnUse">
+              <stop offset="0" style="stop-color: var(--ion)" />
+              <stop offset="1" style="stop-color: var(--volt)" />
+            </linearGradient>
+          </defs>
+          <g fill="none" stroke="url(#engine-heat)" stroke-width="1.4" stroke-linecap="round" opacity="0.45">
+            {links.map((l) => <path d={curve(l.child, l.parent)} />)}
+          </g>
+          <g fill="none" stroke="url(#engine-heat)" stroke-width="2.2" stroke-linecap="round">
+            {links.map((l) => <path class={`flow e${l.k}`} d={curve(l.child, l.parent)} />)}
+          </g>
+          {nodes[0]!.map((n, i) => (
+            <g class="chunk">
+              <rect x={n.x - 30} y={n.y - 14} width="60" height="28" rx="6" />
+              <text x={n.x} y={n.y + 4}>chunk {i}</text>
+            </g>
+          ))}
+          {nodes.slice(1, 3).flatMap((row) => row.map((n) => <circle class="parent" cx={n.x} cy={n.y} r="10" />))}
+          <g class="root">
+            <circle cx={nodes[3]![0]!.x} cy={nodes[3]![0]!.y} r="13" />
+            <text x={nodes[3]![0]!.x + 24} y={nodes[3]![0]!.y + 4}>root: the digest</text>
+          </g>
+        </svg>
+        <figcaption>Every level runs in parallel: the chunks side by side, then each layer of parents.</figcaption>
+      </figure>
+
+      <div class="side">
+        <ul class="targets" role="list">
+          <li class="card" data-reveal style="--i: 1">
+            <Icon svg={Cpu} class="t-icon" />
+            <div>
+              <p class="t-title">On the CPU</p>
+              <p class="t-body">
+                Eight chunks per call in SIMD lanes, on every core.
+                {perCore && <> Per core: {perCore.value.replace(/x$/, '×')} the official crate.</>}
+              </p>
+            </div>
+          </li>
+          <li class="card" data-reveal style="--i: 2">
+            <Icon svg={Gpu} class="t-icon" />
+            <div>
+              <p class="t-title">On the GPU</p>
+              <p class="t-body">
+                The same tree on thousands of threads.
+                {gpu && <> {gpu.context}: {fmtMeasured(gpu.comparison.bendValue)} ms.</>}
+              </p>
+            </div>
+          </li>
+        </ul>
+        <p class="pick prose" data-reveal style="--i: 3">
+          turboblake's engine is that Bend2 program: every compression runs in Bend, and the C it compiles to only moves bytes in and out. Bend's own
+          checker proves {lawCount} laws about it, {universalCount} of them for every input or every size (<a href="#proofs">the proofs</a>). The goal is
+          the fastest BLAKE3 on each machine, so the engine is chosen per target: Bend2 today, and a native kernel can take over any target where it
+          measures faster.
+        </p>
+        <p class="marks" data-reveal style="--i: 4">
+          <span><BrandMark name="bend" /> Bend2 engine</span>
+          <span><BrandMark name="c" /> C for I/O</span>
+          <span><BrandMark name="rust" /> Rust command line</span>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .engine {
+    padding-block: clamp(5rem, 3rem + 6vw, 8rem) clamp(2rem, 1rem + 2vw, 3rem);
+    border-top: 1px solid var(--line);
+  }
+
+  .head {
+    display: grid;
+    gap: 1rem;
+    max-width: 48rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .lede {
+    font-size: 1.0625rem;
+  }
+
+  .lede a {
+    color: var(--ink);
+  }
+
+  .grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  @media (min-width: 62rem) {
+    .grid {
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+      align-items: start;
+    }
+  }
+
+  .diagram {
+    margin: 0;
+    padding: clamp(1rem, 0.7rem + 1vw, 1.5rem);
+  }
+
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .chunk rect {
+    fill: var(--surface-2);
+    stroke: rgb(70 227 255 / 0.5);
+  }
+
+  .chunk text {
+    fill: var(--ink-2);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-anchor: middle;
+  }
+
+  .parent {
+    fill: var(--surface);
+    stroke: rgb(170 240 130 / 0.7);
+    stroke-width: 1.5;
+  }
+
+  .root circle {
+    fill: var(--volt);
+    filter: drop-shadow(0 0 10px rgb(212 255 58 / 0.6));
+  }
+
+  .root text {
+    fill: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+
+  /* Each level lights up after the one below it, the order the hash runs in. */
+  .flow {
+    opacity: 0;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .flow {
+      opacity: 1;
+      stroke-dasharray: 10 200;
+      animation: climb 2.4s linear infinite;
+    }
+    .e1 {
+      animation-delay: 0.4s;
+    }
+    .e2 {
+      animation-delay: 0.8s;
+    }
+    @keyframes climb {
+      from {
+        stroke-dashoffset: 206;
+      }
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+  }
+
+  figcaption {
+    margin-top: 0.75rem;
+    color: var(--ink-3);
+    font-size: 0.8125rem;
+  }
+
+  .side {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .targets {
+    display: grid;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .targets li {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.9rem;
+    padding: 1.1rem 1.2rem;
+  }
+
+  .targets :global(.t-icon) {
+    width: 1.35rem;
+    height: 1.35rem;
+    margin-top: 0.1rem;
+    color: var(--ink);
+  }
+
+  .t-title {
+    font-weight: 600;
+  }
+
+  .t-body {
+    color: var(--ink-2);
+    font-size: 0.9375rem;
+  }
+
+  .pick {
+    font-size: 0.9375rem;
+  }
+
+  .pick a {
+    color: var(--ink);
+  }
+
+  .marks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    color: var(--ink-3);
+    font-size: 0.875rem;
+  }
+
+  .marks span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+</style>

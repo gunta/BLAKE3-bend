@@ -3,25 +3,20 @@ interface Props {
   id: string;
   title: string;
   kicker?: string;
-  /** Position in the race, shown as "Lap 01" before the kicker. */
-  lap?: number;
   tone?: 'plain' | 'alt';
 }
 
-const { id, title, kicker, lap, tone = 'plain' } = Astro.props;
+const { id, title, kicker, tone = 'plain' } = Astro.props;
 ---
 
 <section id={id} class:list={['section', `tone-${tone}`]} aria-labelledby={`${id}-title`}>
   <div class="wrap">
     <header class="section-head">
-      {
-        (kicker || lap !== undefined) && (
-          <p class="kicker" data-reveal>
-            {lap !== undefined && <span class="lap">Lap {String(lap).padStart(2, '0')}</span>}
-            {kicker}
-          </p>
-        )
-      }
+      {kicker && (
+        <p class="kicker" data-reveal>
+          {kicker}
+        </p>
+      )}
       <h2 id={`${id}-title`} data-reveal style="--i: 1">{title}</h2>
       <div class="lede prose" data-reveal style="--i: 2">
         <slot name="lede" />
@@ -34,17 +29,11 @@ const { id, title, kicker, lap, tone = 'plain' } = Astro.props;
 <style>
   .section {
     position: relative;
-    padding-block: clamp(4rem, 2.5rem + 5vw, 7.5rem);
+    padding-block: clamp(4rem, 2.5rem + 4vw, 6.5rem);
   }
 
-  /* A hairline of heat across the top of every section. */
-  .section::before {
-    content: '';
-    position: absolute;
-    inset: 0 0 auto;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgb(70 227 255 / 0.35) 30%, rgb(212 255 58 / 0.45) 70%, transparent);
-    opacity: 0.6;
+  .section {
+    border-top: 1px solid var(--line);
   }
 
   .tone-alt {
@@ -53,12 +42,13 @@ const { id, title, kicker, lap, tone = 'plain' } = Astro.props;
 
   .section-head {
     display: grid;
-    gap: 1.1rem;
-    margin-bottom: clamp(2rem, 1.5rem + 2vw, 3rem);
+    gap: 0.9rem;
+    max-width: 46rem;
+    margin-bottom: clamp(2rem, 1.5rem + 2vw, 2.75rem);
   }
 
-  .lap {
-    color: var(--volt);
+  .section-head h2 {
+    font-size: clamp(1.625rem, 1.2rem + 1.6vw, 2.375rem);
   }
 
   .lede:empty {

@@ -2,9 +2,12 @@
 import Base from '../layouts/Base.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 import Hero from '../components/Hero.astro';
-import Ticker from '../components/Ticker.astro';
-import Race from '../components/Race.astro';
-import Lineup from '../components/Lineup.astro';
+import WhatIs from '../components/WhatIs.astro';
+import WhyBlake3 from '../components/WhyBlake3.astro';
+import Outcomes from '../components/Outcomes.astro';
+import GetStarted from '../components/GetStarted.astro';
+import Engine from '../components/Engine.astro';
+import Proofs from '../components/Proofs.astro';
 import BrandMark from '../components/BrandMark.astro';
 import Icon from '../components/Icon.astro';
 import { CircleCheck, Cpu, FileStack, FileText, Flag, FolderOpen, Gauge, Gpu, HardDrive, Laptop, MemoryStick, Monitor, ShieldCheck, Timer } from 'lucide-static';
@@ -15,7 +18,6 @@ import BarChart from '../components/BarChart.astro';
 import DataTable from '../components/DataTable.astro';
 import Scorecard from '../components/Scorecard.astro';
 import Note from '../components/Note.astro';
-import Proofs from '../components/Proofs.astro';
 import { adr, ADR_INDEX_URL } from '../lib/adr';
 import { lawCount } from '../lib/proofs';
 import { fmtList, fmtRange } from '../lib/format';
@@ -40,21 +42,18 @@ import {
   irohTallies,
   levelWording,
   machine,
+  machineName,
   results,
 } from '../lib/page';
 import { BEND_URL, REPO_URL, blobUrl, treeUrl } from '../lib/site';
 
 const links = [
-  { href: '#race', label: 'Race' },
-  { href: '#in-memory', label: 'In memory' },
-  { href: '#cli', label: 'CLI' },
-  ...(models ? [{ href: '#models', label: 'Models' }] : []),
-  ...(daemon ? [{ href: '#daemon', label: 'Daemon' }] : []),
-  ...(iroh ? [{ href: '#iroh', label: 'iroh-blobs' }] : []),
-  { href: '#proofs', label: 'Proofs' },
-  { href: '#floors', label: 'Floors' },
-  { href: '#techniques', label: 'Techniques' },
-  { href: '#reproduce', label: 'Reproduce' },
+  { href: '#blake3', label: 'BLAKE3' },
+  { href: '#why', label: 'Why' },
+  { href: '#outcomes', label: 'Performance' },
+  { href: '#install', label: 'Install' },
+  { href: '#benchmarks', label: 'Benchmarks' },
+  { href: '#engine', label: 'Under the hood' },
 ];
 
 /** An icon for each floor, from what it is about; NVIDIA gets its own mark. */
@@ -79,9 +78,6 @@ const SPEC_ICONS: Record<string, StepIcon> = {
   Reference: { mark: 'b3' },
 };
 
-// Every section is a lap; the optional ones shift the numbers after them.
-const laps = ['in-memory', 'cli', ...(models ? ['models'] : []), ...(daemon ? ['daemon'] : []), ...(iroh ? ['iroh'] : []), 'proofs', 'floors', 'techniques', 'reproduce', 'machine'];
-const lap = (id: string) => laps.indexOf(id) + 1;
 
 // CLI prose: which workloads win and which tie, straight from the tally.
 const cliTally = cliTallies[0];
@@ -111,7 +107,7 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
     code: '(cd b3sum && cargo build --release --features neon)',
   },
   {
-    title: 'Build b3bend from its Bend source',
+    title: 'Build turboblake from its Bend source',
     icon: { mark: 'bend' },
     body: 'build.sh runs bend, then clang with the tuned flags. It needs ~/.bend/bin/bend and Apple clang.',
     code: 'bend/build.sh bend/b3sum.bend bend/build/b3sum',
@@ -135,7 +131,7 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
     code: 'python3 bend/test/big.py',
   },
   {
-    title: 'Race',
+    title: 'Run the benchmark',
     icon: { svg: Flag },
     body: 'Interleaved rounds against the official b3sum; the argument is the round count.',
     code: 'python3 bend/bench/race.py 15',
@@ -147,11 +143,23 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
   <SiteHeader slot="header" links={links} />
 
   <Hero />
-  <Ticker />
-  <Lineup />
-  <Race />
+  <WhatIs />
+  <WhyBlake3 />
+  <Outcomes />
+  <GetStarted />
 
-  <Section id="in-memory" lap={lap('in-memory')} kicker="Hashing in memory" title="Throughput: Bend CPU and GPU vs the official crate">
+  <section id="benchmarks" class="group" aria-labelledby="benchmarks-title">
+    <div class="wrap">
+      <p class="kicker" data-reveal>Benchmarks</p>
+      <h2 id="benchmarks-title" data-reveal style="--i: 1">Measured, not claimed.</h2>
+      <p class="prose" data-reveal style="--i: 2">
+        Every result below comes from one {machineName}, against {results.machine['reference'] ?? 'the official BLAKE3'}: the same bytes, the same
+        digests, medians of interleaved rounds. A result within {TIE_TEXT} either way is called a tie, and the ties are shown as plainly as the wins.
+      </p>
+    </div>
+  </section>
+
+  <Section id="in-memory" kicker="Benchmark · library" title="Hashing data in memory, on CPU and GPU">
     <Fragment slot="lede">
       <p>
         Warm data already in memory, the same bytes and the same digest on every side. Bars are GB/s, computed from the input size and the measured time, so
@@ -170,15 +178,16 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
     <DataTable id="in-memory-table" view={tableView(inMemory, `In-memory hashing, times in ${inMemory.unit} with GB/s below each time.`, { throughput: true })} />
   </Section>
 
-  <Section id="cli" lap={lap('cli')} kicker="End to end" title="One-shot b3sum race" tone="alt">
+  <Section id="cli" kicker="Benchmark · command line" title="One command, against b3sum" tone="alt">
     <Fragment slot="lede">
       <p>
-        <code>b3sum FILE...</code> against the official <code>b3sum</code>, process start included, output byte for byte the same.
+        <code>turboblake FILE...</code> against the official <code>b3sum FILE...</code>, process start included, output byte for byte the same. These
+        runs measured <code>bend/b3sum.bend</code>, the Bend engine and loader that turboblake ships behind upstream's interface.
         {
           cliTally && cliBest && cliWins.length > 0 && (
             <>
               {' '}
-              Bend is faster by more than {TIE_TEXT} on {cliWins.length} of {cliTally.all.length} workloads, by up to {fmtSpeedup(cliBest)} on {cliBest.row.label}.
+              turboblake is faster by more than {TIE_TEXT} on {cliWins.length} of {cliTally.all.length} workloads, by up to {fmtSpeedup(cliBest)} on {cliBest.row.label}.
             </>
           )
         }
@@ -196,12 +205,12 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
     <Note text={cli.note} />
     <Scorecard tallies={cliTallies} />
     <BarChart chart={cliChart} />
-    <DataTable id="cli-table" view={tableView(cli, `One-shot CLI race, ${cli.unit}.`)} />
+    <DataTable id="cli-table" view={tableView(cli, `One-shot command line runs, ${cli.unit}.`)} />
   </Section>
 
   {
     models && modelsChart && (
-      <Section id="models" lap={lap('models')} kicker="Real model weights" title="Hashing a DeepSeek model">
+      <Section id="models" kicker="Benchmark · real files" title="Hashing a model bigger than RAM">
         <Fragment slot="lede">
           <p>
             Shards of <a href="https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017">DeepSeek-V4.1-Flash</a>, the kind of file people hash after a
@@ -226,7 +235,7 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
 
   {
     daemon && daemonChart && (
-      <Section id="daemon" lap={lap('daemon')} kicker="Start-up excluded" title="Daemon race: against the strongest baseline">
+      <Section id="daemon" kicker="Benchmark · long-running" title="A long-running process, against the strongest baseline">
         <Fragment slot="lede">
           <p>
             A long-running process re-opens, re-maps and re-hashes the files every round, so process start drops out. Rust runs two ways: one file at a time,
@@ -243,14 +252,14 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
         <Note text={daemon.note} />
         <Scorecard tallies={daemonTallies} />
         <BarChart chart={daemonChart} />
-        <DataTable id="daemon-table" view={tableView(daemon, `Daemon race, ${daemon.unit}.`)} />
+        <DataTable id="daemon-table" view={tableView(daemon, `Long-running process, ${daemon.unit}.`)} />
       </Section>
     )
   }
 
   {
     iroh && irohChart && (
-      <Section id="iroh" lap={lap('iroh')} kicker="Content-addressed storage" title="iroh-blobs ingest" tone="alt">
+      <Section id="iroh" kicker="Benchmark · integration" title="Content-addressed storage with iroh-blobs" tone="alt">
         <Fragment slot="lede">
           <p>
             <a href="https://github.com/n0-computer/iroh-blobs">iroh-blobs</a> adds a file by hashing it with BLAKE3 and writing a bao outboard, the tree of
@@ -271,36 +280,10 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
     )
   }
 
-  <Proofs lap={lap('proofs')} />
 
-  <Section id="floors" lap={lap('floors')} kicker="Honest limits" title="The floors">
-    <Fragment slot="lede">
-      <p>
-        Where the time goes once Bend stops pulling ahead. These limits come from the kernel, the chip and the GPU runtime rather than from either
-        implementation, and most of them bind the official tools just as hard.
-      </p>
-    </Fragment>
-    <ol class="floors" role="list">
-      {
-        floors.map((f, i) => (
-          <li class="card" data-reveal style={`--i: ${i}`}>
-            <span class="floor-top">
-              <span class="floor-n" aria-hidden="true">
-                {String(i + 1).padStart(2, '0')}
-              </span>
-              <span class="floor-icon">
-                {floorIcon(f.title).mark ? <BrandMark name={floorIcon(f.title).mark!} /> : <Icon svg={floorIcon(f.title).svg!} />}
-              </span>
-            </span>
-            <h3>{f.title}</h3>
-            {f.body && <p>{f.body}</p>}
-          </li>
-        ))
-      }
-    </ol>
-  </Section>
+  <Engine />
 
-  <Section id="techniques" lap={lap('techniques')} kicker="How it got fast" title="Techniques, one decision record each" tone="alt">
+  <Section id="techniques" kicker="Under the hood" title="How it got fast, one decision record each">
     <Fragment slot="lede">
       <p>
         Each step is written up as an architecture decision record: what the emitted C looked like, what was tried, what was measured, and what was
@@ -333,7 +316,36 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
     </ol>
   </Section>
 
-  <Section id="reproduce" lap={lap('reproduce')} kicker="Run it yourself" title="Reproduce">
+  <Proofs />
+
+  <Section id="floors" kicker="Under the hood" title="Limits that bind every tool">
+    <Fragment slot="lede">
+      <p>
+        Where the time goes once Bend stops pulling ahead. These limits come from the kernel, the chip and the GPU runtime rather than from either
+        implementation, and most of them bind the official tools just as hard.
+      </p>
+    </Fragment>
+    <ol class="floors" role="list">
+      {
+        floors.map((f, i) => (
+          <li class="card" data-reveal style={`--i: ${i}`}>
+            <span class="floor-top">
+              <span class="floor-n" aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <span class="floor-icon">
+                {floorIcon(f.title).mark ? <BrandMark name={floorIcon(f.title).mark!} /> : <Icon svg={floorIcon(f.title).svg!} />}
+              </span>
+            </span>
+            <h3>{f.title}</h3>
+            {f.body && <p>{f.body}</p>}
+          </li>
+        ))
+      }
+    </ol>
+  </Section>
+
+  <Section id="reproduce" kicker="Under the hood" title="Reproduce the numbers" tone="alt">
     <Fragment slot="lede">
       <p>
         On an Apple Silicon Mac with <a href={BEND_URL}>Bend2</a> installed at <code>~/.bend/bin/bend</code>, Apple clang, Rust and Python 3. The commands come
@@ -372,7 +384,7 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
     </p>
   </Section>
 
-  <Section id="machine" lap={lap('machine')} kicker="Where it ran" title="Test machine" tone="alt">
+  <Section id="machine" kicker="Under the hood" title="Test machine">
     <Fragment slot="lede">
       <p>Every result above comes from this one machine. Other hardware will move the numbers, and maybe the verdicts.</p>
     </Fragment>
@@ -416,6 +428,29 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
 </script>
 
 <style>
+  /* Group heads: the start of the benchmarks and of the under-the-hood part. */
+  .group {
+    padding-block: clamp(5rem, 3rem + 6vw, 8rem) clamp(1rem, 0.5rem + 1vw, 2rem);
+    border-top: 1px solid var(--line);
+  }
+
+  .group .wrap {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .group h2 {
+    max-width: 22ch;
+  }
+
+  .group .prose {
+    font-size: 1.0625rem;
+  }
+
+  .group a {
+    color: var(--ink);
+  }
+
   .charts {
     display: grid;
     gap: 3rem;
@@ -457,33 +492,19 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
   .floor-icon {
     display: grid;
     place-items: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 10px;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--radius-sm);
     background: var(--surface-2);
-    color: var(--ion);
-    font-size: 1.25rem;
-  }
-
-  .floors li:hover .floor-icon {
-    color: var(--volt);
+    color: var(--ink);
+    font-size: 1.125rem;
   }
 
   .floor-n {
-    font-family: var(--font-display);
-    font-size: 2.75rem;
-    font-weight: 820;
-    font-stretch: 125%;
-    font-style: italic;
-    line-height: 1;
-    letter-spacing: -0.04em;
-    color: transparent;
-    -webkit-text-stroke: 1px var(--ink-3);
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
     font-variant-numeric: tabular-nums;
-  }
-
-  .floors li:hover .floor-n {
-    -webkit-text-stroke-color: var(--volt);
   }
 
   .floors h3 {
@@ -535,11 +556,11 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
   }
 
   .adr-n {
-    padding: 0.2rem 0.5rem;
-    border-radius: 4px;
-    background: var(--volt);
-    color: var(--volt-ink);
-    font-weight: 700;
+    padding: 0.15rem 0.45rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    color: var(--ink);
+    font-weight: 500;
     font-variant-numeric: tabular-nums;
   }
 
@@ -589,24 +610,21 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
 
   .steps li {
     display: grid;
-    grid-template-columns: 2.5rem minmax(0, 1fr);
+    grid-template-columns: 2rem minmax(0, 1fr);
     gap: 1rem;
   }
 
   .step-n {
     display: grid;
     place-items: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 8px;
-    transform: skewX(var(--skew));
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
     border: 1px solid var(--line-strong);
-    font-family: var(--font-display);
-    font-weight: 800;
-    font-stretch: 125%;
-    font-style: italic;
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
     font-variant-numeric: tabular-nums;
-    color: var(--volt);
   }
 
   .step-body {
@@ -644,7 +662,6 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
 
   .term pre {
     padding-right: 5.5rem;
-    border-left: 2px solid var(--volt);
   }
 
   .term pre::before {

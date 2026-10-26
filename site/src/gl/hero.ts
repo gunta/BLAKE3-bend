@@ -33,9 +33,10 @@ const WAVE_SPEED = 1.5; // tree widths per second
  */
 function treeBox(w: number, h: number, freeTop: number, freeBottom: number, pixelRatio: number): [number, number, number, number] {
   if (w / h >= 1.15) {
-    const x0 = -0.05 * w;
-    const rootX = 0.745 * w;
-    return [x0, 0.53 * h, x0 + (rootX - x0) / 0.9, 0.36 * h];
+    // The right half: the leaves start where the copy's lines end.
+    const x0 = 0.42 * w;
+    const rootX = 0.84 * w;
+    return [x0, 0.5 * h, x0 + (rootX - x0) / 0.9, 0.38 * h];
   }
   const x0 = -0.08 * w;
   const rootX = 0.8 * w;
@@ -90,7 +91,7 @@ export async function mountHero(gpu: Gpu, canvas: HTMLCanvasElement, host: HTMLE
     label: 'hero-composite',
     set: {
       samp: linear,
-      params: { exposure: 1.05, bloomNear: 0.9, bloomFar: 0.75, aberration: 0.012, grain: 0.022, time: 0, fade: 0.16, pad: 0 },
+      params: { exposure: 0.95, bloomNear: 0.55, bloomFar: 0.4, aberration: 0.008, grain: 0.018, time: 0, fade: 0.16, pad: 0 },
     },
   });
 

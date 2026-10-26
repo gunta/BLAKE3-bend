@@ -1,0 +1,287 @@
+---
+/**
+ * Why BLAKE3 over the hashes people already use, in the BLAKE3 team's own
+ * numbers and claims (src/lib/official.ts), then why a faster tool still
+ * matters: the algorithm is fast, the tools around it leave time on the table.
+ */
+import { BLAKE3_README, COMPARISON, OFFICIAL_SPEED } from '../lib/official';
+
+const max = Math.max(...OFFICIAL_SPEED.bars.map((b) => b.value));
+const sha256 = OFFICIAL_SPEED.bars.find((b) => b.name === 'SHA-256')?.value ?? 1;
+const blake3 = OFFICIAL_SPEED.bars.find((b) => b.name === 'BLAKE3')?.value ?? 1;
+const times = Math.round(blake3 / sha256);
+const fmt = new Intl.NumberFormat('en-US');
+const good = (cell: string) => cell === 'Yes' || cell === 'Built in';
+---
+
+<section id="why" class="why" aria-labelledby="why-title">
+  <div class="wrap">
+    <header class="head">
+      <p class="kicker" data-reveal>Why BLAKE3</p>
+      <h2 id="why-title" data-reveal style="--i: 1">Faster than SHA‑256. Safer than MD5.</h2>
+      <p class="lede prose" data-reveal style="--i: 2">
+        On one core BLAKE3 hashes about {times}x faster than SHA-256, and it is a tree inside, so a single file can be split across every core you
+        have. It is secure where MD5 and SHA-1 are broken, and safe from the length-extension attacks that make SHA-256 awkward to use as a MAC.
+      </p>
+    </header>
+
+    <div class="grid">
+      <figure class="speed card" data-reveal>
+        <figcaption class="fig-head">
+          <span class="fig-title">Hashing speed, {OFFICIAL_SPEED.unit}</span>
+          <span class="fig-note">{OFFICIAL_SPEED.setup}</span>
+        </figcaption>
+        <ul class="bars" role="list">
+          {
+            OFFICIAL_SPEED.bars.map((b) => (
+              <li class:list={['bar-row', { hero: b.name === 'BLAKE3' }]}>
+                <span class="name">{b.name}</span>
+                <span class="track" aria-hidden="true">
+                  <span class="fill" style={`--f: ${(b.value / max).toFixed(4)}`} />
+                </span>
+                <span class="value num">{fmt.format(b.value)}</span>
+              </li>
+            ))
+          }
+        </ul>
+        <p class="source">
+          Source: the BLAKE3 team's <a href={OFFICIAL_SPEED.source}>benchmark</a>. MD5 and the SHA family are OpenSSL's.
+        </p>
+      </figure>
+
+      <div class="table-wrap card" data-reveal style="--i: 1">
+        <table>
+          <caption class="sr-only">BLAKE3 compared with MD5, SHA-1 and SHA-256</caption>
+          <thead>
+            <tr>
+              <th scope="col"><span class="sr-only">Property</span></th>
+              {COMPARISON.columns.map((c) => <th scope="col" class:list={{ us: c === 'BLAKE3' }}>{c}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {
+              COMPARISON.rows.map((r) => (
+                <tr>
+                  <th scope="row">{r.label}</th>
+                  {r.cells.map((cell, i) => (
+                    <td class:list={[good(cell) ? 'yes' : 'no', { us: COMPARISON.columns[i] === 'BLAKE3' }]}>
+                      <span class="mark" aria-hidden="true">{good(cell) ? '✓' : cell === 'With HMAC, HKDF' ? '–' : '✕'}</span>
+                      <span class="cell">{cell}</span>
+                    </td>
+                  ))}
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+        <p class="source">From the <a href={BLAKE3_README}>BLAKE3 README</a> and paper.</p>
+      </div>
+    </div>
+
+    <div class="bridge" data-reveal>
+      <h3>So why make it faster?</h3>
+      <p class="prose">
+        Because a tree this parallel deserves an engine to match, and because the algorithm is rarely the slow part. A file bigger than RAM gets read
+        16 KiB at a time through page faults, and a folder of small files gets opened and hashed one file after another. turboblake keeps BLAKE3
+        exactly as it is, same function, same fingerprints. Its engine is written in Bend2, a language that runs tree-shaped work on every CPU core
+        and on the GPU, and it streams big files at SSD speed and hashes many files at once. <a href="#engine">How the engine works</a>.
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .why {
+    padding-block: clamp(5rem, 3rem + 6vw, 8rem);
+    border-top: 1px solid var(--line);
+  }
+
+  .head {
+    display: grid;
+    gap: 1rem;
+    max-width: 46rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .lede {
+    font-size: 1.0625rem;
+  }
+
+  .grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  @media (min-width: 62rem) {
+    .grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    }
+  }
+
+  .speed,
+  .table-wrap {
+    padding: clamp(1.1rem, 0.8rem + 1vw, 1.5rem);
+  }
+
+  .fig-head {
+    display: grid;
+    gap: 0.2rem;
+    margin-bottom: 1rem;
+  }
+
+  .fig-title {
+    font-weight: 600;
+  }
+
+  .fig-note,
+  .source {
+    color: var(--ink-3);
+    font-size: 0.8125rem;
+  }
+
+  .source {
+    margin-top: 1rem;
+  }
+
+  .bars {
+    display: grid;
+    gap: 0.45rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .bar-row {
+    display: grid;
+    grid-template-columns: 5.5rem minmax(0, 1fr) 3.5rem;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .name {
+    color: var(--ink-2);
+  }
+
+  .track {
+    height: 10px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    overflow: hidden;
+  }
+
+  .fill {
+    display: block;
+    height: 100%;
+    width: calc(var(--f) * 100%);
+    border-radius: inherit;
+    background: var(--s-base-2);
+  }
+
+  .value {
+    color: var(--ink-3);
+    text-align: right;
+  }
+
+  .hero .name,
+  .hero .value {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .hero .fill {
+    background: var(--heat);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  th,
+  td {
+    padding: 0.7rem 0.6rem;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    vertical-align: middle;
+  }
+
+  thead th {
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  thead th.us {
+    color: var(--volt);
+  }
+
+  tbody th {
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  tbody tr:last-child > * {
+    border-bottom: 0;
+  }
+
+  td {
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+
+  td.us {
+    background: rgb(212 255 58 / 0.04);
+  }
+
+  td.yes {
+    color: var(--ink);
+  }
+
+  .mark {
+    display: inline-block;
+    width: 1.1em;
+  }
+
+  td.yes .mark {
+    color: var(--volt);
+  }
+
+  .cell {
+    font-size: 0.8125rem;
+  }
+
+  @media (max-width: 40rem) {
+    .table-wrap {
+      overflow-x: auto;
+    }
+    .cell {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+    td {
+      text-align: center;
+    }
+  }
+
+  .bridge {
+    display: grid;
+    gap: 0.75rem;
+    max-width: 46rem;
+    margin-top: 3rem;
+  }
+
+  .bridge h3 {
+    font-size: 1.375rem;
+    letter-spacing: -0.03em;
+  }
+
+  .bridge a {
+    color: var(--ink);
+  }
+</style>

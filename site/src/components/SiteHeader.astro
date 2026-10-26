@@ -12,7 +12,7 @@ const { links } = Astro.props;
 
 <header class="site-header" data-header>
   <div class="wrap bar">
-    <a class="brand" href={withBase()} aria-label="b3bend: home">
+    <a class="brand" href={withBase()} aria-label="turboblake: home">
       <Logo wordmark tagline />
     </a>
     <nav aria-label="Sections">
@@ -122,15 +122,12 @@ const { links } = Astro.props;
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
-    min-height: 44px;
-    padding-inline: 0.7rem;
-    border-radius: 999px;
+    min-height: 40px;
+    padding-inline: 0.75rem;
+    border-radius: var(--radius-sm);
     color: var(--ink-2);
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    font-stretch: 90%;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+    font-size: 0.875rem;
+    font-weight: 450;
     text-decoration: none;
     white-space: nowrap;
   }
@@ -148,8 +145,7 @@ const { links } = Astro.props;
   }
 
   .gh:hover {
-    border-color: var(--volt);
-    color: var(--volt);
+    background: rgb(255 255 255 / 0.06);
   }
 
   .gh :global(.brandmark) {

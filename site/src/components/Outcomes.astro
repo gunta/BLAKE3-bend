@@ -1,0 +1,475 @@
+---
+/**
+ * What turboblake changes for you, in measured outcomes: the biggest real
+ * file first, drawn to scale (bars run at the measured times, slowed by one
+ * factor), then one card per kind of job. Every number comes from results.json.
+ */
+import { Boxes, FolderTree, Gpu, HardDriveDownload } from 'lucide-static';
+import BrandMark from './BrandMark.astro';
+import Icon from './Icon.astro';
+import { seriesMark } from '../lib/brands';
+import { fmtMeasured } from '../lib/format';
+import { fmtSpeedup } from '../lib/model';
+import { headlines, irohHashOnly, irohTallies, sizeIn } from '../lib/page';
+
+const { models: m, gpu, cli, ties } = headlines;
+const c = m?.comparison;
+const share = c ? c.bendValue / c.baselineValue : 0;
+const pct = (share * 100).toFixed(1);
+const x = (v: string) => v.replace(/x$/, '×');
+const irohBest = irohTallies[0];
+
+const cards = [
+  c && {
+    icon: HardDriveDownload,
+    title: 'Verify big downloads',
+    figure: x(fmtSpeedup(c)),
+    body: `${c.row.label}: ${fmtMeasured(c.bendValue)} s instead of ${fmtMeasured(c.baselineValue)} s. Files bigger than RAM stream at SSD speed instead of page-faulting.`,
+    href: '#models',
+  },
+  cli && {
+    icon: FolderTree,
+    title: 'Checksum whole folders',
+    figure: x(cli.value.replace(/^up to /, '')),
+    upTo: /^up to /.test(cli.value),
+    body: `${cli.comparison.row.label}: ${fmtMeasured(cli.comparison.bendValue)} ms instead of ${fmtMeasured(cli.comparison.baselineValue)} ms. Thousands of files are opened and hashed at once.`,
+    href: '#cli',
+  },
+  gpu && {
+    icon: Gpu,
+    title: 'Hash in memory, on the GPU',
+    figure: x(gpu.value),
+    body: `${gpu.context}: ${gpu.detail}`,
+    href: '#in-memory',
+  },
+  irohBest && {
+    icon: Boxes,
+    title: 'Feed content-addressed storage',
+    figure: x(fmtSpeedup(irohBest.best)),
+    upTo: irohBest.all.length > 1,
+    body: `iroh-blobs ingest, ${irohBest.best.row.label}, against ${irohBest.best.baseline.label}${irohHashOnly ? ' (turboblake computes the root hash only so far)' : ', the same hash and bao outboard'}.`,
+    href: '#iroh',
+  },
+].filter((card) => !!card);
+---
+
+<section id="outcomes" class="outcomes" aria-labelledby="outcomes-title">
+  <div class="wrap">
+    <header class="head">
+      <p class="kicker" data-reveal>Why turboblake</p>
+      <h2 id="outcomes-title" data-reveal style="--i: 1">The same fingerprints, without the wait.</h2>
+      <p class="lede prose" data-reveal style="--i: 2">
+        Measured against the official BLAKE3 tools on the same machine, same files, same digests. Where it only ties, it says so below.
+      </p>
+    </header>
+
+    {
+      c && m && (
+        <figure class="proof card" data-race data-bend={c.bendValue} data-base={c.baselineValue} data-reveal>
+          <div class="proof-head">
+            <div>
+              <p class="proof-title">
+                {sizeIn(c.row.label) ?? 'A big file'} model download, checked in <strong>{fmtMeasured(c.bendValue)} s</strong>
+              </p>
+              <p class="proof-sub">
+                {/deepseek/i.test(c.row.label) && (
+                  <span class="src">
+                    <BrandMark name="deepseek" tone="brand" /> DeepSeek weights from <BrandMark name="huggingface" tone="brand" /> Hugging Face ·
+                  </span>
+                )}{' '}
+                bigger than this Mac's RAM
+              </p>
+            </div>
+            <p class="proof-figure display" aria-hidden="true">
+              <span data-count={x(m.value)}>{x(m.value)}</span>
+            </p>
+          </div>
+          {[
+            { s: c.bend, v: c.bendValue, f: 1, cls: 'is-bend' },
+            { s: c.baseline, v: c.baselineValue, f: share, cls: 'is-base' },
+          ].map((l) => (
+            <div class:list={['lane', l.cls, { finished: l.f >= 1 }]} style={`--p: ${l.f.toFixed(5)}`}>
+              <span class="who">
+                {seriesMark(l.s.key) && <BrandMark name={seriesMark(l.s.key)!} class="series-mark" />}
+                {l.s.label}
+              </span>
+              <span class="track" aria-hidden="true">
+                <span class="fill" />
+              </span>
+              <span class="t num">{fmtMeasured(l.v)} s</span>
+              <span class="state" data-state>
+                {l.cls === 'is-bend' ? 'Done' : `${pct}% read`}
+              </span>
+            </div>
+          ))}
+          <figcaption>
+            <span>
+              Drawn to scale: when turboblake has hashed the whole file, {c.baseline.label} has read {pct}% of it. Elapsed{' '}
+              <span class="clock num" data-clock>{fmtMeasured(c.bendValue)}</span> s.
+            </span>
+            <button class="replay" type="button" data-replay hidden>Replay</button>
+          </figcaption>
+        </figure>
+      )
+    }
+
+    <ul class="cards" role="list">
+      {
+        cards.map((card, i) => (
+          <li class="tile card" data-reveal style={`--i: ${i}`}>
+            <Icon svg={card.icon} class="tile-icon" />
+            <a class="tile-title stretched" href={card.href}>
+              {card.title}
+            </a>
+            <p class="tile-figure display num">
+              {'upTo' in card && card.upTo && <span class="upto">up to</span>}
+              {card.figure}
+            </p>
+            <p class="tile-body">{card.body}</p>
+          </li>
+        ))
+      }
+    </ul>
+
+    {
+      ties && (
+        <div class="ties" data-reveal>
+          <p class="ties-title">Where it only ties</p>
+          <ul role="list">
+            {ties.lines.map((l) => (
+              <li>
+                <a href={l.href}>{l.text}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
+  </div>
+</section>
+
+<script>
+  import { fmtMeasured } from '../lib/format';
+
+  const RUN_SECONDS = 2.4; // turboblake's bar, on screen
+
+  for (const fig of document.querySelectorAll<HTMLElement>('[data-race]')) {
+    const bend = Number(fig.dataset.bend);
+    const base = Number(fig.dataset.base);
+    const lanes = [...fig.querySelectorAll<HTMLElement>('.lane')];
+    const clock = fig.querySelector<HTMLElement>('[data-clock]');
+    const replay = fig.querySelector<HTMLButtonElement>('[data-replay]');
+    const figure = fig.querySelector<HTMLElement>('[data-count]');
+    // The figure as the page formats it ("27.6×"): count up to it with the same decimals.
+    const final = figure?.dataset.count ?? '';
+    const target = Number.parseFloat(final);
+    const decimals = (final.split('.')[1] ?? '').replace(/\D/g, '').length;
+    if (!(bend > 0 && base > 0) || lanes.length !== 2 || matchMedia('(prefers-reduced-motion: reduce)').matches) continue;
+
+    const scale = RUN_SECONDS / bend;
+    let raf = 0;
+
+    const paint = (sim: number) => {
+      [bend, base].forEach((v, i) => {
+        const lane = lanes[i]!;
+        const done = sim >= v;
+        lane.style.setProperty('--p', Math.min(1, sim / v).toFixed(5));
+        lane.classList.toggle('finished', done);
+        const state = lane.querySelector<HTMLElement>('[data-state]');
+        if (state) state.textContent = done ? 'Done' : `${((Math.min(sim, v) / v) * 100).toFixed(1)}% read`;
+      });
+      if (clock) clock.textContent = fmtMeasured(Number(sim.toFixed(2)));
+      // The figure counts up only while a run is on; before that it shows the real value.
+      if (figure && Number.isFinite(target) && fig.classList.contains('running')) {
+        const k = Math.min(1, sim / bend);
+        figure.textContent = `${(1 + (target - 1) * (1 - Math.pow(1 - k, 3))).toFixed(decimals)}×`;
+      }
+    };
+
+    const run = () => {
+      cancelAnimationFrame(raf);
+      const t0 = performance.now();
+      fig.classList.add('running');
+      const tick = (now: number) => {
+        const sim = (now - t0) / 1000 / scale;
+        paint(Math.min(sim, base));
+        if (sim < base) raf = requestAnimationFrame(tick);
+        else fig.classList.remove('running');
+        if (sim >= bend && figure) figure.textContent = final;
+        if (sim >= bend && replay) replay.hidden = false;
+      };
+      raf = requestAnimationFrame(tick);
+    };
+
+    paint(0);
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        io.disconnect();
+        run();
+      },
+      { threshold: 0.35, rootMargin: '0px 0px -20% 0px' },
+    );
+    io.observe(fig);
+    replay?.addEventListener('click', run);
+  }
+</script>
+
+<style>
+  .outcomes {
+    padding-block: clamp(5rem, 3rem + 6vw, 8rem);
+    border-top: 1px solid var(--line);
+  }
+
+  .head {
+    display: grid;
+    gap: 1rem;
+    max-width: 46rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .lede {
+    font-size: 1.0625rem;
+  }
+
+  /* The proof: the big model file, to scale. */
+  .proof {
+    display: grid;
+    gap: 1rem;
+    margin: 0 0 1rem;
+    padding: clamp(1.25rem, 0.9rem + 1.2vw, 2rem);
+    background:
+      radial-gradient(40rem 16rem at 100% 0%, rgb(212 255 58 / 0.06), transparent 70%),
+      var(--surface);
+  }
+
+  .proof-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .proof-title {
+    font-size: clamp(1.125rem, 1rem + 0.6vw, 1.5rem);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+  }
+
+  .proof-title strong {
+    color: var(--volt);
+  }
+
+  .proof-sub {
+    margin-top: 0.35rem;
+    color: var(--ink-3);
+    font-size: 0.875rem;
+  }
+
+  .src {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .proof-figure {
+    font-size: clamp(3.5rem, 2rem + 6vw, 6.5rem);
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .lane {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'who t'
+      'track track'
+      'state state';
+    align-items: center;
+    gap: 0.35rem 1rem;
+  }
+
+  .who {
+    grid-area: who;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-weight: 600;
+  }
+
+  .is-base .who {
+    color: var(--ink-2);
+    font-weight: 500;
+  }
+
+  .who :global(.series-mark) {
+    color: var(--ink-3);
+  }
+
+  .is-bend .who :global(.series-mark) {
+    color: var(--volt);
+  }
+
+  .t {
+    grid-area: t;
+    color: var(--ink-2);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+
+  .state {
+    grid-area: state;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+  }
+
+  .is-bend.finished .state {
+    color: var(--volt);
+  }
+
+  .track {
+    grid-area: track;
+    position: relative;
+    height: 12px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    overflow: hidden;
+  }
+
+  .fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: calc(var(--p, 1) * 100%);
+    min-width: 3px;
+    border-radius: inherit;
+    background: var(--s-base-2);
+  }
+
+  .is-bend .fill {
+    background: var(--heat);
+  }
+
+  figcaption {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1.5rem;
+    color: var(--ink-3);
+    font-size: 0.8125rem;
+  }
+
+  .replay {
+    min-height: 36px;
+    padding: 0.35rem 0.9rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .replay:hover {
+    background: rgb(255 255 255 / 0.06);
+  }
+
+  @media (min-width: 48rem) {
+    .lane {
+      grid-template-columns: 9rem minmax(0, 1fr) 5rem 7.5rem;
+      grid-template-areas: 'who track t state';
+    }
+    .t {
+      text-align: right;
+    }
+  }
+
+  /* One card per kind of job. */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tile {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: 0.6rem;
+    padding: 1.25rem;
+  }
+
+  .tile:has(.stretched:hover) {
+    border-color: var(--line-strong);
+  }
+
+  .tile :global(.tile-icon) {
+    width: 1.35rem;
+    height: 1.35rem;
+    color: var(--ink);
+  }
+
+  .tile-title {
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .stretched::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+
+  .tile-figure {
+    font-size: 2.5rem;
+    color: var(--volt);
+  }
+
+  .upto {
+    display: block;
+    margin-bottom: 0.2rem;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0;
+  }
+
+  .tile-body {
+    color: var(--ink-2);
+    font-size: 0.875rem;
+  }
+
+  .ties {
+    display: grid;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    color: var(--ink-3);
+    font-size: 0.875rem;
+  }
+
+  .ties-title {
+    color: var(--ink-2);
+    font-weight: 600;
+  }
+
+  .ties ul {
+    display: grid;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .ties a {
+    color: var(--ink-3);
+  }
+</style>

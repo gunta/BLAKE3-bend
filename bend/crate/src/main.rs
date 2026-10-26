@@ -11,7 +11,9 @@ mod unit_tests;
 
 mod fast;
 
-const NAME: &str = "b3sum";
+// turboblake: messages start with the binary's name, "turboblake", or "b3sum"
+// for the `replace` install, which stays byte-identical to upstream.
+const NAME: &str = env!("CARGO_BIN_NAME");
 
 const DERIVE_KEY_ARG: &str = "derive_key";
 const KEYED_ARG: &str = "keyed";
@@ -520,7 +522,7 @@ fn check_one_checkfile(path: &Path, args: &Args, files_failed: &mut u64) -> anyh
 
 fn main() -> anyhow::Result<()> {
     let args = Args::parse()?;
-    // b3bend: --num-threads caps the Bend engine's threads too
+    // turboblake: --num-threads caps the Bend engine's threads too
     if let Some(n) = args.num_threads() {
         // SAFETY: no other thread runs yet.
         unsafe { std::env::set_var("BLAKE3_BEND_THREADS", n.to_string()) };

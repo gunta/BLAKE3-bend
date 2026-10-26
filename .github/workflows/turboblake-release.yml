@@ -1,0 +1,111 @@
+name: turboblake release
+
+# Builds turboblake (bend/crate: the official b3sum on blake3-bend) for macOS
+# and Linux, arm64 and x86-64, when a turboblake-v* tag is pushed; checks each
+# binary against the official test vectors; and publishes the archives on a
+# GitHub release. Homebrew (gunta/homebrew-tap) and cargo-binstall download
+# these archives; SHA256SUMS feeds the formula.
+#
+# The Bend engine is tuned for a baseline per target (BLAKE3_BEND_TARGET_CPU),
+# not the runner's CPU: Apple M1 for macOS arm64, x86-64-v3 (AVX2, as RHEL 10
+# requires) for x86-64, armv8 for Linux arm64. Upstream's SIMD code picks its
+# path at run time. `cargo install turboblake` still tunes for the machine it
+# builds on.
+
+on:
+  push:
+    tags:
+      - "turboblake-v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: macos-15, target: aarch64-apple-darwin, cpu: "-mcpu=apple-m1" }
+          - { os: macos-15, target: x86_64-apple-darwin, cpu: "-march=x86-64-v3" }
+          - { os: ubuntu-24.04, target: x86_64-unknown-linux-gnu, cpu: "-march=x86-64-v3" }
+          - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu, cpu: "-mcpu=generic" }
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - name: Install clang 19 (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-19
+          echo "CC=clang-19" >> "$GITHUB_ENV"
+      - name: Build
+        working-directory: bend/crate
+        env:
+          BLAKE3_BEND_TARGET_CPU: ${{ matrix.cpu }}
+        run: cargo build --release --target ${{ matrix.target }}
+      - name: Check against the official test vectors
+        run: |
+          bin=bend/crate/target/${{ matrix.target }}/release/turboblake
+          if [ "${{ matrix.target }}" = "x86_64-apple-darwin" ]; then
+            # Built on Apple silicon: when the runner has Rosetta, macOS runs the
+            # x86_64 binary through it (the script's own python stays arm64).
+            if arch -x86_64 /usr/bin/true 2>/dev/null; then
+              python3 bend/rust/check_vectors.py "$bin"
+            else
+              echo "::notice::Rosetta is not available; x86_64 binary built but not run"
+            fi
+          else
+            python3 bend/rust/check_vectors.py "$bin"
+          fi
+          "$bin" --version
+      - name: Package
+        id: package
+        run: |
+          version="${GITHUB_REF_NAME#turboblake-v}"
+          name="turboblake-${version}-${{ matrix.target }}"
+          mkdir "$name"
+          cp bend/crate/target/${{ matrix.target }}/release/turboblake bend/crate/README.md bend/crate/LICENSE_* "$name/"
+          tar czf "$name.tar.gz" "$name"
+          echo "archive=$name.tar.gz" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.target }}
+          path: ${{ steps.package.outputs.archive }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Publish the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd dist
+          sha256sum *.tar.gz > SHA256SUMS
+          cat SHA256SUMS
+          version="${GITHUB_REF_NAME#turboblake-v}"
+          cat > notes.md <<NOTES
+          turboblake ${version}: BLAKE3, turbocharged. The official b3sum with a Bend2 engine: every flag the same, many files and big ones hashed at once.
+
+          \`\`\`bash
+          brew install gunta/tap/turboblake                     # macOS and Linux
+          cargo install turboblake                              # from source, tuned for your CPU
+          cargo binstall turboblake                             # these binaries, through cargo
+          cargo install turboblake --features replace --force   # also as b3sum
+          \`\`\`
+
+          Or download an archive below (macOS and Linux, arm64 and x86-64) and put \`turboblake\` on your PATH.
+          Benchmarks and method: https://gunta.github.io/BLAKE3-bend/
+          NOTES
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
+            --title "turboblake ${version}" --notes-file notes.md \
+            *.tar.gz SHA256SUMS

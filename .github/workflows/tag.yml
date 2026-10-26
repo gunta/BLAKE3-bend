@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - "*"
+      # turboblake releases have their own workflow (turboblake-release.yml).
+      - "!turboblake-v*"
 
 env:
   BLAKE3_CI: "1"

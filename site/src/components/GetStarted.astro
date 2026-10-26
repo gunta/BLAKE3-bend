@@ -1,0 +1,246 @@
+---
+/**
+ * Install and first use: one line per channel, the commands you will type,
+ * and the one-line switch from sha256sum.
+ */
+import { Download, Package, Terminal } from 'lucide-static';
+import BrandMark from './BrandMark.astro';
+import Icon from './Icon.astro';
+import InstallCommand from './InstallCommand.astro';
+import { RELEASES_URL } from '../lib/site';
+
+const channels = [
+  { name: 'Homebrew', command: 'brew install gunta/tap/turboblake', note: 'macOS and Linux, prebuilt for arm64 and x86-64.' },
+  { name: 'Cargo', command: 'cargo install turboblake', note: 'Builds from source, tuned for your CPU. Needs clang.' },
+  { name: 'cargo-binstall', command: 'cargo binstall turboblake', note: 'The prebuilt binaries, through cargo.' },
+];
+---
+
+<section id="install" class="start" aria-labelledby="start-title">
+  <div class="wrap">
+    <header class="head">
+      <p class="kicker" data-reveal>Get started</p>
+      <h2 id="start-title" data-reveal style="--i: 1">One command to install. The same one to use.</h2>
+    </header>
+
+    <div class="steps">
+      <div class="step card" data-reveal>
+        <p class="step-n"><Icon svg={Package} /> Install</p>
+        <InstallCommand class="big" />
+        <ul class="channels" role="list">
+          {
+            channels.map((c) => (
+              <li>
+                <code>{c.command}</code>
+                <span>{c.note}</span>
+              </li>
+            ))
+          }
+          <li>
+            <a href={RELEASES_URL}><Icon svg={Download} /> GitHub Releases</a>
+            <span>Archives for macOS and Linux, arm64 and x86-64, with SHA256SUMS.</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="step card" data-reveal style="--i: 1">
+        <p class="step-n"><Icon svg={Terminal} /> Use</p>
+        <pre><code><span class="c"># fingerprint files, one line each (stdin with no file or -)</span>
+<span class="p">$</span> turboblake model.safetensors photos/*.jpg
+<span class="c"># write a checksum file, then verify it later or elsewhere</span>
+<span class="p">$</span> turboblake *.iso &gt; B3SUMS
+<span class="p">$</span> turboblake --check B3SUMS</code></pre>
+        <p class="out-note">Output: <code>&lt;64 hex characters&gt;  &lt;name&gt;</code>, exactly what <code>b3sum</code> prints.</p>
+      </div>
+    </div>
+
+    <div class="switch card" data-reveal>
+      <div class="switch-copy">
+        <h3>Coming from sha256sum?</h3>
+        <p>
+          Swap the command and the file name. turboblake is the official <BrandMark name="b3" /> <code>b3sum</code> with a faster engine: the
+          same flags, output and messages, so existing BLAKE3 checksum files verify unchanged.
+        </p>
+      </div>
+      <div class="diff">
+        <pre class="before"><code><span class="m">-</span> sha256sum -c SHA256SUMS</code></pre>
+        <pre class="after"><code><span class="m">+</span> turboblake --check B3SUMS</code></pre>
+      </div>
+      <ul class="facts" role="list">
+        <li>Every <code>b3sum</code> flag: <code>--check</code>, <code>--keyed</code>, <code>--derive-key</code>, <code>--length</code>, <code>--tag</code></li>
+        <li>Any file size, up to 4 TiB</li>
+        <li><code>cargo install turboblake --features replace</code> also installs it as <code>b3sum</code></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .start {
+    padding-block: clamp(5rem, 3rem + 6vw, 8rem);
+    border-top: 1px solid var(--line);
+  }
+
+  .head {
+    display: grid;
+    gap: 1rem;
+    max-width: 46rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .steps {
+    display: grid;
+    gap: 1rem;
+  }
+
+  @media (min-width: 62rem) {
+    .steps {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .step {
+    display: grid;
+    align-content: start;
+    gap: 1rem;
+    min-width: 0;
+    padding: clamp(1.1rem, 0.8rem + 1vw, 1.5rem);
+  }
+
+  .step-n {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+  }
+
+  .step :global(.install.big code) {
+    font-size: 1rem;
+  }
+
+  .channels {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0.25rem 0 0;
+    padding: 1rem 0 0;
+    border-top: 1px solid var(--line);
+    list-style: none;
+    font-size: 0.875rem;
+  }
+
+  .channels li {
+    display: grid;
+    gap: 0.15rem;
+  }
+
+  .channels span {
+    color: var(--ink-3);
+  }
+
+  .channels a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    width: fit-content;
+    font-weight: 500;
+  }
+
+  .channels code {
+    width: fit-content;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  pre {
+    background: var(--void);
+    font-size: 0.8125rem;
+  }
+
+  .c {
+    color: var(--ink-3);
+  }
+
+  .p {
+    color: var(--volt);
+  }
+
+  .out-note {
+    color: var(--ink-3);
+    font-size: 0.875rem;
+  }
+
+  .switch {
+    display: grid;
+    gap: 1.25rem;
+    margin-top: 1rem;
+    padding: clamp(1.1rem, 0.8rem + 1vw, 1.5rem);
+  }
+
+  @media (min-width: 62rem) {
+    .switch {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      align-items: center;
+    }
+    .facts {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .switch-copy {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .switch-copy p {
+    color: var(--ink-2);
+    font-size: 0.9375rem;
+  }
+
+  .diff {
+    display: grid;
+    gap: 0.4rem;
+    min-width: 0;
+  }
+
+  .diff pre {
+    padding: 0.7rem 1rem;
+  }
+
+  .before {
+    color: var(--ink-3);
+    background: rgb(255 90 90 / 0.05);
+    border-color: rgb(255 90 90 / 0.18);
+  }
+
+  .after {
+    background: rgb(212 255 58 / 0.05);
+    border-color: rgb(212 255 58 / 0.22);
+  }
+
+  .m {
+    display: inline-block;
+    width: 1.2em;
+    color: var(--ink-3);
+  }
+
+  .after .m {
+    color: var(--volt);
+  }
+
+  .facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--ink-3);
+    font-size: 0.875rem;
+  }
+
+  .facts li::before {
+    content: '✓';
+    margin-right: 0.45rem;
+    color: var(--volt);
+  }
+</style>
