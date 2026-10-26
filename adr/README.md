@@ -2,6 +2,11 @@
 
 How the Bend2 BLAKE3 got fast, and what we measured on the way.
 
+Each record is also told as news on the site's changelog
+(https://gunta.github.io/BLAKE3-bend/changelog/). With a new record, add its
+`headline`, `dek`, `stat` and `points` to `techniques` in
+`bend/bench/results/results.json` (site/BRAND.md, "The changelog").
+
 | ADR | decision |
 |-----|----------|
 | [0001](0001-bend2-blake3-baseline.md) | BLAKE3 core in Bend2, the baseline we race |

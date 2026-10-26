@@ -8,6 +8,8 @@ import { blobUrl, treeUrl } from './site';
 export interface Adr {
   number: string;
   file: string;
+  /** The file name without its number: a stable anchor, e.g. "files-past-4-tib". */
+  slug: string;
   title: string | undefined;
   date: string | undefined;
   status: string | undefined;
@@ -32,6 +34,7 @@ for (const [path, text] of Object.entries(sources)) {
   byNumber.set(number, {
     number,
     file,
+    slug: file.slice(5).replace(/\.md$/, ''),
     title: heading,
     date: field(text, 'Date'),
     status: field(text, 'Status'),
@@ -45,6 +48,7 @@ export function adr(number: string): Adr {
     byNumber.get(number) ?? {
       number,
       file: '',
+      slug: number,
       title: undefined,
       date: undefined,
       status: undefined,
@@ -52,5 +56,8 @@ export function adr(number: string): Adr {
     }
   );
 }
+
+/** Every ADR in ../adr, in number order. */
+export const allAdrs: Adr[] = [...byNumber.values()].sort((a, b) => a.number.localeCompare(b.number));
 
 export const ADR_INDEX_URL = blobUrl('adr/README.md');

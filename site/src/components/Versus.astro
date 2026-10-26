@@ -9,7 +9,7 @@ import { Laptop } from 'lucide-static';
 import BrandMark from './BrandMark.astro';
 import Icon from './Icon.astro';
 import { fmtTimes, versus } from '../lib/versus';
-import { adr } from '../lib/adr';
+import { story } from '../lib/news';
 import { withBase } from '../lib/site';
 
 interface Props {
@@ -20,7 +20,7 @@ interface Props {
 const { bare = false } = Astro.props;
 const lead = versus?.lead;
 const input = versus?.input ?? '';
-const kernels = adr('0013');
+const kernels = story('0013');
 ---
 
 {
@@ -95,7 +95,7 @@ const kernels = adr('0013');
             </>
           )}
           The native kernels are hand-written CUDA and Metal in the repository; the command line and the library run Bend's tree on the CPU today and take
-          the GPU <a href={kernels.url}>next</a>.{' '}
+          the GPU <a href={kernels?.href}>next</a>.{' '}
           {bare ? (
             <>
               Each GPU at every size is on <a href={withBase('gpu/')}>the GPU page</a>.

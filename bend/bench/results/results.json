@@ -47,7 +47,7 @@
   },
   "gpu_reference": {
     "unit": "ms",
-    "note": "Bend's GPU path (hash1!) against hand-written Metal (bend/ref, ADR 0006), warm, in memory, same digest; medians of 6 interleaved rounds on a loaded machine (+-10%); the 1 GiB row is from ADR 0011, after Bend's lanes began reading interleaved groups. metal_bend_leaves runs the native kernel in hash1!'s shape: one thread per leaf, ~16,384 leaves.",
+    "note": "Bend's GPU path (hash1!) against hand-written Metal (bend/ref), warm, in memory, same digest; medians of 6 interleaved rounds on a loaded machine (+-10%); the 1 GiB row is from after Bend's lanes began reading interleaved groups. metal_bend_leaves runs the native kernel in hash1!'s shape: one thread per leaf, ~16,384 leaves.",
     "rows": [
       {
         "input": "16 MiB",
@@ -211,62 +211,222 @@
     {
       "adr": "0001",
       "title": "BLAKE3 core in Bend2",
-      "summary": "Unboxed U32 records compile to register code; Array<U32> is a packed buffer; Array.fork shares input down a parallel fork tree."
+      "summary": "Unboxed U32 records compile to register code; Array<U32> is a packed buffer; Array.fork shares input down a parallel fork tree.",
+      "date": "2026-10-26T03:19:00+09:00",
+      "tag": "Launch",
+      "headline": "BLAKE3, written in Bend2",
+      "dek": "It starts here: a complete BLAKE3 in Bend2, a language that spreads tree-shaped work over every core. Its records compile to register code, so the compression function comes out like hand-written C.",
+      "points": [
+        "Gives the official test vectors' answers",
+        "The baseline every later change is measured against"
+      ]
     },
     {
       "adr": "0002",
       "title": "8-lane compress8 + clang SLP",
-      "summary": "Eight chunks per call, word-major lanes, one call site, SLP and inline flags: 2.95 GB/s per core vs NEON's 2.40."
+      "summary": "Eight chunks per call, word-major lanes, one call site, SLP and inline flags: 2.95 GB/s per core vs NEON's 2.40.",
+      "date": "2026-10-26T03:39:03+09:00",
+      "tag": "Speed",
+      "headline": "Eight blocks at a time, on every core",
+      "dek": "Bend has no vector types, so its code is shaped until the C compiler packs eight BLAKE3 compressions into SIMD registers on its own. One core now outpaces the official crate's hand-written NEON.",
+      "stat": {
+        "value": "2.95 GB/s",
+        "label": "on one core, against NEON's 2.40"
+      }
     },
     {
       "adr": "0003",
       "title": "b3sum I/O path",
-      "summary": "Parallel one-pass loader, zero-copy read-only mmap, byte-balanced file tree, one write for all output."
+      "summary": "Parallel one-pass loader, zero-copy read-only mmap, byte-balanced file tree, one write for all output.",
+      "date": "2026-10-26T04:17:41+09:00",
+      "tag": "Speed",
+      "headline": "Thousands of files, hashed at once",
+      "dek": "The command line opens, reads and hashes every file in parallel, maps big files instead of copying them, and writes all of its output in one go. The output is b3sum's, byte for byte.",
+      "points": [
+        "Big files are read straight from the page cache, never copied",
+        "Work is balanced by bytes, so a few big files and many small ones share the cores evenly"
+      ]
     },
     {
       "adr": "0004",
       "title": "Files past 4 GiB",
-      "summary": "1 GiB segments are complete BLAKE3 subtrees, hashed in parallel and merged as parents (past 4 TiB since ADR 0014)."
+      "summary": "1 GiB segments are complete BLAKE3 subtrees, hashed in parallel and merged as parents (past 4 TiB since the counter's high word landed).",
+      "date": "2026-10-26T04:17:41+09:00",
+      "tag": "Big files",
+      "headline": "Movies and disk images welcome: files past 4 GiB",
+      "dek": "Big files are hashed as 1 GiB pieces that fit BLAKE3's tree exactly, all in parallel, with the same fingerprint as the official tools. The command line stays on the CPU, where a one-shot run finishes first.",
+      "stat": {
+        "value": "4 GiB \u2192 4 TiB",
+        "label": "the largest file it hashes"
+      },
+      "points": [
+        "13 files from 1 GiB to 8 GiB match the official b3sum",
+        "A 5 GiB file in 0.204 s, against b3sum's 0.219 s"
+      ]
     },
     {
       "adr": "0005",
       "title": "Flat GPU leaves",
-      "summary": "Fork-free 4/16/64-chunk leaves sized to the 16,384-lane cube: 93-110 GB/s on the GPU."
+      "summary": "Fork-free 4/16/64-chunk leaves sized to the 16,384-lane cube: 93-110 GB/s on the GPU.",
+      "date": "2026-10-26T04:25:23+09:00",
+      "tag": "GPU",
+      "headline": "The GPU hashes 1 GiB in 11.6 ms",
+      "dek": "Each GPU thread now takes a whole run of chunks instead of one, sized so all 16,384 lanes stay busy. On an M5 Pro that is 2.4\u00d7 the official crate on every CPU core.",
+      "stat": {
+        "value": "2.4\u00d7",
+        "label": "the official crate on every core, 1 GiB"
+      }
     },
     {
       "adr": "0006",
       "title": "Native GPU references",
-      "summary": "Metal and CUDA BLAKE3 as yardsticks: native Metal hashes 1 GiB in ~6 ms. Bend's GPU path is read-bound: ~1.5x from its lane cube's memory locality, ~1.3x from its array reads."
+      "summary": "Metal and CUDA BLAKE3 as yardsticks: native Metal hashes 1 GiB in ~6 ms. Bend's GPU path is read-bound: ~1.5x from its lane cube's memory locality, ~1.3x from its array reads.",
+      "date": "2026-10-26T06:10:34+09:00",
+      "tag": "GPU",
+      "headline": "How fast can a GPU hash? A native yardstick",
+      "dek": "Hand-written Metal and CUDA BLAKE3 kernels show what the hardware can do, and where Bend's GPU time goes: reading memory, not computing.",
+      "stat": {
+        "value": "178 GB/s",
+        "label": "native Metal on an M5 Pro, 1 GiB in 6.04 ms"
+      }
     },
     {
       "adr": "0007",
       "title": "Laws and proofs",
-      "summary": "20 laws the checker proves: official vectors computed by the checker, compress8 and par8 equal the scalar path lane by lane for every input, and BLAKE3's tree splits into 2^k segments and builds level by level, for any compression."
+      "summary": "20 laws the checker proves: official vectors computed by the checker, compress8 and par8 equal the scalar path lane by lane for every input, and BLAKE3's tree splits into 2^k segments and builds level by level, for any compression.",
+      "date": "2026-10-26T06:10:14+09:00",
+      "tag": "Proofs",
+      "headline": "Proven, not just tested",
+      "dek": "BLAKE3 in Bend now ships with laws its compiler proves: the official answers, the eight-lane path equal to the plain one for every input, and the shape of the tree. If a proof breaks, the build says so.",
+      "stat": {
+        "value": "20",
+        "label": "laws the compiler checks"
+      }
     },
     {
       "adr": "0008",
       "title": "Daemon race, map zone, iroh outboards",
-      "summary": "Mapped files go into an address-space zone of their own (one munmap a round); the CPU tree also emits iroh-blobs' bao outboard, byte-identical to bao-tree."
+      "summary": "Mapped files go into an address-space zone of their own (one munmap a round); the CPU tree also emits iroh-blobs' bao outboard, byte-identical to bao-tree.",
+      "date": "2026-10-26T06:20:18+09:00",
+      "tag": "Speed",
+      "headline": "Built for services that hash all day",
+      "dek": "Sync daemons and iroh nodes re-hash what they watch. A long-running turboblake keeps pace with the fastest parallel Rust we could write, and builds iroh's verified-streaming outboards on every core instead of one.",
+      "stat": {
+        "value": "16\u00d7",
+        "label": "iroh-blobs' own ingest of a 1 GiB file"
+      }
     },
     {
       "adr": "0009",
       "title": "Streaming and a GPU daemon",
-      "summary": "Files not in the page cache stream in 1 GiB segments with 16 F_NOCACHE readers while Bend hashes (101.5 GB in ~7.6 s); a daemon refills reused GPU-heap blocks and hashes in one bang."
+      "summary": "Files not in the page cache stream in 1 GiB segments with 16 F_NOCACHE readers while Bend hashes (101.5 GB in ~7.6 s); a daemon refills reused GPU-heap blocks and hashes in one bang.",
+      "date": "2026-10-26T06:20:18+09:00",
+      "tag": "Big files",
+      "headline": "A 101.5 GB model in about 8 seconds",
+      "dek": "Model weights bigger than RAM used to crawl through page faults. Files that are not cached now stream straight off the SSD on 16 readers while every core hashes.",
+      "stat": {
+        "value": "211 s \u2192 7.6 s",
+        "label": "a DeepSeek shard, official b3sum against turboblake"
+      }
     },
     {
       "adr": "0010",
       "title": "More laws: outboards, counts, streaming",
-      "summary": "28 laws now: the outboard tree gives the plain hash for every input, the tree over n chunks has n leaves and n - 1 parents, and the streaming merge stack builds BLAKE3's tree, every segment once and in order."
+      "summary": "28 laws now: the outboard tree gives the plain hash for every input, the tree over n chunks has n leaves and n - 1 parents, and the streaming merge stack builds BLAKE3's tree, every segment once and in order.",
+      "date": "2026-10-26T07:35:08+09:00",
+      "tag": "Proofs",
+      "headline": "Eight more laws, for the code that hashes big files",
+      "dek": "The streaming and outboard paths behind the 101.5 GB result now carry proofs, not just tests: claims checked for every input, which no test suite can cover.",
+      "stat": {
+        "value": "28",
+        "label": "laws in all"
+      }
     },
     {
       "adr": "0011",
       "title": "Strided GPU lanes; CPU + GPU on one input",
-      "summary": "Past 512 MiB, lane l hashes 16-chunk groups l, l + S, l + 2S, l + 3S, so lanes running together read neighbouring memory: 1 GiB 13.2 -> 9.4 ms on the GPU. split.bend lets the CPU and the GPU hash one input at once by slices (13 of 16 on the GPU: 1 GiB in 8.0 ms, 1.06-1.12x the GPU alone)."
+      "summary": "Past 512 MiB, lane l hashes 16-chunk groups l, l + S, l + 2S, l + 3S, so lanes running together read neighbouring memory: 1 GiB 13.2 -> 9.4 ms on the GPU. split.bend lets the CPU and the GPU hash one input at once by slices (13 of 16 on the GPU: 1 GiB in 8.0 ms, 1.06-1.12x the GPU alone).",
+      "date": "2026-10-26T09:00:52+09:00",
+      "tag": "GPU",
+      "headline": "CPU and GPU, one file, at the same time",
+      "dek": "Something the official Rust crate cannot do: the CPU cores and the GPU split one input and hash their parts together. GPU threads also read neighbouring memory now, which took 1 GiB from 13.2 to 9.4 ms.",
+      "stat": {
+        "value": "8.0 ms",
+        "label": "1 GiB on an M5 Pro, CPU and GPU together"
+      },
+      "points": [
+        "6\u201312% faster than the GPU alone, measured on a busy machine"
+      ]
+    },
+    {
+      "adr": "0012",
+      "title": "The engine as a library, every binding",
+      "summary": "One hook in the official C and Rust (compress_subtree_to_parent_node) hands big subtrees to the Bend engine on its own thread; drop-ins for C, Rust, Python, Node, Bun, Deno, browsers and Go each run the tests of the package they replace.",
+      "date": "2026-10-26T10:30:09+09:00",
+      "tag": "Libraries",
+      "headline": "turboblake for Python, JavaScript, Go, C and Rust",
+      "dek": "The engine is now a library, with a drop-in for the BLAKE3 package you already use: change the install line, keep your code. Each one passes the tests of the package it replaces.",
+      "stat": {
+        "value": "8",
+        "label": "runtimes: C, Rust, Python, Node, Bun, Deno, browsers, Go"
+      },
+      "points": [
+        "1 GiB in about 40 ms from C, Python or Node: about 12\u00d7 each one's default hash",
+        "Browsers get Bend's own JavaScript build"
+      ]
+    },
+    {
+      "adr": "0013",
+      "title": "Native GPU kernels where they measure faster",
+      "summary": "Hand-written CUDA and Metal run where they beat Bend's GPU path, beside the CPU + GPU split; Bend stays the CPU engine. SHA-256 measured on the same machines: 1 GiB in 574 ms, against 0.683 ms for native CUDA on a B200.",
+      "date": "2026-10-26T11:02:22+09:00",
+      "tag": "GPU",
+      "headline": "Hand-written CUDA and Metal kernels join the engine",
+      "dek": "turboblake no longer has to be Bend-only on the GPU: each machine runs whichever kernel measures faster. On an NVIDIA B200 the native kernel hashes 1 GiB in 0.683 ms.",
+      "stat": {
+        "value": "841\u00d7",
+        "label": "SHA-256 on the same B200 host, 1 GiB"
+      },
+      "points": [
+        "Apple M5 Pro: native Metal hashes 1 GiB in 6.69 ms, 50\u00d7 SHA-256",
+        "Bend stays the CPU engine, and the tree the proofs are about",
+        "The command line and the library run these kernels next"
+      ]
     },
     {
       "adr": "0014",
       "title": "Files past 4 TiB",
-      "summary": "Every span carries its chunk counter's high word, down to compress8, so files go past 2^32 chunks: a 4 TiB + 1 GiB file matches the official crate, at no measurable cost."
+      "summary": "Every span carries its chunk counter's high word, down to compress8, so files go past 2^32 chunks: a 4 TiB + 1 GiB file matches the official crate, at no measurable cost.",
+      "date": "2026-10-26T11:10:35+09:00",
+      "tag": "Big files",
+      "headline": "No more \u201cFile too large\u201d: files past 4 TiB",
+      "dek": "Disk images, backups and dataset shards now pass 4 TiB. Where turboblake used to stop, it hashes on, with the same fingerprint as the official tools and no measurable cost.",
+      "stat": {
+        "value": "4 TiB \u2192 4 EiB",
+        "label": "the new limit, about a million times higher"
+      },
+      "points": [
+        "A 4.4 TB test file streamed in 241 s, identical to the official crate",
+        "The proofs now cover every counter value"
+      ]
+    },
+    {
+      "adr": "0016",
+      "title": "Never slower than b3sum",
+      "summary": "The hook takes only the subtrees the engine reads in place and wins; the engine's window covers the host's memory on macOS; stdin and --no-mmap read big blocks while the last one hashes; --check hashes a batch at a time. stdin 1 GiB 529 -> 57 ms, 2,000 x 64 KiB 10.9x, single files a tie.",
+      "date": "2026-10-26T12:12:57+09:00",
+      "tag": "Speed",
+      "headline": "turboblake is never slower than b3sum",
+      "dek": "We measured the command against the official b3sum case by case, found every place it lost, and fixed each one. Single files and every flag now tie; folders, pipes and --check got much faster.",
+      "stat": {
+        "value": "9.2\u00d7",
+        "label": "reading 1 GiB from stdin"
+      },
+      "points": [
+        "2,000 files of 64 KiB: 10.9\u00d7 faster",
+        "--check: up to 2.9\u00d7 faster",
+        "--keyed, --derive-key, --length, --seek: a tie"
+      ]
     }
   ],
   "models": {
@@ -289,7 +449,7 @@
     "title": "Apple M5 Pro",
     "machine": "Apple M5 Pro, 20-core GPU (Metal 4)",
     "unit": "ms",
-    "note": "Bend's GPU path (hash1!) against hand-written Metal (bend/ref, ADR 0006), warm, in memory, same digest; medians of 6 interleaved rounds on a loaded machine (+-10%); the 1 GiB row is from ADR 0011, after Bend's lanes began reading interleaved groups. metal_bend_leaves runs the native kernel in hash1!'s shape: one thread per leaf, ~16,384 leaves.",
+    "note": "Bend's GPU path (hash1!) against hand-written Metal (bend/ref), warm, in memory, same digest; medians of 6 interleaved rounds on a loaded machine (+-10%); the 1 GiB row is from after Bend's lanes began reading interleaved groups. metal_bend_leaves runs the native kernel in hash1!'s shape: one thread per leaf, ~16,384 leaves.",
     "rows": [
       {
         "input": "16 MiB",
@@ -1458,7 +1618,7 @@
       "bend_native": {
         "label": "turboblake, native GPU kernel",
         "kind": "bend",
-        "description": "the hand-written CUDA or Metal kernel in bend/ref (ADR 0013)"
+        "description": "the hand-written CUDA or Metal kernel in bend/ref"
       }
     }
   }

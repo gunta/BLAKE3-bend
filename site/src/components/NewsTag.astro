@@ -1,0 +1,53 @@
+---
+/** A changelog story's topic, as a small chip with its icon. */
+import { Gpu, HardDrive, Package, Rocket, ShieldCheck, Zap } from 'lucide-static';
+import Icon from './Icon.astro';
+import type { Tag } from '../lib/news';
+
+interface Props {
+  tag: Tag | undefined;
+}
+
+const ICONS: Record<Tag, string> = {
+  Launch: Rocket,
+  Speed: Zap,
+  GPU: Gpu,
+  'Big files': HardDrive,
+  Proofs: ShieldCheck,
+  Libraries: Package,
+};
+
+const { tag } = Astro.props;
+---
+
+{
+  tag && (
+    <span class="news-tag">
+      <Icon svg={ICONS[tag]} />
+      {tag}
+    </span>
+  )
+}
+
+<style>
+  .news-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.2rem 0.6rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    color: var(--ink-2);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .news-tag :global(svg) {
+    width: 0.875rem;
+    height: 0.875rem;
+    color: var(--ink);
+  }
+</style>
