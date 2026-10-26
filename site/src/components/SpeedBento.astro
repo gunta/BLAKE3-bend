@@ -7,7 +7,7 @@
 import { BookOpen, FolderTree, Gpu, HardDriveDownload, ShieldCheck, Terminal } from 'lucide-static';
 import BrandMark from './BrandMark.astro';
 import Icon from './Icon.astro';
-import { folders, gpu, laws, machine, model, universalLaws } from '../lib/home';
+import { folders, gpu, gpuApis, laws, machine, model, universalLaws } from '../lib/home';
 import { withBase } from '../lib/site';
 
 const pct = model ? ((model.bend / model.baseline) * 100).toFixed(1) : '0';
@@ -93,20 +93,38 @@ const cells = Array.from({ length: 96 }, (_, i) => ((i * 37) % 23) / 23);
       }
 
       {
-        gpu && gpu.gbps && (
+        gpu && (
           <article class="tile t-gpu" data-reveal style="--i: 2">
             <p class="tile-kicker">
               <Icon svg={Gpu} /> On the GPU
             </p>
             <p class="mega mid-num">
-              <span data-countup={gpu.gbps}>{gpu.gbps}</span>
-              <span class="unit">GB/s</span>
+              <span data-countup={gpu.rate}>{gpu.rate}</span>
+              <span class="unit">{gpu.unit}</span>
             </p>
-            <div class="gauge" aria-hidden="true">
-              <span />
-            </div>
+            {
+              gpuApis.length > 1 ? (
+                <ul class="apis" role="list">
+                  {gpuApis.map((a) => (
+                    <li>
+                      <span class="api">
+                        {a.backend} <span class="api-on">{a.engine === 'native' ? 'native · ' : ''}{a.machine}</span>
+                      </span>
+                      <span class="api-rate num">{a.gbps} GB/s</span>
+                      <span class="gauge" aria-hidden="true">
+                        <span style={`width: ${(a.share * 100).toFixed(1)}%`} />
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div class="gauge" aria-hidden="true">
+                  <span />
+                </div>
+              )
+            }
             <p class="tile-body">
-              {gpu.size} in memory in {gpu.ms} ms on the {gpu.machine}: {gpu.ratio} the official crate on all its CPU cores.{' '}
+              {gpu.size} in memory in {gpu.ms} ms on the {gpu.machine}, with {gpu.kernel}: {gpu.ratio} the official crate on all its CPU cores.{' '}
               <a href={gpu.href}>Every GPU →</a>
             </p>
           </article>
@@ -453,6 +471,42 @@ const cells = Array.from({ length: 96 }, (_, i) => ((i * 37) % 23) / 23);
 
   .t-gpu .unit {
     font-size: 0.4em;
+  }
+
+  /* One bar per GPU API, to scale against the fastest. */
+  .apis {
+    display: grid;
+    gap: 0.65rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .apis li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 0.35rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  .apis .gauge {
+    grid-column: 1 / -1;
+  }
+
+  .api {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .api-on {
+    color: var(--ink-3);
+    font-weight: 400;
+  }
+
+  .api-rate {
+    color: var(--ink-2);
+    font-family: var(--font-mono);
   }
 
   .term {
