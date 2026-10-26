@@ -2,8 +2,9 @@
 // on PyPI: blake3-py's C implementation (c_impl/blake3module.c, by Jack
 // O'Connor, CC0-1.0 OR Apache-2.0), built on libturboblake, the official
 // C library whose big subtrees go to the Bend engine on every core. Changes
-// from upstream: update_mmap maps the file (the engine then reads it), and
-// max_threads stays ignored (the engine always has every core).
+// from upstream: update_mmap maps the file (the engine then reads it),
+// max_threads stays ignored (the engine always has every core), and
+// update_cuda, update_metal and gpu() reach the GPU backend (ADR 0017).
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
@@ -18,6 +19,9 @@
 #endif
 
 #include "blake3.h"
+#ifdef TURBOBLAKE_GPU
+#include "turboblake.h"
+#endif
 
 #define AUTO -1
 
@@ -387,8 +391,72 @@ static PyObject *Blake3_reset(Blake3Object *self, PyObject *args) {
   Py_RETURN_NONE;
 }
 
+// update_cuda(device_ptr, length, stream=0) and update_metal(buffer, offset,
+// length): GPU memory, hashed where it is (turboblake_hasher_update_cuda,
+// _metal), with the GIL released. device_ptr is an integer (a PyTorch
+// tensor's data_ptr(), a CuPy array's data.ptr), stream a CUstream as an
+// integer (0: the default stream), buffer an id<MTLBuffer>'s address.
+static PyObject *gpu_done(Blake3Object *self, int ok, const char *api) {
+  if (!ok) {
+    PyErr_Format(PyExc_RuntimeError, "turboblake: no %s backend can read this memory", api);
+    return NULL;
+  }
+  Py_INCREF(self);
+  return (PyObject *)self;
+}
+
+static PyObject *Blake3_update_cuda(Blake3Object *self, PyObject *args, PyObject *kwds) {
+  static char *kwlist[] = {"device_ptr", "length", "stream", NULL};
+  unsigned long long ptr = 0, stream = 0;
+  Py_ssize_t len = 0;
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "Kn|K", kwlist, &ptr, &len, &stream)) {
+    return NULL;
+  }
+  if (len < 0) {
+    PyErr_SetString(PyExc_ValueError, "length must be non-negative");
+    return NULL;
+  }
+#ifdef TURBOBLAKE_GPU
+  PyThreadState *thread_state;
+  Blake3_release_gil_and_lock_self(self, &thread_state);
+  int ok = turboblake_hasher_update_cuda(&self->hasher, ptr, (size_t)len,
+                                         (void *)(uintptr_t)stream);
+  Blake3_unlock_self_and_acquire_gil(self, &thread_state);
+  return gpu_done(self, ok, "CUDA");
+#else
+  return gpu_done(self, len == 0, "CUDA");
+#endif
+}
+
+static PyObject *Blake3_update_metal(Blake3Object *self, PyObject *args, PyObject *kwds) {
+  static char *kwlist[] = {"buffer", "offset", "length", NULL};
+  unsigned long long buffer = 0;
+  Py_ssize_t offset = 0, len = 0;
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "Knn", kwlist, &buffer, &offset, &len)) {
+    return NULL;
+  }
+  if (offset < 0 || len < 0) {
+    PyErr_SetString(PyExc_ValueError, "offset and length must be non-negative");
+    return NULL;
+  }
+#ifdef TURBOBLAKE_GPU
+  PyThreadState *thread_state;
+  Blake3_release_gil_and_lock_self(self, &thread_state);
+  int ok = turboblake_hasher_update_metal(&self->hasher, (void *)(uintptr_t)buffer,
+                                          (size_t)offset, (size_t)len);
+  Blake3_unlock_self_and_acquire_gil(self, &thread_state);
+  return gpu_done(self, ok, "Metal");
+#else
+  return gpu_done(self, len == 0, "Metal");
+#endif
+}
+
 static PyMethodDef Blake3_methods[] = {
     {"update", (PyCFunction)Blake3_update, METH_VARARGS, "add input bytes"},
+    {"update_cuda", (PyCFunction)Blake3_update_cuda, METH_VARARGS | METH_KEYWORDS,
+     "add input bytes from CUDA device memory"},
+    {"update_metal", (PyCFunction)Blake3_update_metal, METH_VARARGS | METH_KEYWORDS,
+     "add input bytes from a Metal buffer"},
     {"update_mmap", (PyCFunction)Blake3_update_mmap,
      METH_VARARGS | METH_KEYWORDS, "add input bytes from a filepath"},
     {"digest", (PyCFunction)Blake3_digest,
@@ -454,11 +522,32 @@ exit:
   return ret;
 }
 
+// gpu(): "metal" or "cuda" once the GPU backend loads, else None.
+static PyObject *module_gpu(PyObject *module, PyObject *unused) {
+  (void)module, (void)unused;
+#ifdef TURBOBLAKE_GPU
+  int g = turboblake_gpu();
+  if (g == TURBOBLAKE_GPU_METAL) {
+    return PyUnicode_FromString("metal");
+  }
+  if (g == TURBOBLAKE_GPU_CUDA) {
+    return PyUnicode_FromString("cuda");
+  }
+#endif
+  Py_RETURN_NONE;
+}
+
+static PyMethodDef module_methods[] = {
+    {"gpu", module_gpu, METH_NOARGS, "the GPU backend: 'metal', 'cuda' or None"},
+    {NULL, NULL, 0, NULL} // sentinel
+};
+
 static struct PyModuleDef blake3module = {
     PyModuleDef_HEAD_INIT,
     .m_name = "blake3._blake3",
     .m_doc = SETUP_PY_DESCRIPTION,
     .m_size = -1,
+    .m_methods = module_methods,
 };
 
 PyMODINIT_FUNC PyInit__blake3(void) {

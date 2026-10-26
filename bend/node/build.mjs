@@ -3,7 +3,9 @@
 // bend/build.sh's vectorizer flags. Run by `npm install` (with --optional:
 // a failure is a warning, and turboblake runs on Bend's JavaScript instead);
 // needs clang and the Node-API headers (Node's own, or node-api-headers).
-// TURBOBLAKE_PORTABLE=1 builds for the baseline CPU instead of this one.
+// TURBOBLAKE_PORTABLE=1 builds for the baseline CPU instead of this one;
+// TURBOBLAKE_NO_GPU=1 leaves out the GPU backend (turboblake_gpu.c, which
+// loads Metal or CUDA at run time, ADR 0017).
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, cpSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -55,8 +57,10 @@ const compile = (src, flags) => {
 };
 compile(join(csrc, "engine.c"), ["-x", "c", "-std=c11", "-O3", ...cpu, "-w", "-DBEND_EMBED",
   "-Dmain=b3e_bend_main", ...slp]);
-const c = ["-O3", "-std=c11", ...cpu, "-DTURBOBLAKE", `-I${csrc}`];
-for (const f of ["blake3.c", "blake3_dispatch.c", "blake3_portable.c", "turboblake.c"]) {
+const gpu = !process.env.TURBOBLAKE_NO_GPU;
+const c = ["-O3", "-std=c11", ...cpu, "-DTURBOBLAKE", ...(gpu ? ["-DTURBOBLAKE_GPU"] : []), `-I${csrc}`];
+const glue = gpu ? ["turboblake.c", "turboblake_gpu.c"] : ["turboblake.c"];
+for (const f of ["blake3.c", "blake3_dispatch.c", "blake3_portable.c", ...glue]) {
   compile(join(csrc, f), [...c, ...(x86 ? [] : ["-DBLAKE3_USE_NEON=1"])]);
 }
 if (x86) {
@@ -66,4 +70,5 @@ if (x86) {
 }
 compile(join(here, "src", "addon.c"), [...c, `-I${nodeApiInclude()}`, "-DNODE_GYP_MODULE_NAME=turboblake"]);
 const link = platform() === "darwin" ? ["-bundle", "-undefined", "dynamic_lookup"] : ["-shared"];
-run([...link, ...objs, "-lpthread", "-lm", "-o", join(out, "turboblake.node")]);
+const dl = gpu && platform() === "linux" ? ["-ldl"] : [];
+run([...link, ...objs, "-lpthread", "-lm", ...dl, "-o", join(out, "turboblake.node")]);

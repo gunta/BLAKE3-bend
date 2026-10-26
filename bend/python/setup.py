@@ -5,8 +5,12 @@ library with its subtree hook, the glue, and the engine (the C that Bend2
 emits). Only the engine needs clang, for its vectorizer flags; without
 clang the module builds on the official C alone, and says so.
 
+With the engine comes the GPU backend (turboblake_gpu.c, ADR 0017), which
+loads Metal or CUDA at run time and links nothing.
+
 Environment: TURBOBLAKE_PORTABLE=1 builds for the baseline CPU instead of
-this one; TURBOBLAKE_NO_ENGINE=1 leaves the engine out.
+this one; TURBOBLAKE_NO_ENGINE=1 leaves the engine out, TURBOBLAKE_NO_GPU=1
+the GPU backend.
 """
 import os
 import platform
@@ -64,6 +68,11 @@ class BuildExt(build_ext):
             ext.extra_objects.append(str(obj))
             ext.sources.append("csrc/turboblake.c")
             ext.define_macros.append(("TURBOBLAKE", "1"))
+            if not os.environ.get("TURBOBLAKE_NO_GPU"):
+                ext.sources.append("csrc/turboblake_gpu.c")
+                ext.define_macros.append(("TURBOBLAKE_GPU", "1"))
+                if sys.platform.startswith("linux"):
+                    ext.libraries.append("dl")
         else:
             print("turboblake: no clang (set CC to one), building without the Bend engine")
         if X86_64 and not WINDOWS:

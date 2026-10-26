@@ -11,10 +11,11 @@
 package blake3
 
 /*
-#cgo CFLAGS: -O3 -w -DTURBOBLAKE
+#cgo CFLAGS: -O3 -w -DTURBOBLAKE -DTURBOBLAKE_GPU
 #cgo arm64 CFLAGS: -DBLAKE3_USE_NEON=1
 #cgo !arm64,!amd64 CFLAGS: -DBLAKE3_NO_SSE2 -DBLAKE3_NO_SSE41 -DBLAKE3_NO_AVX2 -DBLAKE3_NO_AVX512
 #cgo LDFLAGS: -lpthread -lm
+#cgo linux LDFLAGS: -ldl
 #include <stdint.h>
 #include <stdlib.h>
 #include "csrc/blake3.h"
