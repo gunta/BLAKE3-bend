@@ -14,9 +14,9 @@ turboblake --check B3SUMS
 
 - It belongs to the **turbo** family (like `turbotoken`): a drop-in replacement
   for a reference tool, made as fast as each machine allows.
-- BLAKE3 is the subject; the engine is not in the name. Today the engine is
-  Bend2; a native kernel can take over any target where it measures faster,
-  without a rename.
+- BLAKE3 is the subject; the engine is not in the name. Bend2 runs the tree on
+  the CPU; native Metal and CUDA kernels take over the targets where they
+  measure faster (ADR 0013), without a rename.
 - Write it `turboblake`, always lowercase (it is a command). The wordmark sets
   "turbo" in volt and "blake" in ink.
 - The repository stays `BLAKE3-bend`.
@@ -30,6 +30,9 @@ Each section is one idea, shown before it is explained, laid out as bento tiles:
    anywhere you use `sha256sum`.
 2. **Speed** (bento): a handful of measured outcomes, big numbers, to scale.
    One footnote links the method; nothing about reproducing on the home page.
+   Then **from SHA-256 to the GPU** (`Versus.astro`): one gigabyte on the
+   fastest GPU measured and on the Mac, SHA-256, the official BLAKE3 and
+   turboblake side by side, bars to scale, so the size of the jump is seen.
 3. **What a checksum is:** a fingerprint for any data. Show it (the
    one-character demo) before explaining it.
 4. **Why BLAKE3:** faster than SHA-256, safer than MD5, who already ships it,

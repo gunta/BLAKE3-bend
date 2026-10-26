@@ -11,6 +11,9 @@ files the benchmarks write, so no number is copied by hand:
                   (modal-deepseek.json, modal_deepseek.py)
   languages       one table per environment (lang-*.json): turboblake, the
                   BLAKE3 packages it replaces, and other hashes for scale
+  versus          1 GiB on the fastest GPU measured and on the Mac, from
+                  SHA-256 to the GPU (modal-B200.json, modal-sha-B200.json,
+                  the Mac's tables above)
 
 A table: {title, machine, unit, note, rows: [{input, <series>: ms}],
 series: {<key>: {label, kind, description}}}. kind is "bend" (turboblake),
@@ -192,6 +195,73 @@ def deepseek():
     }
 
 
+# SHA-256 at 1 GiB in each of the Mac's language runs: the fastest one stands for SHA-256.
+MAC_SHA256 = {"python": ("hashlib.sha256", "Python's hashlib"), "node": ("crypto sha256", "Node's crypto"),
+              "bun": ("crypto sha256", "Bun's crypto"), "go": ("crypto/sha256", "Go's crypto/sha256")}
+
+
+def versus(results):
+    """1 GiB in memory on the B200 and on the Mac: SHA-256 (one core, the most it can use), the official
+    BLAKE3 on one core and on every core, and turboblake on the CPU, on Bend's GPU path and on the native
+    GPU kernel. One row per machine; `machines` says what each column was on it."""
+    G = 1 << 30
+    series = {
+        "sha256": {"label": "SHA-256", "kind": "other",
+                   "description": "the fastest SHA-256 measured on the machine, with the CPU's SHA instructions; one core, since each block waits for the one before"},
+        "blake3": {"label": "BLAKE3, one core", "kind": "blake3", "description": "the official blake3 crate on one thread"},
+        "blake3_all": {"label": "BLAKE3, every core", "kind": "blake3", "description": "the official blake3 crate on every core (rayon)"},
+        "bend_cpu": {"label": "turboblake, CPU", "kind": "bend", "description": "Bend's 8-lane tree on every core"},
+        "bend_gpu": {"label": "turboblake, Bend on the GPU", "kind": "bend", "description": "Bend's GPU path (hash1!)"},
+        "bend_native": {"label": "turboblake, native GPU kernel", "kind": "bend",
+                        "description": "the hand-written CUDA or Metal kernel in bend/ref (ADR 0013)"},
+    }
+    rows, machines = [], []
+
+    b200, sha = load("modal-B200.json"), load("modal-sha-B200.json")
+    r = next((r for r in (b200 or {}).get("rows", []) if r["bytes"] == G), None)
+    s = next((r for r in (sha or {}).get("rows", []) if r["bytes"] == G), None)
+    one = (b200 or {}).get("single_thread", {})
+    if r and s and one.get("bytes") == G:
+        cores = b200["info"]["cpus"]
+        rows.append({"input": "NVIDIA B200", "sha256": s["sha256"]["median_ms"],
+                     "blake3": round(one["rust_cpu_1t"]["median_ms"], 3),
+                     "blake3_all": round(r["rust_cpu"]["median_ms"], 3), "bend_cpu": round(r["bend_cpu"]["median_ms"], 3),
+                     "bend_gpu": round(r["bend_gpu"]["median_ms"], 3), "bend_native": round(r["native_cuda"]["median_ms"], 3)})
+        machines.append({"id": "b200", "title": "NVIDIA B200", "where": f"on Modal, {cores} x86 cores",
+                         "api": "CUDA", "cores": cores,
+                         "sha256": f"OpenSSL {sha['info']['openssl'].split()[1]} (Python's hashlib)"
+                                   + (", SHA-NI" if sha["info"].get("sha_ni") else ""),
+                         "gpu_memory": True})
+
+    shas = []
+    for lang, (impl, name) in MAC_SHA256.items():
+        raw = load(LANGS[lang][0])
+        ms = next((x["ms"] for x in (raw or {}).get("rows", []) if x["impl"] == impl and x["bytes"] == G), None)
+        if ms is not None:
+            shas.append((ms, name))
+    mem = {x["input"]: x for x in results["in_memory"]["rows"]}
+    ref = {x["input"]: x for x in results["gpu_reference"]["rows"]}
+    one, every, gpu = mem.get("1 GiB, 1 core"), mem.get("1 GiB, all cores"), ref.get("1 GiB")
+    if shas and one and every and gpu:
+        ms, name = min(shas)
+        rows.append({"input": results["machine"]["name"], "sha256": round(ms, 3), "blake3": one["rust"],
+                     "blake3_all": every["rust"], "bend_cpu": every["bend_cpu"],
+                     "bend_gpu": gpu["bend_gpu"], "bend_native": gpu["metal"]})
+        machines.append({"id": "metal", "title": results["machine"]["name"], "where": "18 cores, 20-core GPU",
+                         "api": "Metal", "cores": 18, "sha256": f"{name} (OpenSSL), ARMv8 SHA-2 instructions",
+                         "gpu_memory": False})
+    if not rows:
+        return None
+    return {
+        "title": "1 GiB, from SHA-256 to the GPU", "input": "1 GiB", "unit": "ms",
+        "note": "One 1 GiB buffer already in memory, hashed once per run; medians. Every BLAKE3 side gives the same "
+                "digest. On the B200 the GPU sides read the buffer from the GPU's own memory (the first run, which "
+                "moves it there, is left out); SHA-256 there is a separate run on the same Modal B200 host. On the "
+                "Mac, CPU and GPU share one memory.",
+        "rows": rows, "machines": machines, "series": series,
+    }
+
+
 def main():
     path = RES / "results.json"
     results = json.loads(path.read_text())
@@ -202,11 +272,15 @@ def main():
     if ds:
         results["deepseek_linux"] = ds
     results["languages"] = {k: t for k in LANGS if (t := lang_table(k, mac))}
+    vs = versus(results)
+    if vs:
+        results["versus"] = vs
     results["status_note"] = ("Numbers from 2026-10-26. NVIDIA: Bend's CUDA runtime on Modal's B200 and L4, "
                               "with its heap in 1 GiB pieces (Modal's sandbox grants no bigger managed allocation).")
     path.write_text(json.dumps(results, indent=2) + "\n")
     print(f"wrote {path}: gpu_metal, gpu_nvidia ({len(results['gpu_nvidia'])}), "
-          f"languages ({', '.join(results['languages'])})" + (", deepseek_linux" if ds else ""))
+          f"languages ({', '.join(results['languages'])})" + (", deepseek_linux" if ds else "")
+          + (f", versus ({', '.join(r['input'] for r in vs['rows'])})" if vs else ""))
 
 
 if __name__ == "__main__":

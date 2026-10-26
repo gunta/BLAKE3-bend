@@ -1378,5 +1378,83 @@
         }
       }
     }
+  },
+  "versus": {
+    "title": "1 GiB, from SHA-256 to the GPU",
+    "input": "1 GiB",
+    "unit": "ms",
+    "note": "One 1 GiB buffer already in memory, hashed once per run; medians. Every BLAKE3 side gives the same digest. On the B200 the GPU sides read the buffer from the GPU's own memory (the first run, which moves it there, is left out); SHA-256 there is a separate run on the same Modal B200 host. On the Mac, CPU and GPU share one memory.",
+    "rows": [
+      {
+        "input": "NVIDIA B200",
+        "sha256": 574.447,
+        "blake3": 193.382,
+        "blake3_all": 13.872,
+        "bend_cpu": 15.345,
+        "bend_gpu": 3.202,
+        "bend_native": 0.683
+      },
+      {
+        "input": "Apple M5 Pro",
+        "sha256": 334.536,
+        "blake3": 448,
+        "blake3_all": 27.8,
+        "bend_cpu": 26.9,
+        "bend_gpu": 9.43,
+        "bend_native": 6.69
+      }
+    ],
+    "machines": [
+      {
+        "id": "b200",
+        "title": "NVIDIA B200",
+        "where": "on Modal, 16 x86 cores",
+        "api": "CUDA",
+        "cores": 16,
+        "sha256": "OpenSSL 3.0.16 (Python's hashlib), SHA-NI",
+        "gpu_memory": true
+      },
+      {
+        "id": "metal",
+        "title": "Apple M5 Pro",
+        "where": "18 cores, 20-core GPU",
+        "api": "Metal",
+        "cores": 18,
+        "sha256": "Node's crypto (OpenSSL), ARMv8 SHA-2 instructions",
+        "gpu_memory": false
+      }
+    ],
+    "series": {
+      "sha256": {
+        "label": "SHA-256",
+        "kind": "other",
+        "description": "the fastest SHA-256 measured on the machine, with the CPU's SHA instructions; one core, since each block waits for the one before"
+      },
+      "blake3": {
+        "label": "BLAKE3, one core",
+        "kind": "blake3",
+        "description": "the official blake3 crate on one thread"
+      },
+      "blake3_all": {
+        "label": "BLAKE3, every core",
+        "kind": "blake3",
+        "description": "the official blake3 crate on every core (rayon)"
+      },
+      "bend_cpu": {
+        "label": "turboblake, CPU",
+        "kind": "bend",
+        "description": "Bend's 8-lane tree on every core"
+      },
+      "bend_gpu": {
+        "label": "turboblake, Bend on the GPU",
+        "kind": "bend",
+        "description": "Bend's GPU path (hash1!)"
+      },
+      "bend_native": {
+        "label": "turboblake, native GPU kernel",
+        "kind": "bend",
+        "description": "the hand-written CUDA or Metal kernel in bend/ref (ADR 0013)"
+      }
+    }
   }
 }
