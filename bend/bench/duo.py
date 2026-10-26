@@ -11,6 +11,16 @@ the GPU takes the first G of 16 (1..15) on all its lanes.
 
 usage: bend/bench/duo.py [d=28] [reps=15] [lv=6] [threads] plan...
 env:   DUO_GPU_HEAP=6GB  the GPU side's heap (+RTS --gpu), for d >= 29
+
+--native runs libturboblake's split instead (ADR 0017): one process, the
+Bend engine on the CPU side and the native Metal or CUDA kernel on the GPU
+side (bench/duo_native.c over bend/lib/build). Its plans: "cpu" (the engine
+alone), "gpu" (the input in GPU memory, the kernel alone), "split" (memory
+the GPU reads, shared at the share the measured rates balance), "split=F"
+(the GPU takes F of it). The plans run interleaved, `cycles` processes each
+(env DUO_CYCLES, default 5), and the medians skip each process's first round.
+
+usage: bend/bench/duo.py --native [d=28] [reps=8] [--json out.json] plan...
 """
 import os
 import statistics
@@ -19,7 +29,10 @@ import sys
 import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(os.path.dirname(HERE))
 DUO = os.path.join(HERE, "build", "duo")
+NATIVE = os.path.join(HERE, "build", "duo_native")
+LIB = os.path.join(ROOT, "bend", "lib", "build")
 
 
 def run(d, reps, plan, lv, threads, blk):
@@ -47,7 +60,69 @@ def run(d, reps, plan, lv, threads, blk):
             statistics.median(gpu), digests)
 
 
+def build_native():
+    if not os.path.exists(os.path.join(LIB, "lib", "libblake3.a")):
+        subprocess.run([os.path.join(ROOT, "bend", "lib", "build.sh")], check=True)
+    os.makedirs(os.path.dirname(NATIVE), exist_ok=True)
+    libs = ["-lpthread", "-lm"] + (["-ldl"] if sys.platform.startswith("linux") else [])
+    subprocess.run([os.environ.get("CC", "clang"), "-O2", "-I", os.path.join(LIB, "include"),
+                    os.path.join(HERE, "duo_native.c"), os.path.join(LIB, "lib", "libblake3.a"),
+                    *libs, "-o", NATIVE], check=True)
+
+
+def run_native(d, reps, plan):
+    mode, _, share = plan.partition("=")
+    env = dict(os.environ)
+    if share:
+        env["TURBOBLAKE_GPU_SHARE"] = share
+    out = subprocess.run([NATIVE, str(d), str(reps), mode], env=env, capture_output=True,
+                         text=True, check=True).stdout
+    rows = [line.split() for line in out.splitlines() if line.startswith("us ")][1:]
+    return [int(r[1]) for r in rows], {r[2] for r in rows}
+
+
+def native(args):
+    out_json = None
+    if "--json" in args:
+        i = args.index("--json")
+        out_json = args[i + 1]
+        args = args[:i] + args[i + 2:]
+    nums = [a for a in args if a.isdigit()]
+    plans = [a for a in args if not a.isdigit()] or ["cpu", "gpu", "split"]
+    d = int(nums[0]) if nums else 28
+    reps = int(nums[1]) if len(nums) > 1 else 8
+    cycles = int(os.environ.get("DUO_CYCLES", "5"))
+    build_native()
+    print(f"2^{d} words ({4 << d >> 20} MiB), {cycles} x {reps} rounds a plan, interleaved")
+    times = {p: [] for p in plans}
+    digests = {p: set() for p in plans}
+    for _ in range(cycles):
+        for plan in plans:
+            t, dg = run_native(d, reps, plan)
+            times[plan] += t
+            digests[plan] |= dg
+    rows = []
+    for plan in plans:
+        med, best = statistics.median(times[plan]), min(times[plan])
+        rows.append({"plan": plan, "bytes": 4 << d, "median_ms": med / 1000, "min_ms": best / 1000,
+                     "runs_ms": [t / 1000 for t in times[plan]], "digests": sorted(digests[plan])})
+        print(f"plan {plan:>10}: median {med / 1000:7.2f} ms, best {best / 1000:7.2f}  "
+              f"{' '.join(x[:16] for x in sorted(digests[plan]))}")
+    agree = len(set().union(*digests.values())) == 1
+    print("digests agree" if agree else "DIGESTS DIFFER")
+    if out_json:
+        import json
+        with open(out_json, "w") as f:
+            json.dump({"bytes": 4 << d, "cycles": cycles, "reps": reps, "digests_agree": agree,
+                       "rows": rows}, f, indent=1)
+            f.write("\n")
+        print(f"wrote {out_json}")
+    sys.exit(0 if agree else 1)
+
+
 def main():
+    if "--native" in sys.argv:
+        return native([a for a in sys.argv[1:] if a != "--native"])
     nums = [a for a in sys.argv[1:] if ":" not in a]
     plans = [a for a in sys.argv[1:] if ":" in a] or ["1:3", "1:0", "2:3"]
     d = int(nums[0]) if len(nums) > 0 else 28
