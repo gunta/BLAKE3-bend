@@ -1,6 +1,6 @@
 // The blake3 module for Python, API-compatible with the Rust-based blake3
 // on PyPI: blake3-py's C implementation (c_impl/blake3module.c, by Jack
-// O'Connor, CC0-1.0 OR Apache-2.0), built on libblake3-bend, the official
+// O'Connor, CC0-1.0 OR Apache-2.0), built on libturboblake, the official
 // C library whose big subtrees go to the Bend engine on every core. Changes
 // from upstream: update_mmap maps the file (the engine then reads it), and
 // max_threads stays ignored (the engine always has every core).

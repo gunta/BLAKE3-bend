@@ -72113,7 +72113,7 @@ static B3EFiles* b3e_fcur;  // taken
 static Term b3e_lent[B3E_SPANS];
 static u32  b3e_nlent;
 
-// BLAKE3_BEND_TRACE=1 prints these at exit.
+// TURBOBLAKE_TRACE=1 prints these at exit.
 static u64 b3e_njobs, b3e_nspans, b3e_ncopied, b3e_bytes, b3e_cbytes, b3e_copy_ns,
   b3e_wait_ns, b3e_hash_ns, b3e_t_next;
 
@@ -72124,7 +72124,7 @@ static u64 b3e_ns(void) {
 }
 
 static void b3e_report(void) {
-  fprintf(stderr, "blake3-bend: %llu jobs, %llu spans (%llu copied), %llu bytes (%llu copied);"
+  fprintf(stderr, "turboblake: %llu jobs, %llu spans (%llu copied), %llu bytes (%llu copied);"
     " copying %.3f ms (%.3f ms of it waited for), hashing %.3f ms\n",
     (unsigned long long)b3e_njobs, (unsigned long long)b3e_nspans,
     (unsigned long long)b3e_ncopied, (unsigned long long)b3e_bytes,
@@ -72552,10 +72552,10 @@ static pthread_once_t b3e_once = PTHREAD_ONCE_INIT;
 uintptr_t b3e_hint;
 
 static void* b3e_thread(void* arg) {
-  // BLAKE3_BEND_THREADS caps the engine's threads (default: every core)
+  // TURBOBLAKE_THREADS caps the engine's threads (default: every core)
   static char threads[24];
-  static char* argv[] = { "blake3-bend-engine", "+RTS", "--threads", threads, "-RTS", NULL };
-  const char* t = getenv("BLAKE3_BEND_THREADS");
+  static char* argv[] = { "turboblake-engine", "+RTS", "--threads", threads, "-RTS", NULL };
+  const char* t = getenv("TURBOBLAKE_THREADS");
   if (t != NULL && atoi(t) > 0) {
     snprintf(threads, sizeof threads, "%d", atoi(t));
     b3e_bend_main(5, argv);
@@ -72577,7 +72577,7 @@ static void b3e_child(void) {
 static void b3e_boot(void) {
   pthread_attr_t a;
   pthread_t t;
-  if (getenv("BLAKE3_BEND_TRACE") != NULL) {
+  if (getenv("TURBOBLAKE_TRACE") != NULL) {
     atexit(b3e_report);
   }
   pthread_attr_init(&a);
@@ -72616,7 +72616,7 @@ char* b3e_resv;
 u64   b3e_resv_len;
 
 static void __attribute__((constructor)) b3e_reserve(void) {
-  const char* off = getenv("BLAKE3_BEND");
+  const char* off = getenv("TURBOBLAKE");
   if (off != NULL && !strcmp(off, "0")) {
     return;
   }
@@ -72679,7 +72679,7 @@ const void* b3e_window(void) {
 }
 
 // 1: spans take whole 64-bit chunk counters, so they may lie past 4 TiB
-// (2^32 chunks), each within one 2^32-chunk block. blake3_bend.c asks
+// (2^32 chunks), each within one 2^32-chunk block. turboblake.c asks
 // through a weak reference: an engine built before (a stale prebuilt
 // object) has no such symbol and gets counters below 2^32 only.
 int b3e_hi(void) {

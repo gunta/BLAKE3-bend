@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
   int h = 0;
   for (uint64_t guess = 0, pass = 0; pass < 8; pass++) {
     uint64_t room = total > 8 + guess ? total - 8 - guess : 0, at = 0;
-    h = snprintf(hdr, sizeof hdr, "{\"__metadata__\":{\"format\":\"pt\",\"synthetic\":\"blake3-bend\"}");
+    h = snprintf(hdr, sizeof hdr, "{\"__metadata__\":{\"format\":\"pt\",\"synthetic\":\"turboblake\"}");
     for (uint64_t i = 0; at < room && h < (int)sizeof hdr - 256; i++) {
       uint64_t n = room - at < tensor ? room - at : tensor;
       int bf = n == tensor;

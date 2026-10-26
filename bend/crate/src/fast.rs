@@ -1,6 +1,6 @@
 //! turboblake's fast path.
 //!
-//! This is the official b3sum, built on blake3-bend, with three additions:
+//! This is the official b3sum, on this crate's library, with three additions:
 //!
 //! - In the default mode (32-byte output, no seek, no --keyed, --derive-key,
 //!   --check or --no-mmap), a batch of files the engine is faster on is
@@ -259,7 +259,7 @@ impl<'a> Batch<'a> {
             && args.len() == blake3::OUT_LEN as u64
             && args.seek() == 0
             && !args.no_mmap()
-            && std::env::var("BLAKE3_BEND").as_deref() != Ok("0");
+            && std::env::var("TURBOBLAKE").as_deref() != Ok("0");
         Batch { args, on, lo: 0, hashes: Vec::new() }
     }
 
@@ -321,7 +321,7 @@ pub(crate) fn check_batch(lines: &mut dyn BufRead, args: &Args) -> io::Result<Ve
         }
         batch.push(line);
     }
-    let on = !args.no_mmap() && std::env::var("BLAKE3_BEND").as_deref() != Ok("0");
+    let on = !args.no_mmap() && std::env::var("TURBOBLAKE").as_deref() != Ok("0");
     let files: Vec<PathBuf> = batch
         .iter()
         .filter_map(|l| super::parse_check_line(l).ok().map(|p| p.file_path))

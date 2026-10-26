@@ -1,9 +1,9 @@
 # The library's engine
 # ====================
 #
-# libblake3-bend is the official BLAKE3 C library with one change: a big
+# libturboblake is the official BLAKE3 C library with one change: a big
 # power-of-two subtree, the part of an update that hashes in parallel, is
-# handed to this program instead of the C SIMD loop (see blake3_bend.c).
+# handed to this program instead of the C SIMD loop (see turboblake.c).
 # It runs on a thread of its own inside the host process, forever: each
 # Eng.next waits for a caller's job, Bend hashes it all at once (every
 # span's tree in parallel), and Eng.done hands the CVs back. The CV stack,

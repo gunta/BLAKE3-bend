@@ -12,7 +12,7 @@
       "digest": "8214d8245d795ade"
     },
     {
-      "impl": "libblake3-bend",
+      "impl": "libturboblake",
       "bytes": 1024,
       "ms": 0.001,
       "digest": "8214d8245d795ade"
@@ -24,7 +24,7 @@
       "digest": "e619ec0549dbf76a"
     },
     {
-      "impl": "libblake3-bend",
+      "impl": "libturboblake",
       "bytes": 16384,
       "ms": 0.007,
       "digest": "e619ec0549dbf76a"
@@ -36,7 +36,7 @@
       "digest": "bb790298334ebf43"
     },
     {
-      "impl": "libblake3-bend",
+      "impl": "libturboblake",
       "bytes": 65536,
       "ms": 0.03,
       "digest": "bb790298334ebf43"
@@ -48,7 +48,7 @@
       "digest": "2932311ee947b44f"
     },
     {
-      "impl": "libblake3-bend",
+      "impl": "libturboblake",
       "bytes": 262144,
       "ms": 0.125,
       "digest": "2932311ee947b44f"
@@ -60,7 +60,7 @@
       "digest": "6fbaf80bd5940fc4"
     },
     {
-      "impl": "libblake3-bend",
+      "impl": "libturboblake",
       "bytes": 1048576,
       "ms": 0.179,
       "digest": "6fbaf80bd5940fc4"
@@ -72,7 +72,7 @@
       "digest": "46e2c11c566b113f"
     },
     {
-      "impl": "libblake3-bend",
+      "impl": "libturboblake",
       "bytes": 4194304,
       "ms": 0.293,
       "digest": "46e2c11c566b113f"
@@ -84,7 +84,7 @@
       "digest": "4f9c38bd6b77a54e"
     },
     {
-      "impl": "libblake3-bend",
+      "impl": "libturboblake",
       "bytes": 16777216,
       "ms": 0.848,
       "digest": "4f9c38bd6b77a54e"
@@ -96,7 +96,7 @@
       "digest": "c0035488215947de"
     },
     {
-      "impl": "libblake3-bend",
+      "impl": "libturboblake",
       "bytes": 67108864,
       "ms": 2.827,
       "digest": "c0035488215947de"
@@ -108,7 +108,7 @@
       "digest": "ec510ebc356e96a9"
     },
     {
-      "impl": "libblake3-bend",
+      "impl": "libturboblake",
       "bytes": 268435456,
       "ms": 10.093,
       "digest": "ec510ebc356e96a9"
@@ -120,7 +120,7 @@
       "digest": "b6e2b68c4439bd98"
     },
     {
-      "impl": "libblake3-bend",
+      "impl": "libturboblake",
       "bytes": 1073741824,
       "ms": 38.691,
       "digest": "b6e2b68c4439bd98"

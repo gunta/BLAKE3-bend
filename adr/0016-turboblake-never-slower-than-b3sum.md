@@ -5,7 +5,7 @@ Status: accepted
 
 ## Context
 
-turboblake is the official `b3sum` 1.8.7 on `blake3-bend`, with a fast path
+turboblake is the official `b3sum` 1.8.7 on the turboblake library, with a fast path
 that sends files to the Bend engine. Raced case by case against the official
 `b3sum` on the M5 Pro (interleaved medians, `bench/race.py`-style, load 3-14
 from other sessions and VMs), the shipped build lost far more often than the
@@ -25,7 +25,7 @@ not turboblake:
 | `--num-threads 4`, 1 GiB | 167 ms | 196 ms | 0.85x |
 | stdin / `--no-mmap`, 1 GiB | 536-579 ms | 548-587 ms | tie |
 
-The library had the same problem: `blake3-bend`'s `update_rayon` ran 1.2-1.6x
+The library had the same problem: the turboblake library's `update_rayon` ran 1.2-1.6x
 slower than upstream's from 1 MiB up (1 GiB: 45.3 against 28.9 ms), and the
 Python package lost to `blake3` on PyPI with `max_threads=AUTO` at 256 MiB and
 1 GiB (0.76x, 0.69x in `lang-python.json`).
@@ -55,7 +55,7 @@ Python package lost to `blake3` on PyPI with `max_threads=AUTO` at 256 MiB and
 
 ## Decision
 
-### The hook takes only what it wins (blake3-bend, `bend.rs`)
+### The hook takes only what it wins (the library, `bend.rs`)
 
 `Join` gets a `PARALLEL` const (true for `RayonJoin`), and the hook's
 `subtree` gets it. A rayon caller hands the engine a subtree only when the
@@ -85,7 +85,7 @@ calls `_exit(1)` in the host. The heaviest sequence measured (copied spans,
 2048 x 900 KiB files, a streamed 1 GiB file, repeated) peaks at 4.8 GiB, and
 `b3e_heap_room` turns jobs away (the caller hashes as upstream does) once 3/4
 of it is used. Linux keeps its placement (7 TiB below where mmap hands out
-memory). `BLAKE3_BEND=0` skips the reservation.
+memory). `TURBOBLAKE=0` skips the reservation.
 
 ### Streams share one pair of blocks (`effs/load.c`)
 
@@ -109,7 +109,7 @@ pair serves them all; `B3IO.release` also forgets the round's streams.
   regular file's with four positional reads at once) while the block before
   hashes on every core with upstream's `update_rayon`. Nothing is mapped;
   stdin is read from its offset to the end and left there.
-- The hook stays off in the CLI (`BLAKE3_BEND_MIN` = max unless set): with
+- The hook stays off in the CLI (`TURBOBLAKE_MIN` = max unless set): with
   file maps now in the window it would take a single file and pay the
   engine's start (4-64 MiB 0.91x, `--keyed` 1 GiB 0.55x when it was on).
 - The residency sample is 256 `mincore` calls (~0.2 ms a GiB), not 4096.
@@ -135,7 +135,7 @@ the 1-16 MiB rows also at 41 rounds):
 | `--keyed`, `--derive-key`, `--length`, `--seek`, `--raw`, `--num-threads` | | | 0.98-1.00x |
 | `--check`: 5 x 100 MiB / 10k x 100 B / 300 mixed / 2048 x 900 KiB | 31.3 / 140 / 68 / 647 ms | 28.0 / 69 / 24 / 237 ms | 1.12x / 2.0x / 2.9x / 2.7x |
 
-The library, each crate alone in its process: `blake3-bend`'s `update_rayon`
+The library, each crate alone in its process: the turboblake library's `update_rayon`
 1-16 MiB 1.3-2.0x faster than upstream's, larger the same code; its `hash`
 in place 1 GiB 26-29 ms against upstream `update_rayon` 28-31 (and 438 for
 upstream's `hash`). Python against `blake3` 1.0.11, `max_threads=AUTO`,
@@ -145,8 +145,8 @@ interleaved at load 13-15: 1 MiB 1.26x, 16-64 MiB 1.00x, 256 MiB 0.93x,
 Checks: upstream's CLI tests (17), `check_vectors.py` (35 vectors, stdin,
 `--length`, `--check`), every length from 1 byte to 128 MiB + 7 across block
 edges on all three read paths, `--check` output and exit codes against b3sum
-on good, bad, missing, directory and malformed lines, blake3-bend's tests
-(also with every subtree on the engine), libblake3-bend's `test.py --big`
+on good, bad, missing, directory and malformed lines, the library's tests
+(also with every subtree on the engine), libturboblake's `test.py --big`
 (1525/1525), `go test`.
 
 ## Refuted
@@ -174,14 +174,14 @@ on good, bad, missing, directory and malformed lines, blake3-bend's tests
   (`madvise(WILLNEED)` from 16 threads: 14.6 ms a GiB), unmapping costs
   4.6 ms a GiB, and hashing ~29 ms a GiB on every core; neither side can
   avoid them. 1-16 MiB single files sit 1-4% behind at 41 rounds: the
-  engine's code costs ~0.3 ms of startup even with `BLAKE3_BEND=0` (an empty
-  C program: 1.4 -> 1.8 ms when it links libblake3-bend); not yet traced.
+  engine's code costs ~0.3 ms of startup even with `TURBOBLAKE=0` (an empty
+  C program: 1.4 -> 1.8 ms when it links libturboblake); not yet traced.
 - Under heavy outside load the engine falls behind rayon's work stealing on
   big inputs (Python 256 MiB-1 GiB 0.93-0.97x at load 13-15); on a quieter
   machine it led (1 GiB 26-27 against 27.7-29 ms).
 - Open for the engine: the keyed tree's per-core speed (2.3x behind the
   default tree), and the ~1 ms a job pays after the engine idles.
-- Every process that links blake3-bend on macOS reserves 16 GiB of address
+- Every process that links the engine on macOS reserves 16 GiB of address
   space and a few placeholders (~2 GiB) at load; no memory.
 - The Linux Go objects (`engine_linux_*.syso`) predate the stream-block fix;
   `bend/bench/modal_linux.py --steps go` rebuilds them. The Windows build of

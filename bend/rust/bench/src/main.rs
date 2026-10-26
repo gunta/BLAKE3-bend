@@ -1,4 +1,4 @@
-//! The official blake3 crate against blake3-bend, in memory: `hash` (one
+//! The official blake3 crate against turboblake, in memory: `hash` (one
 //! thread upstream) and `Hasher::update_rayon` (every core upstream), on
 //! the same buffer, interleaved; prints medians and checks the digests.
 //!   cargo run --release [reps]
@@ -14,7 +14,7 @@ fn main() {
     let sizes = [1 << 10, 64 << 10, 1 << 20, 16 << 20, 64 << 20, 256 << 20, 1 << 30];
     let buf: Vec<u8> = (0..1usize << 30).map(|i| (i.wrapping_mul(2654435761) >> 13) as u8).collect();
     let mut json = Vec::new();
-    println!("| bytes | blake3 hash | blake3 update_rayon | blake3-bend hash | blake3-bend update_rayon | digest |");
+    println!("| bytes | blake3 hash | blake3 update_rayon | turboblake hash | turboblake update_rayon | digest |");
     println!("|---:|---:|---:|---:|---:|:---:|");
     for &n in &sizes {
         let input = &buf[..n];
@@ -45,7 +45,7 @@ fn main() {
         let size = if n >= 1 << 30 { format!("{} GiB", n >> 30) } else if n >= 1 << 20 { format!("{} MiB", n >> 20) } else { format!("{} KiB", n >> 10) };
         let m: Vec<f64> = t.into_iter().map(median).collect();
         println!("| {size} | {:.3} ms | {:.3} ms | {:.3} ms | {:.3} ms | {} |", m[0], m[1], m[2], m[3], if same { "ok" } else { "DIFFER" });
-        let names = ["blake3 hash", "blake3 update_rayon", "blake3-bend hash", "blake3-bend update_rayon"];
+        let names = ["blake3 hash", "blake3 update_rayon", "turboblake hash", "turboblake update_rayon"];
         for (k, name) in names.iter().enumerate() {
             json.push(format!(
                 "    {{\"impl\": \"{name}\", \"bytes\": {n}, \"ms\": {:.4}, \"digest\": \"{}\", \"same\": {same}}}",

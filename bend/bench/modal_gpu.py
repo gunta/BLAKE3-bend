@@ -62,7 +62,7 @@ image = (
     ])
 )
 
-app = modal.App("blake3-bend-gpu", image=image)
+app = modal.App("turboblake-gpu", image=image)
 
 
 def sh(cmd, cwd=None, env=None):

@@ -1,4 +1,4 @@
-// The test CLI for libblake3-bend, after the official c/main.c (whose CPU
+// The test CLI for libturboblake, after the official c/main.c (whose CPU
 // feature loop is x86-only): hashes stdin through blake3.h and prints hex.
 //   cli [--length N] [--seek N] [--keyed HEX] [--derive-key CONTEXT] [--split N]
 //   cli --whole
@@ -14,7 +14,7 @@
 #include <string.h>
 
 #include "blake3.h"
-#include "blake3_bend.h"
+#include "turboblake.h"
 
 int b3e_files(uint32_t n, const char* const* paths, unsigned char (*out)[32], int* err);
 
@@ -98,7 +98,7 @@ int main(int argc, char** argv) {
     static const uint32_t iv[8] = { 0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A,
                                     0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19 };
     uint8_t pair[64];
-    if (len <= 1024 || !blake3_bend_subtree(buf, len, iv, 0, 0, pair)) {
+    if (len <= 1024 || !turboblake_subtree(buf, len, iv, 0, 0, pair)) {
       fprintf(stderr, "the hook declined\n");
       return 1;
     }

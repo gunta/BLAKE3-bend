@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""libblake3-bend against the official C library, through the same blake3.h.
+"""libturboblake against the official C library, through the same blake3.h.
 
 Builds bench.c twice: against build/lib/libblake3.a (the hook and the Bend
 engine) and against the official c/ sources compiled the same way (SIMD,
@@ -48,7 +48,7 @@ def run(exe, n, reps):
 def main():
     reps = int(sys.argv[1]) if len(sys.argv) > 1 else 15
     build()
-    print("| bytes | official C (1 thread, SIMD) | libblake3-bend | | digest |")
+    print("| bytes | official C (1 thread, SIMD) | libturboblake | | digest |")
     print("|---:|---:|---:|---:|:---:|")
     rows, agree = [], True
     for n in SIZES:
@@ -57,7 +57,7 @@ def main():
         b, db = run("bend", n, r)
         agree = agree and da == db
         rows += [{"impl": "official C", "bytes": n, "ms": a / 1000, "digest": da[:16]},
-                 {"impl": "libblake3-bend", "bytes": n, "ms": b / 1000, "digest": db[:16]}]
+                 {"impl": "libturboblake", "bytes": n, "ms": b / 1000, "digest": db[:16]}]
         size = f"{n >> 30} GiB" if n >= 1 << 30 else f"{n >> 20} MiB" if n >= 1 << 20 else f"{n >> 10} KiB"
         print(f"| {size} | {a / 1000:.3f} ms | {b / 1000:.3f} ms | {a / b:.2f}x | "
               f"{'ok' if da == db else 'DIFFER'} |", flush=True)

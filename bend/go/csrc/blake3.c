@@ -5,8 +5,8 @@
 
 #include "blake3.h"
 #include "blake3_impl.h"
-#if defined(BLAKE3_BEND)
-#include "blake3_bend.h"
+#if defined(TURBOBLAKE)
+#include "turboblake.h"
 #endif
 
 const char *blake3_version(void) { return BLAKE3_VERSION_STRING; }
@@ -358,9 +358,9 @@ compress_subtree_to_parent_node(const uint8_t *input, size_t input_len,
   assert(input_len > BLAKE3_CHUNK_LEN);
 #endif
 
-#if defined(BLAKE3_BEND)
-  // libblake3-bend: a big subtree goes to the Bend engine, all cores
-  if (blake3_bend_subtree(input, input_len, key, chunk_counter, flags, out)) {
+#if defined(TURBOBLAKE)
+  // libturboblake: a big subtree goes to the Bend engine, all cores
+  if (turboblake_subtree(input, input_len, key, chunk_counter, flags, out)) {
     return;
   }
 #endif
