@@ -16,3 +16,4 @@ How the Bend2 BLAKE3 got fast, and what we measured on the way.
 | [0010](0010-more-laws-outboards-counts-streaming.md) | more laws: the outboard tree's hash for every input, leaf and parent counts, the streaming stack |
 | [0011](0011-strided-gpu-lanes-and-cpu-gpu-split.md) | strided GPU lanes past 512 MiB (1 GiB 13.2 -> 9.4 ms); the CPU and the GPU on one input, split by slices (8.0 ms, 1.06-1.12x the GPU alone) |
 | [0012](0012-the-engine-as-a-library-and-every-binding.md) | the engine as a library: one hook in the official C and Rust, a Bend program on its own thread, drop-ins for C, Rust, Python, Node/Bun/Deno, browsers and Go |
+| [0013](0013-files-past-4-tib.md) | files past 4 TiB: every span carries its chunk counter's high word, down to compress8 |
