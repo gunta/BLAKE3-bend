@@ -38,15 +38,16 @@ const packages: Package[] = [
   {
     id: 'rust',
     title: 'Rust',
-    name: 'blake3-bend',
+    name: 'turboblake',
     replaces: ['blake3'],
-    where: 'crates.io',
+    where: 'from GitHub until its next crates.io release (turboblake 1.8.7 there is the command line alone)',
     steps: [
-      { label: 'shell', shell: true, code: 'cargo add blake3-bend --rename blake3' },
-      { label: 'or in Cargo.toml', code: 'blake3 = { package = "blake3-bend", version = "1.8" }' },
+      { label: 'shell', shell: true, code: 'cargo add turboblake --git https://github.com/gunta/BLAKE3-bend' },
+      { label: 'or in Cargo.toml', code: 'turboblake = { git = "https://github.com/gunta/BLAKE3-bend" }' },
     ],
     notes: [
       'The library is still named blake3, so use blake3::… compiles unchanged: hash, Hasher::update, update_rayon, keyed_hash, derive_key and extended output all reach the engine past the size it calibrates at the first big input.',
+      'The crate holds the command line too, behind its default cli feature. For the library alone: default-features = false, features = ["std"].',
       'To swap it under every crate in a dependency graph, generate a copy named blake3 and add it to [patch.crates-io] (the README shows how).',
       'Building needs clang; without it the crate builds as upstream and says so in a warning.',
     ],
@@ -55,14 +56,14 @@ const packages: Package[] = [
   {
     id: 'c',
     title: 'C',
-    name: 'libblake3-bend',
+    name: 'libturboblake',
     replaces: ['the official C library (blake3.h)'],
     where: 'from the repository',
     steps: [
       { label: 'shell', shell: true, code: `${CLONE}\nBLAKE3-bend/bend/lib/build.sh\ncc -I BLAKE3-bend/bend/lib/build/include app.c BLAKE3-bend/bend/lib/build/lib/libblake3.a -lpthread -o app` },
     ],
     notes: [
-      'blake3.h, its symbols and the blake3_hasher layout are upstream’s, so programs relink unchanged. build.sh also writes libblake3.dylib or libblake3.so.',
+      'blake3.h, its symbols and the blake3_hasher layout are upstream’s, so programs relink unchanged. build.sh also writes libblake3.dylib or libblake3.so, and libturboblake links to the same library.',
     ],
     readme: 'bend/lib/README.md',
   },
@@ -232,22 +233,27 @@ const html = (s: Step) =>
     </Fragment>
     <dl class="env">
       <div>
-        <dt><code>BLAKE3_BEND=0</code></dt>
+        <dt><code>TURBOBLAKE=0</code></dt>
         <dd>Turns the engine off: upstream’s code, one thread.</dd>
       </div>
       <div>
-        <dt><code>BLAKE3_BEND_THREADS=&lt;n&gt;</code></dt>
+        <dt><code>TURBOBLAKE_THREADS=&lt;n&gt;</code></dt>
         <dd>Caps the engine’s threads.</dd>
       </div>
       <div>
-        <dt><code>BLAKE3_BEND_MIN=&lt;bytes&gt;</code></dt>
+        <dt><code>TURBOBLAKE_MIN=&lt;bytes&gt;</code></dt>
         <dd>The smallest subtree the engine takes, instead of the size it calibrates.</dd>
       </div>
       <div>
-        <dt><code>BLAKE3_BEND_TRACE=1</code></dt>
+        <dt><code>TURBOBLAKE_TRACE=1</code></dt>
         <dd>Prints what the engine did, to stderr.</dd>
       </div>
     </dl>
+    <p class="aside prose">
+      The 1.8.7 releases (the <code>turboblake</code> command from Homebrew, GitHub Releases or crates.io, and the <code>blake3-bend</code> crate) read
+      the same settings under their earlier names: <code>BLAKE3_BEND=0</code>, <code>BLAKE3_BEND_THREADS</code>, <code>BLAKE3_BEND_MIN</code>,
+      <code>BLAKE3_BEND_TRACE</code>.
+    </p>
     <p class="aside prose">
       All of it is built from one tree: <a href={treeUrl('bend/lib')}><code>bend/lib</code></a> is the C library every binding wraps, and its engine is the
       Bend program in <a href={blobUrl('bend/lib/engine.bend')}><code>engine.bend</code></a>.
