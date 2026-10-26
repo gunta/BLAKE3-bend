@@ -10,8 +10,9 @@ around the engine's edges (up to 2 GiB + 1 with --big) against b3sum.
 With a GPU backend (ADR 0017) the same checks run through the GPU too:
 the input in GPU memory (--gpu: a private Metal buffer or CUDA device
 memory, at an odd offset, updates alternating with host ones), in a shared
-Metal buffer, and host memory under TURBOBLAKE_GPU=all (the GPU takes every
-subtree, alone or split with the engine), with TURBOBLAKE_GPU_MIN=2048.
+Metal buffer, in turboblake_alloc's memory (split with the engine), and host
+memory under TURBOBLAKE_GPU=all (the GPU takes every subtree, alone or split
+with the engine), with TURBOBLAKE_GPU_MIN=2048.
     python3 bend/lib/test.py [--big] [--cli PATH]
 """
 import json
@@ -102,7 +103,9 @@ def main():
         if gpu != "none":
             cases += [(["--gpu"], GPU_ENV), (["--gpu", "--offset", "5", "--split", "1000", "--mix"], GPU_ENV),
                       (["--gpu", "--split", str((3 << 20) + 1024)], os.environ),
-                      ([], ALL_ENV), ([], HALF_ENV), (["--whole"], HALF_ENV)]
+                      ([], ALL_ENV), ([], HALF_ENV), (["--whole"], HALF_ENV),
+                      (["--alloc"], GPU_ENV), (["--alloc", "--split", str(1 << 20)], os.environ),
+                      (["--alloc"], {**GPU_ENV, "TURBOBLAKE_GPU_SHARE": "0.5"})]
             if gpu == "metal":
                 cases += [(["--gpu", "shared", "--offset", "4096"], GPU_ENV),
                           (["--gpu", "shared", "--split", str(1 << 20)], {**os.environ, "TURBOBLAKE_GPU_SHARE": "0.5"})]

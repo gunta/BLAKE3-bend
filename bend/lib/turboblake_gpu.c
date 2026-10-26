@@ -957,9 +957,10 @@ int tbg_dev_subtree(int kind, void *obj, uint64_t off, uint64_t len, void *strea
       (kind == TBG_CUDA) != (backend == 2)) {
     return 0;
   }
-  // groups as big as the left child: the GPU leaves the two children
+  // groups as big as the left child: the GPU leaves the two children (its
+  // chunk indices are 32-bit, its counters 64-bit)
   uint64_t nch = ceil_div(len, CHUNK);
-  if (ctr + nch > (1ull << 32) || nch > (1ull << 32)) {
+  if (nch > (1ull << 32)) {
     return 0;
   }
   uint8_t cvs[2][32];
@@ -1000,9 +1001,11 @@ int tbg_subtree(const uint8_t *input, uint64_t len, const uint32_t key[8], uint6
     return 0;
   }
   uint64_t chunks = ceil_div(len, CHUNK);
-  if (ctr + chunks > (1ull << 32) || chunks > (1ull << 32)) {
-    return 0;  // 32-bit chunk indices in the kernels, as in the engine
+  if (chunks > (1ull << 32)) {
+    return 0;  // 32-bit chunk indices in the kernels
   }
+  // the engine here takes 32-bit chunk counters: past them the GPU takes all
+  int wide = ctr + chunks > (1ull << 32);
   // Slices: ~32 to 64 whole subtrees, the GPU taking the first g of them.
   uint64_t left = left_len(len);
   int inside = b3e_inside(input, len - len % 64);
@@ -1025,7 +1028,7 @@ int tbg_subtree(const uint8_t *input, uint64_t len, const uint32_t key[8], uint6
   // On Apple silicon the engine's side pays only when it reads the input in
   // place: copying it spends the memory bandwidth the GPU runs on, and the
   // split loses to the GPU alone (ADR 0017).
-  double share = engine_off || (backend == 1 && !inside && gpu_share < 0) ? 1.0
+  double share = engine_off || wide || (backend == 1 && !inside && gpu_share < 0) ? 1.0
                : gpu_share >= 0 ? gpu_share
                : gpu_all ? 1.0 : r_gpu / (r_gpu + r_cpu);
   uint64_t g = (uint64_t)llround(share * (double)n);
@@ -1148,8 +1151,14 @@ void *tbg_alloc(size_t len) {
   }
   return p;
 #elif TBG_WITH_CUDA
+  // pinned memory belongs to a context: the primary one, current meanwhile
   void *p = NULL;
-  if (!ck(cu.MemHostAlloc(&p, len, 1 /* CU_MEMHOSTALLOC_PORTABLE */), "cuMemHostAlloc")) {
+  if (cu_enter(0) == NULL) {
+    return NULL;
+  }
+  int ok = ck(cu.MemHostAlloc(&p, len, 1 /* CU_MEMHOSTALLOC_PORTABLE */), "cuMemHostAlloc");
+  cu_leave();
+  if (!ok) {
     return NULL;
   }
   reg_add(p, len, NULL, p, 1, 0);
@@ -1165,10 +1174,13 @@ static void reg_free(region *r) {
   mt_release(r->buf);
   mt.pop(pool);
 #elif TBG_WITH_CUDA
-  if (r->owned) {
-    cu.MemFreeHost(r->p);
-  } else if (r->pinned) {
-    cu.MemHostUnregister(r->p);
+  if ((r->owned || r->pinned) && cu_enter(0) != NULL) {
+    if (r->owned) {
+      cu.MemFreeHost(r->p);
+    } else {
+      cu.MemHostUnregister(r->p);
+    }
+    cu_leave();
   }
 #endif
   free(r);
@@ -1199,7 +1211,12 @@ int tbg_register(void *p, size_t len) {
   reg_add(p, len, buf, (uint8_t *)lo, 0, 0);
   return 1;
 #elif TBG_WITH_CUDA
-  if (!ck(cu.MemHostRegister(p, len, 1 /* CU_MEMHOSTREGISTER_PORTABLE */), "cuMemHostRegister")) {
+  if (cu_enter(0) == NULL) {
+    return 0;
+  }
+  int ok = ck(cu.MemHostRegister(p, len, 1 /* CU_MEMHOSTREGISTER_PORTABLE */), "cuMemHostRegister");
+  cu_leave();
+  if (!ok) {
     return 0;
   }
   reg_add(p, len, NULL, p, 0, 1);

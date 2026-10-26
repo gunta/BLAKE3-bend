@@ -4,6 +4,7 @@
 //   cli --whole
 //   cli --files PATH...
 //   cli --gpu [shared|private] [--offset N] [--mix] ...   (and the options above)
+//   cli --alloc ...
 //   cli --gpu-info
 // --split N feeds the hasher N bytes per update, to cross every subtree
 // edge the hook sees; the output must not change. --whole hands the whole
@@ -13,7 +14,9 @@
 // b3sum does. --gpu copies the input to GPU memory (on Metal a private
 // buffer by default, or a shared one), N bytes in (--offset), and feeds it
 // with turboblake_hasher_update_metal/_cuda; --mix alternates GPU and host
-// updates. --gpu-info prints the backend (none, metal, cuda).
+// updates. --alloc hashes the input from turboblake_alloc's memory (a
+// shared Metal buffer, CUDA pinned memory), which the hook splits between
+// the engine and the GPU. --gpu-info prints the backend (none, metal, cuda).
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -77,7 +80,7 @@ int main(int argc, char** argv) {
   uint64_t seek = 0;
   uint8_t key[BLAKE3_KEY_LEN];
   const char* context = NULL;
-  int keyed = 0, whole = 0, gpu = 0, gpu_only = 1, mix = 0;
+  int keyed = 0, whole = 0, gpu = 0, gpu_only = 1, mix = 0, alloc = 0;
   for (int i = 1; i < argc; i += 1) {
     if (!strcmp(argv[i], "--length") && i + 1 < argc) {
       out_len = (size_t)strtoull(argv[++i], NULL, 10);
@@ -108,6 +111,8 @@ int main(int argc, char** argv) {
       offset = (size_t)strtoull(argv[++i], NULL, 10);
     } else if (!strcmp(argv[i], "--mix")) {
       mix = 1;
+    } else if (!strcmp(argv[i], "--alloc")) {
+      alloc = 1;
     } else {
       fprintf(stderr, "usage: cli [--length N] [--seek N] [--keyed HEX] [--derive-key CTX] [--split N]\n");
       return 2;
@@ -149,6 +154,16 @@ int main(int argc, char** argv) {
     blake3_hasher_init_derive_key(&h, context);
   } else {
     blake3_hasher_init(&h);
+  }
+  if (alloc) {
+    uint8_t* p = turboblake_alloc(len ? len : 1);
+    if (p == NULL) {
+      fprintf(stderr, "no GPU backend\n");
+      return 3;
+    }
+    memcpy(p, buf, len);
+    free(buf);
+    buf = p;
   }
   void* dev = NULL;
   if (gpu) {

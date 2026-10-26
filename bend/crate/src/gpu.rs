@@ -399,6 +399,27 @@ mod tests {
         }
     }
 
+    // Subtrees far past 4 TiB (hazmat's input offsets): the GPU counts chunks
+    // in 64 bits.
+    #[test]
+    fn test_gpu_high_counters() {
+        use crate::hazmat::HasherExt;
+        if backend().is_none() {
+            return;
+        }
+        let data = pattern((1 << 20) + 3 * 1024 + 5);
+        let dev = Dev::new(&data, 0, false);
+        for offset in [1u64 << 42, 5 << 40, (1u64 << 52) + (1 << 30)] {
+            let mut want = Hasher::new();
+            want.set_input_offset(offset);
+            want.update(&data);
+            let mut got = Hasher::new();
+            got.set_input_offset(offset);
+            feed(&mut got, &dev, &data, 0, 0, false);
+            assert_eq!(want.finalize_non_root(), got.finalize_non_root(), "offset {}", offset);
+        }
+    }
+
     // Random inputs across the GPU's edges, against the CPU's hash.
     #[test]
     fn test_gpu_random() {

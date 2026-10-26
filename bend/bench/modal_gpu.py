@@ -447,9 +447,12 @@ def lib(steps: str = "test,bench", log: int = 28, reps: int = 8) -> dict:
             print(name, r.strip(), flush=True)
     if "bench" in steps:
         plans = ["cpu", "gpu", "split", "split=1", "split=0.6", "split=0.45", "split=0.3"]
+        # one traced split first: what the backend did, or why it could not
+        print(sh("bend/bench/duo.py --native 22 1 split >/dev/null 2>&1; TURBOBLAKE_TRACE=1 "
+                 "bend/bench/build/duo_native 24 2 split 2>&1 || true", cwd=work), flush=True)
         for d in sorted({26, log}):
-            sh(f"DUO_CYCLES=4 python3 bend/bench/duo.py --native {d} {reps} --json /tmp/duo{d}.json "
-               + " ".join(plans), cwd=work)
+            print(sh(f"DUO_CYCLES=4 python3 bend/bench/duo.py --native {d} {reps} --json /tmp/duo{d}.json "
+                     + " ".join(plans), cwd=work), flush=True)
             out[f"duo_native_{4 << d >> 20}MiB"] = json.loads(pathlib.Path(f"/tmp/duo{d}.json").read_text())
             for r in out[f"duo_native_{4 << d >> 20}MiB"]["rows"]:
                 print(f"{4 << d >> 20} MiB {r['plan']:>10}: median {r['median_ms']:.3f} ms", flush=True)
