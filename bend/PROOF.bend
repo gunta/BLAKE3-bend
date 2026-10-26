@@ -16,6 +16,7 @@ import ./proof/words.bend as A
 import ./proof/cpu.bend as C
 import ./proof/gpu.bend as G
 import ./proof/spec.bend as S
+import ./proof/keyed.bend as K
 
 # Known answers
 # -------------
@@ -106,6 +107,9 @@ def Laws.gpu.at(a, cb, nch, last, rf):
 
 def Laws.gpu.hash(a, len):
   G.gpu.at(a, 0, B3.chunks(len), B3.tail(len, B3.chunks(len)), B3.ROOT())
+
+def Laws.keyed.at(a, cb, nch, last, rf, key, kf):
+  K.keyed.at(a, cb, nch, last, rf, key, kf)
 
 # Outboards
 # ---------
@@ -427,6 +431,9 @@ def Laws.cpu.spec(a, cb, nch, last, rf):
 
 def Laws.gpu.spec(a, cb, nch, last, rf):
   S.gpu.spec(a, cb, nch, last, rf)
+
+def Laws.keyed.spec(a, cb, nch, last, rf, key, kf):
+  K.keyed.spec(a, cb, nch, last, rf, key, kf)
 
 
 # Counts

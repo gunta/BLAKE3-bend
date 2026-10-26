@@ -85,6 +85,12 @@ const GROUPS: (Omit<LawGroup, 'cards'> & { cards: LawCard[] })[] = [
         covers: 'every array, every span, every lane layout up to 2^32 chunks',
       },
       {
+        names: ['keyed.at', 'keyed.spec'],
+        claim:
+          'Keyed hashing and key derivation, as the library’s engine runs them on the 8-lane CPU tree, are the scalar keyed tree, and that is BLAKE3’s tree with the key in place of the IV and the mode flag on every compression.',
+        covers: 'every array, every span, every key, every mode flag',
+      },
+      {
         names: ['share.fork'],
         claim:
           'The copy of the input the laws hand each tree node is Array.fork’s own body, (a, a), so the laws are about the code that runs; what stays trusted is the runtime sharing one buffer for it.',

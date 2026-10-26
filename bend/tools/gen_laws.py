@@ -397,6 +397,7 @@ import ./proof/words.bend as A
 import ./proof/cpu.bend as C
 import ./proof/gpu.bend as G
 import ./proof/spec.bend as S
+import ./proof/keyed.bend as K
 
 '''
 
@@ -707,6 +708,25 @@ law gpu.hash:
   for +len: U32
   {B3.hash1(~share, a, len) == ref(a, len) : B3.CV}
 
+# The keyed tree, for every input
+# -------------------------------
+#
+# BLAKE3's keyed and key-derivation modes hash the same tree from another
+# key, with a mode flag on every compression (blake3.bend's .k defs). The
+# library's engine runs them on hash8.at.k, the CPU's 8-lane tree; for
+# every array, span, key and flag it is the scalar keyed tree, hash.at.k
+# (proof/keyed.bend).
+
+law keyed.at:
+  for a: Array<U32>
+  for +cb: U32
+  for +nch: U32
+  for +last: U32
+  for +rf: U32
+  for +key: B3.CV
+  for +kf: U32
+  {B3.hash8.at.k(~share, a, cb, nch, last, rf, key, kf) == B3.hash.at.k(~share, a, cb, nch, last, rf, key, kf) : B3.CV}
+
 '''
 
 COUNTS = '''
@@ -767,6 +787,19 @@ def ev(+t: Shape, aa: Array<U32> & Array<U32>, +c: U32, +cb: U32, +nch: U32,
 # scalar tree is BLAKE3's tree over the span's chunks, tree(digits) of the
 # last chunk's index, each leaf a chunk and each node a parent
 # (proof/spec.bend)...
+# ev with a key and a mode flag: BLAKE3's keyed and key-derivation modes.
+def ev.k(+t: Shape, aa: Array<U32> & Array<U32>, +c: U32, +cb: U32, +nch: U32,
+  +last: U32, +rf: U32, +key: B3.CV, +kf: U32) -> B3.CV:
+  match t:
+    case Tip{}:
+      (a1, a2) = aa
+      _ = a2
+      B3.chunk.k(a1, c, cb, nch, last, rf, key, kf)
+    case Fork{l, r}:
+      (a1, a2) = aa
+      B3.parent.k(ev.k(l, share(a1), c, cb, nch, last, 0, key, kf),
+        ev.k(r, share(a2), (c + U32.from_nat(tips(l)) : U32), cb, nch, last, 0, key, kf), rf, key, kf)
+
 law ref.spec:
   for a: Array<U32>
   for +cb: U32
@@ -794,6 +827,18 @@ law gpu.spec:
   for +rf: U32
   {B3.hash1.at(~share, a, cb, nch, last, rf) ==
     ev(tree(digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), share(a), 0, cb, nch, last, rf) : B3.CV}
+
+# The keyed tree that runs (keyed.at) is BLAKE3's keyed tree.
+law keyed.spec:
+  for a: Array<U32>
+  for +cb: U32
+  for +nch: U32
+  for +last: U32
+  for +rf: U32
+  for +key: B3.CV
+  for +kf: U32
+  {B3.hash8.at.k(~share, a, cb, nch, last, rf, key, kf) ==
+    ev.k(tree(digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), share(a), 0, cb, nch, last, rf, key, kf) : B3.CV}
 '''
 
 STREAM = '''
@@ -1047,6 +1092,9 @@ def Laws.cpu.spec(a, cb, nch, last, rf):
 
 def Laws.gpu.spec(a, cb, nch, last, rf):
   S.gpu.spec(a, cb, nch, last, rf)
+
+def Laws.keyed.spec(a, cb, nch, last, rf, key, kf):
+  K.keyed.spec(a, cb, nch, last, rf, key, kf)
 
 '''
 
@@ -1817,6 +1865,9 @@ def Laws.gpu.at(a, cb, nch, last, rf):
 def Laws.gpu.hash(a, len):
   G.gpu.at(a, 0, B3.chunks(len), B3.tail(len, B3.chunks(len)), B3.ROOT())
 
+def Laws.keyed.at(a, cb, nch, last, rf, key, kf):
+  K.keyed.at(a, cb, nch, last, rf, key, kf)
+
 '''
 
 
@@ -1848,6 +1899,7 @@ def main():
     (ROOT / "proof" / "cpu.bend").write_text(proofs.cpu_file())
     (ROOT / "proof" / "gpu.bend").write_text(proofs.gpu_file())
     (ROOT / "proof" / "spec.bend").write_text(proofs.spec.text())
+    (ROOT / "proof" / "keyed.bend").write_text(proofs.keyed_file())
     print(f"wrote {ROOT / 'LAWS.bend'}, {ROOT / 'PROOF.bend'} and {ROOT / 'proof'}/")
 
 

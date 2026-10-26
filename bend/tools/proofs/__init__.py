@@ -4,7 +4,7 @@ writes them): words.bend, the arithmetic; cpu.bend, the proof that the CPU's
 GPU's tree."""
 import re
 
-from . import words, reads, loop, group, leaf8, leaf32, tree, gpu, quads, gtree, spec
+from . import words, reads, loop, group, leaf8, leaf32, tree, gpu, quads, gtree, spec, keyed
 from .common import L, laws_names
 
 CPU_HEAD = '''\
@@ -126,3 +126,7 @@ def gpu_file():
     body = laws_names(gpu.text() + quads.text() + gtree.text())
     return GPU_HEAD + "".join(l if l.lstrip().startswith("#") else pat.sub(r"C.\1", l)
                               for l in body.splitlines(keepends=True))
+
+
+def keyed_file():
+    return keyed.text(cpu_file(), spec.text())
