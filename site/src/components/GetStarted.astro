@@ -58,8 +58,8 @@ const channels = [
       <div class="switch-copy">
         <h3>Coming from sha256sum?</h3>
         <p>
-          Swap the command and the file name. turboblake prints the same format as the official <BrandMark name="b3" /> <code>b3sum</code>, so
-          existing BLAKE3 checksum files verify unchanged.
+          Swap the command and the file name. turboblake is the official <BrandMark name="b3" /> <code>b3sum</code> with a faster engine: the
+          same flags, output and messages, so existing BLAKE3 checksum files verify unchanged.
         </p>
       </div>
       <div class="diff">
@@ -67,9 +67,9 @@ const channels = [
         <pre class="after"><code><span class="m">+</span> turboblake --check B3SUMS</code></pre>
       </div>
       <ul class="facts" role="list">
+        <li>Every <code>b3sum</code> flag: <code>--check</code>, <code>--keyed</code>, <code>--derive-key</code>, <code>--length</code>, <code>--tag</code></li>
         <li>Any file size, up to 4 TiB</li>
-        <li><code>--check</code>, <code>--quiet</code>, <code>--num-threads N</code></li>
-        <li>Default 32-byte BLAKE3 hash; use <code>b3sum</code> for keyed mode and longer output</li>
+        <li><code>cargo install turboblake --features replace</code> also installs it as <code>b3sum</code></li>
       </ul>
     </div>
   </div>

@@ -181,7 +181,8 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
   <Section id="cli" kicker="Benchmark · command line" title="One command, against b3sum" tone="alt">
     <Fragment slot="lede">
       <p>
-        <code>turboblake FILE...</code> against the official <code>b3sum FILE...</code>, process start included, output byte for byte the same.
+        <code>turboblake FILE...</code> against the official <code>b3sum FILE...</code>, process start included, output byte for byte the same. These
+        runs measured <code>bend/b3sum.bend</code>, the Bend engine and loader that turboblake ships behind upstream's interface.
         {
           cliTally && cliBest && cliWins.length > 0 && (
             <>
