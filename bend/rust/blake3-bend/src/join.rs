@@ -20,6 +20,9 @@
 ///
 /// See the [`join` module docs](index.html) for more details.
 pub trait Join {
+    /// blake3-bend: true for `RayonJoin`, whose callers hash on every core
+    const PARALLEL: bool = false;
+
     fn join<A, B, RA, RB>(oper_a: A, oper_b: B) -> (RA, RB)
     where
         A: FnOnce() -> RA + Send,
@@ -59,6 +62,8 @@ pub enum RayonJoin {}
 
 #[cfg(feature = "rayon")]
 impl Join for RayonJoin {
+    const PARALLEL: bool = true;
+
     #[inline]
     fn join<A, B, RA, RB>(oper_a: A, oper_b: B) -> (RA, RB)
     where

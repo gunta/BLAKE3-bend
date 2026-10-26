@@ -19,7 +19,9 @@
 // a block we reuse.
 
 #include <errno.h>
+#include <fcntl.h>
 #include <pthread.h>
+#include <sys/stat.h>
 
 #define B3E_SPANS 64  // spans a job, read in place
 #define B3E_STAGE 2   // spans a job, copied
@@ -654,6 +656,23 @@ int b3e_files(uint32_t n, const char* const* paths, unsigned char (*out)[32], in
   pthread_mutex_unlock(&b3e_mu);
   pthread_mutex_unlock(&b3e_fcall);
   return j.done;
+}
+
+static double b3_resident(int fd, u64 len);  // effs/load.c
+
+// Whether the file at path is mostly in the page cache, sampled as the
+// loader samples it, without starting the engine: 1 yes, 0 mostly on disk
+// (the engine streams such a file), -1 not a regular file or not readable.
+// turboblake asks before it starts the engine for one big file.
+int b3e_cached(const char* path) {
+  int fd = open(path, O_RDONLY | O_NONBLOCK);
+  if (fd < 0) {
+    return -1;
+  }
+  struct stat st;
+  int r = fstat(fd, &st) == 0 && S_ISREG(st.st_mode) ? b3_resident(fd, (u64)st.st_size) >= 0.9 : -1;
+  close(fd);
+  return r;
 }
 
 // b3e_hash_k in the default mode.

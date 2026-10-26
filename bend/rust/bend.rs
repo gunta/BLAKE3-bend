@@ -65,6 +65,28 @@ pub fn hash_files(paths: &[&Path]) -> Option<Vec<io::Result<Hash>>> {
     }
 }
 
+/// Whether the file at `path` is mostly in the page cache, sampled as
+/// [`hash_files`] samples it, without starting the engine: `Some(false)` for
+/// a file mostly on disk (which `hash_files` streams), `None` when this
+/// build has no engine or the path is not a readable regular file.
+pub fn cached(path: &Path) -> Option<bool> {
+    #[cfg(all(blake3_bend, unix))]
+    {
+        use std::os::unix::ffi::OsStrExt;
+        let c = std::ffi::CString::new(path.as_os_str().as_bytes()).ok()?;
+        match unsafe { engine::b3e_cached(c.as_ptr()) } {
+            1 => Some(true),
+            0 => Some(false),
+            _ => None,
+        }
+    }
+    #[cfg(not(all(blake3_bend, unix)))]
+    {
+        let _ = path;
+        None
+    }
+}
+
 #[cfg(blake3_bend)]
 pub(crate) use engine::subtree;
 
@@ -88,7 +110,10 @@ unsafe extern "C" {
         out: *mut [u8; 32],
     ) -> i32;
     fn b3e_inside(p: *const u8, len: u64) -> i32;
+    fn b3e_start() -> i32;
+    fn b3e_window() -> Option<core::ptr::NonNull<u8>>;
     pub(super) fn b3e_files(n: u32, paths: *const *const core::ffi::c_char, out: *mut [u8; 32], err: *mut i32) -> i32;
+    pub(super) fn b3e_cached(path: *const core::ffi::c_char) -> i32;
 }
 
 const SPAN_MAX: usize = 1 << 30;
@@ -191,13 +216,15 @@ fn merge(key: &CVWords, flags: u8, cvs: &[[u8; 32]], platform: Platform) -> [u8;
 
 /// The two child CVs of `input` (2+ chunks, any length) as a subtree from
 /// `chunk_counter`, hashed by the engine; `None` when upstream's code should
-/// hash it (too small to beat the trip, or no engine).
+/// hash it (too small to beat the trip, no engine, or a rayon caller whose
+/// input the engine would have to copy).
 pub(crate) fn subtree(
     input: &[u8],
     key: &CVWords,
     chunk_counter: u64,
     flags: u8,
     platform: Platform,
+    rayon: bool,
 ) -> Option<[u8; BLOCK_LEN]> {
     if input.len() <= CHUNK_LEN || input.len() < min_len(input, platform) {
         return None;
@@ -208,10 +235,19 @@ pub(crate) fn subtree(
         return None;
     }
     // Spans the engine reads in place are up to 1 GiB; copied ones 64 MiB,
-    // so their copies overlap the hashing of the ones before.
+    // so their copies overlap the hashing of the ones before. Copying costs
+    // more than rayon gains back: `update_rayon` keeps those (ADR 0013).
     let left = crate::hazmat::left_subtree_len(input.len() as u64) as usize;
     let whole = input.len() - input.len() % 64;
-    let most = if unsafe { b3e_inside(input.as_ptr(), whole as u64) } != 0 { SPAN_MAX } else { SPAN_COPY };
+    // The window is known once the engine runs. On macOS a rayon caller's
+    // memory never lies in it (big allocations sit below 512 GiB, the heap
+    // far above), so it does not start the engine to find that out.
+    let started = !rayon || unsafe { b3e_window() }.is_some() || (!cfg!(target_os = "macos") && unsafe { b3e_start() } == 1);
+    let inside = started && unsafe { b3e_inside(input.as_ptr(), whole as u64) } != 0;
+    if rayon && !inside {
+        return None;
+    }
+    let most = if inside { SPAN_MAX } else { SPAN_COPY };
     let span = left.min(most);
     let nl = left / span;
     let n = nl + (input.len() - left).div_ceil(span);

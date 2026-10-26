@@ -188,7 +188,8 @@ fn hash_path(args: &Args, path: &Path) -> anyhow::Result<blake3::OutputReader> {
         hasher.update_reader(File::open(path)?)?;
     } else {
         // The fast path: Try to mmap the file and hash it with multiple threads.
-        hasher.update_mmap_rayon(path)?;
+        // (turboblake: on one thread if it is small)
+        fast::update_path(&mut hasher, path)?;
     }
     let mut output_reader = hasher.finalize_xof();
     output_reader.set_position(args.seek());
@@ -522,17 +523,17 @@ fn check_one_checkfile(path: &Path, args: &Args, files_failed: &mut u64) -> anyh
 
 fn main() -> anyhow::Result<()> {
     let args = Args::parse()?;
-    // turboblake: --num-threads caps the Bend engine's threads too
+    // turboblake: --num-threads caps the Bend engine's threads too, and the
+    // subtree hook leaves inputs under 1 MiB alone (fast.rs hashes small
+    // files on one thread). SAFETY: no other thread runs yet.
     if let Some(n) = args.num_threads() {
-        // SAFETY: no other thread runs yet.
         unsafe { std::env::set_var("BLAKE3_BEND_THREADS", n.to_string()) };
     }
-    let mut thread_pool_builder = rayon_core::ThreadPoolBuilder::new();
-    if let Some(num_threads) = args.num_threads() {
-        thread_pool_builder = thread_pool_builder.num_threads(num_threads);
+    if std::env::var_os("BLAKE3_BEND_MIN").is_none() {
+        unsafe { std::env::set_var("BLAKE3_BEND_MIN", "1048576") };
     }
-    let thread_pool = thread_pool_builder.build()?;
-    thread_pool.install(|| {
+    // turboblake: rayon's threads start when a file first needs them
+    fast::pool(args.num_threads(), || {
         let mut files_failed = 0u64;
         // Note that file_args automatically includes `-` if nothing is given.
         let mut batch = fast::Batch::new(&args);
@@ -563,7 +564,7 @@ fn main() -> anyhow::Result<()> {
             );
         }
         std::process::exit(if files_failed > 0 { 1 } else { 0 });
-    })
+    })?
 }
 
 #[cfg(test)]

@@ -96361,7 +96361,9 @@ static void __attribute__((constructor)) io_thread_count_use(void) {
 // a block we reuse.
 
 #include <errno.h>
+#include <fcntl.h>
 #include <pthread.h>
+#include <sys/stat.h>
 
 #define B3E_SPANS 64  // spans a job, read in place
 #define B3E_STAGE 2   // spans a job, copied
@@ -96998,6 +97000,23 @@ int b3e_files(uint32_t n, const char* const* paths, unsigned char (*out)[32], in
   return j.done;
 }
 
+static double b3_resident(int fd, u64 len);  // effs/load.c
+
+// Whether the file at path is mostly in the page cache, sampled as the
+// loader samples it, without starting the engine: 1 yes, 0 mostly on disk
+// (the engine streams such a file), -1 not a regular file or not readable.
+// turboblake asks before it starts the engine for one big file.
+int b3e_cached(const char* path) {
+  int fd = open(path, O_RDONLY | O_NONBLOCK);
+  if (fd < 0) {
+    return -1;
+  }
+  struct stat st;
+  int r = fstat(fd, &st) == 0 && S_ISREG(st.st_mode) ? b3_resident(fd, (u64)st.st_size) >= 0.9 : -1;
+  close(fd);
+  return r;
+}
+
 // b3e_hash_k in the default mode.
 int b3e_hash(uint32_t n, const unsigned char* const* p, const uint64_t* len,
              const uint64_t* cb, unsigned char (*out)[32]) {
@@ -97296,14 +97315,16 @@ static void b3_stdin(Env e, B3File* f) {
 #define MINCORE_INCORE 1  // Linux: bit 0 of each mincore byte
 #endif
 
-// The fraction of the file's pages in the page cache, from 4096 samples.
+// The fraction of the file's pages in the page cache, from 256 samples: a
+// mincore call costs ~0.7 us, so 4096 of them were 3 ms of a 1 GiB file's
+// ~45 (ADR 0013), and 256 still tell 90% cached from not.
 static double b3_resident(int fd, u64 len) {
   u64 pg = (u64)getpagesize();
   char* at = mmap(NULL, len, PROT_READ, MAP_SHARED, fd, 0);
   if (at == MAP_FAILED) {
     return 1.0;
   }
-  u64 pages = (len + pg - 1) / pg, hit = 0, n = pages < 4096 ? pages : 4096;
+  u64 pages = (len + pg - 1) / pg, hit = 0, n = pages < 256 ? pages : 256;
   for (u64 i = 0; i < n; i += 1) {
     unsigned char v = 0;
     u64 page = i * pages / n;

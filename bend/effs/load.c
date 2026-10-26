@@ -289,14 +289,16 @@ static void b3_stdin(Env e, B3File* f) {
 #define MINCORE_INCORE 1  // Linux: bit 0 of each mincore byte
 #endif
 
-// The fraction of the file's pages in the page cache, from 4096 samples.
+// The fraction of the file's pages in the page cache, from 256 samples: a
+// mincore call costs ~0.7 us, so 4096 of them were 3 ms of a 1 GiB file's
+// ~45 (ADR 0013), and 256 still tell 90% cached from not.
 static double b3_resident(int fd, u64 len) {
   u64 pg = (u64)getpagesize();
   char* at = mmap(NULL, len, PROT_READ, MAP_SHARED, fd, 0);
   if (at == MAP_FAILED) {
     return 1.0;
   }
-  u64 pages = (len + pg - 1) / pg, hit = 0, n = pages < 4096 ? pages : 4096;
+  u64 pages = (len + pg - 1) / pg, hit = 0, n = pages < 256 ? pages : 256;
   for (u64 i = 0; i < n; i += 1) {
     unsigned char v = 0;
     u64 page = i * pages / n;
