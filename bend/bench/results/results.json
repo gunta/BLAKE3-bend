@@ -447,6 +447,24 @@
       ]
     },
     {
+      "adr": "0017",
+      "title": "The GPU backend",
+      "summary": "bend/ref's Metal and CUDA kernels run from libturboblake, the crate and the bindings, loaded at run time (Metal.framework through the Objective-C runtime, libcuda's driver API with the kernels as PTX). GPU memory: turboblake_hasher_update_metal / _cuda, 1 GiB in 0.686 ms on a B200. Host memory the GPU reads (turboblake_alloc) splits with the engine: M5 Pro 1 GiB in 5.25 ms, 1.11x the GPU alone; B200 pinned memory 11.1 ms, 1.59x the CPU alone.",
+      "date": "2026-10-26T19:49:13+09:00",
+      "tag": "GPU",
+      "headline": "Hash a tensor without taking it off the GPU",
+      "dek": "The C library, the Rust crate and the Python package now take a Metal buffer or a CUDA pointer and hash it on the GPU, where it already is. On a Mac, memory both can read is shared out between every CPU core and the GPU at once.",
+      "stat": {
+        "value": "0.686 ms",
+        "label": "1 GiB in an NVIDIA B200's own memory"
+      },
+      "points": [
+        "Apple M5 Pro: every core and the GPU together hash 1 GiB in 5.25 ms, 6.3\u00d7 the CPU alone",
+        "Every official test vector passes through each GPU path",
+        "No GPU, no change: the command line stays on the CPU"
+      ]
+    },
+    {
       "adr": "0018",
       "title": "One name, turboblake",
       "summary": "One crate, turboblake, holds the library (still named blake3) and the command line behind a default cli feature; the C library is libturboblake (turboblake.h, turboblake_subtree, -DTURBOBLAKE, beside the drop-in libblake3); the engine reads TURBOBLAKE, TURBOBLAKE_MIN, TURBOBLAKE_THREADS and TURBOBLAKE_TRACE.",
