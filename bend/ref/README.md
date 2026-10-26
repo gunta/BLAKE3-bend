@@ -1,9 +1,14 @@
 # Native GPU references
 
-Hand-written Metal and CUDA BLAKE3, to race Bend's GPU path (`hash1!`)
-against and to find out where it loses. They are yardsticks: the hashing in
-`b3sum` stays in Bend. What we measured with them is in
-[ADR 0006](../../adr/0006-native-gpu-references.md).
+Hand-written Metal and CUDA BLAKE3, first written to race Bend's GPU path
+(`hash1!`) against and to find out where it loses (ADR 0006). Since ADR 0013
+they ship where they measure faster: libturboblake runs these kernels as its
+GPU backend (`bend/lib/turboblake_gpu.c`, ADR 0017), so they take the
+mode's key and flags, a 64-bit chunk counter, a fold width (`fold`: lanes
+folded into each output CV), and read no byte past the input's end. The
+`b3sum` command line stays on the CPU. What we measured with them is in
+[ADR 0006](../../adr/0006-native-gpu-references.md) and
+[ADR 0017](../../adr/0017-the-gpu-backend.md).
 
 | path                 | what                                                     |
 |----------------------|----------------------------------------------------------|
@@ -61,7 +66,8 @@ bend/ref/cuda/build.sh && bend/ref/cuda/build/b3cuda vectors 4 | python3 bend/te
 ```
 
 Without one, `bend/ref/cuda/build.sh --ptx` compiles the kernels to PTX
-with Homebrew LLVM's clang, and `cpu_test.c` checks their logic:
+with Homebrew LLVM's clang (the library's PTX comes from there:
+`bend/lib/gen_gpu.sh`), and `cpu_test.c` checks their logic:
 
 ```bash
 mkdir -p bend/ref/build && cc -O2 -o bend/ref/build/cpu_test bend/ref/cpu_test.c && bend/ref/build/cpu_test | python3 bend/test/check.py

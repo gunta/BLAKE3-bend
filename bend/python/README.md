@@ -25,6 +25,18 @@ hasher = blake3(derive_key_context="example.com 2026-10-26 session keys")
 hasher.update_mmap("big.iso")
 ```
 
+GPU memory is hashed where it is (ADR 0017), on CUDA or Metal:
+
+```python
+import blake3, torch
+
+t = torch.load("weights.pt", map_location="cuda")
+h = blake3.blake3()
+h.update_cuda(t.data_ptr(), t.numel() * t.element_size())   # stream=0
+h.hexdigest()
+blake3.gpu()                                                   # 'cuda', 'metal' or None
+```
+
 Your code keeps `from blake3 import blake3`. `max_threads` is accepted and
 ignored, as the upstream docs allow: the engine takes any update big enough
 to beat the trip to it, on every core. Building from source needs a C

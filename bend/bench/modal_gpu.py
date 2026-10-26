@@ -15,6 +15,15 @@ This costs money (GPU time is billed by the second): run it on purpose.
 
 `--max-log d` hashes up to 4 * 2^d bytes (29: 2 GiB; mem.bend's length is a
 U32, so 29 is the top).
+
+`--lib-only` runs libturboblake's GPU backend instead (ADR 0017): its checks
+(bend/lib/test.py, the crate's tests through the GPU) with `--steps test`,
+and the CPU + GPU split over pinned host memory (bench/duo.py --native)
+beside the device-memory kernel with `--steps bench`. Writes
+bend/bench/results/modal-lib-<gpu>.json.
+
+    modal run bend/bench/modal_gpu.py --lib-only --gpu L4 --steps test
+    modal run bend/bench/modal_gpu.py --lib-only --gpu B200 --steps bench
 """
 
 import json
@@ -405,9 +414,64 @@ print("patched", s.count("sync %d"), s.count("cube_run gpu"))
     return "\n".join(log)
 
 
+@app.function(gpu="L4", cpu=16, memory=65536, timeout=3600)
+def lib(steps: str = "test,bench", log: int = 28, reps: int = 8) -> dict:
+    """libturboblake's GPU backend on this GPU: its checks and the split."""
+    work = "/work"
+    sh(f"rm -rf {work} && cp -r /repo {work}")
+    info = {
+        "gpu": sh("nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader").strip(),
+        "cpu": sh("lscpu | sed -n 's/^Model name:[ ]*//p'").strip(),
+        "cpus": int(sh("nproc").strip()),
+        "pcie": sh("nvidia-smi --query-gpu=pcie.link.gen.max,pcie.link.width.max --format=csv,noheader").strip(),
+    }
+    print(info, flush=True)
+    out = {"info": info}
+    sh("bend/lib/build.sh", cwd=work)
+    gpu = sh("bend/lib/build/bin/blake3 --gpu-info", cwd=work, env={"TURBOBLAKE_TRACE": "1"}).strip()
+    out["backend"] = gpu
+    print("backend:", gpu, flush=True)
+    if "test" in steps:
+        sh("cargo build --release --quiet", cwd=f"{work}/b3sum")
+        t = sh("python3 bend/lib/test.py", cwd=work)
+        out["c_tests"] = [line for line in t.splitlines() if "pass" in line or "MISMATCH" in line]
+        print("\n".join(out["c_tests"]), flush=True)
+        crate = f"{work}/bend/crate"
+        out["rust_tests"] = {}
+        for name, env in (("engine", {}), ("gpu", {"TURBOBLAKE_GPU": "all"}),
+                          ("split", {"TURBOBLAKE_GPU": "all", "TURBOBLAKE_GPU_SHARE": "0.5"})):
+            r = sh("cargo test --release --lib 2>&1 | grep 'test result'", cwd=crate,
+                   env={"TURBOBLAKE_MIN": "2048", "TURBOBLAKE_GPU_MIN": "2048", **env})
+            out["rust_tests"][name] = r.strip()
+            print(name, r.strip(), flush=True)
+    if "bench" in steps:
+        plans = ["cpu", "gpu", "split", "split=1", "split=0.6", "split=0.45", "split=0.3"]
+        for d in sorted({26, log}):
+            sh(f"DUO_CYCLES=4 python3 bend/bench/duo.py --native {d} {reps} --json /tmp/duo{d}.json "
+               + " ".join(plans), cwd=work)
+            out[f"duo_native_{4 << d >> 20}MiB"] = json.loads(pathlib.Path(f"/tmp/duo{d}.json").read_text())
+            for r in out[f"duo_native_{4 << d >> 20}MiB"]["rows"]:
+                print(f"{4 << d >> 20} MiB {r['plan']:>10}: median {r['median_ms']:.3f} ms", flush=True)
+        sh(f"bend/ref/cuda/build.sh {work}/b3cuda", cwd=work)
+        ms, dig = runs(sh(f"{work}/b3cuda mem {log} {reps * 2} 4"))
+        out["native_ref"] = {"bytes": 4 << log, **summary(ms), "digests": sorted(dig)}
+        print("bend/ref b3cuda, K = 4:", out["native_ref"]["median_ms"], "ms", flush=True)
+    return out
+
+
 @app.local_entrypoint()
 def main(gpu: str = "L4", max_log: int = 28, reps: int = 6, debug_only: bool = False,
-         debug_advise_only: bool = False):
+         debug_advise_only: bool = False, lib_only: bool = False, steps: str = "test,bench"):
+    if lib_only:
+        t = time.time()
+        res = lib.with_options(gpu=gpu).remote(steps, max_log, max(reps, 8))
+        res["requested_gpu"] = gpu
+        res["wall_s"] = round(time.time() - t, 1)
+        out = REPO / "bend" / "bench" / "results" / f"modal-lib-{re.sub(r'[^A-Za-z0-9.-]+', '_', gpu)}.json"
+        old = json.loads(out.read_text()) if out.exists() else {}
+        out.write_text(json.dumps({**old, **res}, indent=2) + "\n")
+        print(f"wrote {out} ({res['wall_s']} s)")
+        return
     if debug_advise_only:
         print(debug_advise.with_options(gpu=gpu).remote())
         return

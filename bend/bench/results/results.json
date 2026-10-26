@@ -1675,5 +1675,86 @@
         "description": "the hand-written CUDA or Metal kernel in bend/ref"
       }
     }
+  },
+  "gpu_library": {
+    "title": "libturboblake on the GPU",
+    "tables": [
+      {
+        "title": "Apple M5 Pro",
+        "machine": "Apple M5 Pro, 18 cores, 20-core GPU",
+        "unit": "ms",
+        "note": "Medians of interleaved runs, the same digest from every side. CPU and GPU share one memory: the split's GPU side reads a shared Metal buffer in place, and the engine reads it in place too (ADR 0016).",
+        "rows": [
+          {
+            "input": "2 MiB",
+            "cpu": 0.21,
+            "gpu": 0.316,
+            "split": 0.291
+          },
+          {
+            "input": "4 MiB",
+            "cpu": 0.25,
+            "gpu": 0.348,
+            "split": 0.338
+          },
+          {
+            "input": "8 MiB",
+            "cpu": 0.376,
+            "gpu": 0.471,
+            "split": 0.433
+          },
+          {
+            "input": "16 MiB",
+            "cpu": 0.695,
+            "gpu": 0.723,
+            "split": 0.515,
+            "split_gpu": 0.677
+          },
+          {
+            "input": "64 MiB",
+            "cpu": 2.042,
+            "gpu": 0.858,
+            "split": 0.764,
+            "split_gpu": 0.915
+          },
+          {
+            "input": "256 MiB",
+            "cpu": 7.367,
+            "gpu": 1.682,
+            "split": 1.615,
+            "split_gpu": 1.605
+          },
+          {
+            "input": "1 GiB",
+            "cpu": 28.187,
+            "gpu": 5.606,
+            "split": 5.081,
+            "split_gpu": 5.518
+          }
+        ],
+        "series": {
+          "cpu": {
+            "label": "turboblake, CPU",
+            "kind": "bend",
+            "description": "the Bend engine on every core, from ordinary memory"
+          },
+          "gpu": {
+            "label": "turboblake, GPU memory",
+            "kind": "bend",
+            "description": "the native kernel on a buffer in GPU memory (turboblake_hasher_update_metal / _cuda)"
+          },
+          "split": {
+            "label": "turboblake, CPU + GPU",
+            "kind": "bend",
+            "description": "memory the GPU reads (turboblake_alloc), each subtree split between the engine and the GPU at the share their measured rates balance"
+          },
+          "split_gpu": {
+            "label": "turboblake, GPU from that memory",
+            "kind": "bend",
+            "description": "the same memory, the GPU alone"
+          }
+        }
+      }
+    ]
   }
 }

@@ -41,6 +41,20 @@ crate builds as upstream's and says so in a warning. `TURBOBLAKE=0` turns
 the engine off at run time, `TURBOBLAKE_THREADS=<n>` caps its threads,
 `TURBOBLAKE_TRACE=1` prints what it did.
 
+On a GPU (ADR 0017), loaded at run time (Metal on macOS, CUDA through
+libcuda elsewhere; nothing changes without one):
+
+```rust
+let mut h = blake3::Hasher::new();
+unsafe { h.update_cuda(tensor_ptr, len, std::ptr::null_mut()) };   // CUDA device memory
+unsafe { h.update_metal(mtl_buffer, offset, len) };                 // an id<MTLBuffer>
+let mut m = blake3::gpu::Memory::new(1 << 30).unwrap();              // memory the GPU reads
+blake3::hash(&m);                                                   // split between CPU and GPU
+```
+
+`blake3::gpu::backend()` says which one runs; `TURBOBLAKE_GPU=0` turns it
+off, `TURBOBLAKE_NO_GPU=1` builds without it.
+
 How it works, and the benchmarks:
 [github.com/gunta/BLAKE3-bend](https://github.com/gunta/BLAKE3-bend) (see
 `bend/lib/README.md`).

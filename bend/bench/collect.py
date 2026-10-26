@@ -14,6 +14,11 @@ files the benchmarks write, so no number is copied by hand:
   versus          1 GiB on the fastest GPU measured and on the Mac, from
                   SHA-256 to the GPU (modal-B200.json, modal-sha-B200.json,
                   the Mac's tables above)
+  gpu_library     libturboblake's GPU backend (ADR 0017): the engine alone,
+                  the GPU on its own memory, and the CPU + GPU split of memory
+                  the GPU reads, through blake3.h (gpu-lib-m5pro.json from
+                  bench/duo.py --native, modal-lib-<gpu>.json from
+                  modal_gpu.py --lib-only)
 
 A table: {title, machine, unit, note, rows: [{input, <series>: ms}],
 series: {<key>: {label, kind, description}}}. kind is "bend" (turboblake),
@@ -262,6 +267,55 @@ def versus(results):
     }
 
 
+LIB_SERIES = {
+    "cpu": ("turboblake, CPU", "the Bend engine on every core, from ordinary memory"),
+    "gpu": ("turboblake, GPU memory", "the native kernel on a buffer in GPU memory "
+                                      "(turboblake_hasher_update_metal / _cuda)"),
+    "split": ("turboblake, CPU + GPU", "memory the GPU reads (turboblake_alloc), each subtree split between the "
+                                       "engine and the GPU at the share their measured rates balance"),
+    "split_gpu": ("turboblake, GPU from that memory", "the same memory, the GPU alone"),
+}
+
+
+def lib_table(runs, title, machine, note):
+    rows = []
+    for run in sorted(runs, key=lambda r: r["bytes"]):
+        if not run.get("digests_agree"):
+            continue
+        plans = {r["plan"]: r["median_ms"] for r in run["rows"]}
+        row = {"input": size_label(run["bytes"])}
+        for key, plan in (("cpu", "cpu"), ("gpu", "gpu"), ("split", "split"), ("split_gpu", "split=1")):
+            if plan in plans:
+                row[key] = round(plans[plan], 3)
+        rows.append(row)
+    return {"title": title, "machine": machine, "unit": "ms", "note": note, "rows": rows,
+            "series": {k: {"label": v[0], "kind": "bend", "description": v[1]} for k, v in LIB_SERIES.items()}}
+
+
+def gpu_library():
+    """libturboblake's GPU backend on each machine: one input in memory through blake3.h."""
+    tables = []
+    mac = load("gpu-lib-m5pro.json")
+    if mac:
+        i = mac["info"]
+        tables.append(lib_table(mac["runs"], i["machine"], f"{i['machine']}, {i['cpus']} cores, {i['gpu']}",
+                                "Medians of interleaved runs, the same digest from every side. CPU and GPU share "
+                                "one memory: the split's GPU side reads a shared Metal buffer in place, and the "
+                                "engine reads it in place too (ADR 0016)."))
+    for gpu in ("B200", "H100", "L4"):
+        raw = load(f"modal-lib-{gpu}.json")
+        runs = [v for k, v in sorted((raw or {}).items()) if k.startswith("duo_native_")]
+        if not runs:
+            continue
+        i = raw["info"]
+        name = i["gpu"].split(",")[0]
+        tables.append(lib_table(runs, name, f"{name} on Modal, {i['cpus']} x86 cores",
+                                "Medians of interleaved runs, the same digest from every side. GPU memory is the "
+                                "GPU's own; the split's GPU side copies pinned host memory to it over PCIe "
+                                f"({i.get('pcie', '?')}) while the engine hashes the rest."))
+    return {"title": "libturboblake on the GPU", "tables": tables} if tables else None
+
+
 def main():
     path = RES / "results.json"
     results = json.loads(path.read_text())
@@ -275,12 +329,16 @@ def main():
     vs = versus(results)
     if vs:
         results["versus"] = vs
+    lib = gpu_library()
+    if lib:
+        results["gpu_library"] = lib
     results["status_note"] = ("Numbers from 2026-10-26. NVIDIA: Bend's CUDA runtime on Modal's B200 and L4, "
                               "with its heap in 1 GiB pieces (Modal's sandbox grants no bigger managed allocation).")
     path.write_text(json.dumps(results, indent=2) + "\n")
     print(f"wrote {path}: gpu_metal, gpu_nvidia ({len(results['gpu_nvidia'])}), "
           f"languages ({', '.join(results['languages'])})" + (", deepseek_linux" if ds else "")
-          + (f", versus ({', '.join(r['input'] for r in vs['rows'])})" if vs else ""))
+          + (f", versus ({', '.join(r['input'] for r in vs['rows'])})" if vs else "")
+          + (f", gpu_library ({', '.join(t['title'] for t in lib['tables'])})" if lib else ""))
 
 
 if __name__ == "__main__":

@@ -11,6 +11,10 @@ name: turboblake release
 # requires) for x86-64, armv8 for Linux arm64. Upstream's SIMD code picks its
 # path at run time. `cargo install turboblake` still tunes for the machine it
 # builds on.
+#
+# The command line stays on the CPU (ADR 0006, 0013): these binaries are
+# built without the GPU backend (TURBOBLAKE_NO_GPU), which the library and
+# the bindings carry (ADR 0017).
 
 on:
   push:
@@ -47,6 +51,7 @@ jobs:
         working-directory: bend/crate
         env:
           TURBOBLAKE_TARGET_CPU: ${{ matrix.cpu }}
+          TURBOBLAKE_NO_GPU: "1"
         run: cargo build --release --target ${{ matrix.target }}
       - name: Check against the official test vectors
         run: |

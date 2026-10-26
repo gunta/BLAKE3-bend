@@ -50,6 +50,43 @@ Environment: `TURBOBLAKE=0` turns the engine off, `TURBOBLAKE_MIN=<bytes>`
 sets the threshold, `TURBOBLAKE_THREADS=<n>` caps the engine's threads,
 `TURBOBLAKE_TRACE=1` prints the calibration and the jobs.
 
+## The GPU
+
+`turboblake_gpu.c` runs the hand-written Metal and CUDA kernels of
+`bend/ref` from the library (ADR 0017). It links nothing: Metal is reached
+through the Objective-C runtime and Metal.framework, opened at run time,
+and CUDA through libcuda's driver API, with the kernels shipped as PTX
+(`gen_gpu.sh` embeds both in `csrc/turboblake_kernels.h`). A machine
+without a GPU or a driver keeps the CPU engine, unchanged; `GPU=0
+bend/lib/build.sh` builds without the backend. The calls (`turboblake.h`):
+
+```c
+blake3_hasher h;
+blake3_hasher_init(&h);
+turboblake_hasher_update_metal(&h, (void *)mtl_buffer, offset, len);    // an id<MTLBuffer>
+turboblake_hasher_update_cuda(&h, device_ptr, len, stream);             // CUDA device memory
+blake3_hasher_finalize(&h, out, 32);
+
+uint8_t *p = turboblake_alloc(len);   // host memory the GPU reads in place
+blake3_hasher_update(&h, p, len);     // big subtrees split between the CPU and the GPU
+```
+
+- GPU memory is hashed where it is, in any mode and between host updates:
+  the GPU hashes each subtree into the two CVs `blake3.c` pushes, and the
+  few bytes that finish a chunk come to the CPU. 1 GiB in 5.6 ms on the M5
+  Pro's GPU.
+- Host memory from `turboblake_alloc` (a shared Metal buffer, CUDA pinned
+  memory) or `turboblake_register` splits each subtree from 16 MiB between
+  the engine (the last slices) and the GPU (the first), at the share their
+  measured rates balance: 1 GiB in 5.1 ms on the M5 Pro, against 28 ms on
+  the CPU alone. Other memory never goes to the GPU.
+
+Environment: `TURBOBLAKE_GPU=0` turns it off, `TURBOBLAKE_GPU_MIN=<bytes>`
+sets the smallest subtree for it, `TURBOBLAKE_GPU_SHARE=<0..1>` fixes its
+share of a split, `TURBOBLAKE_GPU=all` gives it every subtree (copied to it
+if need be: the tests run the official checks through the kernels that
+way), `TURBOBLAKE_GPU_DEVICE=<i>` picks the CUDA device for host memory.
+
 ## Test and benchmark
 
 ```bash
@@ -63,7 +100,10 @@ python3 bend/lib/bench.py
 `test.py` runs every official test vector in all three modes, with
 extended output and a seek, under seven update splits, with the engine
 taking every subtree of two chunks or more, then random inputs up to
-2 GiB + 1 against the official `b3sum`. `bench.py` hashes one in-memory
+2 GiB + 1 against the official `b3sum`. With a GPU backend it runs them
+through the GPU too: the input in GPU memory (at an odd offset, between
+host updates), in a shared Metal buffer, and host memory under
+`TURBOBLAKE_GPU=all`, alone and split with the engine. `bench.py` hashes one in-memory
 buffer per size through the same `blake3.h`, against the official C
 library (SIMD, one thread: it has no threads of its own without TBB).
 

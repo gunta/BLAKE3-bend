@@ -75,6 +75,20 @@ generate the library as a package named `blake3` and patch it in (see
 `TURBOBLAKE_THREADS=<n>` caps the engine's threads, `TURBOBLAKE_TRACE=1`
 prints what it did.
 
+On a GPU (ADR 0017), loaded at run time (Metal on macOS, CUDA through
+libcuda elsewhere; nothing changes without one):
+
+```rust
+let mut h = blake3::Hasher::new();
+unsafe { h.update_cuda(tensor_ptr, len, std::ptr::null_mut()) };   // CUDA device memory
+unsafe { h.update_metal(mtl_buffer, offset, len) };                 // an id<MTLBuffer>
+let mut m = blake3::gpu::Memory::new(1 << 30).unwrap();              // memory the GPU reads
+blake3::hash(&m);                                                   // split between CPU and GPU
+```
+
+`blake3::gpu::backend()` says which one runs; `TURBOBLAKE_GPU=0` turns it
+off, `TURBOBLAKE_NO_GPU=1` builds without it.
+
 ## Speed
 
 Against the official `b3sum` on an Apple M5 Pro: a 101.5 GB DeepSeek-V4.1
