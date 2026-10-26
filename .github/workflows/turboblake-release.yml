@@ -1,12 +1,12 @@
 name: turboblake release
 
-# Builds turboblake (bend/crate: the official b3sum on blake3-bend) for macOS
+# Builds turboblake (bend/crate: the official b3sum on the turboblake library) for macOS
 # and Linux, arm64 and x86-64, when a turboblake-v* tag is pushed; checks each
 # binary against the official test vectors; and publishes the archives on a
 # GitHub release. Homebrew (gunta/homebrew-tap) and cargo-binstall download
 # these archives; SHA256SUMS feeds the formula.
 #
-# The Bend engine is tuned for a baseline per target (BLAKE3_BEND_TARGET_CPU),
+# The Bend engine is tuned for a baseline per target (TURBOBLAKE_TARGET_CPU),
 # not the runner's CPU: Apple M1 for macOS arm64, x86-64-v3 (AVX2, as RHEL 10
 # requires) for x86-64, armv8 for Linux arm64. Upstream's SIMD code picks its
 # path at run time. `cargo install turboblake` still tunes for the machine it
@@ -46,7 +46,7 @@ jobs:
       - name: Build
         working-directory: bend/crate
         env:
-          BLAKE3_BEND_TARGET_CPU: ${{ matrix.cpu }}
+          TURBOBLAKE_TARGET_CPU: ${{ matrix.cpu }}
         run: cargo build --release --target ${{ matrix.target }}
       - name: Check against the official test vectors
         run: |

@@ -1,4 +1,4 @@
-// turboblake: BLAKE3 for Node, Bun and Deno on libblake3-bend, the official C
+// turboblake: BLAKE3 for Node, Bun and Deno on libturboblake, the official C
 // library whose big inputs go to the Bend engine on every core: two drop-in
 // faces (api.js) over one native addon (src/addon.c), and hashFiles(paths),
 // many files at once as the turboblake command does. With no addon (it could

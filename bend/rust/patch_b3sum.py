@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
-"""Turns a copy of the official b3sum into turboblake, in place.
+"""Adds the official b3sum, copied beside the library, to the turboblake
+crate as its command line, in place.
 
   patch_b3sum.py <crate dir>
 
-Each patch must apply exactly once (see patch_crate.py); each REPLACE_ALL
-pair must appear at least once.
+The crate's Cargo.toml is the library's, as patch_crate.py left it; this adds
+the binaries, the `cli` feature that carries their dependencies (on by
+default, so `cargo install turboblake` builds the command), and b3sum's
+patches. Each patch must apply exactly once (see patch_crate.py); each
+REPLACE_ALL pair must appear at least once.
 """
 import pathlib
 import sys
@@ -79,28 +83,36 @@ CHECK_HASH = """    let found_hash: blake3::Hash;
 
 PATCHES = {
     "Cargo.toml": [
-        ('name = "b3sum"\n', 'name = "turboblake"\n'),
-        ('description = "a command line implementation of the BLAKE3 hash function"\n',
-         'description = "BLAKE3, turbocharged: the official b3sum with many files and big ones '
-         'hashed at once by a Bend2 engine, a drop-in for b3sum and sha256sum"\n'),
-        ('repository = "https://github.com/BLAKE3-team/BLAKE3"\n',
-         'repository = "https://github.com/gunta/BLAKE3-bend"\n'
-         'homepage = "https://gunta.github.io/BLAKE3-bend/"\n'),
-        ('[features]\n',
-         '# `cargo install turboblake --features replace` also installs it as `b3sum`.\n'
-         '[[bin]]\nname = "turboblake"\npath = "src/main.rs"\n\n'
-         '[[bin]]\nname = "b3sum"\npath = "src/replace.rs"\nrequired-features = ["replace"]\n\n'
-         '[features]\nreplace = []\n'),
-        ('blake3 = { version = "1.8.7", path = "..", features = ["mmap", "rayon"] }\n',
-         'blake3 = { package = "blake3-bend", version = "1.8.7", path = "../rust/blake3-bend", '
-         'features = ["mmap", "rayon"] }\n'),
+        ('description = "the BLAKE3 hash function, with big inputs hashed on every core by a Bend2 '
+         'engine: a drop-in for the blake3 crate"\n',
+         'description = "BLAKE3, turbocharged: big inputs and many files hashed on every core by a '
+         'Bend2 engine; a drop-in for the blake3 crate, b3sum and sha256sum"\n'),
+        ('[lib]\nname = "blake3"\n',
+         '[lib]\nname = "blake3"\n\n'
+         '# The command line: `cargo install turboblake`; with `--features replace`\n'
+         '# it is also installed as `b3sum`.\n'
+         '[[bin]]\nname = "turboblake"\npath = "src/main.rs"\nrequired-features = ["cli"]\n\n'
+         '[[bin]]\nname = "b3sum"\npath = "src/replace.rs"\nrequired-features = ["replace"]\n'),
+        ('default = ["std"]\n',
+         'default = ["std", "cli"]\n\n'
+         '# The command line and its dependencies. A library user who wants none of\n'
+         '# them: turboblake = { version = "1.8", default-features = false, features = ["std"] }\n'
+         'cli = ["std", "mmap", "rayon", "dep:anyhow", "dep:clap", "dep:hex", "dep:wild"]\n'
+         'replace = ["cli"]\n'),
+        ('[dependencies]\n',
+         '[dependencies]\n'
+         'anyhow = { version = "1.0.25", optional = true }\n'
+         'clap = { version = "4.0.8", features = ["derive", "wrap_help"], optional = true }\n'
+         'hex = { version = "0.4.0", optional = true }\n'
+         'wild = { version = "2.0.3", optional = true }\n'),
         ('[dev-dependencies]\n',
          '# `cargo binstall turboblake` downloads the release archives instead of building.\n'
          '[package.metadata.binstall]\n'
          'pkg-url = "{ repo }/releases/download/turboblake-v{ version }/turboblake-{ version }-{ target }.tar.gz"\n'
          'bin-dir = "turboblake-{ version }-{ target }/{ bin }{ binary-ext }"\n'
          'pkg-fmt = "tgz"\n\n'
-         '[dev-dependencies]\n'),
+         '[dev-dependencies]\n'
+         'duct = "1.0.0"\n'),
     ],
     "src/main.rs": [
         ('#[cfg(test)]\nmod unit_tests;\n', '#[cfg(test)]\nmod unit_tests;\n\nmod fast;\n'),
@@ -111,14 +123,14 @@ PATCHES = {
         (POOL,
          '    let args = Args::parse()?;\n'
          '    // turboblake: --num-threads caps the Bend engine\'s threads too, and\n'
-         '    // blake3-bend\'s subtree hook stays off: upstream\'s paths here stay\n'
+         '    // the library\'s subtree hook stays off: upstream\'s paths here stay\n'
          '    // upstream\'s, and fast.rs gives the engine what it wins on (a file the\n'
          '    // hook took would pay the engine\'s start). SAFETY: no other thread runs.\n'
          '    if let Some(n) = args.num_threads() {\n'
-         '        unsafe { std::env::set_var("BLAKE3_BEND_THREADS", n.to_string()) };\n'
+         '        unsafe { std::env::set_var("TURBOBLAKE_THREADS", n.to_string()) };\n'
          '    }\n'
-         '    if std::env::var_os("BLAKE3_BEND_MIN").is_none() {\n'
-         '        unsafe { std::env::set_var("BLAKE3_BEND_MIN", usize::MAX.to_string()) };\n'
+         '    if std::env::var_os("TURBOBLAKE_MIN").is_none() {\n'
+         '        unsafe { std::env::set_var("TURBOBLAKE_MIN", usize::MAX.to_string()) };\n'
          '    }\n'
          '    // turboblake: rayon\'s threads start when a file first needs them\n'
          '    fast::pool(args.num_threads(), || {\n'),

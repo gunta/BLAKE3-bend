@@ -1,4 +1,4 @@
-// turboblake: BLAKE3 on libblake3-bend for Node, Bun and Deno.
+// turboblake: BLAKE3 on libturboblake for Node, Bun and Deno.
 type Input = Uint8Array | ArrayBufferView | ArrayBuffer | string;
 
 /** Options as @noble/hashes/blake3.js takes them. Use key or context, not both. */
@@ -37,7 +37,7 @@ export declare const blake3: {
 };
 export default blake3;
 
-/** Which engine runs: "native" (the addon over libblake3-bend) or "bend-js" (Bend's BLAKE3 emitted to JS). */
+/** Which engine runs: "native" (the addon over libturboblake) or "bend-js" (Bend's BLAKE3 emitted to JS). */
 export declare const backend: "native" | "bend-js";
 
 /** Extended output from a position, as the npm blake3 package's HashReader. */

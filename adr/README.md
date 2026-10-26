@@ -18,4 +18,5 @@ How the Bend2 BLAKE3 got fast, and what we measured on the way.
 | [0012](0012-the-engine-as-a-library-and-every-binding.md) | the engine as a library: one hook in the official C and Rust, a Bend program on its own thread, drop-ins for C, Rust, Python, Node/Bun/Deno, browsers and Go |
 | [0013](0013-native-gpu-kernels-where-they-measure-faster.md) | native Metal and CUDA kernels ship where they measure faster, with the CPU + GPU split; SHA-256 measured beside them (1 GiB: 574 ms SHA-256, 0.683 ms native CUDA on a B200) |
 | [0014](0014-files-past-4-tib.md) | files past 4 TiB: every span carries its chunk counter's high word, down to compress8 |
+| [0015](0015-one-name-turboblake.md) | one name, turboblake: the library and the CLI in one crate (`turboblake = "1.8"`, still `use blake3`), libturboblake, `TURBOBLAKE_*` |
 | [0016](0016-turboblake-never-slower-than-b3sum.md) | turboblake never slower than b3sum: the engine only where it wins, the macOS window over the host's memory, stdin / --no-mmap / --check rebuilt (up to 11x) |

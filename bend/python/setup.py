@@ -1,12 +1,12 @@
-"""Builds blake3._blake3: blake3module.c on libblake3-bend (bend/lib).
+"""Builds blake3._blake3: blake3module.c on libturboblake (bend/lib).
 
 The C comes from bend/lib/csrc (copied in, for an sdist): the official C
 library with its subtree hook, the glue, and the engine (the C that Bend2
 emits). Only the engine needs clang, for its vectorizer flags; without
 clang the module builds on the official C alone, and says so.
 
-Environment: BLAKE3_BEND_PORTABLE=1 builds for the baseline CPU instead of
-this one; BLAKE3_BEND_NO_ENGINE=1 leaves the engine out.
+Environment: TURBOBLAKE_PORTABLE=1 builds for the baseline CPU instead of
+this one; TURBOBLAKE_NO_ENGINE=1 leaves the engine out.
 """
 import os
 import platform
@@ -52,9 +52,9 @@ class BuildExt(build_ext):
     def build_extension(self, ext):
         tmp = Path(self.build_temp)
         tmp.mkdir(parents=True, exist_ok=True)
-        cc = None if os.environ.get("BLAKE3_BEND_NO_ENGINE") or WINDOWS else find_clang()
+        cc = None if os.environ.get("TURBOBLAKE_NO_ENGINE") or WINDOWS else find_clang()
         if cc:
-            cpu = [] if os.environ.get("BLAKE3_BEND_PORTABLE") else (
+            cpu = [] if os.environ.get("TURBOBLAKE_PORTABLE") else (
                 ["-march=native"] if X86_64 else ["-mcpu=native"])
             obj = tmp / "engine.o"
             cmd = [cc, "-x", "c", "-std=c11", "-O3", *cpu, "-fPIC", "-w", "-DBEND_EMBED",
@@ -62,8 +62,8 @@ class BuildExt(build_ext):
             print(" ".join(cmd))
             subprocess.run(cmd, check=True)
             ext.extra_objects.append(str(obj))
-            ext.sources.append("csrc/blake3_bend.c")
-            ext.define_macros.append(("BLAKE3_BEND", "1"))
+            ext.sources.append("csrc/turboblake.c")
+            ext.define_macros.append(("TURBOBLAKE", "1"))
         else:
             print("turboblake: no clang (set CC to one), building without the Bend engine")
         if X86_64 and not WINDOWS:
@@ -88,7 +88,7 @@ setuptools.setup(
             include_dirs=["csrc"],
             define_macros=[
                 ("SETUP_PY_VERSION", f'"{VERSION}"'),
-                ("SETUP_PY_DESCRIPTION", '"BLAKE3 on libblake3-bend"'),
+                ("SETUP_PY_DESCRIPTION", '"BLAKE3 on libturboblake"'),
             ],
             extra_compile_args=[] if WINDOWS else ["-O3", "-std=c11"],
             libraries=[] if WINDOWS else ["pthread", "m"],

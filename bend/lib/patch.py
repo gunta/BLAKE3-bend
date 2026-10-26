@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The two source patches libblake3-bend needs, each checked to apply.
+"""The two source patches libturboblake needs, each checked to apply.
 
   patch.py hook   <blake3.c>   the subtree hook in the official C library
   patch.py embed  <engine.c>   Bend's emitted C, made fit to run inside
@@ -11,8 +11,8 @@ import sys
 HOOK_DECL = (
     '#include "blake3_impl.h"\n',
     '#include "blake3_impl.h"\n'
-    '#if defined(BLAKE3_BEND)\n'
-    '#include "blake3_bend.h"\n'
+    '#if defined(TURBOBLAKE)\n'
+    '#include "turboblake.h"\n'
     '#endif\n',
 )
 
@@ -26,9 +26,9 @@ HOOK_CALL = (
     '  assert(input_len > BLAKE3_CHUNK_LEN);\n'
     '#endif\n'
     '\n'
-    '#if defined(BLAKE3_BEND)\n'
-    '  // libblake3-bend: a big subtree goes to the Bend engine, all cores\n'
-    '  if (blake3_bend_subtree(input, input_len, key, chunk_counter, flags, out)) {\n'
+    '#if defined(TURBOBLAKE)\n'
+    '  // libturboblake: a big subtree goes to the Bend engine, all cores\n'
+    '  if (turboblake_subtree(input, input_len, key, chunk_counter, flags, out)) {\n'
     '    return;\n'
     '  }\n'
     '#endif\n'

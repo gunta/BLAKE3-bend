@@ -571,7 +571,7 @@
           "description": "the official C library: SIMD, one thread"
         },
         "bend": {
-          "label": "libblake3-bend",
+          "label": "libturboblake",
           "kind": "bend",
           "description": "the official C library with the Bend engine"
         }
@@ -638,14 +638,14 @@
           "description": "the official crate on every core (rayon)"
         },
         "bend": {
-          "label": "blake3-bend hash",
+          "label": "turboblake hash",
           "kind": "bend",
-          "description": "blake3::hash on blake3-bend"
+          "description": "blake3::hash on turboblake"
         },
         "bend_rayon": {
-          "label": "blake3-bend update_rayon",
+          "label": "turboblake update_rayon",
           "kind": "bend",
-          "description": "Hasher::update_rayon on blake3-bend"
+          "description": "Hasher::update_rayon on turboblake"
         }
       }
     },

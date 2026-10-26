@@ -10,14 +10,14 @@
 //!
 //! The engine's work: spans of at most 1 GiB (whole subtrees but the last),
 //! each answered with its chaining value. Here they merge, as parent nodes,
-//! into the two child CVs upstream expects, exactly as `blake3_bend.c` does
+//! into the two child CVs upstream expects, exactly as `turboblake.c` does
 //! for the C library.
 //!
 //! [`hash_files`] is the engine's other job, turboblake's fast path.
 //!
-//! Environment: `BLAKE3_BEND=0` turns it off, `BLAKE3_BEND_MIN=<bytes>` sets
+//! Environment: `TURBOBLAKE=0` turns it off, `TURBOBLAKE_MIN=<bytes>` sets
 //! the smallest subtree it takes (otherwise calibrated at the first big
-//! one), `BLAKE3_BEND_THREADS=<n>` caps its threads, `BLAKE3_BEND_TRACE=1`
+//! one), `TURBOBLAKE_THREADS=<n>` caps its threads, `TURBOBLAKE_TRACE=1`
 //! prints what it did.
 
 use crate::Hash;
@@ -32,7 +32,7 @@ use std::path::Path;
 /// one then. A pipe or device comes back as an `Unsupported` error ("not a
 /// regular file"), unread: read it with `Hasher::update_reader`.
 pub fn hash_files(paths: &[&Path]) -> Option<Vec<io::Result<Hash>>> {
-    #[cfg(all(blake3_bend, unix))]
+    #[cfg(all(turboblake, unix))]
     {
         use std::ffi::CString;
         use std::os::unix::ffi::OsStrExt;
@@ -58,7 +58,7 @@ pub fn hash_files(paths: &[&Path]) -> Option<Vec<io::Result<Hash>>> {
                 .collect(),
         )
     }
-    #[cfg(not(all(blake3_bend, unix)))]
+    #[cfg(not(all(turboblake, unix)))]
     {
         let _ = paths;
         None
@@ -70,7 +70,7 @@ pub fn hash_files(paths: &[&Path]) -> Option<Vec<io::Result<Hash>>> {
 /// a file mostly on disk (which `hash_files` streams), `None` when this
 /// build has no engine or the path is not a readable regular file.
 pub fn cached(path: &Path) -> Option<bool> {
-    #[cfg(all(blake3_bend, unix))]
+    #[cfg(all(turboblake, unix))]
     {
         use std::os::unix::ffi::OsStrExt;
         let c = std::ffi::CString::new(path.as_os_str().as_bytes()).ok()?;
@@ -80,17 +80,17 @@ pub fn cached(path: &Path) -> Option<bool> {
             _ => None,
         }
     }
-    #[cfg(not(all(blake3_bend, unix)))]
+    #[cfg(not(all(turboblake, unix)))]
     {
         let _ = path;
         None
     }
 }
 
-#[cfg(blake3_bend)]
+#[cfg(turboblake)]
 pub(crate) use engine::subtree;
 
-#[cfg(blake3_bend)]
+#[cfg(turboblake)]
 mod engine {
 use crate::platform::Platform;
 use crate::{BLOCK_LEN, CHUNK_LEN, CVWords, IV, OUT_LEN, PARENT};
@@ -126,10 +126,10 @@ static MIN: AtomicUsize = AtomicUsize::new(UNSET);
 static CALIBRATE: Once = Once::new();
 
 fn fixed_min() -> Option<usize> {
-    if std::env::var("BLAKE3_BEND").as_deref() == Ok("0") {
+    if std::env::var("TURBOBLAKE").as_deref() == Ok("0") {
         return Some(usize::MAX);
     }
-    std::env::var("BLAKE3_BEND_MIN")
+    std::env::var("TURBOBLAKE_MIN")
         .ok()
         .and_then(|m| m.parse::<usize>().ok())
         .filter(|&m| m >= 2 * CHUNK_LEN)
@@ -165,9 +165,9 @@ fn calibrate(input: &[u8], platform: Platform) -> usize {
         r = r.min(t.elapsed().as_secs_f64());
     }
     let min = (2.0 * o * (PROBE as f64 / r)).clamp(64.0 * 1024.0, 64.0 * 1024.0 * 1024.0) as usize;
-    if std::env::var_os("BLAKE3_BEND_TRACE").is_some() {
+    if std::env::var_os("TURBOBLAKE_TRACE").is_some() {
         eprintln!(
-            "blake3-bend: engine {:.1} us a job, Rust {:.2} GB/s: subtrees from {} bytes",
+            "turboblake: engine {:.1} us a job, Rust {:.2} GB/s: subtrees from {} bytes",
             o * 1e6,
             PROBE as f64 / r / 1e9,
             min

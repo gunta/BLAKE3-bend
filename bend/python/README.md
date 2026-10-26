@@ -2,7 +2,7 @@
 
 The `blake3` module, API-compatible with the Rust-based
 [`blake3`](https://pypi.org/project/blake3/) on PyPI, built on
-libblake3-bend: the official BLAKE3 C library whose big inputs are hashed on
+libturboblake: the official BLAKE3 C library whose big inputs are hashed on
 every core by a [Bend2](https://bend-lang.com) engine. blake3-py's own test
 suite passes.
 

@@ -1,5 +1,5 @@
 // Package blake3 is BLAKE3 for Go with the API of lukechampine.com/blake3,
-// on libblake3-bend: the official BLAKE3 C library, whose big inputs are
+// on libturboblake: the official BLAKE3 C library, whose big inputs are
 // hashed on every core by a Bend2 engine. Swap the import path and keep the
 // code:
 //
@@ -11,7 +11,7 @@
 package blake3
 
 /*
-#cgo CFLAGS: -O3 -w -DBLAKE3_BEND
+#cgo CFLAGS: -O3 -w -DTURBOBLAKE
 #cgo arm64 CFLAGS: -DBLAKE3_USE_NEON=1
 #cgo !arm64,!amd64 CFLAGS: -DBLAKE3_NO_SSE2 -DBLAKE3_NO_SSE41 -DBLAKE3_NO_AVX2 -DBLAKE3_NO_AVX512
 #cgo LDFLAGS: -lpthread -lm

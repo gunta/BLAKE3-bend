@@ -1,14 +1,16 @@
 # turboblake
 
 BLAKE3, turbocharged: the official [`b3sum`](https://crates.io/crates/b3sum)
-(1.8.7) on [`blake3-bend`](https://crates.io/crates/blake3-bend), a drop-in
-for `b3sum` and `sha256sum`. Every flag, every output format and every
-error message is upstream's (upstream's own CLI tests pass), and in the
-default mode many files and big ones are hashed at once by a
-[Bend2](https://bend-lang.com) engine: opened in parallel, mapped or read,
-files not in the page cache streamed at SSD speed, every file's tree on
-every core. BLAKE3 is a Merkle tree, and Bend2 runs tree-shaped work in
-parallel on every CPU core and the GPU.
+and [`blake3`](https://crates.io/crates/blake3) crate (1.8.7) in one crate,
+a drop-in for `b3sum` and `sha256sum` on the command line and for `blake3`
+in your code. Every flag, every output format, every error message and every
+API is upstream's (upstream's own tests pass), and many files and big ones
+are hashed at once by a [Bend2](https://bend-lang.com) engine: opened in
+parallel, mapped or read, files not in the page cache streamed at SSD speed,
+every file's tree on every core. BLAKE3 is a Merkle tree, and Bend2 runs
+tree-shaped work in parallel on every CPU core and the GPU.
+
+## The command
 
 ```bash
 brew install gunta/tap/turboblake
@@ -46,8 +48,34 @@ at a time. stdin and `--no-mmap` read big blocks while the block before
 hashes on every core (upstream reads 64 KiB at a time on one). `--keyed`,
 `--derive-key`, `--length` and `--seek` run upstream's code. rayon's threads
 start only when a file needs them, and a small file hashes on one thread.
-`BLAKE3_BEND=0` turns the engine off. Error messages start with
+`TURBOBLAKE=0` turns the engine off. Error messages start with
 `turboblake:`, or `b3sum:` for the `replace` install.
+
+## The library
+
+```toml
+[dependencies]
+turboblake = "1.8"
+```
+
+The library is named `blake3`, so your code keeps `use blake3::…`.
+`blake3::hash`, `Hasher::update` and `update_rayon` go through the engine
+past a size it calibrates at the first big input (about 256 KiB on an Apple
+M5 Pro), in every mode (keyed hashing and key derivation too); below that,
+and in `no_std` builds, it is upstream's code. Without the command line's
+dependencies:
+
+```toml
+turboblake = { version = "1.8", default-features = false, features = ["std"] }
+```
+
+To swap it in for every crate in a dependency graph (iroh, for example),
+generate the library as a package named `blake3` and patch it in (see
+[bend/rust](https://github.com/gunta/BLAKE3-bend/tree/master/bend/rust)).
+`TURBOBLAKE_THREADS=<n>` caps the engine's threads, `TURBOBLAKE_TRACE=1`
+prints what it did.
+
+## Speed
 
 Against the official `b3sum` on an Apple M5 Pro: a 101.5 GB DeepSeek-V4.1
 model shard bigger than RAM in 7.65 s against 211 s; 2,000 x 64 KiB files

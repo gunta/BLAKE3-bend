@@ -1,4 +1,4 @@
-// Builds build/turboblake.node: src/addon.c over libblake3-bend (the C in
+// Builds build/turboblake.node: src/addon.c over libturboblake (the C in
 // ./csrc, or ../lib/csrc in the repository), with clang. The engine gets
 // bend/build.sh's vectorizer flags. Run by `npm install` (with --optional:
 // a failure is a warning, and turboblake runs on Bend's JavaScript instead);
@@ -55,8 +55,8 @@ const compile = (src, flags) => {
 };
 compile(join(csrc, "engine.c"), ["-x", "c", "-std=c11", "-O3", ...cpu, "-w", "-DBEND_EMBED",
   "-Dmain=b3e_bend_main", ...slp]);
-const c = ["-O3", "-std=c11", ...cpu, "-DBLAKE3_BEND", `-I${csrc}`];
-for (const f of ["blake3.c", "blake3_dispatch.c", "blake3_portable.c", "blake3_bend.c"]) {
+const c = ["-O3", "-std=c11", ...cpu, "-DTURBOBLAKE", `-I${csrc}`];
+for (const f of ["blake3.c", "blake3_dispatch.c", "blake3_portable.c", "turboblake.c"]) {
   compile(join(csrc, f), [...c, ...(x86 ? [] : ["-DBLAKE3_USE_NEON=1"])]);
 }
 if (x86) {

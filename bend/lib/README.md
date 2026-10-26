@@ -1,4 +1,4 @@
-# libblake3-bend
+# libturboblake
 
 The official BLAKE3 C library (`c/` in this repository, `blake3.h`
 unchanged), with one change: when an update reaches a big complete subtree,
@@ -22,8 +22,8 @@ cc -I bend/lib/build/include app.c bend/lib/build/lib/libblake3.a -lpthread -o a
 
 ## How it works
 
-- `blake3.c`'s `compress_subtree_to_parent_node` asks `blake3_bend_subtree`
-  (`blake3_bend.c`) first. That cuts the subtree into spans of at most
+- `blake3.c`'s `compress_subtree_to_parent_node` asks `turboblake_subtree`
+  (`turboblake.c`) first. That cuts the subtree into spans of at most
   1 GiB, each a whole subtree, hands them to the engine in one job, and
   merges their CVs into the two child CVs upstream expects.
 - The engine (`engine.bend`, `engine.c`) is a Bend program that runs on a
@@ -46,9 +46,9 @@ cc -I bend/lib/build/include app.c bend/lib/build/lib/libblake3.a -lpthread -o a
 - The library build patches Bend's emitted C (`patch.py`) so it can live
   inside another program: no process-wide signal handlers.
 
-Environment: `BLAKE3_BEND=0` turns the engine off, `BLAKE3_BEND_MIN=<bytes>`
-sets the threshold, `BLAKE3_BEND_THREADS=<n>` caps the engine's threads,
-`BLAKE3_BEND_TRACE=1` prints the calibration and the jobs.
+Environment: `TURBOBLAKE=0` turns the engine off, `TURBOBLAKE_MIN=<bytes>`
+sets the threshold, `TURBOBLAKE_THREADS=<n>` caps the engine's threads,
+`TURBOBLAKE_TRACE=1` prints the calibration and the jobs.
 
 ## Test and benchmark
 
@@ -67,7 +67,7 @@ taking every subtree of two chunks or more, then random inputs up to
 buffer per size through the same `blake3.h`, against the official C
 library (SIMD, one thread: it has no threads of its own without TBB).
 
-| one update, in memory | official C | libblake3-bend | |
+| one update, in memory | official C | libturboblake | |
 |---|---:|---:|---:|
 | 1 MiB, M5 Pro | 0.497 ms | 0.179 ms | 2.8x |
 | 64 MiB, M5 Pro | 28.0 ms | 2.83 ms | 9.9x |

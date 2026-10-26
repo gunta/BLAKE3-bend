@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Turns a copy of the official blake3 crate into blake3-bend, in place.
+"""Turns a copy of the official blake3 crate into turboblake, in place.
 
   patch_crate.py <crate dir> [package name]
 
@@ -16,12 +16,12 @@ HOOK = """    debug_assert!(input.len() > CHUNK_LEN);
 """
 
 ENGINE_BUILD = r'''
-// blake3-bend: the Bend engine (csrc/engine.c, the C that Bend2 emits for
+// turboblake: the Bend engine (csrc/engine.c, the C that Bend2 emits for
 // bend/lib/engine.bend), compiled with clang's SLP vectorizer tuned as in
 // bend/build.sh. Without clang the crate builds as upstream's, engine-less.
 fn build_bend_engine() {
     println!("cargo::rerun-if-changed=csrc/engine.c");
-    println!("cargo::rerun-if-env-changed=BLAKE3_BEND_TARGET_CPU");
+    println!("cargo::rerun-if-env-changed=TURBOBLAKE_TARGET_CPU");
     if env::var_os("CARGO_FEATURE_STD").is_none() || env::var_os("CARGO_FEATURE_PURE").is_some() {
         return;
     }
@@ -33,7 +33,7 @@ fn build_bend_engine() {
         .unwrap_or_default();
     if !version.contains("clang") {
         println!(
-            "cargo::warning=blake3-bend: no clang (set CC to one): building without the Bend \
+            "cargo::warning=turboblake: no clang (set CC to one): building without the Bend \
              engine, as the official blake3"
         );
         return;
@@ -49,13 +49,13 @@ fn build_bend_engine() {
         .warnings(false)
         .flag("-w");
     // tuned for the machine that builds, unless cross-compiling
-    // BLAKE3_BEND_TARGET_CPU (e.g. "-march=x86-64-v3") sets a baseline instead,
+    // TURBOBLAKE_TARGET_CPU (e.g. "-march=x86-64-v3") sets a baseline instead,
     // for binaries that must run on every machine of their target.
-    match env::var("BLAKE3_BEND_TARGET_CPU") {
+    match env::var("TURBOBLAKE_TARGET_CPU") {
         Ok(cpu) if !cpu.is_empty() => {
             b.flag(&cpu);
         }
-        _ if env::var("HOST") == env::var("TARGET") && env::var_os("BLAKE3_BEND_PORTABLE").is_none() => {
+        _ if env::var("HOST") == env::var("TARGET") && env::var_os("TURBOBLAKE_PORTABLE").is_none() => {
             b.flag(if arch == "x86_64" { "-march=native" } else { "-mcpu=native" });
         }
         _ => {}
@@ -68,9 +68,9 @@ fn build_bend_engine() {
     ] {
         b.flag("-mllvm").flag(f);
     }
-    b.compile("blake3_bend_engine");
+    b.compile("turboblake_engine");
     println!("cargo::rustc-link-lib=pthread");
-    println!("cargo::rustc-cfg=blake3_bend");
+    println!("cargo::rustc-cfg=turboblake");
 }
 '''
 
@@ -84,12 +84,12 @@ PATCHES = {
          'repository = "https://github.com/gunta/BLAKE3-bend"\n'
          'homepage = "https://gunta.github.io/BLAKE3-bend/"\n'),
         ('documentation = "https://docs.rs/blake3"\n',
-         'documentation = "https://docs.rs/blake3-bend"\n'
-         'links = "blake3_bend_engine"\n'),
+         'documentation = "https://docs.rs/turboblake"\n'
+         'links = "turboblake_engine"\n'),
         ('[features]\n', '[lib]\nname = "blake3"\n\n[features]\n'),
     ],
     "build.rs": [
-        ('        "blake3_wasm32_simd",\n    ];', '        "blake3_wasm32_simd",\n        "blake3_bend",\n    ];'),
+        ('        "blake3_wasm32_simd",\n    ];', '        "blake3_wasm32_simd",\n        "turboblake",\n    ];'),
         ('    if is_wasm32() && is_wasm32_simd() {\n        build_wasm32_simd();\n    }\n',
          '    if is_wasm32() && is_wasm32_simd() {\n        build_wasm32_simd();\n    }\n\n'
          '    if !is_wasm32() {\n        build_bend_engine();\n    }\n'),
@@ -101,7 +101,7 @@ PATCHES = {
     "src/join.rs": [
         ('pub trait Join {\n',
          'pub trait Join {\n'
-         '    /// blake3-bend: true for `RayonJoin`, whose callers hash on every core\n'
+         '    /// turboblake: true for `RayonJoin`, whose callers hash on every core\n'
          '    const PARALLEL: bool = false;\n\n'),
         ('impl Join for RayonJoin {\n',
          'impl Join for RayonJoin {\n    const PARALLEL: bool = true;\n\n'),
@@ -110,8 +110,8 @@ PATCHES = {
         ('mod io;\nmod join;\n',
          'mod io;\nmod join;\n\n#[cfg(feature = "std")]\npub mod bend;\n'),
         (HOOK, HOOK.replace("    let mut cv_array",
-                            "    // blake3-bend: a big subtree goes to the Bend engine, on every core\n"
-                            "    #[cfg(all(blake3_bend, feature = \"std\"))]\n"
+                            "    // turboblake: a big subtree goes to the Bend engine, on every core\n"
+                            "    #[cfg(all(turboblake, feature = \"std\"))]\n"
                             "    if let Some(pair) = bend::subtree(input, key, chunk_counter, flags, platform, J::PARALLEL) {\n"
                             "        return pair;\n"
                             "    }\n"
@@ -122,7 +122,7 @@ PATCHES = {
 
 def main():
     crate = pathlib.Path(sys.argv[1])
-    name = sys.argv[2] if len(sys.argv) > 2 else "blake3-bend"
+    name = sys.argv[2] if len(sys.argv) > 2 else "turboblake"
     for rel, pairs in PATCHES.items():
         path = crate / rel
         s = path.read_text()

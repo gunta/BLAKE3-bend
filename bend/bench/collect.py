@@ -49,12 +49,12 @@ def load(name):
 # description). Keys starting with "bend" are turboblake's.
 LANGS = {
     "c": ("lang-c.json", "C (blake3.h)", {
-        "libblake3-bend": ("bend", "libblake3-bend", "bend", "the official C library with the Bend engine"),
+        "libturboblake": ("bend", "libturboblake", "bend", "the official C library with the Bend engine"),
         "official C": ("official", "official C", "blake3", "the official C library: SIMD, one thread"),
     }),
     "rust": ("lang-rust.json", "Rust", {
-        "blake3-bend hash": ("bend", "blake3-bend hash", "bend", "blake3::hash on blake3-bend"),
-        "blake3-bend update_rayon": ("bend_rayon", "blake3-bend update_rayon", "bend", "Hasher::update_rayon on blake3-bend"),
+        "turboblake hash": ("bend", "turboblake hash", "bend", "blake3::hash on turboblake"),
+        "turboblake update_rayon": ("bend_rayon", "turboblake update_rayon", "bend", "Hasher::update_rayon on turboblake"),
         "blake3 hash": ("blake3", "blake3 hash", "blake3", "the official crate's hash: one thread"),
         "blake3 update_rayon": ("blake3_rayon", "blake3 update_rayon", "blake3", "the official crate on every core (rayon)"),
     }),
