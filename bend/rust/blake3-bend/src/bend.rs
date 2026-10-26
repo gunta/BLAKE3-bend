@@ -13,7 +13,7 @@
 //! into the two child CVs upstream expects, exactly as `blake3_bend.c` does
 //! for the C library.
 //!
-//! [`hash_files`] is the engine's other job, b3bend's fast path.
+//! [`hash_files`] is the engine's other job, turboblake's fast path.
 //!
 //! Environment: `BLAKE3_BEND=0` turns it off, `BLAKE3_BEND_MIN=<bytes>` sets
 //! the smallest subtree it takes (otherwise calibrated at the first big
@@ -24,7 +24,7 @@ use crate::Hash;
 use std::io;
 use std::path::Path;
 
-/// Hashes many files at once, as `b3bend` does: opened, mapped or read
+/// Hashes many files at once, as `turboblake` does: opened, mapped or read
 /// in parallel, files not in the page cache streamed at SSD speed, every
 /// file's tree hashed by the Bend engine at the same time. Each answer is
 /// the file's `blake3::hash`, or the error opening or reading it. `None`

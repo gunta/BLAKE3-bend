@@ -21,6 +21,7 @@ ENGINE_BUILD = r'''
 // bend/build.sh. Without clang the crate builds as upstream's, engine-less.
 fn build_bend_engine() {
     println!("cargo::rerun-if-changed=csrc/engine.c");
+    println!("cargo::rerun-if-env-changed=BLAKE3_BEND_TARGET_CPU");
     if env::var_os("CARGO_FEATURE_STD").is_none() || env::var_os("CARGO_FEATURE_PURE").is_some() {
         return;
     }
@@ -48,8 +49,16 @@ fn build_bend_engine() {
         .warnings(false)
         .flag("-w");
     // tuned for the machine that builds, unless cross-compiling
-    if env::var("HOST") == env::var("TARGET") && env::var_os("BLAKE3_BEND_PORTABLE").is_none() {
-        b.flag(if arch == "x86_64" { "-march=native" } else { "-mcpu=native" });
+    // BLAKE3_BEND_TARGET_CPU (e.g. "-march=x86-64-v3") sets a baseline instead,
+    // for binaries that must run on every machine of their target.
+    match env::var("BLAKE3_BEND_TARGET_CPU") {
+        Ok(cpu) if !cpu.is_empty() => {
+            b.flag(&cpu);
+        }
+        _ if env::var("HOST") == env::var("TARGET") && env::var_os("BLAKE3_BEND_PORTABLE").is_none() => {
+            b.flag(if arch == "x86_64" { "-march=native" } else { "-mcpu=native" });
+        }
+        _ => {}
     }
     for f in [
         "-slp-max-reg-size=512",

@@ -1,4 +1,4 @@
-//! b3bend's fast path.
+//! turboblake's fast path.
 //!
 //! This is the official b3sum, built on blake3-bend, with one addition: in
 //! the default mode (32-byte output, no seek, no --keyed, --derive-key,

@@ -1,17 +1,17 @@
 [package]
-name = "b3bend"
+name = "turboblake"
 version = "1.8.7"
 authors = ["Jack O'Connor <oconnor663@gmail.com>"]
-description = "b3sum, with many files and big ones hashed at once by a Bend2 engine: a drop-in for b3sum"
+description = "BLAKE3, turbocharged: the official b3sum with many files and big ones hashed at once by a Bend2 engine, a drop-in for b3sum and sha256sum"
 repository = "https://github.com/gunta/BLAKE3-bend"
 homepage = "https://gunta.github.io/BLAKE3-bend/"
 license = "CC0-1.0 OR Apache-2.0 OR Apache-2.0 WITH LLVM-exception"
 readme = "README.md"
 edition = "2024"
 
-# `cargo install b3bend --features replace` also installs it as `b3sum`.
+# `cargo install turboblake --features replace` also installs it as `b3sum`.
 [[bin]]
-name = "b3bend"
+name = "turboblake"
 path = "src/main.rs"
 
 [[bin]]
@@ -32,6 +32,12 @@ clap = { version = "4.0.8", features = ["derive", "wrap_help"] }
 hex = "0.4.0"
 rayon-core = "1.12.1"
 wild = "2.0.3"
+
+# `cargo binstall turboblake` downloads the release archives instead of building.
+[package.metadata.binstall]
+pkg-url = "{ repo }/releases/download/turboblake-v{ version }/turboblake-{ version }-{ target }.tar.gz"
+bin-dir = "turboblake-{ version }-{ target }/{ bin }{ binary-ext }"
+pkg-fmt = "tgz"
 
 [dev-dependencies]
 duct = "1.0.0"

@@ -8,7 +8,7 @@ and the minimum wall time. Checks that all print the same bytes first.
 usage: bench/race.py [rounds] [workload ...]
 B3RACE_SIDES=name=path,... picks the sides (the first is the baseline);
 the default is the official b3sum and bend/build/b3sum (bend/b3sum.bend),
-plus b3bend (bend/crate: the official b3sum with the engine) when built.
+plus turboblake (bend/crate: the official b3sum with the engine) when built.
 """
 
 import os
@@ -23,7 +23,7 @@ ROOT = HERE.parents[1]
 DATA = HERE / "data"
 REF = ROOT / "b3sum" / "target" / "release" / "b3sum"
 BEND = ROOT / "bend" / "build" / "b3sum"
-RUST = ROOT / "bend" / "crate" / "target" / "release" / "b3bend"
+RUST = ROOT / "bend" / "crate" / "target" / "release" / "turboblake"
 
 
 def sides_of():
@@ -32,7 +32,7 @@ def sides_of():
         return dict(kv.split("=", 1) for kv in spec.split(","))
     sides = {"b3sum": str(REF), "bend": str(BEND)}
     if RUST.exists():
-        sides["b3bend"] = str(RUST)
+        sides["turboblake"] = str(RUST)
     return sides
 
 

@@ -1,7 +1,7 @@
 """DeepSeek-sized model shards on a Linux box, on Modal, without the download.
 
 Races the official `b3sum` (BLAKE3 1.8.7, built from this repository's
-b3sum/) against `b3bend` (the crate in bend/crate, built from source)
+b3sum/) against `turboblake` (the crate in bend/crate, built from source)
 on stand-ins for deepseek-ai/DeepSeek-V4.1-Flash-1017's shards 1-6 (31.3 GB)
 and shard 48 (101.5 GB, bigger than the container's 64 GiB of memory),
 written at their exact sizes by bench/synth.c in seconds instead of fetched.
@@ -127,7 +127,7 @@ def race(rounds: int = 2, small: bool = False) -> dict:
     pathlib.Path(f"{work}/evict.c").write_text(EVICT)
     sh(f"cc -O2 -o {work}/evict {work}/evict.c")
     official = f"{work}/b3sum/target/release/b3sum"
-    bend = f"{work}/bend/crate/target/release/b3bend"
+    bend = f"{work}/bend/crate/target/release/turboblake"
     info["b3sum"] = sh(f"{official} --version").strip()
 
     names = list(SHARDS)[:2] if small else list(SHARDS)
@@ -187,7 +187,7 @@ def main(rounds: int = 2, small: bool = False):
     out.write_text(json.dumps(res, indent=2) + "\n")
     i = res["info"]
     print(f"\n{i['cpu']} x{i['cpus']} | {i['memory']} | {i['b3sum']}")
-    print("| input | b3sum | b3bend | | output |")
+    print("| input | b3sum | turboblake | | output |")
     print("|---|---:|---:|---:|:---:|")
     for wl, r in res["workloads"].items():
         b, n = r["b3sum_median_ms"] / 1000, r["bend_median_ms"] / 1000
