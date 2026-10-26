@@ -1687,49 +1687,107 @@
         "rows": [
           {
             "input": "2 MiB",
-            "cpu": 0.21,
-            "gpu": 0.316,
-            "split": 0.291
+            "cpu": 0.201,
+            "gpu": 0.325,
+            "split": 0.319
           },
           {
             "input": "4 MiB",
-            "cpu": 0.25,
-            "gpu": 0.348,
-            "split": 0.338
+            "cpu": 0.245,
+            "gpu": 0.388,
+            "split": 0.334
           },
           {
             "input": "8 MiB",
-            "cpu": 0.376,
-            "gpu": 0.471,
-            "split": 0.433
+            "cpu": 0.375,
+            "gpu": 0.476,
+            "split": 0.414
           },
           {
             "input": "16 MiB",
-            "cpu": 0.695,
-            "gpu": 0.723,
-            "split": 0.515,
-            "split_gpu": 0.677
+            "cpu": 0.684,
+            "gpu": 0.75,
+            "split": 0.53,
+            "split_gpu": 0.692
           },
           {
             "input": "64 MiB",
-            "cpu": 2.042,
-            "gpu": 0.858,
-            "split": 0.764,
-            "split_gpu": 0.915
+            "cpu": 1.929,
+            "gpu": 0.9,
+            "split": 0.739,
+            "split_gpu": 0.868
           },
           {
             "input": "256 MiB",
-            "cpu": 7.367,
-            "gpu": 1.682,
-            "split": 1.615,
-            "split_gpu": 1.605
+            "cpu": 7.519,
+            "gpu": 1.772,
+            "split": 1.774,
+            "split_gpu": 1.704
           },
           {
             "input": "1 GiB",
-            "cpu": 28.187,
-            "gpu": 5.606,
-            "split": 5.081,
-            "split_gpu": 5.518
+            "cpu": 33.096,
+            "gpu": 5.845,
+            "split": 5.25,
+            "split_gpu": 5.678
+          }
+        ],
+        "series": {
+          "cpu": {
+            "label": "turboblake, CPU",
+            "kind": "bend",
+            "description": "the Bend engine on every core, from ordinary memory"
+          },
+          "gpu": {
+            "label": "turboblake, GPU memory",
+            "kind": "bend",
+            "description": "the native kernel on a buffer in GPU memory (turboblake_hasher_update_metal / _cuda)"
+          },
+          "split": {
+            "label": "turboblake, CPU + GPU",
+            "kind": "bend",
+            "description": "memory the GPU reads (turboblake_alloc), each subtree split between the engine and the GPU at the share their measured rates balance"
+          },
+          "split_gpu": {
+            "label": "turboblake, GPU from that memory",
+            "kind": "bend",
+            "description": "the same memory, the GPU alone"
+          }
+        }
+      },
+      {
+        "title": "NVIDIA B200",
+        "machine": "NVIDIA B200 on Modal, 16 x86 cores",
+        "unit": "ms",
+        "note": "Medians of interleaved runs, the same digest from every side. GPU memory is the GPU's own; the split's GPU side copies pinned host memory to it over PCIe (5, 16) while the engine hashes the rest.",
+        "rows": [
+          {
+            "input": "16 MiB",
+            "cpu": 0.573,
+            "gpu": 0.148,
+            "split": 0.404,
+            "split_gpu": 0.461
+          },
+          {
+            "input": "64 MiB",
+            "cpu": 1.077,
+            "gpu": 0.155,
+            "split": 0.933,
+            "split_gpu": 1.37
+          },
+          {
+            "input": "256 MiB",
+            "cpu": 3.538,
+            "gpu": 0.254,
+            "split": 2.576,
+            "split_gpu": 5.395
+          },
+          {
+            "input": "1 GiB",
+            "cpu": 17.671,
+            "gpu": 0.686,
+            "split": 11.092,
+            "split_gpu": 21.54
           }
         ],
         "series": {

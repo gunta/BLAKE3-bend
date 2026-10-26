@@ -76,10 +76,11 @@ blake3_hasher_update(&h, p, len);     // big subtrees split between the CPU and 
   few bytes that finish a chunk come to the CPU. 1 GiB in 5.6 ms on the M5
   Pro's GPU.
 - Host memory from `turboblake_alloc` (a shared Metal buffer, CUDA pinned
-  memory) or `turboblake_register` splits each subtree from 16 MiB between
-  the engine (the last slices) and the GPU (the first), at the share their
-  measured rates balance: 1 GiB in 5.1 ms on the M5 Pro, against 28 ms on
-  the CPU alone. Other memory never goes to the GPU.
+  memory) or `turboblake_register` splits each subtree from 16 MiB (Metal)
+  or 64 MiB (CUDA) between the engine (the last slices) and the GPU (the
+  first), at the share their measured rates balance: 1 GiB in 5.3 ms on
+  the M5 Pro against 33 ms on the CPU alone, 11.1 ms on a B200's host
+  against 17.7. Other memory never goes to the GPU.
 
 Environment: `TURBOBLAKE_GPU=0` turns it off, `TURBOBLAKE_GPU_MIN=<bytes>`
 sets the smallest subtree for it, `TURBOBLAKE_GPU_SHARE=<0..1>` fixes its

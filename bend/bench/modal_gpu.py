@@ -415,7 +415,7 @@ print("patched", s.count("sync %d"), s.count("cube_run gpu"))
 
 
 @app.function(gpu="L4", cpu=16, memory=65536, timeout=3600)
-def lib(steps: str = "test,bench", log: int = 28, reps: int = 8) -> dict:
+def lib(steps: str = "test,bench", log: int = 28, reps: int = 8, sizes: str = "") -> dict:
     """libturboblake's GPU backend on this GPU: its checks and the split."""
     work = "/work"
     sh(f"rm -rf {work} && cp -r /repo {work}")
@@ -450,7 +450,7 @@ def lib(steps: str = "test,bench", log: int = 28, reps: int = 8) -> dict:
         # one traced split first: what the backend did, or why it could not
         print(sh("bend/bench/duo.py --native 22 1 split >/dev/null 2>&1; TURBOBLAKE_TRACE=1 "
                  "bend/bench/build/duo_native 24 2 split 2>&1 || true", cwd=work), flush=True)
-        for d in sorted({26, log}):
+        for d in sorted({int(x) for x in sizes.split(",")} if sizes else {26, log}):
             print(sh(f"DUO_CYCLES=4 python3 bend/bench/duo.py --native {d} {reps} --json /tmp/duo{d}.json "
                      + " ".join(plans), cwd=work), flush=True)
             out[f"duo_native_{4 << d >> 20}MiB"] = json.loads(pathlib.Path(f"/tmp/duo{d}.json").read_text())
@@ -465,10 +465,11 @@ def lib(steps: str = "test,bench", log: int = 28, reps: int = 8) -> dict:
 
 @app.local_entrypoint()
 def main(gpu: str = "L4", max_log: int = 28, reps: int = 6, debug_only: bool = False,
-         debug_advise_only: bool = False, lib_only: bool = False, steps: str = "test,bench"):
+         debug_advise_only: bool = False, lib_only: bool = False, steps: str = "test,bench",
+         sizes: str = ""):
     if lib_only:
         t = time.time()
-        res = lib.with_options(gpu=gpu).remote(steps, max_log, max(reps, 8))
+        res = lib.with_options(gpu=gpu).remote(steps, max_log, max(reps, 8), sizes)
         res["requested_gpu"] = gpu
         res["wall_s"] = round(time.time() - t, 1)
         out = REPO / "bend" / "bench" / "results" / f"modal-lib-{re.sub(r'[^A-Za-z0-9.-]+', '_', gpu)}.json"

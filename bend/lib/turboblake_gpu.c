@@ -25,8 +25,9 @@
 // Environment:
 //   TURBOBLAKE_GPU=0        no GPU
 //   TURBOBLAKE_GPU=all      the GPU takes every subtree of 2+ chunks (tests)
-//   TURBOBLAKE_GPU_MIN=n    smallest subtree in bytes for the GPU (default 16 MiB,
-//                           where the split starts to beat the engine alone)
+//   TURBOBLAKE_GPU_MIN=n    smallest subtree in bytes for the GPU (default: where
+//                           the split starts to beat the engine alone, 16 MiB
+//                           on Metal, 64 MiB on CUDA, whose PCIe link may be slow)
 //   TURBOBLAKE_GPU_SHARE=f  the GPU's share of a split, 0..1 (default: balanced)
 //   TURBOBLAKE_GPU_DEVICE=i the CUDA device for host memory (default 0)
 //   TURBOBLAKE_TRACE=1      prints the backend and every split
@@ -811,6 +812,9 @@ static void load(void) {
   backend = mt_init() ? 1 : 0;
 #elif TBG_WITH_CUDA
   backend = cu_init() ? 2 : 0;
+  if (!gpu_min_set) {
+    gpu_min = 64ull << 20;  // an L4's split loses at 16 MiB, wins at 64 (ADR 0017)
+  }
 #endif
   backend_pid = getpid();
 }
