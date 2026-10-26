@@ -1015,16 +1015,19 @@ int tbg_subtree(const uint8_t *input, uint64_t len, const uint32_t key[8], uint6
   if (n > (1u << 16)) {
     return 0;
   }
+  pthread_mutex_lock(&gpu_mu);
   if (rate_gpu == 0) {
     rate_gpu = backend == 1 ? 150e9 : 40e9;
     rate_cpu = 35e9;
   }
+  double r_gpu = rate_gpu, r_cpu = rate_cpu;
+  pthread_mutex_unlock(&gpu_mu);
   // On Apple silicon the engine's side pays only when it reads the input in
   // place: copying it spends the memory bandwidth the GPU runs on, and the
   // split loses to the GPU alone (ADR 0017).
   double share = engine_off || (backend == 1 && !inside && gpu_share < 0) ? 1.0
                : gpu_share >= 0 ? gpu_share
-               : gpu_all ? 1.0 : rate_gpu / (rate_gpu + rate_cpu);
+               : gpu_all ? 1.0 : r_gpu / (r_gpu + r_cpu);
   uint64_t g = (uint64_t)llround(share * (double)n);
   if (g > n) {
     g = n;
@@ -1057,12 +1060,12 @@ int tbg_subtree(const uint8_t *input, uint64_t len, const uint32_t key[8], uint6
     ok = finish(cvs);
   }
   double gpu_s = job.gpu_s;
+  if (ok && g < n && gpu_s > 0 && t_cpu > 0) {
+    rate_gpu = 0.5 * rate_gpu + 0.5 * ((double)gbytes / gpu_s);
+    rate_cpu = 0.5 * rate_cpu + 0.5 * ((double)(len - gbytes) / t_cpu);
+  }
   pthread_mutex_unlock(&gpu_mu);
   if (ok) {
-    if (g < n && gpu_s > 0 && t_cpu > 0) {
-      rate_gpu = 0.5 * rate_gpu + 0.5 * ((double)gbytes / gpu_s);
-      rate_cpu = 0.5 * rate_cpu + 0.5 * ((double)(len - gbytes) / t_cpu);
-    }
     if (trace) {
       fprintf(stderr, "turboblake: split %llu bytes: GPU %llu/%llu slices in %.2f ms, CPU %.2f ms, "
               "all %.2f ms\n", (unsigned long long)len, (unsigned long long)g,
