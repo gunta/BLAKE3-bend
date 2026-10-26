@@ -73,6 +73,12 @@ const GROUPS: (Omit<LawGroup, 'cards'> & { cards: LawCard[] })[] = [
         covers: 'every array, every span: any counter base, chunk count, last-chunk length and root flag',
       },
       {
+        names: ['gpu.at', 'gpu.hash'],
+        claim:
+          'The GPU tree (whole 4-, 16- and 64-chunk subtrees to one lane each, bigger ones to strided lanes that read neighbouring memory) is the same scalar tree: the same CV, bit for bit.',
+        covers: 'every array, every span, every lane layout up to 2^32 chunks',
+      },
+      {
         names: ['share.fork'],
         claim:
           'The copy of the input the laws hand each tree node is Array.fork’s own body, (a, a), so the laws are about the code that runs; what stays trusted is the runtime sharing one buffer for it.',

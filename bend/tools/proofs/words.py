@@ -664,5 +664,447 @@ PART4 = ''.join(out)
 del out
 
 
+# Powers of two and shifts: what the GPU tree's strided lanes need.
+PART6 = """
+# Powers of two
+# -------------
+
+def bitn(b: Bool) -> Nat:
+  match b:
+    case False{}:
+      0n
+    case True{}:
+      1n
+
+# The top bit of a word.
+def w.top(+n: Nat, w: Word(n)) -> Bool:
+  match n:
+    case 0n:
+      False{}
+    case 1n+p:
+      match p:
+        case 0n:
+          match w:
+            case WCon{b, t}:
+              b
+        case 1n+q:
+          match w:
+            case WCon{b, t}:
+              w.top(1n+q, t)
+
+def u.top(x: U32) -> Bool:
+  match x:
+    case U32{w}:
+      w.top(32n, w)
+
+# A shift that drops no 1 doubles the value.
+law w.shl_nat:
+  for +p: Nat
+  for +w: Word(1n+p)
+  for +c: Bool
+  for +e: {w.top(1n+p, w) == False{} : Bool}
+  {Word.to_nat(1n+p, Word.shl.put(1n+p, c, w)) == Nat.add(bitn(c), Nat.double(Word.to_nat(1n+p, w))) : Nat}
+
+def w.shl_nat(p, w, c, e):
+  match p:
+    case 0n:
+      match w:
+        case WCon{False{}, t}:
+          match t:
+            case WNil{}:
+              match c:
+                case False{}:
+                  {==}
+                case True{}:
+                  {==}
+        case WCon{True{}, t}:
+          Empty.absurd({Word.to_nat(1n, Word.shl.put(1n, c, WCon{True{}, t})) == Nat.add(bitn(c), Nat.double(Word.to_nat(1n, WCon{True{}, t}))) : Nat}, absurd.tf(e))
+    case 1n+q:
+      match w c:
+        case WCon{False{}, t} False{}:
+          %Equal.sym(Nat, Word.to_nat(1n+q, Word.shl.put(1n+q, False{}, t)), Nat.add(bitn(False{}), Nat.double(Word.to_nat(1n+q, t))), w.shl_nat(q, t, False{}, e)) :
+            {Nat.double(_) == Nat.add(bitn(False{}), Nat.double(Nat.double(Word.to_nat(1n+q, t)))) : Nat}
+          {==}
+        case WCon{False{}, t} True{}:
+          %Equal.sym(Nat, Word.to_nat(1n+q, Word.shl.put(1n+q, False{}, t)), Nat.add(bitn(False{}), Nat.double(Word.to_nat(1n+q, t))), w.shl_nat(q, t, False{}, e)) :
+            {1n+Nat.double(_) == Nat.add(bitn(True{}), Nat.double(Nat.double(Word.to_nat(1n+q, t)))) : Nat}
+          {==}
+        case WCon{True{}, t} False{}:
+          %Equal.sym(Nat, Word.to_nat(1n+q, Word.shl.put(1n+q, True{}, t)), Nat.add(bitn(True{}), Nat.double(Word.to_nat(1n+q, t))), w.shl_nat(q, t, True{}, e)) :
+            {Nat.double(_) == Nat.add(bitn(False{}), Nat.double(1n+Nat.double(Word.to_nat(1n+q, t)))) : Nat}
+          {==}
+        case WCon{True{}, t} True{}:
+          %Equal.sym(Nat, Word.to_nat(1n+q, Word.shl.put(1n+q, True{}, t)), Nat.add(bitn(True{}), Nat.double(Word.to_nat(1n+q, t))), w.shl_nat(q, t, True{}, e)) :
+            {1n+Nat.double(_) == Nat.add(bitn(True{}), Nat.double(1n+Nat.double(Word.to_nat(1n+q, t)))) : Nat}
+          {==}
+
+law u.shl_nat:
+  for +x: U32
+  for +e: {u.top(x) == False{} : Bool}
+  {U32.to_nat(U32.shl(x)) == Nat.double(U32.to_nat(x)) : Nat}
+
+def u.shl_nat(x, e):
+  match x:
+    case U32{w}:
+      match w:
+        case WCon{False{}, t}:
+          %Equal.sym(Nat, Word.to_nat(31n, Word.shl.put(31n, False{}, t)), Nat.add(bitn(False{}), Nat.double(Word.to_nat(31n, t))), w.shl_nat(30n, t, False{}, e)) :
+            {Nat.double(_) == Nat.double(Nat.double(Word.to_nat(31n, t))) : Nat}
+          {==}
+        case WCon{True{}, t}:
+          %Equal.sym(Nat, Word.to_nat(31n, Word.shl.put(31n, True{}, t)), Nat.add(bitn(True{}), Nat.double(Word.to_nat(31n, t))), w.shl_nat(30n, t, True{}, e)) :
+            {Nat.double(_) == Nat.double(1n+Nat.double(Word.to_nat(31n, t))) : Nat}
+          {==}
+
+law sh.top:
+  for +m: Nat
+  for +em: {Nat.is_le(m, 30n) == True{} : Bool}
+  {u.top(U32.shln(1, m)) == False{} : Bool}
+
+def sh.top(m, em):
+  match m:
+    case 0n:
+      {==}
+    case 1n+m0:
+      match m0:
+        case 0n:
+          {==}
+        case 1n+m1:
+          match m1:
+            case 0n:
+              {==}
+            case 1n+m2:
+              match m2:
+                case 0n:
+                  {==}
+                case 1n+m3:
+                  match m3:
+                    case 0n:
+                      {==}
+                    case 1n+m4:
+                      match m4:
+                        case 0n:
+                          {==}
+                        case 1n+m5:
+                          match m5:
+                            case 0n:
+                              {==}
+                            case 1n+m6:
+                              match m6:
+                                case 0n:
+                                  {==}
+                                case 1n+m7:
+                                  match m7:
+                                    case 0n:
+                                      {==}
+                                    case 1n+m8:
+                                      match m8:
+                                        case 0n:
+                                          {==}
+                                        case 1n+m9:
+                                          match m9:
+                                            case 0n:
+                                              {==}
+                                            case 1n+m10:
+                                              match m10:
+                                                case 0n:
+                                                  {==}
+                                                case 1n+m11:
+                                                  match m11:
+                                                    case 0n:
+                                                      {==}
+                                                    case 1n+m12:
+                                                      match m12:
+                                                        case 0n:
+                                                          {==}
+                                                        case 1n+m13:
+                                                          match m13:
+                                                            case 0n:
+                                                              {==}
+                                                            case 1n+m14:
+                                                              match m14:
+                                                                case 0n:
+                                                                  {==}
+                                                                case 1n+m15:
+                                                                  match m15:
+                                                                    case 0n:
+                                                                      {==}
+                                                                    case 1n+m16:
+                                                                      match m16:
+                                                                        case 0n:
+                                                                          {==}
+                                                                        case 1n+m17:
+                                                                          match m17:
+                                                                            case 0n:
+                                                                              {==}
+                                                                            case 1n+m18:
+                                                                              match m18:
+                                                                                case 0n:
+                                                                                  {==}
+                                                                                case 1n+m19:
+                                                                                  match m19:
+                                                                                    case 0n:
+                                                                                      {==}
+                                                                                    case 1n+m20:
+                                                                                      match m20:
+                                                                                        case 0n:
+                                                                                          {==}
+                                                                                        case 1n+m21:
+                                                                                          match m21:
+                                                                                            case 0n:
+                                                                                              {==}
+                                                                                            case 1n+m22:
+                                                                                              match m22:
+                                                                                                case 0n:
+                                                                                                  {==}
+                                                                                                case 1n+m23:
+                                                                                                  match m23:
+                                                                                                    case 0n:
+                                                                                                      {==}
+                                                                                                    case 1n+m24:
+                                                                                                      match m24:
+                                                                                                        case 0n:
+                                                                                                          {==}
+                                                                                                        case 1n+m25:
+                                                                                                          match m25:
+                                                                                                            case 0n:
+                                                                                                              {==}
+                                                                                                            case 1n+m26:
+                                                                                                              match m26:
+                                                                                                                case 0n:
+                                                                                                                  {==}
+                                                                                                                case 1n+m27:
+                                                                                                                  match m27:
+                                                                                                                    case 0n:
+                                                                                                                      {==}
+                                                                                                                    case 1n+m28:
+                                                                                                                      match m28:
+                                                                                                                        case 0n:
+                                                                                                                          {==}
+                                                                                                                        case 1n+m29:
+                                                                                                                          match m29:
+                                                                                                                            case 0n:
+                                                                                                                              {==}
+                                                                                                                            case 1n+m30:
+                                                                                                                              Empty.absurd({u.top(U32.shln(1, 31n+m30)) == False{} : Bool}, absurd.ft(em))
+
+# 1 + p <= 31 means p <= 30.
+law le.succ_le_r:
+  for +p: Nat
+  for +k: Nat
+  for +e: {Nat.is_le(1n+p, 1n+k) == True{} : Bool}
+  {Nat.is_le(p, k) == True{} : Bool}
+
+def le.succ_le_r(p, k, e):
+  e
+
+# 2^m, as a U32, is pow2(m) while it fits.
+law sh.nat:
+  for +m: Nat
+  for +em: {Nat.is_le(m, 31n) == True{} : Bool}
+  {U32.to_nat(U32.shln(1, m)) == pow2(m) : Nat}
+
+def sh.nat(m, em):
+  match m:
+    case 0n:
+      {==}
+    case 1n+p:
+      +ep = le.succ_le(p, 31n, em)
+      +et = sh.top(p, le.succ_le_r(p, 30n, em))
+      %Equal.sym(Nat, U32.to_nat(U32.shl(U32.shln(1, p))), Nat.double(U32.to_nat(U32.shln(1, p))), u.shl_nat(U32.shln(1, p), et)) :
+        {_ == pow2(1n+p) : Nat}
+      Equal.cong(Nat, Nat, z => Nat.double(z), U32.to_nat(U32.shln(1, p)), pow2(p), sh.nat(p, ep))
+
+
+# 16 << r is 1 << (4 + r).
+law sh16:
+  for +r: Nat
+  {U32.shln(16, r) == U32.shln(1, Nat.add(4n, r)) : U32}
+
+def sh16(r):
+  match r:
+    case 0n:
+      {==}
+    case 1n+q:
+      Equal.cong(U32, U32, z => U32.shl(z), U32.shln(16, q), U32.shln(1, Nat.add(4n, q)), sh16(q))
+
+# 2^(m+1) - 2^m is 2^m.
+law sh.sub:
+  for +m: Nat
+  {U32.sub(U32.shln(1, 1n+m), U32.shln(1, m)) == U32.shln(1, m) : U32}
+
+def sh.sub(m):
+  %Equal.sym(U32, U32.shl(U32.shln(1, m)), U32.add(U32.shln(1, m), U32.shln(1, m)), u.shl_double(U32.shln(1, m))) :
+    {U32.sub(_, U32.shln(1, m)) == U32.shln(1, m) : U32}
+  u.sub_add(U32.shln(1, m), U32.shln(1, m))
+
+law gt.add:
+  for +y: Nat
+  for +z: Nat
+  {Nat.is_gt(1n+Nat.add(y, z), y) == True{} : Bool}
+
+def gt.add(y, z):
+  match y:
+    case 0n:
+      {==}
+    case 1n+p:
+      gt.add(p, z)
+
+# Twice a positive number is more than it.
+law dgt:
+  for +x: Nat
+  for +e: {Nat.is_gt(x, 0n) == True{} : Bool}
+  {Nat.is_gt(Nat.double(x), x) == True{} : Bool}
+
+def dgt(x, e):
+  match x:
+    case 0n:
+      Empty.absurd({Nat.is_gt(0n, 0n) == True{} : Bool}, absurd.ft(e))
+    case 1n+p:
+      %Equal.sym(Nat, Nat.double(p), Nat.add(p, p), double_add(p)) : {Nat.is_gt(2n+_, 1n+p) == True{} : Bool}
+      gt.add(p, p)
+
+law dpos:
+  for +x: Nat
+  for +e: {Nat.is_gt(x, 0n) == True{} : Bool}
+  {Nat.is_gt(Nat.double(x), 0n) == True{} : Bool}
+
+def dpos(x, e):
+  match x:
+    case 0n:
+      Empty.absurd({Nat.is_gt(0n, 0n) == True{} : Bool}, absurd.ft(e))
+    case 1n+p:
+      {==}
+
+law pos2:
+  for +m: Nat
+  {Nat.is_gt(pow2(m), 0n) == True{} : Bool}
+
+def pos2(m):
+  match m:
+    case 0n:
+      {==}
+    case 1n+q:
+      dpos(pow2(q), pos2(q))
+
+# 2^(m+1) > 2^m while 2^(m+1) fits.
+law sh.gt:
+  for +m: Nat
+  for +em: {Nat.is_le(1n+m, 31n) == True{} : Bool}
+  {U32.is_gt(U32.shln(1, 1n+m), U32.shln(1, m)) == True{} : Bool}
+
+def sh.gt(m, em):
+  %Equal.sym(Bool, U32.is_gt(U32.shln(1, 1n+m), U32.shln(1, m)), Nat.is_gt(U32.to_nat(U32.shln(1, 1n+m)), U32.to_nat(U32.shln(1, m))), u.is_gt_nat(U32.shln(1, 1n+m), U32.shln(1, m))) :
+    {_ == True{} : Bool}
+  %Equal.sym(Nat, U32.to_nat(U32.shln(1, 1n+m)), pow2(1n+m), sh.nat(1n+m, em)) :
+    {Nat.is_gt(_, U32.to_nat(U32.shln(1, m))) == True{} : Bool}
+  %Equal.sym(Nat, U32.to_nat(U32.shln(1, m)), pow2(m), sh.nat(m, le.succ_le(m, 31n, em))) :
+    {Nat.is_gt(pow2(1n+m), _) == True{} : Bool}
+  dgt(pow2(m), pos2(m))
+
+law le.dbl:
+  for +x: Nat
+  {Nat.is_le(x, Nat.double(x)) == True{} : Bool}
+
+def le.dbl(x):
+  match x:
+    case 0n:
+      {==}
+    case 1n+p:
+      n.le_trans(p, Nat.double(p), 1n+Nat.double(p), le.dbl(p), n.le_succ(Nat.double(p)))
+
+# a <= b <= c and not a < c: a is b.
+law n.squeeze:
+  for +a: Nat
+  for +b: Nat
+  for +c: Nat
+  for +e1: {Nat.is_le(a, b) == True{} : Bool}
+  for +e2: {Nat.is_le(b, c) == True{} : Bool}
+  for +e3: {Nat.is_lt(a, c) == False{} : Bool}
+  {a == b : Nat}
+
+def n.squeeze(a, b, c, e1, e2, e3):
+  match a b c:
+    case 0n 0n _:
+      {==}
+    case 0n 1n+q 0n:
+      Empty.absurd({0n == 1n+q : Nat}, absurd.ft(e2))
+    case 0n 1n+q 1n+r:
+      Empty.absurd({0n == 1n+q : Nat}, absurd.tf(e3))
+    case 1n+p 0n _:
+      Empty.absurd({1n+p == 0n : Nat}, absurd.ft(e1))
+    case 1n+p 1n+q 0n:
+      Empty.absurd({1n+p == 1n+q : Nat}, absurd.ft(e2))
+    case 1n+p 1n+q 1n+r:
+      Equal.cong(Nat, Nat, z => 1n+z, p, q, n.squeeze(p, q, r, e1, e2, e3))
+
+law n.le_zero_eq:
+  for +p: Nat
+  for +e: {Nat.is_le(p, 0n) == True{} : Bool}
+  {p == 0n : Nat}
+
+def n.le_zero_eq(p, e):
+  match p:
+    case 0n:
+      {==}
+    case 1n+s:
+      Empty.absurd({1n+s == 0n : Nat}, absurd.ft(e))
+
+# q <= z + 1 and not q <= z: q is z + 1.
+law n.top:
+  for +q: Nat
+  for +z: Nat
+  for +e1: {Nat.is_le(q, 1n+z) == True{} : Bool}
+  for +e2: {Nat.is_le(q, z) == False{} : Bool}
+  {q == 1n+z : Nat}
+
+def n.top(q, z, e1, e2):
+  match q z:
+    case 0n 0n:
+      Empty.absurd({0n == 1n : Nat}, absurd.tf(e2))
+    case 0n 1n+y:
+      Empty.absurd({0n == 2n+y : Nat}, absurd.tf(e2))
+    case 1n+p 0n:
+      Equal.cong(Nat, Nat, w => 1n+w, p, 0n, n.le_zero_eq(p, e1))
+    case 1n+p 1n+y:
+      Equal.cong(Nat, Nat, w => 1n+w, p, 1n+y, n.top(p, y, e1, e2))
+
+law n.sub_zero:
+  for +a: Nat
+  {Nat.sub(a, 0n) == a : Nat}
+
+def n.sub_zero(a):
+  match a:
+    case 0n:
+      {==}
+    case 1n+p:
+      {==}
+
+# (a + b) + d is (a + d) + b.
+law u.swap:
+  for +a: U32
+  for +b: U32
+  for +d: U32
+  {U32.add(U32.add(a, b), d) == U32.add(U32.add(a, d), b) : U32}
+
+def u.swap(a, b, d):
+  %Equal.sym(U32, U32.add(U32.add(a, b), d), U32.add(a, U32.add(b, d)), u.add_assoc(a, b, d)) :
+    {_ == U32.add(U32.add(a, d), b) : U32}
+  %Equal.sym(U32, U32.add(U32.add(a, d), b), U32.add(a, U32.add(d, b)), u.add_assoc(a, d, b)) :
+    {U32.add(a, U32.add(b, d)) == _ : U32}
+  Equal.cong(U32, U32, z => U32.add(a, z), U32.add(b, d), U32.add(d, b), U32.add_comm(b, d))
+
+# Moving a lane-subtree's stride (16 << r) past an offset.
+law off.sh:
+  for +c: U32
+  for +x: U32
+  for +r: Nat
+  {U32.add(U32.add(c, U32.shln(16, r)), x) == U32.add(U32.add(c, x), U32.shln(1, Nat.add(4n, r))) : U32}
+
+def off.sh(c, x, r):
+  %sh16(r) : {U32.add(U32.add(c, U32.shln(16, r)), x) == U32.add(U32.add(c, x), _) : U32}
+  u.swap(c, U32.shln(16, r), x)
+"""
+
 def text():
-    return HEAD + NAT + cmp_section() + PART2 + PART3 + PART4 + PART5
+    return HEAD + NAT + cmp_section() + PART2 + PART3 + PART4 + PART5 + PART6

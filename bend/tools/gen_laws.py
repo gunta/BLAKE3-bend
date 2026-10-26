@@ -78,6 +78,9 @@ LAWS_HEAD = '''\
 # - The CPU tree: for every array and every span, H.hash's 8-lane tree is
 #   blake3.bend's scalar tree (tree1, one chunk at a time), and the laws'
 #   copy of the input (share) is Array.fork's own body.
+# - The GPU tree: for every array and every span, hash1's tree (flat 4-,
+#   16- and 64-chunk leaves, strided lanes for bigger subtrees) is the
+#   scalar tree too.
 # - The message schedule: perm iterated is the C code's MSG_SCHEDULE.
 # - Constants: the IV and the flags are the C code's.
 # - Outboards: for every input, the tree that writes iroh's bao outboard
@@ -406,6 +409,7 @@ import Base
 import ./blake3.bend as B3
 import ./LAWS.bend as Laws
 import ./proof/cpu.bend as C
+import ./proof/gpu.bend as G
 
 '''
 
@@ -691,6 +695,30 @@ law cpu.hash:
   for a: Array<U32>
   for +len: U32
   {B3.hash(~share, a, len) == ref(a, len) : B3.CV}
+
+'''
+
+GPU = '''\
+# The GPU tree, for every input
+# -----------------------------
+#
+# hash1 is the shape the GPU runs: it forks down to whole, full subtrees of
+# 4, 16 or 64 chunks, one lane each, and at leaf level 6 hands bigger whole
+# subtrees to strided lanes (ADR 0011). For every array and every span it
+# gives the scalar tree's CV (proof/gpu.bend).
+
+law gpu.at:
+  for a: Array<U32>
+  for +cb: U32
+  for +nch: U32
+  for +last: U32
+  for +rf: U32
+  {B3.hash1.at(~share, a, cb, nch, last, rf) == ref.at(a, cb, nch, last, rf) : B3.CV}
+
+law gpu.hash:
+  for a: Array<U32>
+  for +len: U32
+  {B3.hash1(~share, a, len) == ref(a, len) : B3.CV}
 
 '''
 
@@ -1718,10 +1746,23 @@ def Laws.cpu.hash(a, len):
 
 '''
 
+PROOF_GPU = '''# The GPU tree
+# ------------
+#
+# Proven in proof/gpu.bend.
+
+def Laws.gpu.at(a, cb, nch, last, rf):
+  G.gpu.at(a, cb, nch, last, rf)
+
+def Laws.gpu.hash(a, len):
+  G.gpu.at(a, 0, B3.chunks(len), B3.tail(len, B3.chunks(len)), B3.ROOT())
+
+'''
+
 
 def laws_file():
     return (LAWS_HEAD + kat_laws(digests()) + lanes_section() + consts() +
-            CPU + OUTBOARDS + TREES + COUNTS + STREAM)
+            CPU + GPU + OUTBOARDS + TREES + COUNTS + STREAM)
 
 
 def proof_file():
@@ -1735,7 +1776,7 @@ def proof_file():
             "# Constants\n# ---------\n\n"
             "def Laws.consts.iv():\n  {==}\n\n"
             "def Laws.consts.flags():\n  {==}\n\n" +
-            PROOF_CPU + proof_outboards() + PROOF_TREES + laws_names(PROOF_COUNTS) +
+            PROOF_CPU + PROOF_GPU + proof_outboards() + PROOF_TREES + laws_names(PROOF_COUNTS) +
             laws_names(PROOF_STREAM))
 
 
@@ -1745,6 +1786,7 @@ def main():
     (ROOT / "proof").mkdir(exist_ok=True)
     (ROOT / "proof" / "words.bend").write_text(proofs.words_file())
     (ROOT / "proof" / "cpu.bend").write_text(proofs.cpu_file())
+    (ROOT / "proof" / "gpu.bend").write_text(proofs.gpu_file())
     print(f"wrote {ROOT / 'LAWS.bend'}, {ROOT / 'PROOF.bend'} and {ROOT / 'proof'}/")
 
 

@@ -14,6 +14,9 @@
 # - The CPU tree: for every array and every span, H.hash's 8-lane tree is
 #   blake3.bend's scalar tree (tree1, one chunk at a time), and the laws'
 #   copy of the input (share) is Array.fork's own body.
+# - The GPU tree: for every array and every span, hash1's tree (flat 4-,
+#   16- and 64-chunk leaves, strided lanes for bigger subtrees) is the
+#   scalar tree too.
 # - The message schedule: perm iterated is the C code's MSG_SCHEDULE.
 # - Constants: the IV and the flags are the C code's.
 # - Outboards: for every input, the tree that writes iroh's bao outboard
@@ -335,6 +338,27 @@ law cpu.hash:
   for a: Array<U32>
   for +len: U32
   {B3.hash(~share, a, len) == ref(a, len) : B3.CV}
+
+# The GPU tree, for every input
+# -----------------------------
+#
+# hash1 is the shape the GPU runs: it forks down to whole, full subtrees of
+# 4, 16 or 64 chunks, one lane each, and at leaf level 6 hands bigger whole
+# subtrees to strided lanes (ADR 0011). For every array and every span it
+# gives the scalar tree's CV (proof/gpu.bend).
+
+law gpu.at:
+  for a: Array<U32>
+  for +cb: U32
+  for +nch: U32
+  for +last: U32
+  for +rf: U32
+  {B3.hash1.at(~share, a, cb, nch, last, rf) == ref.at(a, cb, nch, last, rf) : B3.CV}
+
+law gpu.hash:
+  for a: Array<U32>
+  for +len: U32
+  {B3.hash1(~share, a, len) == ref(a, len) : B3.CV}
 
 # Outboards
 # ---------

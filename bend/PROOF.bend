@@ -13,6 +13,7 @@ import Base
 import ./blake3.bend as B3
 import ./LAWS.bend as Laws
 import ./proof/cpu.bend as C
+import ./proof/gpu.bend as G
 
 # Known answers
 # -------------
@@ -95,6 +96,17 @@ def Laws.cpu.at(a, cb, nch, last, rf):
 
 def Laws.cpu.hash(a, len):
   C.cpu.at(a, 0, B3.chunks(len), B3.tail(len, B3.chunks(len)), B3.ROOT())
+
+# The GPU tree
+# ------------
+#
+# Proven in proof/gpu.bend.
+
+def Laws.gpu.at(a, cb, nch, last, rf):
+  G.gpu.at(a, cb, nch, last, rf)
+
+def Laws.gpu.hash(a, len):
+  G.gpu.at(a, 0, B3.chunks(len), B3.tail(len, B3.chunks(len)), B3.ROOT())
 
 # Outboards
 # ---------
