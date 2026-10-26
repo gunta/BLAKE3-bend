@@ -81,6 +81,11 @@ LAWS_HEAD = '''\
 # - The GPU tree: for every array and every span, hash1's tree (flat 4-,
 #   16- and 64-chunk leaves, strided lanes for bigger subtrees) is the
 #   scalar tree too.
+# - The keyed tree: for every array, span, key and mode flag, the 8-lane
+#   tree of the keyed and key-derivation modes is the scalar keyed tree.
+# - BLAKE3's tree: the scalar, CPU, GPU and keyed trees compute BLAKE3's
+#   left-full tree over the chunks (ev of the tree model below), so the
+#   tree laws are about the code.
 # - The message schedule: perm iterated is the C code's MSG_SCHEDULE.
 # - Constants: the IV and the flags are the C code's.
 # - Outboards: for every input, the tree that writes iroh's bao outboard
