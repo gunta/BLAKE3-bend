@@ -41,15 +41,15 @@ const contrast = [
   {
     what: 'The tree',
     rust: '39 input lengths up to 100 KiB against the reference implementation, and 10,000 seeded random inputs up to 4 KiB.',
-    bend: 'Every chunk count: the 1 GiB segment split, the GPU-style reduction, leaf and parent counts, and the streaming stack.',
-    laws: ['segments', 'levels', 'tree.leaves', 'stream.shape'],
+    bend: 'Every chunk count: the 1 GiB segment split, the GPU-style reduction, leaf and parent counts, and the streaming loop as it runs.',
+    laws: ['segments', 'levels', 'tree.leaves', 'stream.hash'],
   },
 ];
 
 const limits = [
   'The code passes Array.fork, which is @unsafe in Base; the laws pass Array.clone. share.fork proves the laws’ copy is Array.fork’s own body, (a, a); that the runtime may share one buffer for it is trusted.',
   'The compression function itself is pinned by the official vectors and the message-schedule law. There is no second description of BLAKE3’s compression in Bend to prove it against.',
-  'Streaming and a big file’s parts: b3io.bend imports the effects and Array.fork, so the stream laws are about a model of its merge stack (Nat counts, no ROOT flag), and how the loader cuts a file into parts is the loader’s.',
+  'A big file’s parts: the loader cuts a file into 1 GiB parts and reads them. The streaming law holds for whatever CVs the reads answer; that read k answers part k’s hash is the loader’s side.',
   'Outside Bend: the C that moves bytes (effs/load.c, effs/emit.c, the library’s hook), the native Metal and CUDA kernels, the CPU + GPU split (bench code), and Bend’s compiler, runtime and checker.',
 ];
 ---

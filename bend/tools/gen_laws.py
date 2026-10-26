@@ -95,11 +95,14 @@ LAWS_HEAD = '''\
 #   neighbours level by level, the odd one carried up (a GPU reduction),
 #   builds that same tree, with n leaves and n - 1 parents. tree1's split
 #   rule (n > 2^p) is the digit form these use, for every chunk count.
-# - Streaming: the lazy merge stack that hashes a streamed file's segments
-#   builds that tree, every segment once and in order, for any count.
+# - Streaming: the loop that hashes a streamed file's segments (stack.bend's
+#   stk.go, which b3io runs) answers BLAKE3's tree over the segments' CVs,
+#   for every count of segments: its lazy merge stack builds that tree,
+#   every segment once and in order.
 
 import Base
 import ./blake3.bend as B3
+import ./stack.bend as St
 
 # Known answers
 # -------------
@@ -403,6 +406,7 @@ import ./proof/cpu.bend as C
 import ./proof/gpu.bend as G
 import ./proof/spec.bend as S
 import ./proof/keyed.bend as K
+import ./stack.bend as St
 
 '''
 
@@ -850,14 +854,15 @@ STREAM = '''
 # Streaming
 # ---------
 #
-# A file the page cache cannot hold streams (b3io.bend's stream.go): its
+# A file the page cache cannot hold streams (b3io.bend's FStream): its
 # 1 GiB segments are hashed one after another, and their CVs merge on a
 # stack as BLAKE3's Hasher merges chunks, lazily: before segment k joins,
 # the top two merge while k is even, so the last merge knows it is the
-# root. These defs are b3io's stk.pop2, stk.even, stk.lazy, stk.fin,
-# stk.root and stream.go with a Tree for a CV (Seg{k} is segment k's, Par
-# a parent; the ROOT flag is not modelled) and a Nat for the U32 count;
-# `fuel` bounds the merges, 32 in b3io.
+# root. These defs model stack.bend's stk.pop2, stk.even, stk.lazy,
+# stk.fin, stk.root and stk.go with a Tree for a CV (Seg{k} is segment
+# k's, Par a parent; the ROOT flag is not modelled) and a Nat for the U32
+# count; `fuel` bounds the merges, 32 in stack.bend. stream.hash, below,
+# is about stack.bend's own defs.
 
 type Tree is Data:
   Seg{k: Nat}
@@ -950,6 +955,49 @@ law stream.order:
   for +f: Nat
   for +r: Nat
   {order(stream.go(1n+r, f, 0n, [])) == range(1n+r, 0n) : List<&2, Nat>}
+
+# The stack that runs
+# -------------------
+#
+# stack.bend's stk.go is the loop b3io runs, its reads a template: b3io's
+# read and hash a segment, these answer from a list, segment k's CV being
+# seg(cs, k).
+
+def seg(+cs: List<&2, B3.CV>, +k: Nat) -> B3.CV:
+  match cs:
+    case Nil{}:
+      B3.IV()
+    case Con{c, rest}:
+      match k:
+        case 0n:
+          c
+        case 1n+j:
+          seg(rest, j)
+
+def seg.rd(cs: List<&2, B3.CV>, k: U32) -> IO(B3.CV):
+  IO.pure(B3.CV, seg(cs, U32.to_nat(k)))
+
+# The CV of shape t over the segments from j: a Tip is segment j's CV, a
+# Fork the parent of its sides, the right one from j + (the left side's
+# leaf count); rf on the top parent.
+def ev.segs(+t: Shape, +j: Nat, +cs: List<&2, B3.CV>, +rf: U32) -> B3.CV:
+  match t:
+    case Tip{}:
+      seg(cs, j)
+    case Fork{l, r}:
+      B3.parent(ev.segs(l, j, cs, 0), ev.segs(r, Nat.add(j, tips(l)), cs, 0), rf)
+
+# For every count of segments and every CV the reads answer, the loop that
+# runs answers BLAKE3's tree over the segments, tree(digits) of the last
+# one's index, each leaf a segment's CV and each node a parent, ROOT on the
+# top one. One segment is its own CV, unflagged: b3io hashes a one-segment
+# stream with ROOT instead (b3io's stream.one).
+law stream.hash:
+  for +nseg: U32
+  for +e: {U32.is_ne(nseg, 0) == True{} : Bool}
+  for +cs: List<&2, B3.CV>
+  {St.stk.go(~List<&2, B3.CV>, ~seg.rd, U32.to_nat(nseg), cs, 0, St.KNil{}) ==
+    IO.pure(B3.CV, ev.segs(tree(digits(32n, Nat.sub(U32.to_nat(nseg), 1n), [])), 0n, cs, B3.ROOT())) : IO(B3.CV)}
 '''
 
 # Proofs of the sections above, written with LAWS.bend's names bare;
@@ -960,6 +1008,7 @@ LAWS_NAMES = [
     "tree.leaves", "tree.parents", "Tree", "Seg", "Par", "stk.pop2",
     "stk.even", "stk.lazy", "stk.fin", "stk.root", "stream.go", "shape",
     "order", "range", "stream.shape", "stream.order", "ob.hash", "ob.at",
+    "seg", "seg.rd", "ev.segs", "stream.hash",
 ]
 
 PROOF_OUTBOARDS = '''\
@@ -1733,6 +1782,493 @@ def stream.order(f, r):
 '''
 
 
+PROOF_STACK = '''
+# The stack that runs
+# -------------------
+#
+# stack.bend's stack on CVs is the model's stack on Trees, mapped: kst
+# turns each Tree into its CV (tcv: segment k's from cs, a parent per Par),
+# and pop2, lazy, fin and the loop commute with that map. The U32 steps are
+# the model's Nat ones (even.k; U32.shr halves), the counter does not wrap
+# while segments remain (inc.k), and the last merge is the one stk.fin
+# flags ROOT. The model's laws then give the tree's shape and its
+# segments' order, and an ordered tree's CV is ev.segs of its shape.
+
+def tcv(+t: Tree, +cs: List<&2, B3.CV>, +rf: U32) -> B3.CV:
+  match t:
+    case Seg{k}:
+      seg(cs, k)
+    case Par{l, r}:
+      B3.parent(tcv(l, cs, 0), tcv(r, cs, 0), rf)
+
+def kst(+s: List<&2, Tree>, +cs: List<&2, B3.CV>) -> St.Stk:
+  match s:
+    case Nil{}:
+      St.KNil{}
+    case Con{x, rest}:
+      St.KCon{tcv(x, cs, 0), kst(rest, cs)}
+
+law pop2.k:
+  for +s: List<&2, Tree>
+  for +cs: List<&2, B3.CV>
+  {St.stk.pop2(kst(s, cs)) == kst(stk.pop2(s), cs) : St.Stk}
+
+def pop2.k(s, cs):
+  match s:
+    case Con{r, rest}:
+      match rest:
+        case Con{l, more}:
+          {==}
+        case Nil{}:
+          {==}
+    case Nil{}:
+      {==}
+
+# Parity: a U32's low bit is its value's.
+law odd.dbl0:
+  for +t: Nat
+  {odd(Nat.double(t)) == False{} : Bool}
+
+def odd.dbl0(t):
+  match t:
+    case 0n:
+      {==}
+    case 1n+q:
+      odd.dbl0(q)
+
+law odd.dbl1:
+  for +t: Nat
+  {odd(1n+Nat.double(t)) == True{} : Bool}
+
+def odd.dbl1(t):
+  match t:
+    case 0n:
+      {==}
+    case 1n+q:
+      odd.dbl1(q)
+
+law even.dbl:
+  for +t: Nat
+  {stk.even(Nat.double(t)) == Bool.not(Nat.is_eq(Nat.double(t), 0n)) : Bool}
+
+def even.dbl(t):
+  match t:
+    case 0n:
+      {==}
+    case 1n+q:
+      odd.dbl1(q)
+
+law and1.even:
+  for +t: Word(31n)
+  {U32.and(U32{WCon{False{}, t}}, 1) == 0 : U32}
+
+def and1.even(t):
+  Equal.cong(Word(31n), U32, z => U32{WCon{False{}, z}}, Word.and(31n, t, Word.zero(31n)), Word.zero(31n), A.w.and_zero(31n, t))
+
+law and1.odd:
+  for +t: Word(31n)
+  {U32.and(U32{WCon{True{}, t}}, 1) == 1 : U32}
+
+def and1.odd(t):
+  Equal.cong(Word(31n), U32, z => U32{WCon{True{}, z}}, Word.and(31n, t, Word.zero(31n)), Word.zero(31n), A.w.and_zero(31n, t))
+
+# stack.bend's stk.even is the model's, on the value.
+law even.k:
+  for +n: U32
+  {St.stk.even(n) == stk.even(U32.to_nat(n)) : Bool}
+
+def even.k(n):
+  match n:
+    case U32{w}:
+      match w:
+        case WCon{False{}, t}:
+          %Equal.sym(U32, U32.and(U32{WCon{False{}, t}}, 1), 0, and1.even(t)) :
+            {(U32.is_eq(_, 0) && U32.is_ne(U32{WCon{False{}, t}}, 0)) == stk.even(Nat.double(Word.to_nat(31n, t))) : Bool}
+          %Equal.sym(Bool, U32.is_eq(U32{WCon{False{}, t}}, 0), Nat.is_eq(Nat.double(Word.to_nat(31n, t)), 0n),
+            A.u.is_eq_nat(U32{WCon{False{}, t}}, 0)) :
+            {Bool.not(_) == stk.even(Nat.double(Word.to_nat(31n, t))) : Bool}
+          Equal.sym(Bool, stk.even(Nat.double(Word.to_nat(31n, t))), Bool.not(Nat.is_eq(Nat.double(Word.to_nat(31n, t)), 0n)),
+            even.dbl(Word.to_nat(31n, t)))
+        case WCon{True{}, t}:
+          %Equal.sym(U32, U32.and(U32{WCon{True{}, t}}, 1), 1, and1.odd(t)) :
+            {(U32.is_eq(_, 0) && U32.is_ne(U32{WCon{True{}, t}}, 0)) == stk.even(1n+Nat.double(Word.to_nat(31n, t))) : Bool}
+          Equal.sym(Bool, odd(Nat.double(Word.to_nat(31n, t))), False{}, odd.dbl0(Word.to_nat(31n, t)))
+
+law lazy.k:
+  for +fuel: Nat
+  for +s: List<&2, Tree>
+  for +n: U32
+  for +b: Bool
+  for +cs: List<&2, B3.CV>
+  {St.stk.lazy(fuel, kst(s, cs), n, b) == kst(stk.lazy(fuel, s, U32.to_nat(n), b), cs) : St.Stk}
+
+def lazy.k(fuel, s, n, b, cs):
+  match fuel b:
+    case 0n _:
+      {==}
+    case 1n+f True{}:
+      %S.u.shr_half(n) : {St.stk.lazy(f, St.stk.pop2(kst(s, cs)), U32.shr(n), St.stk.even(U32.shr(n))) ==
+        kst(stk.lazy(f, stk.pop2(s), _, stk.even(_)), cs) : St.Stk}
+      %Equal.sym(Bool, St.stk.even(U32.shr(n)), stk.even(U32.to_nat(U32.shr(n))), even.k(U32.shr(n))) :
+        {St.stk.lazy(f, St.stk.pop2(kst(s, cs)), U32.shr(n), _) ==
+        kst(stk.lazy(f, stk.pop2(s), U32.to_nat(U32.shr(n)), stk.even(U32.to_nat(U32.shr(n)))), cs) : St.Stk}
+      %Equal.sym(St.Stk, St.stk.pop2(kst(s, cs)), kst(stk.pop2(s), cs), pop2.k(s, cs)) :
+        {St.stk.lazy(f, _, U32.shr(n), stk.even(U32.to_nat(U32.shr(n)))) ==
+        kst(stk.lazy(f, stk.pop2(s), U32.to_nat(U32.shr(n)), stk.even(U32.to_nat(U32.shr(n)))), cs) : St.Stk}
+      lazy.k(f, stk.pop2(s), U32.shr(n), stk.even(U32.to_nat(U32.shr(n))), cs)
+    case 1n+f False{}:
+      {==}
+
+# The last merge: stk.fin flags the top parent ROOT.
+law fin.k:
+  for +rest: List<&2, Tree>
+  for +l: Tree
+  for +r: Tree
+  for +cs: List<&2, B3.CV>
+  {St.stk.fin(kst(l <> rest, cs), tcv(r, cs, 0)) == tcv(stk.fin(l <> rest, r), cs, B3.ROOT()) : B3.CV}
+
+def fin.k(rest, l, r, cs):
+  match rest:
+    case Nil{}:
+      {==}
+    case Con{l2, more}:
+      fin.k(more, l2, Par{l, r}, cs)
+
+# The loop's counter: k + 1 does not wrap while segments remain.
+law add1:
+  for +x: Nat
+  {Nat.add(x, 1n) == 1n+x : Nat}
+
+def add1(x):
+  Equal.trans(Nat, Nat.add(x, 1n), 1n+Nat.add(x, 0n), 1n+x, A.add_succ(x, 0n),
+    Equal.cong(Nat, Nat, z => 1n+z, Nat.add(x, 0n), x, A.add_zero(x)))
+
+law le.addl:
+  for +p: Nat
+  for +x: Nat
+  {Nat.is_le(x, Nat.add(p, x)) == True{} : Bool}
+
+def le.addl(p, x):
+  match p:
+    case 0n:
+      A.n.le_refl(x)
+    case 1n+q:
+      A.n.le_trans(x, Nat.add(q, x), 1n+Nat.add(q, x), le.addl(q, x), A.n.le_succ(Nat.add(q, x)))
+
+law inc.le:
+  for +x: Nat
+  for +zz: Nat
+  for +p: Nat
+  for +e: {Nat.is_le(1n+Nat.add(p, x), zz) == True{} : Bool}
+  {Nat.is_le(Nat.add(x, 1n), zz) == True{} : Bool}
+
+def inc.le(x, zz, p, e):
+  %Equal.sym(Nat, Nat.add(x, 1n), 1n+x, add1(x)) : {Nat.is_le(_, zz) == True{} : Bool}
+  A.n.le_trans(1n+x, 1n+Nat.add(p, x), zz, le.addl(p, x), e)
+
+law inc.k:
+  for +k: U32
+  for +z: U32
+  for +p: Nat
+  for +e: {Nat.is_le(1n+Nat.add(p, U32.to_nat(k)), U32.to_nat(z)) == True{} : Bool}
+  {U32.to_nat((k + 1 : U32)) == 1n+U32.to_nat(k) : Nat}
+
+def inc.k(k, z, p, e):
+  Equal.trans(Nat, U32.to_nat((k + 1 : U32)), Nat.add(U32.to_nat(k), 1n), 1n+U32.to_nat(k),
+    A.u.tn_add(k, 1, z, inc.le(U32.to_nat(k), U32.to_nat(z), p, e)), add1(U32.to_nat(k)))
+
+law go.le:
+  for +p: Nat
+  for +k: U32
+  for +z: U32
+  for +e: {Nat.is_le(1n+Nat.add(p, U32.to_nat(k)), U32.to_nat(z)) == True{} : Bool}
+  {Nat.is_le(Nat.add(p, U32.to_nat((k + 1 : U32))), U32.to_nat(z)) == True{} : Bool}
+
+def go.le(p, k, z, e):
+  %Equal.sym(Nat, U32.to_nat((k + 1 : U32)), 1n+U32.to_nat(k), inc.k(k, z, p, e)) :
+    {Nat.is_le(Nat.add(p, _), U32.to_nat(z)) == True{} : Bool}
+  %Equal.sym(Nat, Nat.add(p, 1n+U32.to_nat(k)), 1n+Nat.add(p, U32.to_nat(k)), A.add_succ(p, U32.to_nat(k))) :
+    {Nat.is_le(_, U32.to_nat(z)) == True{} : Bool}
+  e
+
+# The loop: with segment j on top (the last pushed), n segments to go from
+# segment k and k + n at most z's value, stk.go answers the model tree's
+# CV, ROOT on top.
+law go.k:
+  for +n: Nat
+  for +k: U32
+  for +j: Nat
+  for +rest: List<&2, Tree>
+  for +cs: List<&2, B3.CV>
+  for +z: U32
+  for +e: {Nat.is_le(Nat.add(n, U32.to_nat(k)), U32.to_nat(z)) == True{} : Bool}
+  {St.stk.go(~List<&2, B3.CV>, ~seg.rd, n, cs, k, kst(Seg{j} <> rest, cs)) ==
+    IO.pure(B3.CV, tcv(stream.go(n, 32n, U32.to_nat(k), Seg{j} <> rest), cs, B3.ROOT())) : IO(B3.CV)}
+
+def go.k(n, k, j, rest, cs, z, e):
+  match n:
+    case 0n:
+      match rest:
+        case Nil{}:
+          {==}
+        case Con{x, more}:
+          Equal.cong(B3.CV, IO(B3.CV), v => IO.pure(B3.CV, v), St.stk.fin(kst(x <> more, cs), tcv(Seg{j}, cs, 0)),
+            tcv(stk.fin(x <> more, Seg{j}), cs, B3.ROOT()), fin.k(more, x, Seg{j}, cs))
+    case 1n+p:
+      +K = U32.to_nat(k)
+      +L = stk.lazy(32n, Seg{j} <> rest, K, stk.even(K))
+      %Equal.sym(Bool, St.stk.even(k), stk.even(K), even.k(k)) :
+        {(R => q => St.stk.go(~List<&2, B3.CV>, ~seg.rd, p, cs, (k + 1 : U32),
+          St.KCon{seg(cs, K), St.stk.lazy(32n, kst(Seg{j} <> rest, cs), k, _)})(R, q)) ==
+          IO.pure(B3.CV, tcv(stream.go(p, 32n, 1n+K, Seg{K} <> L), cs, B3.ROOT())) : IO(B3.CV)}
+      %Equal.sym(St.Stk, St.stk.lazy(32n, kst(Seg{j} <> rest, cs), k, stk.even(K)), kst(L, cs),
+        lazy.k(32n, Seg{j} <> rest, k, stk.even(K), cs)) :
+        {(R => q => St.stk.go(~List<&2, B3.CV>, ~seg.rd, p, cs, (k + 1 : U32), St.KCon{seg(cs, K), _})(R, q)) ==
+          IO.pure(B3.CV, tcv(stream.go(p, 32n, 1n+K, Seg{K} <> L), cs, B3.ROOT())) : IO(B3.CV)}
+      %inc.k(k, z, p, e) :
+        {(R => q => St.stk.go(~List<&2, B3.CV>, ~seg.rd, p, cs, (k + 1 : U32), kst(Seg{K} <> L, cs))(R, q)) ==
+          IO.pure(B3.CV, tcv(stream.go(p, 32n, _, Seg{K} <> L), cs, B3.ROOT())) : IO(B3.CV)}
+      %Equal.sym(IO(B3.CV), St.stk.go(~List<&2, B3.CV>, ~seg.rd, p, cs, (k + 1 : U32), kst(Seg{K} <> L, cs)),
+        IO.pure(B3.CV, tcv(stream.go(p, 32n, U32.to_nat((k + 1 : U32)), Seg{K} <> L), cs, B3.ROOT())),
+        go.k(p, (k + 1 : U32), K, L, cs, z, go.le(p, k, z, e))) :
+        {(R => q => _(R, q)) ==
+          IO.pure(B3.CV, tcv(stream.go(p, 32n, U32.to_nat((k + 1 : U32)), Seg{K} <> L), cs, B3.ROOT())) : IO(B3.CV)}
+      {==}
+
+# An ordered tree's CV is ev.segs of its shape: a Tree whose segments read
+# m numbers from j has segment j leftmost, and its right side starts after
+# the left side's leaves.
+def hd(+xs: List<&2, Nat>) -> Nat:
+  match xs:
+    case Nil{}:
+      0n
+    case Con{x, t}:
+      x
+
+def tl(+xs: List<&2, Nat>) -> List<&2, Nat>:
+  match xs:
+    case Nil{}:
+      []
+    case Con{x, t}:
+      t
+
+def is.con(+xs: List<&2, Nat>) -> Bool:
+  match xs:
+    case Nil{}:
+      False{}
+    case Con{x, t}:
+      True{}
+
+law con.nil:
+  for +x: Nat
+  for +t: List<&2, Nat>
+  for +e: {x <> t == [] : List<&2, Nat>}
+  Empty
+
+def con.nil(x, t, e):
+  A.absurd.tf(Equal.cong(List<&2, Nat>, Bool, z => is.con(z), x <> t, [], e))
+
+law one.range:
+  for +k: Nat
+  for +m: Nat
+  for +j: Nat
+  for +e: {[k] == range(m, j) : List<&2, Nat>}
+  {k == j : Nat}
+
+def one.range(k, m, j, e):
+  match m:
+    case 0n:
+      Empty.absurd({k == j : Nat}, con.nil(k, [], e))
+    case 1n+q:
+      Equal.cong(List<&2, Nat>, Nat, z => hd(z), [k], j <> range(q, 1n+j), e)
+
+law range.app:
+  for +xs: List<&2, Nat>
+  for +ys: List<&2, Nat>
+  for +m: Nat
+  for +j: Nat
+  for +e: {List.append(&2, Nat, xs, ys) == range(m, j) : List<&2, Nat>}
+  {xs == range(List.length(&2, Nat, xs), j) : List<&2, Nat>}
+
+def range.app(xs, ys, m, j, e):
+  match xs:
+    case Nil{}:
+      {==}
+    case Con{x, t}:
+      match m:
+        case 0n:
+          Empty.absurd({x <> t == range(1n+List.length(&2, Nat, t), j) : List<&2, Nat>},
+            con.nil(x, List.append(&2, Nat, t, ys), e))
+        case 1n+q:
+          %Equal.sym(Nat, x, j, Equal.cong(List<&2, Nat>, Nat, z => hd(z), x <> List.append(&2, Nat, t, ys),
+            j <> range(q, 1n+j), e)) :
+            {_ <> t == j <> range(List.length(&2, Nat, t), 1n+j) : List<&2, Nat>}
+          Equal.cong(List<&2, Nat>, List<&2, Nat>, z => j <> z, t, range(List.length(&2, Nat, t), 1n+j),
+            range.app(t, ys, q, 1n+j, Equal.cong(List<&2, Nat>, List<&2, Nat>, z => tl(z),
+              x <> List.append(&2, Nat, t, ys), j <> range(q, 1n+j), e)))
+
+law range.rest:
+  for +xs: List<&2, Nat>
+  for +ys: List<&2, Nat>
+  for +m: Nat
+  for +j: Nat
+  for +e: {List.append(&2, Nat, xs, ys) == range(m, j) : List<&2, Nat>}
+  {ys == range(Nat.sub(m, List.length(&2, Nat, xs)), Nat.add(j, List.length(&2, Nat, xs))) : List<&2, Nat>}
+
+def range.rest(xs, ys, m, j, e):
+  match xs:
+    case Nil{}:
+      %Equal.sym(Nat, Nat.sub(m, 0n), m, A.n.sub_zero(m)) : {ys == range(_, Nat.add(j, 0n)) : List<&2, Nat>}
+      %Equal.sym(Nat, Nat.add(j, 0n), j, A.add_zero(j)) : {ys == range(m, _) : List<&2, Nat>}
+      e
+    case Con{x, t}:
+      match m:
+        case 0n:
+          Empty.absurd({ys == range(Nat.sub(0n, 1n+List.length(&2, Nat, t)), Nat.add(j, 1n+List.length(&2, Nat, t))) : List<&2, Nat>},
+            con.nil(x, List.append(&2, Nat, t, ys), e))
+        case 1n+q:
+          %Equal.sym(Nat, Nat.add(j, 1n+List.length(&2, Nat, t)), 1n+Nat.add(j, List.length(&2, Nat, t)),
+            A.add_succ(j, List.length(&2, Nat, t))) :
+            {ys == range(Nat.sub(q, List.length(&2, Nat, t)), _) : List<&2, Nat>}
+          range.rest(t, ys, q, 1n+j, Equal.cong(List<&2, Nat>, List<&2, Nat>, z => tl(z),
+            x <> List.append(&2, Nat, t, ys), j <> range(q, 1n+j), e))
+
+law len.app:
+  for +xs: List<&2, Nat>
+  for +ys: List<&2, Nat>
+  {List.length(&2, Nat, List.append(&2, Nat, xs, ys)) ==
+    Nat.add(List.length(&2, Nat, xs), List.length(&2, Nat, ys)) : Nat}
+
+def len.app(xs, ys):
+  match xs:
+    case Nil{}:
+      {==}
+    case Con{x, t}:
+      Equal.cong(Nat, Nat, z => 1n+z, List.length(&2, Nat, List.append(&2, Nat, t, ys)),
+        Nat.add(List.length(&2, Nat, t), List.length(&2, Nat, ys)), len.app(t, ys))
+
+law ord.len:
+  for +t: Tree
+  {List.length(&2, Nat, order(t)) == tips(shape(t)) : Nat}
+
+def ord.len(t):
+  match t:
+    case Seg{k}:
+      {==}
+    case Par{l, r}:
+      %Equal.sym(Nat, List.length(&2, Nat, List.append(&2, Nat, order(l), order(r))),
+        Nat.add(List.length(&2, Nat, order(l)), List.length(&2, Nat, order(r))), len.app(order(l), order(r))) :
+        {_ == Nat.add(tips(shape(l)), tips(shape(r))) : Nat}
+      %Equal.sym(Nat, List.length(&2, Nat, order(l)), tips(shape(l)), ord.len(l)) :
+        {Nat.add(_, List.length(&2, Nat, order(r))) == Nat.add(tips(shape(l)), tips(shape(r))) : Nat}
+      %Equal.sym(Nat, List.length(&2, Nat, order(r)), tips(shape(r)), ord.len(r)) :
+        {Nat.add(tips(shape(l)), _) == Nat.add(tips(shape(l)), tips(shape(r))) : Nat}
+      {==}
+
+law tcv.segs:
+  for +t: Tree
+  for +m: Nat
+  for +j: Nat
+  for +cs: List<&2, B3.CV>
+  for +rf: U32
+  for +e: {order(t) == range(m, j) : List<&2, Nat>}
+  {tcv(t, cs, rf) == ev.segs(shape(t), j, cs, rf) : B3.CV}
+
+def tcv.segs(t, m, j, cs, rf, e):
+  match t:
+    case Seg{k}:
+      Equal.cong(Nat, B3.CV, i => seg(cs, i), k, j, one.range(k, m, j, e))
+    case Par{l, r}:
+      +nl = List.length(&2, Nat, order(l))
+      %ord.len(l) : {B3.parent(tcv(l, cs, 0), tcv(r, cs, 0), rf) ==
+        B3.parent(ev.segs(shape(l), j, cs, 0), ev.segs(shape(r), Nat.add(j, _), cs, 0), rf) : B3.CV}
+      %Equal.sym(B3.CV, tcv(l, cs, 0), ev.segs(shape(l), j, cs, 0),
+        tcv.segs(l, nl, j, cs, 0, range.app(order(l), order(r), m, j, e))) :
+        {B3.parent(_, tcv(r, cs, 0), rf) ==
+          B3.parent(ev.segs(shape(l), j, cs, 0), ev.segs(shape(r), Nat.add(j, nl), cs, 0), rf) : B3.CV}
+      %Equal.sym(B3.CV, tcv(r, cs, 0), ev.segs(shape(r), Nat.add(j, nl), cs, 0),
+        tcv.segs(r, Nat.sub(m, nl), Nat.add(j, nl), cs, 0, range.rest(order(l), order(r), m, j, e))) :
+        {B3.parent(ev.segs(shape(l), j, cs, 0), _, rf) ==
+          B3.parent(ev.segs(shape(l), j, cs, 0), ev.segs(shape(r), Nat.add(j, nl), cs, 0), rf) : B3.CV}
+      {==}
+
+# The whole stream: the first segment is pushed onto the empty stack, the
+# loop answers the model tree's CV, and stream.shape and stream.order make
+# that BLAKE3's tree over the segments.
+law first.le:
+  for +r: Nat
+  for +nseg: U32
+  for +en: {U32.to_nat(nseg) == 1n+r : Nat}
+  {Nat.is_le(Nat.add(r, 1n), U32.to_nat(nseg)) == True{} : Bool}
+
+def first.le(r, nseg, en):
+  %Equal.sym(Nat, U32.to_nat(nseg), 1n+r, en) : {Nat.is_le(Nat.add(r, 1n), _) == True{} : Bool}
+  %Equal.sym(Nat, Nat.add(r, 1n), 1n+r, add1(r)) : {Nat.is_le(_, 1n+r) == True{} : Bool}
+  A.n.le_refl(1n+r)
+
+law stream.hash.r:
+  for +r: Nat
+  for +nseg: U32
+  for +en: {U32.to_nat(nseg) == 1n+r : Nat}
+  for +es: {shr(32n, r) == 0n : Nat}
+  for +cs: List<&2, B3.CV>
+  {St.stk.go(~List<&2, B3.CV>, ~seg.rd, 1n+r, cs, 0, St.KNil{}) ==
+    IO.pure(B3.CV, ev.segs(tree(digits(32n, r, [])), 0n, cs, B3.ROOT())) : IO(B3.CV)}
+
+def stream.hash.r(r, nseg, en, es, cs):
+  %stream.shape(32n, r, es) : {St.stk.go(~List<&2, B3.CV>, ~seg.rd, 1n+r, cs, 0, St.KNil{}) ==
+    IO.pure(B3.CV, ev.segs(_, 0n, cs, B3.ROOT())) : IO(B3.CV)}
+  %tcv.segs(stream.go(1n+r, 32n, 0n, []), 1n+r, 0n, cs, B3.ROOT(), stream.order(32n, r)) :
+    {St.stk.go(~List<&2, B3.CV>, ~seg.rd, 1n+r, cs, 0, St.KNil{}) == IO.pure(B3.CV, _) : IO(B3.CV)}
+  %Equal.sym(IO(B3.CV), St.stk.go(~List<&2, B3.CV>, ~seg.rd, r, cs, 1, kst([Seg{0n}], cs)),
+    IO.pure(B3.CV, tcv(stream.go(1n+r, 32n, 0n, []), cs, B3.ROOT())),
+    go.k(r, 1, 0n, [], cs, nseg, first.le(r, nseg, en))) :
+    {(R => q => _(R, q)) == IO.pure(B3.CV, tcv(stream.go(1n+r, 32n, 0n, []), cs, B3.ROOT())) : IO(B3.CV)}
+  {==}
+
+law pos.le:
+  for +x: Nat
+  for +e: {Bool.not(Nat.is_eq(x, 0n)) == True{} : Bool}
+  {Nat.is_le(1n, x) == True{} : Bool}
+
+def pos.le(x, e):
+  match x:
+    case 0n:
+      Empty.absurd({Nat.is_le(1n, 0n) == True{} : Bool}, A.absurd.ft(e))
+    case 1n+q:
+      S.le0(q)
+
+law nseg.pos:
+  for +nseg: U32
+  for +e: {U32.is_ne(nseg, 0) == True{} : Bool}
+  {Nat.is_le(1n, U32.to_nat(nseg)) == True{} : Bool}
+
+def nseg.pos(nseg, e):
+  pos.le(U32.to_nat(nseg), Equal.trans(Bool, Bool.not(Nat.is_eq(U32.to_nat(nseg), 0n)), U32.is_ne(nseg, 0), True{},
+    Equal.cong(Bool, Bool, z => Bool.not(z), Nat.is_eq(U32.to_nat(nseg), 0n), U32.is_eq(nseg, 0),
+      Equal.sym(Bool, U32.is_eq(nseg, 0), Nat.is_eq(U32.to_nat(nseg), 0n), A.u.is_eq_nat(nseg, 0))), e))
+
+law shr.last:
+  for +nseg: U32
+  for +el: {Nat.is_le(1n, U32.to_nat(nseg)) == True{} : Bool}
+  {shr(32n, Nat.sub(U32.to_nat(nseg), 1n)) == 0n : Nat}
+
+def shr.last(nseg, el):
+  %A.u.tn_sub(nseg, 1, el) : {shr(32n, _) == 0n : Nat}
+  S.u.shr32(U32.sub(nseg, 1))
+
+def stream.hash(nseg, e, cs):
+  +r = Nat.sub(U32.to_nat(nseg), 1n)
+  +el = nseg.pos(nseg, e)
+  +en = Equal.trans(Nat, U32.to_nat(nseg), Nat.add(r, 1n), 1n+r,
+    Equal.sym(Nat, Nat.add(r, 1n), U32.to_nat(nseg), A.n.sub_add(U32.to_nat(nseg), 1n, el)), add1(r))
+  %Equal.sym(Nat, U32.to_nat(nseg), 1n+r, en) :
+    {St.stk.go(~List<&2, B3.CV>, ~seg.rd, _, cs, 0, St.KNil{}) ==
+      IO.pure(B3.CV, ev.segs(tree(digits(32n, r, [])), 0n, cs, B3.ROOT())) : IO(B3.CV)}
+  stream.hash.r(r, nseg, en, shr.last(nseg, el), cs)
+'''
+
+
 def consts():
     """The IV and the four flags, read from the official C code."""
     src = (ROOT.parent / "c" / "blake3_impl.h").read_text()
@@ -1893,7 +2429,7 @@ def proof_file():
             "def Laws.consts.iv():\n  {==}\n\n"
             "def Laws.consts.flags():\n  {==}\n\n" +
             PROOF_CPU + PROOF_GPU + proof_outboards() + PROOF_TREES + PROOF_SPEC + laws_names(PROOF_COUNTS) +
-            laws_names(PROOF_STREAM))
+            laws_names(PROOF_STREAM) + laws_names(PROOF_STACK))
 
 
 def main():

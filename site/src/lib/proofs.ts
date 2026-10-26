@@ -139,10 +139,10 @@ const GROUPS: (Omit<LawGroup, 'cards'> & { cards: LawCard[] })[] = [
         covers: 'every chunk count',
       },
       {
-        names: ['stream.shape', 'stream.order'],
+        names: ['stream.hash', 'stream.shape', 'stream.order'],
         claim:
-          'The lazy merge stack that streamed the 101.5 GB model shard builds that same tree, with every segment once and in order, so a streamed hash is the mapped one.',
-        covers: 'every segment count up to 2^32',
+          'The loop that streamed the 101.5 GB model shard, as b3io runs it, answers BLAKE3’s tree over the segments’ CVs with ROOT on the top parent: its lazy merge stack builds that same tree, with every segment once and in order, so a streamed hash is the mapped one.',
+        covers: 'every segment count and every CV',
       },
     ],
   },

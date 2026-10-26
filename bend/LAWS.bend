@@ -31,11 +31,14 @@
 #   neighbours level by level, the odd one carried up (a GPU reduction),
 #   builds that same tree, with n leaves and n - 1 parents. tree1's split
 #   rule (n > 2^p) is the digit form these use, for every chunk count.
-# - Streaming: the lazy merge stack that hashes a streamed file's segments
-#   builds that tree, every segment once and in order, for any count.
+# - Streaming: the loop that hashes a streamed file's segments (stack.bend's
+#   stk.go, which b3io runs) answers BLAKE3's tree over the segments' CVs,
+#   for every count of segments: its lazy merge stack builds that tree,
+#   every segment once and in order.
 
 import Base
 import ./blake3.bend as B3
+import ./stack.bend as St
 
 # Known answers
 # -------------
@@ -705,14 +708,15 @@ law keyed.spec:
 # Streaming
 # ---------
 #
-# A file the page cache cannot hold streams (b3io.bend's stream.go): its
+# A file the page cache cannot hold streams (b3io.bend's FStream): its
 # 1 GiB segments are hashed one after another, and their CVs merge on a
 # stack as BLAKE3's Hasher merges chunks, lazily: before segment k joins,
 # the top two merge while k is even, so the last merge knows it is the
-# root. These defs are b3io's stk.pop2, stk.even, stk.lazy, stk.fin,
-# stk.root and stream.go with a Tree for a CV (Seg{k} is segment k's, Par
-# a parent; the ROOT flag is not modelled) and a Nat for the U32 count;
-# `fuel` bounds the merges, 32 in b3io.
+# root. These defs model stack.bend's stk.pop2, stk.even, stk.lazy,
+# stk.fin, stk.root and stk.go with a Tree for a CV (Seg{k} is segment
+# k's, Par a parent; the ROOT flag is not modelled) and a Nat for the U32
+# count; `fuel` bounds the merges, 32 in stack.bend. stream.hash, below,
+# is about stack.bend's own defs.
 
 type Tree is Data:
   Seg{k: Nat}
@@ -805,3 +809,46 @@ law stream.order:
   for +f: Nat
   for +r: Nat
   {order(stream.go(1n+r, f, 0n, [])) == range(1n+r, 0n) : List<&2, Nat>}
+
+# The stack that runs
+# -------------------
+#
+# stack.bend's stk.go is the loop b3io runs, its reads a template: b3io's
+# read and hash a segment, these answer from a list, segment k's CV being
+# seg(cs, k).
+
+def seg(+cs: List<&2, B3.CV>, +k: Nat) -> B3.CV:
+  match cs:
+    case Nil{}:
+      B3.IV()
+    case Con{c, rest}:
+      match k:
+        case 0n:
+          c
+        case 1n+j:
+          seg(rest, j)
+
+def seg.rd(cs: List<&2, B3.CV>, k: U32) -> IO(B3.CV):
+  IO.pure(B3.CV, seg(cs, U32.to_nat(k)))
+
+# The CV of shape t over the segments from j: a Tip is segment j's CV, a
+# Fork the parent of its sides, the right one from j + (the left side's
+# leaf count); rf on the top parent.
+def ev.segs(+t: Shape, +j: Nat, +cs: List<&2, B3.CV>, +rf: U32) -> B3.CV:
+  match t:
+    case Tip{}:
+      seg(cs, j)
+    case Fork{l, r}:
+      B3.parent(ev.segs(l, j, cs, 0), ev.segs(r, Nat.add(j, tips(l)), cs, 0), rf)
+
+# For every count of segments and every CV the reads answer, the loop that
+# runs answers BLAKE3's tree over the segments, tree(digits) of the last
+# one's index, each leaf a segment's CV and each node a parent, ROOT on the
+# top one. One segment is its own CV, unflagged: b3io hashes a one-segment
+# stream with ROOT instead (b3io's stream.one).
+law stream.hash:
+  for +nseg: U32
+  for +e: {U32.is_ne(nseg, 0) == True{} : Bool}
+  for +cs: List<&2, B3.CV>
+  {St.stk.go(~List<&2, B3.CV>, ~seg.rd, U32.to_nat(nseg), cs, 0, St.KNil{}) ==
+    IO.pure(B3.CV, ev.segs(tree(digits(32n, Nat.sub(U32.to_nat(nseg), 1n), [])), 0n, cs, B3.ROOT())) : IO(B3.CV)}
