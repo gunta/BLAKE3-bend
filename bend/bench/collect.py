@@ -301,7 +301,7 @@ def gpu_library():
         tables.append(lib_table(mac["runs"], i["machine"], f"{i['machine']}, {i['cpus']} cores, {i['gpu']}",
                                 "Medians of interleaved runs, the same digest from every side. CPU and GPU share "
                                 "one memory: the split's GPU side reads a shared Metal buffer in place, and the "
-                                "engine reads it in place too (ADR 0016)."))
+                                "engine reads it in place too."))
     for gpu in ("B200",):  # the L4 (modal-lib-L4.json) is the smoke test's machine
         raw = load(f"modal-lib-{gpu}.json")
         runs = [v for k, v in sorted((raw or {}).items()) if k.startswith("duo_native_")]

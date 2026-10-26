@@ -1683,7 +1683,7 @@
         "title": "Apple M5 Pro",
         "machine": "Apple M5 Pro, 18 cores, 20-core GPU",
         "unit": "ms",
-        "note": "Medians of interleaved runs, the same digest from every side. CPU and GPU share one memory: the split's GPU side reads a shared Metal buffer in place, and the engine reads it in place too (ADR 0016).",
+        "note": "Medians of interleaved runs, the same digest from every side. CPU and GPU share one memory: the split's GPU side reads a shared Metal buffer in place, and the engine reads it in place too.",
         "rows": [
           {
             "input": "2 MiB",
