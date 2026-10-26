@@ -55,13 +55,16 @@ def Laws.kat.g4.len4096():
 def Laws.kat.segs.len2048():
   {==}
 
+def Laws.kat.span.hi():
+  {==}
+
 def Laws.tree1.digits():
   {==}
 
 # The 8-lane path
 # ---------------
 
-def Laws.compress8.lane(l, cv, m, ctr, step, blen, flags):
+def Laws.compress8.lane(l, cv, m, ctr, step, hi, blen, flags):
   match l cv m:
     case Laws.L0{} B3.CV8{h0_0, h1_0, h2_0, h3_0, h4_0, h5_0, h6_0, h7_0, h0_1, h1_1, h2_1, h3_1, h4_1, h5_1, h6_1, h7_1, h0_2, h1_2, h2_2, h3_2, h4_2, h5_2, h6_2, h7_2, h0_3, h1_3, h2_3, h3_3, h4_3, h5_3, h6_3, h7_3, h0_4, h1_4, h2_4, h3_4, h4_4, h5_4, h6_4, h7_4, h0_5, h1_5, h2_5, h3_5, h4_5, h5_5, h6_5, h7_5, h0_6, h1_6, h2_6, h3_6, h4_6, h5_6, h6_6, h7_6, h0_7, h1_7, h2_7, h3_7, h4_7, h5_7, h6_7, h7_7} B3.B128{m0_0, m1_0, m2_0, m3_0, m4_0, m5_0, m6_0, m7_0, m0_1, m1_1, m2_1, m3_1, m4_1, m5_1, m6_1, m7_1, m0_2, m1_2, m2_2, m3_2, m4_2, m5_2, m6_2, m7_2, m0_3, m1_3, m2_3, m3_3, m4_3, m5_3, m6_3, m7_3, m0_4, m1_4, m2_4, m3_4, m4_4, m5_4, m6_4, m7_4, m0_5, m1_5, m2_5, m3_5, m4_5, m5_5, m6_5, m7_5, m0_6, m1_6, m2_6, m3_6, m4_6, m5_6, m6_6, m7_6, m0_7, m1_7, m2_7, m3_7, m4_7, m5_7, m6_7, m7_7, m0_8, m1_8, m2_8, m3_8, m4_8, m5_8, m6_8, m7_8, m0_9, m1_9, m2_9, m3_9, m4_9, m5_9, m6_9, m7_9, m0_10, m1_10, m2_10, m3_10, m4_10, m5_10, m6_10, m7_10, m0_11, m1_11, m2_11, m3_11, m4_11, m5_11, m6_11, m7_11, m0_12, m1_12, m2_12, m3_12, m4_12, m5_12, m6_12, m7_12, m0_13, m1_13, m2_13, m3_13, m4_13, m5_13, m6_13, m7_13, m0_14, m1_14, m2_14, m3_14, m4_14, m5_14, m6_14, m7_14, m0_15, m1_15, m2_15, m3_15, m4_15, m5_15, m6_15, m7_15}:
       {==}
@@ -156,13 +159,14 @@ law tree8o.eta:
   for +c: U32
   for +n: U32
   for +cb: U32
+  for +hi: U32
   for +nch: U32
   for +last: U32
   for +rf: U32
-  {(B3.tree8(~Laws.share, k, ku, d, aa, c, n, cb, nch, last, rf), Pair.snd(B3.CV, B3.OB, B3.tree8o(~Laws.share, k, ku, d, aa, c, n, cb, nch, last, rf))) ==
-    B3.tree8o(~Laws.share, k, ku, d, aa, c, n, cb, nch, last, rf) : B3.CV & B3.OB}
+  {(B3.tree8(~Laws.share, k, ku, d, aa, c, n, cb, hi, nch, last, rf), Pair.snd(B3.CV, B3.OB, B3.tree8o(~Laws.share, k, ku, d, aa, c, n, cb, hi, nch, last, rf))) ==
+    B3.tree8o(~Laws.share, k, ku, d, aa, c, n, cb, hi, nch, last, rf) : B3.CV & B3.OB}
 
-def tree8o.eta(k, ku, d, aa, c, n, cb, nch, last, rf):
+def tree8o.eta(k, ku, d, aa, c, n, cb, hi, nch, last, rf):
   match k d:
     case 0n _:
       match aa:
@@ -170,11 +174,11 @@ def tree8o.eta(k, ku, d, aa, c, n, cb, nch, last, rf):
           {==}
     case 1n+p B3.Down{}:
       tree8o.eta(p, (ku - 1 : U32), B3.kind((ku - 1 : U32), n, c, nch, last), aa, c, n,
-        cb, nch, last, rf)
+        cb, hi, nch, last, rf)
     case 1n+p B3.Leaf32{}:
       match aa:
         case (a1, a2):
-          fin.eta(B3.leaf32.s0(B3.group(a1, c, (cb + c : U32)), c, (cb + c : U32)), rf)
+          fin.eta(B3.leaf32.s0(B3.group(a1, c, (cb + c : U32), hi), c, (cb + c : U32), hi), rf)
     case 1n+p B3.Leaf8{}:
       match aa:
         case (a1, a2):
@@ -186,46 +190,47 @@ def tree8o.eta(k, ku, d, aa, c, n, cb, nch, last, rf):
           +h = U32.shln(1, p)
           +n2 = (n - h : U32)
           +c2 = (c + h : U32)
-          %tree8o.eta(p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, nch, last, 0) :
-            {(B3.parent(B3.tree8(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, nch, last, 0), B3.tree8(~Laws.share, p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, nch, last, 0), rf), Pair.snd(B3.CV, B3.OB, B3.join.o(_, B3.tree8o(~Laws.share, p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, nch, last, 0), rf,
-              U32.is_ge(ku, 5)))) == B3.join.o(_, B3.tree8o(~Laws.share, p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, nch, last, 0), rf, U32.is_ge(ku, 5)) :
+          %tree8o.eta(p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, hi, nch, last, 0) :
+            {(B3.parent(B3.tree8(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, hi, nch, last, 0), B3.tree8(~Laws.share, p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, hi, nch, last, 0), rf), Pair.snd(B3.CV, B3.OB, B3.join.o(_, B3.tree8o(~Laws.share, p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, hi, nch, last, 0), rf,
+              U32.is_ge(ku, 5)))) == B3.join.o(_, B3.tree8o(~Laws.share, p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, hi, nch, last, 0), rf, U32.is_ge(ku, 5)) :
               B3.CV & B3.OB}
-          %tree8o.eta(p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, nch, last, 0) :
-            {(B3.parent(B3.tree8(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, nch, last, 0), B3.tree8(~Laws.share, p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, nch, last, 0), rf), Pair.snd(B3.CV, B3.OB, B3.join.o((B3.tree8(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, nch, last, 0),
-              Pair.snd(B3.CV, B3.OB, B3.tree8o(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, nch, last, 0))), _, rf, U32.is_ge(ku, 5)))) ==
-              B3.join.o((B3.tree8(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, nch, last, 0), Pair.snd(B3.CV, B3.OB, B3.tree8o(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, nch, last, 0))), _, rf, U32.is_ge(ku, 5)) :
+          %tree8o.eta(p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, hi, nch, last, 0) :
+            {(B3.parent(B3.tree8(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, hi, nch, last, 0), B3.tree8(~Laws.share, p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, hi, nch, last, 0), rf), Pair.snd(B3.CV, B3.OB, B3.join.o((B3.tree8(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, hi, nch, last, 0),
+              Pair.snd(B3.CV, B3.OB, B3.tree8o(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, hi, nch, last, 0))), _, rf, U32.is_ge(ku, 5)))) ==
+              B3.join.o((B3.tree8(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, hi, nch, last, 0), Pair.snd(B3.CV, B3.OB, B3.tree8o(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, hi, nch, last, 0))), _, rf, U32.is_ge(ku, 5)) :
               B3.CV & B3.OB}
-          pick.eta(U32.is_ge(ku, 5), B3.tree8(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, nch, last, 0), B3.tree8(~Laws.share, p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, nch, last, 0), Pair.snd(B3.CV, B3.OB, B3.tree8o(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, nch, last, 0)),
-            Pair.snd(B3.CV, B3.OB, B3.tree8o(~Laws.share, p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, nch, last, 0)), rf)
+          pick.eta(U32.is_ge(ku, 5), B3.tree8(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, hi, nch, last, 0), B3.tree8(~Laws.share, p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, hi, nch, last, 0), Pair.snd(B3.CV, B3.OB, B3.tree8o(~Laws.share, p, kp, B3.kind(kp, h, c, nch, last), Laws.share(a1), c, h, cb, hi, nch, last, 0)),
+            Pair.snd(B3.CV, B3.OB, B3.tree8o(~Laws.share, p, kp, B3.kind(kp, n2, c2, nch, last), Laws.share(a2), c2, n2, cb, hi, nch, last, 0)), rf)
 
 law ob.go:
   for +k: Nat
   for a: Array<U32>
   for +cb: U32
+  for +hi: U32
   for +nch: U32
   for +last: U32
   for +rf: U32
-  {Pair.fst(B3.CV, B3.OB, B3.hash.ob.go(~Laws.share, k, a, cb, nch, last, rf)) ==
-    B3.hash.go(~Laws.share, k, a, cb, nch, last, rf) : B3.CV}
+  {Pair.fst(B3.CV, B3.OB, B3.hash.ob.go(~Laws.share, k, a, cb, hi, nch, last, rf)) ==
+    B3.hash.go(~Laws.share, k, a, cb, hi, nch, last, rf) : B3.CV}
 
-def ob.go(k, a, cb, nch, last, rf):
+def ob.go(k, a, cb, hi, nch, last, rf):
   match k:
     case 0n:
       {==}
     case 1n+p:
       +ku = U32.from_nat(1n+p)
       +d = B3.kind(ku, nch, 0, nch, last)
-      Equal.sym(B3.CV, B3.tree8(~Laws.share, 1n+p, ku, d, Laws.share(a), 0, nch, cb, nch, last, rf), Pair.fst(B3.CV, B3.OB, B3.tree8o(~Laws.share, 1n+p, ku, d, Laws.share(a), 0, nch, cb, nch, last, rf)),
+      Equal.sym(B3.CV, B3.tree8(~Laws.share, 1n+p, ku, d, Laws.share(a), 0, nch, cb, hi, nch, last, rf), Pair.fst(B3.CV, B3.OB, B3.tree8o(~Laws.share, 1n+p, ku, d, Laws.share(a), 0, nch, cb, hi, nch, last, rf)),
         Equal.cong(B3.CV & B3.OB, B3.CV, x => Pair.fst(B3.CV, B3.OB, x),
-          (B3.tree8(~Laws.share, 1n+p, ku, d, Laws.share(a), 0, nch, cb, nch, last, rf), Pair.snd(B3.CV, B3.OB, B3.tree8o(~Laws.share, 1n+p, ku, d, Laws.share(a), 0, nch, cb, nch, last, rf))), B3.tree8o(~Laws.share, 1n+p, ku, d, Laws.share(a), 0, nch, cb, nch, last, rf),
-          tree8o.eta(1n+p, ku, d, Laws.share(a), 0, nch, cb, nch, last, rf)))
+          (B3.tree8(~Laws.share, 1n+p, ku, d, Laws.share(a), 0, nch, cb, hi, nch, last, rf), Pair.snd(B3.CV, B3.OB, B3.tree8o(~Laws.share, 1n+p, ku, d, Laws.share(a), 0, nch, cb, hi, nch, last, rf))), B3.tree8o(~Laws.share, 1n+p, ku, d, Laws.share(a), 0, nch, cb, hi, nch, last, rf),
+          tree8o.eta(1n+p, ku, d, Laws.share(a), 0, nch, cb, hi, nch, last, rf)))
 
 def Laws.ob.hash(a, len):
-  ob.go(B3.depth(B3.chunks(len)), a, 0, B3.chunks(len), B3.tail(len, B3.chunks(len)),
+  ob.go(B3.depth(B3.chunks(len)), a, 0, 0, B3.chunks(len), B3.tail(len, B3.chunks(len)),
     B3.ROOT())
 
-def Laws.ob.at(a, cb, nch, last, rf):
-  ob.go(B3.depth(nch), a, cb, nch, last, rf)
+def Laws.ob.at(a, cb, hi, nch, last, rf):
+  ob.go(B3.depth(nch), a, cb, hi, nch, last, rf)
 
 # Tree shapes
 # -----------

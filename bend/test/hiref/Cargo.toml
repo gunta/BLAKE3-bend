@@ -1,0 +1,11 @@
+[package]
+name = "hiref"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+# Not part of the repository's workspace.
+[workspace]
+
+[dependencies]
+official = { package = "blake3", path = "../../..", features = ["rayon"] }

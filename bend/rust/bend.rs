@@ -230,11 +230,6 @@ pub(crate) fn subtree(
     if input.len() <= CHUNK_LEN || input.len() < min_len(input, platform) {
         return None;
     }
-    let chunks = input.len().div_ceil(CHUNK_LEN) as u64;
-    // every mode (key and flags); 32-bit chunk counters
-    if chunk_counter + chunks > 1 << 32 {
-        return None;
-    }
     // Spans the engine reads in place are up to 1 GiB; copied ones 64 MiB,
     // so their copies overlap the hashing of the ones before. Against rayon
     // on every core the engine wins only reading in place, in the default
@@ -258,6 +253,13 @@ pub(crate) fn subtree(
     let span = left.min(most);
     let nl = left / span;
     let n = nl + (input.len() - left).div_ceil(span);
+    // Every mode (key and flags), and 64-bit chunk counters: each span keeps
+    // its counter's high word, since a subtree's counter is a multiple of its
+    // size, so spans (powers of two of at most 2^20 chunks) start at multiples
+    // of theirs and none crosses a multiple of 2^32.
+    if chunk_counter % (span / CHUNK_LEN) as u64 != 0 {
+        return None;
+    }
     let mut p = Vec::with_capacity(n);
     let mut len = Vec::with_capacity(n);
     let mut cb = Vec::with_capacity(n);

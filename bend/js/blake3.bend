@@ -19,11 +19,11 @@ def IV() -> B3.CV:
 def hash(a: Array<U32>, +len: U32) -> B3.CV:
   B3.hash(~fork, a, len)
 
-# The CV of a span: nch chunks counted from cb, the last holding `last`
+# The CV of a span: nch chunks counted from hi:cb, the last holding `last`
 # bytes, rf 0 (a subtree) or 8 (ROOT, a whole input).
-def span(a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32, +key: B3.CV,
-  +kf: U32) -> B3.CV:
-  B3.hash.at.k(~fork, a, cb, nch, last, rf, key, kf)
+def span(a: Array<U32>, +cb: U32, +hi: U32, +nch: U32, +last: U32, +rf: U32,
+  +key: B3.CV, +kf: U32) -> B3.CV:
+  B3.hash.at.k(~fork, a, cb, hi, nch, last, rf, key, kf)
 
 def parent(l: B3.CV, r: B3.CV, +key: B3.CV, +kf: U32) -> B3.CV:
   B3.parent.k(l, r, 0, key, kf)

@@ -11,7 +11,7 @@ def spin8(n: Nat, cv: B3.CV8, +m: B3.B128) -> B3.CV8:
     case 0n:
       cv
     case 1n+p:
-      spin8(p, B3.compress8(cv, m, 0, 1, 64, 0), m)
+      spin8(p, B3.compress8(cv, m, 0, 1, 0, 64, 0), m)
 
 def first(cv: B3.CV8) -> U32:
   match cv:

@@ -30,10 +30,10 @@ def sub8(~dup: Array<U32> -> Array<U32> & Array<U32>,
   +lv: U32) -> B3.CV:
   match k:
     case 0n:
-      B3.chunk(a, c, 0, nch, last, 0)
+      B3.chunk(a, c, 0, 0, nch, last, 0)
     case 1n+p:
       +ku = U32.from_nat(k)
-      B3.tree8(~dup, k, ku, B3.kind(ku, n, c, nch, last), dup(a), c, n, 0,
+      B3.tree8(~dup, k, ku, B3.kind(ku, n, c, nch, last), dup(a), c, n, 0, 0,
         nch, last, 0)
 
 # The same on the GPU's tree, with leaves of 4^(lv/2) chunks.
@@ -42,11 +42,11 @@ def subg(~dup: Array<U32> -> Array<U32> & Array<U32>,
   +lv: U32) -> B3.CV:
   match k:
     case 0n:
-      B3.chunk(a, c, 0, nch, last, 0)
+      B3.chunk(a, c, 0, 0, nch, last, 0)
     case 1n+p:
       +ku = U32.from_nat(k)
       B3.treeg(~dup, k, ku, B3.kind1(ku, n, c, nch, last, lv), dup(a), c, n,
-        0, nch, last, lv, 0)
+        0, 0, nch, last, lv, 0)
 
 # One node's CV if this device owns it, else nothing.
 def own(~dup: Array<U32> -> Array<U32> & Array<U32>,
@@ -206,7 +206,7 @@ def lane.go(n: Nat, r: Array<U32> & B3.CV, +c: U32, +t: U32, +st: U32,
       (a, x) = r
       +c2 = (c + st : U32)
       +t2 = (t + st : U32)
-      lane.go(p, B3.g4(a, c2, t2, 0), c2, t2, st, x <> acc)
+      lane.go(p, B3.g4(a, c2, t2, 0, 0), c2, t2, st, x <> acc)
 
 # One lane: g 4-chunk groups from array chunk c (counter t), st chunks
 # apart, as a list from the last group to the first.
@@ -216,7 +216,7 @@ def lane(n: Nat, a: Array<U32>, +c: U32, +t: U32, +st: U32) -> List<B3.CV>:
       _ = a
       []
     case 1n+p:
-      lane.go(p, B3.g4(a, c, t, 0), c, t, st, [])
+      lane.go(p, B3.g4(a, c, t, 0, 0), c, t, st, [])
 
 # Parents of two lists, element by element, in reverse order.
 def zip.go(x: List<B3.CV>, y: List<B3.CV>, acc: List<B3.CV>) -> List<B3.CV> :

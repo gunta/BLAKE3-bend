@@ -511,7 +511,7 @@ function $b3scalar_compress(_cv_0, _m1_0, _t0_0, _t1_0, _blen_0, _flags_0) {
   return $b3scalar_out(($b3scalar_round(($b3scalar_round(($b3scalar_round(($b3scalar_round(($b3scalar_round(($b3scalar_round(($b3scalar_round(_s0_0, _m1_0)), _m2_0)), _m3_0)), _m4_0)), _m5_0)), _m6_0)), _m7_0)));
 }
 
-function $b3scalar_chunk_go($0, $1, $2, $3, $4, $5, $6, $7) {
+function $b3scalar_chunk_go($0, $1, $2, $3, $4, $5, $6, $7, $8) {
   for (;;) {
     {
       const _n_0 = $0;
@@ -519,13 +519,14 @@ function $b3scalar_chunk_go($0, $1, $2, $3, $4, $5, $6, $7) {
       const _w_0 = $2;
       const _cv_0 = $3;
       const _ctr_0 = $4;
-      const _fl_0 = $5;
-      const _endf_0 = $6;
-      const _lastlen_0 = $7;
+      const _hi_0 = $5;
+      const _fl_0 = $6;
+      const _endf_0 = $7;
+      const _lastlen_0 = $8;
       if (_n_0 === 0) {
         const _a_0 = _r_0["fst"];
         const _m_0 = _r_0["snd"];
-        return {$: "Tuple", "fst": _a_0, "snd": ($b3scalar_compress(_cv_0, _m_0, _ctr_0, 0, _lastlen_0, ((_fl_0 | _endf_0) >>> 0)))};
+        return {$: "Tuple", "fst": _a_0, "snd": ($b3scalar_compress(_cv_0, _m_0, _ctr_0, _hi_0, _lastlen_0, ((_fl_0 | _endf_0) >>> 0)))};
       } else {
         const _p_0 = (_n_0 - 1);
         const _a_1 = _r_0["fst"];
@@ -534,11 +535,12 @@ function $b3scalar_chunk_go($0, $1, $2, $3, $4, $5, $6, $7) {
         $0 = _p_0;
         $1 = ($b3scalar_ld(_a_1, _w2_0));
         $2 = _w2_0;
-        $3 = ($b3scalar_compress(_cv_0, _m_1, _ctr_0, 0, 64, _fl_0));
+        $3 = ($b3scalar_compress(_cv_0, _m_1, _ctr_0, _hi_0, 64, _fl_0));
         $4 = _ctr_0;
-        $5 = 0;
-        $6 = _endf_0;
-        $7 = _lastlen_0;
+        $5 = _hi_0;
+        $6 = 0;
+        $7 = _endf_0;
+        $8 = _lastlen_0;
         continue;
       }
     }
@@ -550,7 +552,7 @@ function $b3scalar_chunk_fin(_r_0) {
   return _cv_0;
 }
 
-function $b3scalar_chunk(_a_0, _c_0, _cb_0, _nch_0, _last_0, _rf_0) {
+function $b3scalar_chunk(_a_0, _c_0, _cb_0, _hi_0, _nch_0, _last_0, _rf_0) {
   const _w_0 = (8 >= 32 ? 0 : (_c_0 << 8) >>> 0);
   const _x_0 = ((_c_0 + 1) >>> 0);
   const _x_1 = ($Bool_to_u32((_x_0 === _nch_0)));
@@ -566,7 +568,7 @@ function $b3scalar_chunk(_a_0, _c_0, _cb_0, _nch_0, _last_0, _rf_0) {
   const _lastlen_0 = ((_rem_0 - _x_7) >>> 0);
   const _x_8 = ((_nb_0 - 1) >>> 0);
   const _x_9 = ($b3scalar_CHUNK_END());
-  return $b3scalar_chunk_fin(($b3scalar_chunk_go(_x_8, ($b3scalar_ld(_a_0, _w_0)), _w_0, ($b3scalar_IV()), ((_cb_0 + _c_0) >>> 0), ($b3scalar_CHUNK_START()), ((_x_9 | _rf_0) >>> 0), _lastlen_0)));
+  return $b3scalar_chunk_fin(($b3scalar_chunk_go(_x_8, ($b3scalar_ld(_a_0, _w_0)), _w_0, ($b3scalar_IV()), ((_cb_0 + _c_0) >>> 0), _hi_0, ($b3scalar_CHUNK_START()), ((_x_9 | _rf_0) >>> 0), _lastlen_0)));
 }
 
 function $b3scalar_parent(_l_0, _r_0, _rf_0) {
@@ -629,7 +631,7 @@ function $b3scalar_DERIVE_KEY_MATERIAL() {
   return 64;
 }
 
-function $b3scalar_chunk_go_k($0, $1, $2, $3, $4, $5, $6, $7, $8) {
+function $b3scalar_chunk_go_k($0, $1, $2, $3, $4, $5, $6, $7, $8, $9) {
   for (;;) {
     {
       const _n_0 = $0;
@@ -637,15 +639,16 @@ function $b3scalar_chunk_go_k($0, $1, $2, $3, $4, $5, $6, $7, $8) {
       const _w_0 = $2;
       const _cv_0 = $3;
       const _ctr_0 = $4;
-      const _fl_0 = $5;
-      const _endf_0 = $6;
-      const _lastlen_0 = $7;
-      const _kf_0 = $8;
+      const _hi_0 = $5;
+      const _fl_0 = $6;
+      const _endf_0 = $7;
+      const _lastlen_0 = $8;
+      const _kf_0 = $9;
       if (_n_0 === 0) {
         const _a_0 = _r_0["fst"];
         const _m_0 = _r_0["snd"];
         const _x_0 = ((_fl_0 | _endf_0) >>> 0);
-        return {$: "Tuple", "fst": _a_0, "snd": ($b3scalar_compress(_cv_0, _m_0, _ctr_0, 0, _lastlen_0, ((_x_0 | _kf_0) >>> 0)))};
+        return {$: "Tuple", "fst": _a_0, "snd": ($b3scalar_compress(_cv_0, _m_0, _ctr_0, _hi_0, _lastlen_0, ((_x_0 | _kf_0) >>> 0)))};
       } else {
         const _p_0 = (_n_0 - 1);
         const _a_1 = _r_0["fst"];
@@ -654,19 +657,20 @@ function $b3scalar_chunk_go_k($0, $1, $2, $3, $4, $5, $6, $7, $8) {
         $0 = _p_0;
         $1 = ($b3scalar_ld(_a_1, _w2_0));
         $2 = _w2_0;
-        $3 = ($b3scalar_compress(_cv_0, _m_1, _ctr_0, 0, 64, ((_fl_0 | _kf_0) >>> 0)));
+        $3 = ($b3scalar_compress(_cv_0, _m_1, _ctr_0, _hi_0, 64, ((_fl_0 | _kf_0) >>> 0)));
         $4 = _ctr_0;
-        $5 = 0;
-        $6 = _endf_0;
-        $7 = _lastlen_0;
-        $8 = _kf_0;
+        $5 = _hi_0;
+        $6 = 0;
+        $7 = _endf_0;
+        $8 = _lastlen_0;
+        $9 = _kf_0;
         continue;
       }
     }
   }
 }
 
-function $b3scalar_chunk_k(_a_0, _c_0, _cb_0, _nch_0, _last_0, _rf_0, _key_0, _kf_0) {
+function $b3scalar_chunk_k(_a_0, _c_0, _cb_0, _hi_0, _nch_0, _last_0, _rf_0, _key_0, _kf_0) {
   const _w_0 = (8 >= 32 ? 0 : (_c_0 << 8) >>> 0);
   const _x_0 = ((_c_0 + 1) >>> 0);
   const _x_1 = ($Bool_to_u32((_x_0 === _nch_0)));
@@ -682,7 +686,7 @@ function $b3scalar_chunk_k(_a_0, _c_0, _cb_0, _nch_0, _last_0, _rf_0, _key_0, _k
   const _lastlen_0 = ((_rem_0 - _x_7) >>> 0);
   const _x_8 = ((_nb_0 - 1) >>> 0);
   const _x_9 = ($b3scalar_CHUNK_END());
-  return $b3scalar_chunk_fin(($b3scalar_chunk_go_k(_x_8, ($b3scalar_ld(_a_0, _w_0)), _w_0, _key_0, ((_cb_0 + _c_0) >>> 0), ($b3scalar_CHUNK_START()), ((_x_9 | _rf_0) >>> 0), _lastlen_0, _kf_0)));
+  return $b3scalar_chunk_fin(($b3scalar_chunk_go_k(_x_8, ($b3scalar_ld(_a_0, _w_0)), _w_0, _key_0, ((_cb_0 + _c_0) >>> 0), _hi_0, ($b3scalar_CHUNK_START()), ((_x_9 | _rf_0) >>> 0), _lastlen_0, _kf_0)));
 }
 
 function $b3scalar_parent_k(_l_0, _r_0, _rf_0, _key_0, _kf_0) {
@@ -884,8 +888,8 @@ function $hash(_a_0, _len_0) {
   return $b3scalar_hash_0(_a_0, _len_0);
 }
 
-function $span(_a_0, _cb_0, _nch_0, _last_0, _rf_0, _key_0, _kf_0) {
-  return $b3scalar_hash_at_k_0(_a_0, _cb_0, _nch_0, _last_0, _rf_0, _key_0, _kf_0);
+function $span(_a_0, _cb_0, _hi_0, _nch_0, _last_0, _rf_0, _key_0, _kf_0) {
+  return $b3scalar_hash_at_k_0(_a_0, _cb_0, _hi_0, _nch_0, _last_0, _rf_0, _key_0, _kf_0);
 }
 
 function $parent(_l_0, _r_0, _key_0, _kf_0) {
@@ -926,12 +930,12 @@ function $Array_fork(_a_0) {
 
 function $b3scalar_hash_0(_a_0, _len_0) {
   const _n_0 = ($b3scalar_chunks(_len_0));
-  return $b3scalar_hash_at_0(_a_0, 0, _n_0, ($b3scalar_tail(_len_0, _n_0)), ($b3scalar_ROOT()));
+  return $b3scalar_hash_at_0(_a_0, 0, 0, _n_0, ($b3scalar_tail(_len_0, _n_0)), ($b3scalar_ROOT()));
 }
 
-function $b3scalar_hash_at_k_0(_a_0, _cb_0, _nch_0, _last_0, _rf_0, _key_0, _kf_0) {
+function $b3scalar_hash_at_k_0(_a_0, _cb_0, _hi_0, _nch_0, _last_0, _rf_0, _key_0, _kf_0) {
   const _k_0 = ($b3scalar_depth(_nch_0));
-  return $b3scalar_tree1_k_0(_k_0, ($b3scalar_big(_k_0, _nch_0)), ($fork(_a_0)), 0, _nch_0, _cb_0, _nch_0, _last_0, _rf_0, _key_0, _kf_0);
+  return $b3scalar_tree1_k_0(_k_0, ($b3scalar_big(_k_0, _nch_0)), ($fork(_a_0)), 0, _nch_0, _cb_0, _hi_0, _nch_0, _last_0, _rf_0, _key_0, _kf_0);
 }
 
 function $Bool_pick(_c_0, _a_0, _b_0) {
@@ -966,12 +970,12 @@ function $U32_log2_go($0, $1, $2) {
   }
 }
 
-function $b3scalar_hash_at_0(_a_0, _cb_0, _nch_0, _last_0, _rf_0) {
+function $b3scalar_hash_at_0(_a_0, _cb_0, _hi_0, _nch_0, _last_0, _rf_0) {
   const _k_0 = ($b3scalar_depth(_nch_0));
-  return $b3scalar_tree1_0(_k_0, ($b3scalar_big(_k_0, _nch_0)), ($fork(_a_0)), 0, _nch_0, _cb_0, _nch_0, _last_0, _rf_0);
+  return $b3scalar_tree1_0(_k_0, ($b3scalar_big(_k_0, _nch_0)), ($fork(_a_0)), 0, _nch_0, _cb_0, _hi_0, _nch_0, _last_0, _rf_0);
 }
 
-function $b3scalar_tree1_k_0($0, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10) {
+function $b3scalar_tree1_k_0($0, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) {
   for (;;) {
     {
       const _k_0 = $0;
@@ -980,14 +984,15 @@ function $b3scalar_tree1_k_0($0, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10) {
       const _c_0 = $3;
       const _n_0 = $4;
       const _cb_0 = $5;
-      const _nch_0 = $6;
-      const _last_0 = $7;
-      const _rf_0 = $8;
-      const _key_0 = $9;
-      const _kf_0 = $10;
+      const _hi_0 = $6;
+      const _nch_0 = $7;
+      const _last_0 = $8;
+      const _rf_0 = $9;
+      const _key_0 = $10;
+      const _kf_0 = $11;
       if (_k_0 === 0) {
         const _a1_0 = _aa_0["fst"];
-        return $b3scalar_chunk_k(_a1_0, _c_0, _cb_0, _nch_0, _last_0, _rf_0, _key_0, _kf_0);
+        return $b3scalar_chunk_k(_a1_0, _c_0, _cb_0, _hi_0, _nch_0, _last_0, _rf_0, _key_0, _kf_0);
       } else {
         const _p_0 = (_k_0 - 1);
         if (!_b_0) {
@@ -997,19 +1002,20 @@ function $b3scalar_tree1_k_0($0, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10) {
           $3 = _c_0;
           $4 = _n_0;
           $5 = _cb_0;
-          $6 = _nch_0;
-          $7 = _last_0;
-          $8 = _rf_0;
-          $9 = _key_0;
-          $10 = _kf_0;
+          $6 = _hi_0;
+          $7 = _nch_0;
+          $8 = _last_0;
+          $9 = _rf_0;
+          $10 = _key_0;
+          $11 = _kf_0;
           continue;
         } else {
           const _a1_1 = _aa_0["fst"];
           const _a2_1 = _aa_0["snd"];
           const _h_0 = (_p_0 >= 32 ? 0 : (1 << _p_0) >>> 0);
           const _n2_0 = ((_n_0 - _h_0) >>> 0);
-          const _l_0 = ($b3scalar_tree1_k_0(_p_0, ($b3scalar_big(_p_0, _h_0)), ($fork(_a1_1)), _c_0, _h_0, _cb_0, _nch_0, _last_0, 0, _key_0, _kf_0));
-          const _r_0 = ($b3scalar_tree1_k_0(_p_0, ($b3scalar_big(_p_0, _n2_0)), ($fork(_a2_1)), ((_c_0 + _h_0) >>> 0), _n2_0, _cb_0, _nch_0, _last_0, 0, _key_0, _kf_0));
+          const _l_0 = ($b3scalar_tree1_k_0(_p_0, ($b3scalar_big(_p_0, _h_0)), ($fork(_a1_1)), _c_0, _h_0, _cb_0, _hi_0, _nch_0, _last_0, 0, _key_0, _kf_0));
+          const _r_0 = ($b3scalar_tree1_k_0(_p_0, ($b3scalar_big(_p_0, _n2_0)), ($fork(_a2_1)), ((_c_0 + _h_0) >>> 0), _n2_0, _cb_0, _hi_0, _nch_0, _last_0, 0, _key_0, _kf_0));
           return $b3scalar_parent_k(_l_0, _r_0, _rf_0, _key_0, _kf_0);
         }
       }
@@ -1017,7 +1023,7 @@ function $b3scalar_tree1_k_0($0, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10) {
   }
 }
 
-function $b3scalar_tree1_0($0, $1, $2, $3, $4, $5, $6, $7, $8) {
+function $b3scalar_tree1_0($0, $1, $2, $3, $4, $5, $6, $7, $8, $9) {
   for (;;) {
     {
       const _k_0 = $0;
@@ -1026,12 +1032,13 @@ function $b3scalar_tree1_0($0, $1, $2, $3, $4, $5, $6, $7, $8) {
       const _c_0 = $3;
       const _n_0 = $4;
       const _cb_0 = $5;
-      const _nch_0 = $6;
-      const _last_0 = $7;
-      const _rf_0 = $8;
+      const _hi_0 = $6;
+      const _nch_0 = $7;
+      const _last_0 = $8;
+      const _rf_0 = $9;
       if (_k_0 === 0) {
         const _a1_0 = _aa_0["fst"];
-        return $b3scalar_chunk(_a1_0, _c_0, _cb_0, _nch_0, _last_0, _rf_0);
+        return $b3scalar_chunk(_a1_0, _c_0, _cb_0, _hi_0, _nch_0, _last_0, _rf_0);
       } else {
         const _p_0 = (_k_0 - 1);
         if (!_b_0) {
@@ -1041,17 +1048,18 @@ function $b3scalar_tree1_0($0, $1, $2, $3, $4, $5, $6, $7, $8) {
           $3 = _c_0;
           $4 = _n_0;
           $5 = _cb_0;
-          $6 = _nch_0;
-          $7 = _last_0;
-          $8 = _rf_0;
+          $6 = _hi_0;
+          $7 = _nch_0;
+          $8 = _last_0;
+          $9 = _rf_0;
           continue;
         } else {
           const _a1_1 = _aa_0["fst"];
           const _a2_1 = _aa_0["snd"];
           const _h_0 = (_p_0 >= 32 ? 0 : (1 << _p_0) >>> 0);
           const _n2_0 = ((_n_0 - _h_0) >>> 0);
-          const _l_0 = ($b3scalar_tree1_0(_p_0, ($b3scalar_big(_p_0, _h_0)), ($fork(_a1_1)), _c_0, _h_0, _cb_0, _nch_0, _last_0, 0));
-          const _r_0 = ($b3scalar_tree1_0(_p_0, ($b3scalar_big(_p_0, _n2_0)), ($fork(_a2_1)), ((_c_0 + _h_0) >>> 0), _n2_0, _cb_0, _nch_0, _last_0, 0));
+          const _l_0 = ($b3scalar_tree1_0(_p_0, ($b3scalar_big(_p_0, _h_0)), ($fork(_a1_1)), _c_0, _h_0, _cb_0, _hi_0, _nch_0, _last_0, 0));
+          const _r_0 = ($b3scalar_tree1_0(_p_0, ($b3scalar_big(_p_0, _n2_0)), ($fork(_a2_1)), ((_c_0 + _h_0) >>> 0), _n2_0, _cb_0, _hi_0, _nch_0, _last_0, 0));
           return $b3scalar_parent(_l_0, _r_0, _rf_0);
         }
       }
@@ -1089,9 +1097,9 @@ export default {
   "b3scalar:perm": run_lib((a0) => run_loop($b3scalar_perm(a0)), 1),
   "b3scalar:out": run_lib((a0) => run_loop($b3scalar_out(a0)), 1),
   "b3scalar:compress": run_lib((a0,a1,a2,a3,a4,a5) => run_loop($b3scalar_compress(a0,a1,a2,a3,a4,a5)), 6),
-  "b3scalar:chunk.go": run_lib((a0,a1,a2,a3,a4,a5,a6,a7) => run_loop($b3scalar_chunk_go(nat_in(a0),a1,a2,a3,a4,a5,a6,a7)), 8),
+  "b3scalar:chunk.go": run_lib((a0,a1,a2,a3,a4,a5,a6,a7,a8) => run_loop($b3scalar_chunk_go(nat_in(a0),a1,a2,a3,a4,a5,a6,a7,a8)), 9),
   "b3scalar:chunk.fin": run_lib((a0) => run_loop($b3scalar_chunk_fin(a0)), 1),
-  "b3scalar:chunk": run_lib((a0,a1,a2,a3,a4,a5) => run_loop($b3scalar_chunk(a0,a1,a2,a3,a4,a5)), 6),
+  "b3scalar:chunk": run_lib((a0,a1,a2,a3,a4,a5,a6) => run_loop($b3scalar_chunk(a0,a1,a2,a3,a4,a5,a6)), 7),
   "b3scalar:parent": run_lib((a0,a1,a2) => run_loop($b3scalar_parent(a0,a1,a2)), 3),
   "b3scalar:big": run_lib((a0,a1) => run_loop($b3scalar_big(nat_in(a0),a1)), 2),
   "b3scalar:chunks": run_lib((a0) => run_loop($b3scalar_chunks(a0)), 1),
@@ -1100,8 +1108,8 @@ export default {
   "b3scalar:KEYED_HASH": run_lib(() => run_loop($b3scalar_KEYED_HASH()), 0),
   "b3scalar:DERIVE_KEY_CONTEXT": run_lib(() => run_loop($b3scalar_DERIVE_KEY_CONTEXT()), 0),
   "b3scalar:DERIVE_KEY_MATERIAL": run_lib(() => run_loop($b3scalar_DERIVE_KEY_MATERIAL()), 0),
-  "b3scalar:chunk.go.k": run_lib((a0,a1,a2,a3,a4,a5,a6,a7,a8) => run_loop($b3scalar_chunk_go_k(nat_in(a0),a1,a2,a3,a4,a5,a6,a7,a8)), 9),
-  "b3scalar:chunk.k": run_lib((a0,a1,a2,a3,a4,a5,a6,a7) => run_loop($b3scalar_chunk_k(a0,a1,a2,a3,a4,a5,a6,a7)), 8),
+  "b3scalar:chunk.go.k": run_lib((a0,a1,a2,a3,a4,a5,a6,a7,a8,a9) => run_loop($b3scalar_chunk_go_k(nat_in(a0),a1,a2,a3,a4,a5,a6,a7,a8,a9)), 10),
+  "b3scalar:chunk.k": run_lib((a0,a1,a2,a3,a4,a5,a6,a7,a8) => run_loop($b3scalar_chunk_k(a0,a1,a2,a3,a4,a5,a6,a7,a8)), 9),
   "b3scalar:parent.k": run_lib((a0,a1,a2,a3,a4) => run_loop($b3scalar_parent_k(a0,a1,a2,a3,a4)), 5),
   "b3scalar:chunk.root.go": run_lib((a0,a1,a2,a3,a4,a5,a6,a7) => run_loop($b3scalar_chunk_root_go(nat_in(a0),a1,a2,a3,a4,a5,a6,a7)), 8),
   "b3scalar:chunk.root": run_lib((a0,a1,a2,a3,a4) => run_loop($b3scalar_chunk_root(a0,a1,a2,a3,a4)), 5),
@@ -1119,7 +1127,7 @@ export default {
   "fork": run_lib((a0) => run_loop($fork(a0)), 1),
   "IV": run_lib(() => run_loop($IV()), 0),
   "hash": run_lib((a0,a1) => run_loop($hash(a0,a1)), 2),
-  "span": run_lib((a0,a1,a2,a3,a4,a5,a6) => run_loop($span(a0,a1,a2,a3,a4,a5,a6)), 7),
+  "span": run_lib((a0,a1,a2,a3,a4,a5,a6,a7) => run_loop($span(a0,a1,a2,a3,a4,a5,a6,a7)), 8),
   "parent": run_lib((a0,a1,a2,a3) => run_loop($parent(a0,a1,a2,a3)), 4),
   "chunk.root": run_lib((a0,a1,a2,a3,a4) => run_loop($chunk_root(a0,a1,a2,a3,a4)), 5),
   "parent.root": run_lib((a0,a1,a2,a3) => run_loop($parent_root(a0,a1,a2,a3)), 4),
