@@ -602,6 +602,57 @@ law tree.parents:
   for e: {shr(k, r) == 0n : Nat}
   {forks(tree(digits(k, r, []))) == r : Nat}
 
+# BLAKE3's tree, on the code
+# --------------------------
+#
+# The CV of shape t over the chunks of a span from chunk c: a Tip is that
+# chunk (blake3.bend's chunk), a Fork the parent of its two sides, the
+# right one from c + (the left side's leaf count). Each side takes its own
+# copy of the input (share), as tree1's nodes do.
+def ev(+t: Shape, aa: Array<U32> & Array<U32>, +c: U32, +cb: U32, +nch: U32,
+  +last: U32, +rf: U32) -> B3.CV:
+  match t:
+    case Tip{}:
+      (a1, a2) = aa
+      _ = a2
+      B3.chunk(a1, c, cb, nch, last, rf)
+    case Fork{l, r}:
+      (a1, a2) = aa
+      B3.parent(ev(l, share(a1), c, cb, nch, last, 0),
+        ev(r, share(a2), (c + U32.from_nat(tips(l)) : U32), cb, nch, last, 0), rf)
+
+# So the tree laws are about the code: for every array and every span, the
+# scalar tree is BLAKE3's tree over the span's chunks, tree(digits) of the
+# last chunk's index, each leaf a chunk and each node a parent
+# (proof/spec.bend)...
+law ref.spec:
+  for a: Array<U32>
+  for +cb: U32
+  for +nch: U32
+  for +last: U32
+  for +rf: U32
+  {ref.at(a, cb, nch, last, rf) ==
+    ev(tree(digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), share(a), 0, cb, nch, last, rf) : B3.CV}
+
+# ...and so are the trees that run: the CPU's (cpu.at) and the GPU's (gpu.at).
+law cpu.spec:
+  for a: Array<U32>
+  for +cb: U32
+  for +nch: U32
+  for +last: U32
+  for +rf: U32
+  {B3.hash.at(~share, a, cb, nch, last, rf) ==
+    ev(tree(digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), share(a), 0, cb, nch, last, rf) : B3.CV}
+
+law gpu.spec:
+  for a: Array<U32>
+  for +cb: U32
+  for +nch: U32
+  for +last: U32
+  for +rf: U32
+  {B3.hash1.at(~share, a, cb, nch, last, rf) ==
+    ev(tree(digits(B3.depth(nch), Nat.sub(U32.to_nat(nch), 1n), [])), share(a), 0, cb, nch, last, rf) : B3.CV}
+
 # Streaming
 # ---------
 #

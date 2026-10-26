@@ -67,6 +67,12 @@ const GROUPS: (Omit<LawGroup, 'cards'> & { cards: LawCard[] })[] = [
         covers: 'every pair of 8-lane CVs: 2^4,099 inputs',
       },
       {
+        names: ['ref.spec', 'cpu.spec', 'gpu.spec'],
+        claim:
+          'The trees that run compute BLAKE3’s tree: the left-full binary tree over the input’s chunks, each leaf a chunk and each node a parent, so the tree laws further down are about this code and not only a model of it.',
+        covers: 'every array, every span',
+      },
+      {
         names: ['cpu.at', 'cpu.hash'],
         claim:
           'The CPU tree b3sum runs (eight chunks at once through compress8, 32-chunk leaves, node kinds from a U32 copy of the depth) is blake3.bend’s plain scalar tree, one chunk at a time: the same CV, bit for bit.',

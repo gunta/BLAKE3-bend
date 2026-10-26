@@ -4,7 +4,7 @@ writes them): words.bend, the arithmetic; cpu.bend, the proof that the CPU's
 GPU's tree."""
 import re
 
-from . import words, reads, loop, group, leaf8, leaf32, tree, gpu, quads, gtree
+from . import words, reads, loop, group, leaf8, leaf32, tree, gpu, quads, gtree, spec
 from .common import L, laws_names
 
 CPU_HEAD = '''\
