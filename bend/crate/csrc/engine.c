@@ -366,92 +366,92 @@ typedef struct { u8 ar, hot; u16 spine; } Cid;
 #define CID____b3io_B3IO_release 55
 #define CID____b3io_B3IO_seg 56
 #define FID____b3io_stream_seg 0
-#define FID____b3io_stream_seg_c85 1
-#define FID____b3io_stream_seg_c86 2
-#define FID____b3io_stream_seg_k87 3
-#define FID____b3io_stream_seg_c88 4
+#define FID____b3io_stream_seg_c87 1
+#define FID____b3io_stream_seg_c88 2
+#define FID____b3io_stream_seg_k89 3
+#define FID____b3io_stream_seg_c90 4
 #define FID____b3io_part_cv 5
 #define FID____blake3_tree8_k_0 6
-#define FID____blake3_tree8_k_0_k92 7
-#define FID____blake3_tree8_k_0_k93 8
-#define FID____blake3_tree8_k_0_j92 9
+#define FID____blake3_tree8_k_0_k94 7
+#define FID____blake3_tree8_k_0_k95 8
+#define FID____blake3_tree8_k_0_j94 9
 #define FID____blake3_tree8_0 10
-#define FID____blake3_tree8_0_k100 11
-#define FID____blake3_tree8_0_k101 12
-#define FID____blake3_tree8_0_j100 13
+#define FID____blake3_tree8_0_k102 11
+#define FID____blake3_tree8_0_k103 12
+#define FID____blake3_tree8_0_j102 13
 #define FID____stack_stk_go_0 14
-#define FID____stack_stk_go_0_c110 15
-#define FID____stack_stk_go_0_k111 16
-#define FID____stack_stk_go_0_c112 17
-#define FID____stack_stk_go_0_c113 18
+#define FID____stack_stk_go_0_c112 15
+#define FID____stack_stk_go_0_k113 16
+#define FID____stack_stk_go_0_c114 17
+#define FID____stack_stk_go_0_c115 18
 #define FID____blake3_hash_at_0 19
 #define FID____b3io_segs 20
-#define FID____b3io_segs_k133 21
-#define FID____b3io_segs_k134 22
-#define FID____b3io_segs_j133 23
+#define FID____b3io_segs_k135 21
+#define FID____b3io_segs_k136 22
+#define FID____b3io_segs_j135 23
 #define FID____hash_hash 24
 #define FID____b3io_stream 25
-#define FID____b3io_stream_c140 26
-#define FID____b3io_stream_c141 27
-#define FID____b3io_stream_k142 28
-#define FID____b3io_stream_c143 29
+#define FID____b3io_stream_c142 26
+#define FID____b3io_stream_c143 27
+#define FID____b3io_stream_k144 28
+#define FID____b3io_stream_c145 29
 #define FID____hash_hash_at 30
 #define FID____b3io_hash 31
-#define FID____b3io_hash_k147 32
-#define FID____b3io_hash_k148 33
-#define FID____b3io_hash_k149 34
-#define FID____b3io_hash_k150 35
-#define FID____b3io_hash_j149 36
+#define FID____b3io_hash_k149 32
+#define FID____b3io_hash_k150 33
+#define FID____b3io_hash_k151 34
+#define FID____b3io_hash_k152 35
+#define FID____b3io_hash_j151 36
 #define FID____b3io_fill 37
-#define FID____b3io_fill_k153 38
-#define FID____b3io_fill_c154 39
-#define FID____b3io_fill_c155 40
-#define FID____b3io_fill_k_c156 41
-#define FID____b3io_fill_k157 42
-#define FID____b3io_fill_c158 43
-#define FID____b3io_fill_c159 44
-#define FID____b3io_fill_k160 45
-#define FID____b3io_fill_c161 46
-#define FID____b3io_fill_c162 47
-#define FID____b3io_fill_c163 48
-#define FID____b3io_fill_c164 49
-#define FID____b3io_fill_c165 50
-#define FID____b3io_fill_c166 51
+#define FID____b3io_fill_k155 38
+#define FID____b3io_fill_c156 39
+#define FID____b3io_fill_c157 40
+#define FID____b3io_fill_k_c158 41
+#define FID____b3io_fill_k159 42
+#define FID____b3io_fill_c160 43
+#define FID____b3io_fill_c161 44
+#define FID____b3io_fill_k162 45
+#define FID____b3io_fill_c163 46
+#define FID____b3io_fill_c164 47
+#define FID____b3io_fill_c165 48
+#define FID____b3io_fill_c166 49
+#define FID____b3io_fill_c167 50
+#define FID____b3io_fill_c168 51
 #define FID_span 52
 #define FID_cvs 53
-#define FID_cvs_k178 54
-#define FID_cvs_k179 55
-#define FID_cvs_k180 56
-#define FID_cvs_j179 57
+#define FID_cvs_k180 54
+#define FID_cvs_k181 55
+#define FID_cvs_k182 56
+#define FID_cvs_j181 57
 #define FID_work 58
-#define FID_work_k183 59
-#define FID_work_c184 60
-#define FID_work_c185 61
-#define FID_work_k186 62
-#define FID_work_k187 63
-#define FID_work_c188 64
-#define FID_work_c189 65
-#define FID_work_c190 66
-#define FID_work_c191 67
+#define FID_work_k185 59
+#define FID_work_c186 60
+#define FID_work_c187 61
+#define FID_work_k188 62
+#define FID_work_k189 63
+#define FID_work_c190 64
+#define FID_work_c191 65
+#define FID_work_c192 66
+#define FID_work_c193 67
 #define FID_serve 68
-#define FID_serve_c193 69
-#define FID_serve_c194 70
-#define FID_serve_c195 71
-#define FID_serve_k196 72
-#define FID_serve_c197 73
-#define FID_serve_c198 74
+#define FID_serve_c195 69
+#define FID_serve_c196 70
+#define FID_serve_c197 71
+#define FID_serve_k198 72
+#define FID_serve_c199 73
+#define FID_serve_c200 74
 #define FID_IO_pure 75
 #define FID_laps 76
-#define FID_laps_c201 77
-#define FID_laps_k202 78
-#define FID_laps_c203 79
-#define FID_laps_c204 80
+#define FID_laps_c203 77
+#define FID_laps_k204 78
+#define FID_laps_c205 79
+#define FID_laps_c206 80
 #define FID_IO_bind 81
-#define FID_IO_bind_c206 82
-#define FID_IO_bind_k207 83
+#define FID_IO_bind_c208 82
+#define FID_IO_bind_k209 83
 #define FID_main 84
-#define FID_main_c209 85
-#define FID_main_c210 86
+#define FID_main_c211 85
+#define FID_main_c212 86
 #define FID_IO_thread_count 87
 #define FID_Eng_next 88
 #define FID_Eng_done 89
@@ -566,7 +566,7 @@ CONSTV Cid CID_T[] = { { 2, 0, 0 }, { 0, 0, 0 }, { 2, 0, 0 }, { 2, 1, 0 }, { 1, 
 
 #define WL_ALL e, sp, seq, rn, r0, r1, r2, r3, r4, r5, rp, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, r16, r17, r18, r19, r20, r21, r22, r23, r24, r25
 
-#define WL_TABLE WL_X(FID____b3io_stream_seg) WL_X(FID____b3io_stream_seg_c85) WL_X(FID____b3io_stream_seg_c86) WL_X(FID____b3io_stream_seg_k87) WL_X(FID____b3io_stream_seg_c88) WL_X(FID____b3io_part_cv) WL_X(FID____blake3_tree8_k_0) WL_X(FID____blake3_tree8_k_0_k92) WL_X(FID____blake3_tree8_k_0_k93) WL_X(FID____blake3_tree8_k_0_j92) WL_X(FID____blake3_tree8_0) WL_X(FID____blake3_tree8_0_k100) WL_X(FID____blake3_tree8_0_k101) WL_X(FID____blake3_tree8_0_j100) WL_X(FID____stack_stk_go_0) WL_X(FID____stack_stk_go_0_c110) WL_X(FID____stack_stk_go_0_k111) WL_X(FID____stack_stk_go_0_c112) WL_X(FID____stack_stk_go_0_c113) WL_X(FID____blake3_hash_at_0) WL_X(FID____b3io_segs) WL_X(FID____b3io_segs_k133) WL_X(FID____b3io_segs_k134) WL_X(FID____b3io_segs_j133) WL_X(FID____hash_hash) WL_X(FID____b3io_stream) WL_X(FID____b3io_stream_c140) WL_X(FID____b3io_stream_c141) WL_X(FID____b3io_stream_k142) WL_X(FID____b3io_stream_c143) WL_X(FID____hash_hash_at) WL_X(FID____b3io_hash) WL_X(FID____b3io_hash_k147) WL_X(FID____b3io_hash_k148) WL_X(FID____b3io_hash_k149) WL_X(FID____b3io_hash_k150) WL_X(FID____b3io_hash_j149) WL_X(FID____b3io_fill) WL_X(FID____b3io_fill_k153) WL_X(FID____b3io_fill_c154) WL_X(FID____b3io_fill_c155) WL_X(FID____b3io_fill_k_c156) WL_X(FID____b3io_fill_k157) WL_X(FID____b3io_fill_c158) WL_X(FID____b3io_fill_c159) WL_X(FID____b3io_fill_k160) WL_X(FID____b3io_fill_c161) WL_X(FID____b3io_fill_c162) WL_X(FID____b3io_fill_c163) WL_X(FID____b3io_fill_c164) WL_X(FID____b3io_fill_c165) WL_X(FID____b3io_fill_c166) WL_X(FID_span) WL_X(FID_cvs) WL_X(FID_cvs_k178) WL_X(FID_cvs_k179) WL_X(FID_cvs_k180) WL_X(FID_cvs_j179) WL_X(FID_work) WL_X(FID_work_k183) WL_X(FID_work_c184) WL_X(FID_work_c185) WL_X(FID_work_k186) WL_X(FID_work_k187) WL_X(FID_work_c188) WL_X(FID_work_c189) WL_X(FID_work_c190) WL_X(FID_work_c191) WL_X(FID_serve) WL_X(FID_serve_c193) WL_X(FID_serve_c194) WL_X(FID_serve_c195) WL_X(FID_serve_k196) WL_X(FID_serve_c197) WL_X(FID_serve_c198) WL_X(FID_IO_pure) WL_X(FID_laps) WL_X(FID_laps_c201) WL_X(FID_laps_k202) WL_X(FID_laps_c203) WL_X(FID_laps_c204) WL_X(FID_IO_bind) WL_X(FID_IO_bind_c206) WL_X(FID_IO_bind_k207) WL_X(FID_main) WL_X(FID_main_c209) WL_X(FID_main_c210) WL_X(FID_IO_thread_count) WL_X(FID_Eng_next) WL_X(FID_Eng_done) WL_X(FID____b3io_B3IO_take) WL_X(FID____b3io_B3IO_give) WL_X(FID____b3io_B3IO_release) WL_X(FID____b3io_B3IO_seg) WL_X(FID_IO_emit) WL_X(FID_Clo_apply) WL_X(FID_EXIT)
+#define WL_TABLE WL_X(FID____b3io_stream_seg) WL_X(FID____b3io_stream_seg_c87) WL_X(FID____b3io_stream_seg_c88) WL_X(FID____b3io_stream_seg_k89) WL_X(FID____b3io_stream_seg_c90) WL_X(FID____b3io_part_cv) WL_X(FID____blake3_tree8_k_0) WL_X(FID____blake3_tree8_k_0_k94) WL_X(FID____blake3_tree8_k_0_k95) WL_X(FID____blake3_tree8_k_0_j94) WL_X(FID____blake3_tree8_0) WL_X(FID____blake3_tree8_0_k102) WL_X(FID____blake3_tree8_0_k103) WL_X(FID____blake3_tree8_0_j102) WL_X(FID____stack_stk_go_0) WL_X(FID____stack_stk_go_0_c112) WL_X(FID____stack_stk_go_0_k113) WL_X(FID____stack_stk_go_0_c114) WL_X(FID____stack_stk_go_0_c115) WL_X(FID____blake3_hash_at_0) WL_X(FID____b3io_segs) WL_X(FID____b3io_segs_k135) WL_X(FID____b3io_segs_k136) WL_X(FID____b3io_segs_j135) WL_X(FID____hash_hash) WL_X(FID____b3io_stream) WL_X(FID____b3io_stream_c142) WL_X(FID____b3io_stream_c143) WL_X(FID____b3io_stream_k144) WL_X(FID____b3io_stream_c145) WL_X(FID____hash_hash_at) WL_X(FID____b3io_hash) WL_X(FID____b3io_hash_k149) WL_X(FID____b3io_hash_k150) WL_X(FID____b3io_hash_k151) WL_X(FID____b3io_hash_k152) WL_X(FID____b3io_hash_j151) WL_X(FID____b3io_fill) WL_X(FID____b3io_fill_k155) WL_X(FID____b3io_fill_c156) WL_X(FID____b3io_fill_c157) WL_X(FID____b3io_fill_k_c158) WL_X(FID____b3io_fill_k159) WL_X(FID____b3io_fill_c160) WL_X(FID____b3io_fill_c161) WL_X(FID____b3io_fill_k162) WL_X(FID____b3io_fill_c163) WL_X(FID____b3io_fill_c164) WL_X(FID____b3io_fill_c165) WL_X(FID____b3io_fill_c166) WL_X(FID____b3io_fill_c167) WL_X(FID____b3io_fill_c168) WL_X(FID_span) WL_X(FID_cvs) WL_X(FID_cvs_k180) WL_X(FID_cvs_k181) WL_X(FID_cvs_k182) WL_X(FID_cvs_j181) WL_X(FID_work) WL_X(FID_work_k185) WL_X(FID_work_c186) WL_X(FID_work_c187) WL_X(FID_work_k188) WL_X(FID_work_k189) WL_X(FID_work_c190) WL_X(FID_work_c191) WL_X(FID_work_c192) WL_X(FID_work_c193) WL_X(FID_serve) WL_X(FID_serve_c195) WL_X(FID_serve_c196) WL_X(FID_serve_c197) WL_X(FID_serve_k198) WL_X(FID_serve_c199) WL_X(FID_serve_c200) WL_X(FID_IO_pure) WL_X(FID_laps) WL_X(FID_laps_c203) WL_X(FID_laps_k204) WL_X(FID_laps_c205) WL_X(FID_laps_c206) WL_X(FID_IO_bind) WL_X(FID_IO_bind_c208) WL_X(FID_IO_bind_k209) WL_X(FID_main) WL_X(FID_main_c211) WL_X(FID_main_c212) WL_X(FID_IO_thread_count) WL_X(FID_Eng_next) WL_X(FID_Eng_done) WL_X(FID____b3io_B3IO_take) WL_X(FID____b3io_B3IO_give) WL_X(FID____b3io_B3IO_release) WL_X(FID____b3io_B3IO_seg) WL_X(FID_IO_emit) WL_X(FID_Clo_apply) WL_X(FID_EXIT)
 #define MAIN_FID FID_main
 #define MAIN_PURE 0
 #define BLK_SHR 1
@@ -31189,17 +31189,7 @@ INLINE Term spin_38(Env e, THR Term* o, Term r0) {
   return 1;
 }
 
-INLINE Term spin_39(Env e, THR Term* o, Term r0) {
-  u32 wpoll = 0;
-  Term _p_2 = r0;
-  WL_SPIN
-    o[0] = TAB_AT(TAB_1, _p_2, 1);
-  break;
-  }
-  return 1;
-}
-
-DFAR Term spin_40(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65, u32 r66, u32 r67, u32 r68, u32 r69, u32 r70, u32 r71, u32 r72, u32 r73, u32 r74, u32 r75, u32 r76, u32 r77, u32 r78, u32 r79, u32 r80, u32 r81, u32 r82, u32 r83, u32 r84, u32 r85, u32 r86, u32 r87, u32 r88, u32 r89, u32 r90, u32 r91, u32 r92, u32 r93, u32 r94, u32 r95, u32 r96, u32 r97, u32 r98, u32 r99, u32 r100, u32 r101, u32 r102, u32 r103, u32 r104, u32 r105, u32 r106, u32 r107, u32 r108, u32 r109, u32 r110, u32 r111, u32 r112, u32 r113, u32 r114, u32 r115, u32 r116, u32 r117, u32 r118, u32 r119, u32 r120, u32 r121, u32 r122, u32 r123, u32 r124, u32 r125, u32 r126, u32 r127, u32 r128, u32 r129, u32 r130, u32 r131, u32 r132, u32 r133, u32 r134, u32 r135, u32 r136, u32 r137, u32 r138, u32 r139, u32 r140, u32 r141, u32 r142, u32 r143, u32 r144, u32 r145, u32 r146, u32 r147, u32 r148, u32 r149, u32 r150, u32 r151, u32 r152, u32 r153, u32 r154, u32 r155, u32 r156, u32 r157, u32 r158, u32 r159, u32 r160, u32 r161, u32 r162, u32 r163, u32 r164, u32 r165, u32 r166, u32 r167, u32 r168, u32 r169, u32 r170, u32 r171, u32 r172, u32 r173, u32 r174, u32 r175, u32 r176, u32 r177, u32 r178, u32 r179, u32 r180, u32 r181, u32 r182, u32 r183, u32 r184, u32 r185, u32 r186, u32 r187, u32 r188, u32 r189, u32 r190, u32 r191, u32 r192, u32 r193, u32 r194, u32 r195, u32 r196) {
+INLINE Term spin_39(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65, u32 r66, u32 r67, u32 r68, u32 r69, u32 r70, u32 r71) {
   u32 wpoll = 0;
   u32 _cv_64 = r0;
   u32 _cv_65 = r1;
@@ -31265,6 +31255,160 @@ DFAR Term spin_40(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u3
   u32 _cv_125 = r61;
   u32 _cv_126 = r62;
   u32 _cv_127 = r63;
+  u32 _d_8 = r64;
+  u32 _d_9 = r65;
+  u32 _d_10 = r66;
+  u32 _d_11 = r67;
+  u32 _d_12 = r68;
+  u32 _d_13 = r69;
+  u32 _d_14 = r70;
+  u32 _d_15 = r71;
+  WL_SPIN
+    o[0] = U32_BIN(_cv_64, ^, _d_8);
+    o[1] = U32_BIN(_cv_65, ^, _d_8);
+    o[2] = U32_BIN(_cv_66, ^, _d_8);
+    o[3] = U32_BIN(_cv_67, ^, _d_8);
+    o[4] = U32_BIN(_cv_68, ^, _d_8);
+    o[5] = U32_BIN(_cv_69, ^, _d_8);
+    o[6] = U32_BIN(_cv_70, ^, _d_8);
+    o[7] = U32_BIN(_cv_71, ^, _d_8);
+    o[8] = U32_BIN(_cv_72, ^, _d_9);
+    o[9] = U32_BIN(_cv_73, ^, _d_9);
+    o[10] = U32_BIN(_cv_74, ^, _d_9);
+    o[11] = U32_BIN(_cv_75, ^, _d_9);
+    o[12] = U32_BIN(_cv_76, ^, _d_9);
+    o[13] = U32_BIN(_cv_77, ^, _d_9);
+    o[14] = U32_BIN(_cv_78, ^, _d_9);
+    o[15] = U32_BIN(_cv_79, ^, _d_9);
+    o[16] = U32_BIN(_cv_80, ^, _d_10);
+    o[17] = U32_BIN(_cv_81, ^, _d_10);
+    o[18] = U32_BIN(_cv_82, ^, _d_10);
+    o[19] = U32_BIN(_cv_83, ^, _d_10);
+    o[20] = U32_BIN(_cv_84, ^, _d_10);
+    o[21] = U32_BIN(_cv_85, ^, _d_10);
+    o[22] = U32_BIN(_cv_86, ^, _d_10);
+    o[23] = U32_BIN(_cv_87, ^, _d_10);
+    o[24] = U32_BIN(_cv_88, ^, _d_11);
+    o[25] = U32_BIN(_cv_89, ^, _d_11);
+    o[26] = U32_BIN(_cv_90, ^, _d_11);
+    o[27] = U32_BIN(_cv_91, ^, _d_11);
+    o[28] = U32_BIN(_cv_92, ^, _d_11);
+    o[29] = U32_BIN(_cv_93, ^, _d_11);
+    o[30] = U32_BIN(_cv_94, ^, _d_11);
+    o[31] = U32_BIN(_cv_95, ^, _d_11);
+    o[32] = U32_BIN(_cv_96, ^, _d_12);
+    o[33] = U32_BIN(_cv_97, ^, _d_12);
+    o[34] = U32_BIN(_cv_98, ^, _d_12);
+    o[35] = U32_BIN(_cv_99, ^, _d_12);
+    o[36] = U32_BIN(_cv_100, ^, _d_12);
+    o[37] = U32_BIN(_cv_101, ^, _d_12);
+    o[38] = U32_BIN(_cv_102, ^, _d_12);
+    o[39] = U32_BIN(_cv_103, ^, _d_12);
+    o[40] = U32_BIN(_cv_104, ^, _d_13);
+    o[41] = U32_BIN(_cv_105, ^, _d_13);
+    o[42] = U32_BIN(_cv_106, ^, _d_13);
+    o[43] = U32_BIN(_cv_107, ^, _d_13);
+    o[44] = U32_BIN(_cv_108, ^, _d_13);
+    o[45] = U32_BIN(_cv_109, ^, _d_13);
+    o[46] = U32_BIN(_cv_110, ^, _d_13);
+    o[47] = U32_BIN(_cv_111, ^, _d_13);
+    o[48] = U32_BIN(_cv_112, ^, _d_14);
+    o[49] = U32_BIN(_cv_113, ^, _d_14);
+    o[50] = U32_BIN(_cv_114, ^, _d_14);
+    o[51] = U32_BIN(_cv_115, ^, _d_14);
+    o[52] = U32_BIN(_cv_116, ^, _d_14);
+    o[53] = U32_BIN(_cv_117, ^, _d_14);
+    o[54] = U32_BIN(_cv_118, ^, _d_14);
+    o[55] = U32_BIN(_cv_119, ^, _d_14);
+    o[56] = U32_BIN(_cv_120, ^, _d_15);
+    o[57] = U32_BIN(_cv_121, ^, _d_15);
+    o[58] = U32_BIN(_cv_122, ^, _d_15);
+    o[59] = U32_BIN(_cv_123, ^, _d_15);
+    o[60] = U32_BIN(_cv_124, ^, _d_15);
+    o[61] = U32_BIN(_cv_125, ^, _d_15);
+    o[62] = U32_BIN(_cv_126, ^, _d_15);
+    o[63] = U32_BIN(_cv_127, ^, _d_15);
+  break;
+  }
+  return 1;
+}
+
+INLINE Term spin_40(Env e, THR Term* o, Term r0) {
+  u32 wpoll = 0;
+  Term _p_2 = r0;
+  WL_SPIN
+    o[0] = TAB_AT(TAB_1, _p_2, 1);
+  break;
+  }
+  return 1;
+}
+
+DFAR Term spin_41(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65, u32 r66, u32 r67, u32 r68, u32 r69, u32 r70, u32 r71, u32 r72, u32 r73, u32 r74, u32 r75, u32 r76, u32 r77, u32 r78, u32 r79, u32 r80, u32 r81, u32 r82, u32 r83, u32 r84, u32 r85, u32 r86, u32 r87, u32 r88, u32 r89, u32 r90, u32 r91, u32 r92, u32 r93, u32 r94, u32 r95, u32 r96, u32 r97, u32 r98, u32 r99, u32 r100, u32 r101, u32 r102, u32 r103, u32 r104, u32 r105, u32 r106, u32 r107, u32 r108, u32 r109, u32 r110, u32 r111, u32 r112, u32 r113, u32 r114, u32 r115, u32 r116, u32 r117, u32 r118, u32 r119, u32 r120, u32 r121, u32 r122, u32 r123, u32 r124, u32 r125, u32 r126, u32 r127, u32 r128, u32 r129, u32 r130, u32 r131, u32 r132, u32 r133, u32 r134, u32 r135, u32 r136, u32 r137, u32 r138, u32 r139, u32 r140, u32 r141, u32 r142, u32 r143, u32 r144, u32 r145, u32 r146, u32 r147, u32 r148, u32 r149, u32 r150, u32 r151, u32 r152, u32 r153, u32 r154, u32 r155, u32 r156, u32 r157, u32 r158, u32 r159, u32 r160, u32 r161, u32 r162, u32 r163, u32 r164, u32 r165, u32 r166, u32 r167, u32 r168, u32 r169, u32 r170, u32 r171, u32 r172, u32 r173, u32 r174, u32 r175, u32 r176, u32 r177, u32 r178, u32 r179, u32 r180, u32 r181, u32 r182, u32 r183, u32 r184, u32 r185, u32 r186, u32 r187, u32 r188, u32 r189, u32 r190, u32 r191, u32 r192, u32 r193, u32 r194, u32 r195, u32 r196) {
+  u32 wpoll = 0;
+  u32 _cv_128 = r0;
+  u32 _cv_129 = r1;
+  u32 _cv_130 = r2;
+  u32 _cv_131 = r3;
+  u32 _cv_132 = r4;
+  u32 _cv_133 = r5;
+  u32 _cv_134 = r6;
+  u32 _cv_135 = r7;
+  u32 _cv_136 = r8;
+  u32 _cv_137 = r9;
+  u32 _cv_138 = r10;
+  u32 _cv_139 = r11;
+  u32 _cv_140 = r12;
+  u32 _cv_141 = r13;
+  u32 _cv_142 = r14;
+  u32 _cv_143 = r15;
+  u32 _cv_144 = r16;
+  u32 _cv_145 = r17;
+  u32 _cv_146 = r18;
+  u32 _cv_147 = r19;
+  u32 _cv_148 = r20;
+  u32 _cv_149 = r21;
+  u32 _cv_150 = r22;
+  u32 _cv_151 = r23;
+  u32 _cv_152 = r24;
+  u32 _cv_153 = r25;
+  u32 _cv_154 = r26;
+  u32 _cv_155 = r27;
+  u32 _cv_156 = r28;
+  u32 _cv_157 = r29;
+  u32 _cv_158 = r30;
+  u32 _cv_159 = r31;
+  u32 _cv_160 = r32;
+  u32 _cv_161 = r33;
+  u32 _cv_162 = r34;
+  u32 _cv_163 = r35;
+  u32 _cv_164 = r36;
+  u32 _cv_165 = r37;
+  u32 _cv_166 = r38;
+  u32 _cv_167 = r39;
+  u32 _cv_168 = r40;
+  u32 _cv_169 = r41;
+  u32 _cv_170 = r42;
+  u32 _cv_171 = r43;
+  u32 _cv_172 = r44;
+  u32 _cv_173 = r45;
+  u32 _cv_174 = r46;
+  u32 _cv_175 = r47;
+  u32 _cv_176 = r48;
+  u32 _cv_177 = r49;
+  u32 _cv_178 = r50;
+  u32 _cv_179 = r51;
+  u32 _cv_180 = r52;
+  u32 _cv_181 = r53;
+  u32 _cv_182 = r54;
+  u32 _cv_183 = r55;
+  u32 _cv_184 = r56;
+  u32 _cv_185 = r57;
+  u32 _cv_186 = r58;
+  u32 _cv_187 = r59;
+  u32 _cv_188 = r60;
+  u32 _cv_189 = r61;
+  u32 _cv_190 = r62;
+  u32 _cv_191 = r63;
   u32 _m_0 = r64;
   u32 _m_1 = r65;
   u32 _m_2 = r66;
@@ -31407,14 +31551,14 @@ DFAR Term spin_40(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u3
     u32 _t5_0 = U32_BIN(_ctr_1, +, U32_BIN(_step_0, *, 5ull));
     u32 _t6_0 = U32_BIN(_ctr_1, +, U32_BIN(_step_0, *, 6ull));
     u32 _t7_0 = U32_BIN(_ctr_1, +, U32_BIN(_step_0, *, 7ull));
-    u32 _x0_0_1_0 = U32_BIN(U32_BIN(_cv_64, +, _cv_96), +, _m_0);
-    u32 _x1_0_1_0 = U32_BIN(U32_BIN(_cv_65, +, _cv_97), +, _m_1);
-    u32 _x2_0_1_0 = U32_BIN(U32_BIN(_cv_66, +, _cv_98), +, _m_2);
-    u32 _x3_0_1_0 = U32_BIN(U32_BIN(_cv_67, +, _cv_99), +, _m_3);
-    u32 _x4_0_1_0 = U32_BIN(U32_BIN(_cv_68, +, _cv_100), +, _m_4);
-    u32 _x5_0_1_0 = U32_BIN(U32_BIN(_cv_69, +, _cv_101), +, _m_5);
-    u32 _x6_0_1_0 = U32_BIN(U32_BIN(_cv_70, +, _cv_102), +, _m_6);
-    u32 _x7_0_1_0 = U32_BIN(U32_BIN(_cv_71, +, _cv_103), +, _m_7);
+    u32 _x0_0_1_0 = U32_BIN(U32_BIN(_cv_128, +, _cv_160), +, _m_0);
+    u32 _x1_0_1_0 = U32_BIN(U32_BIN(_cv_129, +, _cv_161), +, _m_1);
+    u32 _x2_0_1_0 = U32_BIN(U32_BIN(_cv_130, +, _cv_162), +, _m_2);
+    u32 _x3_0_1_0 = U32_BIN(U32_BIN(_cv_131, +, _cv_163), +, _m_3);
+    u32 _x4_0_1_0 = U32_BIN(U32_BIN(_cv_132, +, _cv_164), +, _m_4);
+    u32 _x5_0_1_0 = U32_BIN(U32_BIN(_cv_133, +, _cv_165), +, _m_5);
+    u32 _x6_0_1_0 = U32_BIN(U32_BIN(_cv_134, +, _cv_166), +, _m_6);
+    u32 _x7_0_1_0 = U32_BIN(U32_BIN(_cv_135, +, _cv_167), +, _m_7);
     u32 _v_504 = 0;
     Term _o_11[1];
     if (spin_23(e, _o_11, U32_BIN(_t0_0, ^, _x0_0_1_0)) == 0) {
@@ -31473,49 +31617,49 @@ DFAR Term spin_40(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u3
     u32 _x7_8_1_0 = U32_BIN(1779033703ull, +, _v_511);
     u32 _v_512 = 0;
     Term _o_19[1];
-    if (spin_24(e, _o_19, U32_BIN(_cv_96, ^, _x0_8_1_0)) == 0) {
+    if (spin_24(e, _o_19, U32_BIN(_cv_160, ^, _x0_8_1_0)) == 0) {
       return 0;
     }
     _v_512 = (u32)_o_19[0];
     u32 _v_513 = 0;
     Term _o_20[1];
-    if (spin_24(e, _o_20, U32_BIN(_cv_97, ^, _x1_8_1_0)) == 0) {
+    if (spin_24(e, _o_20, U32_BIN(_cv_161, ^, _x1_8_1_0)) == 0) {
       return 0;
     }
     _v_513 = (u32)_o_20[0];
     u32 _v_514 = 0;
     Term _o_21[1];
-    if (spin_24(e, _o_21, U32_BIN(_cv_98, ^, _x2_8_1_0)) == 0) {
+    if (spin_24(e, _o_21, U32_BIN(_cv_162, ^, _x2_8_1_0)) == 0) {
       return 0;
     }
     _v_514 = (u32)_o_21[0];
     u32 _v_515 = 0;
     Term _o_22[1];
-    if (spin_24(e, _o_22, U32_BIN(_cv_99, ^, _x3_8_1_0)) == 0) {
+    if (spin_24(e, _o_22, U32_BIN(_cv_163, ^, _x3_8_1_0)) == 0) {
       return 0;
     }
     _v_515 = (u32)_o_22[0];
     u32 _v_516 = 0;
     Term _o_23[1];
-    if (spin_24(e, _o_23, U32_BIN(_cv_100, ^, _x4_8_1_0)) == 0) {
+    if (spin_24(e, _o_23, U32_BIN(_cv_164, ^, _x4_8_1_0)) == 0) {
       return 0;
     }
     _v_516 = (u32)_o_23[0];
     u32 _v_517 = 0;
     Term _o_24[1];
-    if (spin_24(e, _o_24, U32_BIN(_cv_101, ^, _x5_8_1_0)) == 0) {
+    if (spin_24(e, _o_24, U32_BIN(_cv_165, ^, _x5_8_1_0)) == 0) {
       return 0;
     }
     _v_517 = (u32)_o_24[0];
     u32 _v_518 = 0;
     Term _o_25[1];
-    if (spin_24(e, _o_25, U32_BIN(_cv_102, ^, _x6_8_1_0)) == 0) {
+    if (spin_24(e, _o_25, U32_BIN(_cv_166, ^, _x6_8_1_0)) == 0) {
       return 0;
     }
     _v_518 = (u32)_o_25[0];
     u32 _v_519 = 0;
     Term _o_26[1];
-    if (spin_24(e, _o_26, U32_BIN(_cv_103, ^, _x7_8_1_0)) == 0) {
+    if (spin_24(e, _o_26, U32_BIN(_cv_167, ^, _x7_8_1_0)) == 0) {
       return 0;
     }
     _v_519 = (u32)_o_26[0];
@@ -31631,14 +31775,14 @@ DFAR Term spin_40(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u3
       return 0;
     }
     _v_535 = (u32)_o_42[0];
-    u32 _x0_1_1_0 = U32_BIN(U32_BIN(_cv_72, +, _cv_104), +, _m_16);
-    u32 _x1_1_1_0 = U32_BIN(U32_BIN(_cv_73, +, _cv_105), +, _m_17);
-    u32 _x2_1_1_0 = U32_BIN(U32_BIN(_cv_74, +, _cv_106), +, _m_18);
-    u32 _x3_1_1_0 = U32_BIN(U32_BIN(_cv_75, +, _cv_107), +, _m_19);
-    u32 _x4_1_1_0 = U32_BIN(U32_BIN(_cv_76, +, _cv_108), +, _m_20);
-    u32 _x5_1_1_0 = U32_BIN(U32_BIN(_cv_77, +, _cv_109), +, _m_21);
-    u32 _x6_1_1_0 = U32_BIN(U32_BIN(_cv_78, +, _cv_110), +, _m_22);
-    u32 _x7_1_1_0 = U32_BIN(U32_BIN(_cv_79, +, _cv_111), +, _m_23);
+    u32 _x0_1_1_0 = U32_BIN(U32_BIN(_cv_136, +, _cv_168), +, _m_16);
+    u32 _x1_1_1_0 = U32_BIN(U32_BIN(_cv_137, +, _cv_169), +, _m_17);
+    u32 _x2_1_1_0 = U32_BIN(U32_BIN(_cv_138, +, _cv_170), +, _m_18);
+    u32 _x3_1_1_0 = U32_BIN(U32_BIN(_cv_139, +, _cv_171), +, _m_19);
+    u32 _x4_1_1_0 = U32_BIN(U32_BIN(_cv_140, +, _cv_172), +, _m_20);
+    u32 _x5_1_1_0 = U32_BIN(U32_BIN(_cv_141, +, _cv_173), +, _m_21);
+    u32 _x6_1_1_0 = U32_BIN(U32_BIN(_cv_142, +, _cv_174), +, _m_22);
+    u32 _x7_1_1_0 = U32_BIN(U32_BIN(_cv_143, +, _cv_175), +, _m_23);
     u32 _v_536 = 0;
     Term _o_43[1];
     if (spin_23(e, _o_43, U32_BIN(_hi_3, ^, _x0_1_1_0)) == 0) {
@@ -31697,49 +31841,49 @@ DFAR Term spin_40(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u3
     u32 _x7_9_1_0 = U32_BIN(3144134277ull, +, _v_543);
     u32 _v_544 = 0;
     Term _o_51[1];
-    if (spin_24(e, _o_51, U32_BIN(_cv_104, ^, _x0_9_1_0)) == 0) {
+    if (spin_24(e, _o_51, U32_BIN(_cv_168, ^, _x0_9_1_0)) == 0) {
       return 0;
     }
     _v_544 = (u32)_o_51[0];
     u32 _v_545 = 0;
     Term _o_52[1];
-    if (spin_24(e, _o_52, U32_BIN(_cv_105, ^, _x1_9_1_0)) == 0) {
+    if (spin_24(e, _o_52, U32_BIN(_cv_169, ^, _x1_9_1_0)) == 0) {
       return 0;
     }
     _v_545 = (u32)_o_52[0];
     u32 _v_546 = 0;
     Term _o_53[1];
-    if (spin_24(e, _o_53, U32_BIN(_cv_106, ^, _x2_9_1_0)) == 0) {
+    if (spin_24(e, _o_53, U32_BIN(_cv_170, ^, _x2_9_1_0)) == 0) {
       return 0;
     }
     _v_546 = (u32)_o_53[0];
     u32 _v_547 = 0;
     Term _o_54[1];
-    if (spin_24(e, _o_54, U32_BIN(_cv_107, ^, _x3_9_1_0)) == 0) {
+    if (spin_24(e, _o_54, U32_BIN(_cv_171, ^, _x3_9_1_0)) == 0) {
       return 0;
     }
     _v_547 = (u32)_o_54[0];
     u32 _v_548 = 0;
     Term _o_55[1];
-    if (spin_24(e, _o_55, U32_BIN(_cv_108, ^, _x4_9_1_0)) == 0) {
+    if (spin_24(e, _o_55, U32_BIN(_cv_172, ^, _x4_9_1_0)) == 0) {
       return 0;
     }
     _v_548 = (u32)_o_55[0];
     u32 _v_549 = 0;
     Term _o_56[1];
-    if (spin_24(e, _o_56, U32_BIN(_cv_109, ^, _x5_9_1_0)) == 0) {
+    if (spin_24(e, _o_56, U32_BIN(_cv_173, ^, _x5_9_1_0)) == 0) {
       return 0;
     }
     _v_549 = (u32)_o_56[0];
     u32 _v_550 = 0;
     Term _o_57[1];
-    if (spin_24(e, _o_57, U32_BIN(_cv_110, ^, _x6_9_1_0)) == 0) {
+    if (spin_24(e, _o_57, U32_BIN(_cv_174, ^, _x6_9_1_0)) == 0) {
       return 0;
     }
     _v_550 = (u32)_o_57[0];
     u32 _v_551 = 0;
     Term _o_58[1];
-    if (spin_24(e, _o_58, U32_BIN(_cv_111, ^, _x7_9_1_0)) == 0) {
+    if (spin_24(e, _o_58, U32_BIN(_cv_175, ^, _x7_9_1_0)) == 0) {
       return 0;
     }
     _v_551 = (u32)_o_58[0];
@@ -31855,14 +31999,14 @@ DFAR Term spin_40(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u3
       return 0;
     }
     _v_567 = (u32)_o_74[0];
-    u32 _x0_2_1_0 = U32_BIN(U32_BIN(_cv_80, +, _cv_112), +, _m_32);
-    u32 _x1_2_1_0 = U32_BIN(U32_BIN(_cv_81, +, _cv_113), +, _m_33);
-    u32 _x2_2_1_0 = U32_BIN(U32_BIN(_cv_82, +, _cv_114), +, _m_34);
-    u32 _x3_2_1_0 = U32_BIN(U32_BIN(_cv_83, +, _cv_115), +, _m_35);
-    u32 _x4_2_1_0 = U32_BIN(U32_BIN(_cv_84, +, _cv_116), +, _m_36);
-    u32 _x5_2_1_0 = U32_BIN(U32_BIN(_cv_85, +, _cv_117), +, _m_37);
-    u32 _x6_2_1_0 = U32_BIN(U32_BIN(_cv_86, +, _cv_118), +, _m_38);
-    u32 _x7_2_1_0 = U32_BIN(U32_BIN(_cv_87, +, _cv_119), +, _m_39);
+    u32 _x0_2_1_0 = U32_BIN(U32_BIN(_cv_144, +, _cv_176), +, _m_32);
+    u32 _x1_2_1_0 = U32_BIN(U32_BIN(_cv_145, +, _cv_177), +, _m_33);
+    u32 _x2_2_1_0 = U32_BIN(U32_BIN(_cv_146, +, _cv_178), +, _m_34);
+    u32 _x3_2_1_0 = U32_BIN(U32_BIN(_cv_147, +, _cv_179), +, _m_35);
+    u32 _x4_2_1_0 = U32_BIN(U32_BIN(_cv_148, +, _cv_180), +, _m_36);
+    u32 _x5_2_1_0 = U32_BIN(U32_BIN(_cv_149, +, _cv_181), +, _m_37);
+    u32 _x6_2_1_0 = U32_BIN(U32_BIN(_cv_150, +, _cv_182), +, _m_38);
+    u32 _x7_2_1_0 = U32_BIN(U32_BIN(_cv_151, +, _cv_183), +, _m_39);
     u32 _v_568 = 0;
     Term _o_75[1];
     if (spin_23(e, _o_75, U32_BIN(_blen_0, ^, _x0_2_1_0)) == 0) {
@@ -31921,49 +32065,49 @@ DFAR Term spin_40(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u3
     u32 _x7_10_1_0 = U32_BIN(1013904242ull, +, _v_575);
     u32 _v_576 = 0;
     Term _o_83[1];
-    if (spin_24(e, _o_83, U32_BIN(_cv_112, ^, _x0_10_1_0)) == 0) {
+    if (spin_24(e, _o_83, U32_BIN(_cv_176, ^, _x0_10_1_0)) == 0) {
       return 0;
     }
     _v_576 = (u32)_o_83[0];
     u32 _v_577 = 0;
     Term _o_84[1];
-    if (spin_24(e, _o_84, U32_BIN(_cv_113, ^, _x1_10_1_0)) == 0) {
+    if (spin_24(e, _o_84, U32_BIN(_cv_177, ^, _x1_10_1_0)) == 0) {
       return 0;
     }
     _v_577 = (u32)_o_84[0];
     u32 _v_578 = 0;
     Term _o_85[1];
-    if (spin_24(e, _o_85, U32_BIN(_cv_114, ^, _x2_10_1_0)) == 0) {
+    if (spin_24(e, _o_85, U32_BIN(_cv_178, ^, _x2_10_1_0)) == 0) {
       return 0;
     }
     _v_578 = (u32)_o_85[0];
     u32 _v_579 = 0;
     Term _o_86[1];
-    if (spin_24(e, _o_86, U32_BIN(_cv_115, ^, _x3_10_1_0)) == 0) {
+    if (spin_24(e, _o_86, U32_BIN(_cv_179, ^, _x3_10_1_0)) == 0) {
       return 0;
     }
     _v_579 = (u32)_o_86[0];
     u32 _v_580 = 0;
     Term _o_87[1];
-    if (spin_24(e, _o_87, U32_BIN(_cv_116, ^, _x4_10_1_0)) == 0) {
+    if (spin_24(e, _o_87, U32_BIN(_cv_180, ^, _x4_10_1_0)) == 0) {
       return 0;
     }
     _v_580 = (u32)_o_87[0];
     u32 _v_581 = 0;
     Term _o_88[1];
-    if (spin_24(e, _o_88, U32_BIN(_cv_117, ^, _x5_10_1_0)) == 0) {
+    if (spin_24(e, _o_88, U32_BIN(_cv_181, ^, _x5_10_1_0)) == 0) {
       return 0;
     }
     _v_581 = (u32)_o_88[0];
     u32 _v_582 = 0;
     Term _o_89[1];
-    if (spin_24(e, _o_89, U32_BIN(_cv_118, ^, _x6_10_1_0)) == 0) {
+    if (spin_24(e, _o_89, U32_BIN(_cv_182, ^, _x6_10_1_0)) == 0) {
       return 0;
     }
     _v_582 = (u32)_o_89[0];
     u32 _v_583 = 0;
     Term _o_90[1];
-    if (spin_24(e, _o_90, U32_BIN(_cv_119, ^, _x7_10_1_0)) == 0) {
+    if (spin_24(e, _o_90, U32_BIN(_cv_183, ^, _x7_10_1_0)) == 0) {
       return 0;
     }
     _v_583 = (u32)_o_90[0];
@@ -32079,14 +32223,14 @@ DFAR Term spin_40(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u3
       return 0;
     }
     _v_599 = (u32)_o_106[0];
-    u32 _x0_3_1_0 = U32_BIN(U32_BIN(_cv_88, +, _cv_120), +, _m_48);
-    u32 _x1_3_1_0 = U32_BIN(U32_BIN(_cv_89, +, _cv_121), +, _m_49);
-    u32 _x2_3_1_0 = U32_BIN(U32_BIN(_cv_90, +, _cv_122), +, _m_50);
-    u32 _x3_3_1_0 = U32_BIN(U32_BIN(_cv_91, +, _cv_123), +, _m_51);
-    u32 _x4_3_1_0 = U32_BIN(U32_BIN(_cv_92, +, _cv_124), +, _m_52);
-    u32 _x5_3_1_0 = U32_BIN(U32_BIN(_cv_93, +, _cv_125), +, _m_53);
-    u32 _x6_3_1_0 = U32_BIN(U32_BIN(_cv_94, +, _cv_126), +, _m_54);
-    u32 _x7_3_1_0 = U32_BIN(U32_BIN(_cv_95, +, _cv_127), +, _m_55);
+    u32 _x0_3_1_0 = U32_BIN(U32_BIN(_cv_152, +, _cv_184), +, _m_48);
+    u32 _x1_3_1_0 = U32_BIN(U32_BIN(_cv_153, +, _cv_185), +, _m_49);
+    u32 _x2_3_1_0 = U32_BIN(U32_BIN(_cv_154, +, _cv_186), +, _m_50);
+    u32 _x3_3_1_0 = U32_BIN(U32_BIN(_cv_155, +, _cv_187), +, _m_51);
+    u32 _x4_3_1_0 = U32_BIN(U32_BIN(_cv_156, +, _cv_188), +, _m_52);
+    u32 _x5_3_1_0 = U32_BIN(U32_BIN(_cv_157, +, _cv_189), +, _m_53);
+    u32 _x6_3_1_0 = U32_BIN(U32_BIN(_cv_158, +, _cv_190), +, _m_54);
+    u32 _x7_3_1_0 = U32_BIN(U32_BIN(_cv_159, +, _cv_191), +, _m_55);
     u32 _v_600 = 0;
     Term _o_107[1];
     if (spin_23(e, _o_107, U32_BIN(_flags_0, ^, _x0_3_1_0)) == 0) {
@@ -32145,49 +32289,49 @@ DFAR Term spin_40(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u3
     u32 _x7_11_1_0 = U32_BIN(2773480762ull, +, _v_607);
     u32 _v_608 = 0;
     Term _o_115[1];
-    if (spin_24(e, _o_115, U32_BIN(_cv_120, ^, _x0_11_1_0)) == 0) {
+    if (spin_24(e, _o_115, U32_BIN(_cv_184, ^, _x0_11_1_0)) == 0) {
       return 0;
     }
     _v_608 = (u32)_o_115[0];
     u32 _v_609 = 0;
     Term _o_116[1];
-    if (spin_24(e, _o_116, U32_BIN(_cv_121, ^, _x1_11_1_0)) == 0) {
+    if (spin_24(e, _o_116, U32_BIN(_cv_185, ^, _x1_11_1_0)) == 0) {
       return 0;
     }
     _v_609 = (u32)_o_116[0];
     u32 _v_610 = 0;
     Term _o_117[1];
-    if (spin_24(e, _o_117, U32_BIN(_cv_122, ^, _x2_11_1_0)) == 0) {
+    if (spin_24(e, _o_117, U32_BIN(_cv_186, ^, _x2_11_1_0)) == 0) {
       return 0;
     }
     _v_610 = (u32)_o_117[0];
     u32 _v_611 = 0;
     Term _o_118[1];
-    if (spin_24(e, _o_118, U32_BIN(_cv_123, ^, _x3_11_1_0)) == 0) {
+    if (spin_24(e, _o_118, U32_BIN(_cv_187, ^, _x3_11_1_0)) == 0) {
       return 0;
     }
     _v_611 = (u32)_o_118[0];
     u32 _v_612 = 0;
     Term _o_119[1];
-    if (spin_24(e, _o_119, U32_BIN(_cv_124, ^, _x4_11_1_0)) == 0) {
+    if (spin_24(e, _o_119, U32_BIN(_cv_188, ^, _x4_11_1_0)) == 0) {
       return 0;
     }
     _v_612 = (u32)_o_119[0];
     u32 _v_613 = 0;
     Term _o_120[1];
-    if (spin_24(e, _o_120, U32_BIN(_cv_125, ^, _x5_11_1_0)) == 0) {
+    if (spin_24(e, _o_120, U32_BIN(_cv_189, ^, _x5_11_1_0)) == 0) {
       return 0;
     }
     _v_613 = (u32)_o_120[0];
     u32 _v_614 = 0;
     Term _o_121[1];
-    if (spin_24(e, _o_121, U32_BIN(_cv_126, ^, _x6_11_1_0)) == 0) {
+    if (spin_24(e, _o_121, U32_BIN(_cv_190, ^, _x6_11_1_0)) == 0) {
       return 0;
     }
     _v_614 = (u32)_o_121[0];
     u32 _v_615 = 0;
     Term _o_122[1];
-    if (spin_24(e, _o_122, U32_BIN(_cv_127, ^, _x7_11_1_0)) == 0) {
+    if (spin_24(e, _o_122, U32_BIN(_cv_191, ^, _x7_11_1_0)) == 0) {
       return 0;
     }
     _v_615 = (u32)_o_122[0];
@@ -44020,7 +44164,7 @@ DFAR Term spin_40(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u3
   return 1;
 }
 
-DFAR Term spin_37(Env e, THR Term* o, Term r0, Term r1, u64 q1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65, u32 r66, u32 r67, u32 r68, u32 r69, u32 r70, u32 r71, u32 r72, u32 r73, u32 r74, u32 r75, u32 r76, u32 r77, u32 r78, u32 r79, u32 r80, u32 r81, u32 r82, u32 r83, u32 r84, u32 r85, u32 r86, u32 r87, u32 r88, u32 r89, u32 r90, u32 r91, u32 r92, u32 r93, u32 r94, u32 r95, u32 r96, u32 r97, u32 r98, u32 r99, u32 r100, u32 r101, u32 r102, u32 r103, u32 r104, u32 r105, u32 r106, u32 r107, u32 r108, u32 r109, u32 r110, u32 r111, u32 r112, u32 r113, u32 r114, u32 r115, u32 r116, u32 r117, u32 r118, u32 r119, u32 r120, u32 r121, u32 r122, u32 r123, u32 r124, u32 r125, u32 r126, u32 r127, u32 r128, u32 r129, u32 r130, u32 r131, u32 r132, u32 r133, u32 r134, u32 r135, u32 r136, u32 r137, u32 r138, u32 r139, u32 r140, u32 r141, u32 r142, u32 r143, u32 r144, u32 r145, u32 r146, u32 r147, u32 r148, u32 r149, u32 r150, u32 r151, u32 r152, u32 r153, u32 r154, u32 r155, u32 r156, u32 r157, u32 r158, u32 r159, u32 r160, u32 r161, u32 r162, u32 r163, u32 r164, u32 r165, u32 r166, u32 r167, u32 r168, u32 r169, u32 r170, u32 r171, u32 r172, u32 r173, u32 r174, u32 r175, u32 r176, u32 r177, u32 r178, u32 r179, u32 r180, u32 r181, u32 r182, u32 r183, u32 r184, u32 r185, u32 r186, u32 r187, u32 r188, u32 r189, u32 r190, u32 r191, u32 r192, u32 r193, u32 r194, u32 r195, u32 r196, u32 r197, u32 r198) {
+DFAR Term spin_37(Env e, THR Term* o, Term r0, Term r1, u64 q1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65, u32 r66, u32 r67, u32 r68, u32 r69, u32 r70, u32 r71, u32 r72, u32 r73, u32 r74, u32 r75, u32 r76, u32 r77, u32 r78, u32 r79, u32 r80, u32 r81, u32 r82, u32 r83, u32 r84, u32 r85, u32 r86, u32 r87, u32 r88, u32 r89, u32 r90, u32 r91, u32 r92, u32 r93, u32 r94, u32 r95, u32 r96, u32 r97, u32 r98, u32 r99, u32 r100, u32 r101, u32 r102, u32 r103, u32 r104, u32 r105, u32 r106, u32 r107, u32 r108, u32 r109, u32 r110, u32 r111, u32 r112, u32 r113, u32 r114, u32 r115, u32 r116, u32 r117, u32 r118, u32 r119, u32 r120, u32 r121, u32 r122, u32 r123, u32 r124, u32 r125, u32 r126, u32 r127, u32 r128, u32 r129, u32 r130, u32 r131, u32 r132, u32 r133, u32 r134, u32 r135, u32 r136, u32 r137, u32 r138, u32 r139, u32 r140, u32 r141, u32 r142, u32 r143, u32 r144, u32 r145, u32 r146, u32 r147, u32 r148, u32 r149, u32 r150, u32 r151, u32 r152, u32 r153, u32 r154, u32 r155, u32 r156, u32 r157, u32 r158, u32 r159, u32 r160, u32 r161, u32 r162, u32 r163, u32 r164, u32 r165, u32 r166, u32 r167, u32 r168, u32 r169, u32 r170, u32 r171, u32 r172, u32 r173, u32 r174, u32 r175, u32 r176, u32 r177, u32 r178, u32 r179, u32 r180, u32 r181, u32 r182, u32 r183, u32 r184, u32 r185, u32 r186, u32 r187, u32 r188, u32 r189, u32 r190, u32 r191, u32 r192, u32 r193, u32 r194, u32 r195, u32 r196, u32 r197, u32 r198, u32 r199, u32 r200, u32 r201, u32 r202, u32 r203, u32 r204, u32 r205, u32 r206) {
   u32 wpoll = 0;
   Term h1 = r1;
   Term _n_0 = r0;
@@ -44222,6 +44366,14 @@ DFAR Term spin_37(Env e, THR Term* o, Term r0, Term r1, u64 q1, u32 r2, u32 r3, 
   u32 _hi_2 = r196;
   u32 _fl_0 = r197;
   u32 _kf_2 = r198;
+  u32 _d_0 = r199;
+  u32 _d_1 = r200;
+  u32 _d_2 = r201;
+  u32 _d_3 = r202;
+  u32 _d_4 = r203;
+  u32 _d_5 = r204;
+  u32 _d_6 = r205;
+  u32 _d_7 = r206;
   WL_SPIN
     if (_n_0 == 0) {
       o[0] = _r_99;
@@ -44291,14 +44443,78 @@ DFAR Term spin_37(Env e, THR Term* o, Term r0, Term r1, u64 q1, u32 r2, u32 r3, 
       o[64] = _cv_63;
     } else {
       Term _p_0 = (_n_0 - 1);
-      u32 _v_309 = 0;
-      Term _o_8[1];
-      if (spin_38(e, _o_8, _p_0) == 0) {
+      u32 _v_245 = 0;
+      Term _o_7[1];
+      if (spin_38(e, _o_7, _p_0) == 0) {
         return 0;
       }
-      _v_309 = (u32)_o_8[0];
-      u32 _w2_0 = U32_BIN(_w_4, +, _v_309);
-      Term _v_310 = 0;
+      _v_245 = (u32)_o_7[0];
+      u32 _w2_0 = U32_BIN(_w_4, +, _v_245);
+      Term _v_246 = 0;
+      u32 _v_247 = 0;
+      u32 _v_248 = 0;
+      u32 _v_249 = 0;
+      u32 _v_250 = 0;
+      u32 _v_251 = 0;
+      u32 _v_252 = 0;
+      u32 _v_253 = 0;
+      u32 _v_254 = 0;
+      u32 _v_255 = 0;
+      u32 _v_256 = 0;
+      u32 _v_257 = 0;
+      u32 _v_258 = 0;
+      u32 _v_259 = 0;
+      u32 _v_260 = 0;
+      u32 _v_261 = 0;
+      u32 _v_262 = 0;
+      u32 _v_263 = 0;
+      u32 _v_264 = 0;
+      u32 _v_265 = 0;
+      u32 _v_266 = 0;
+      u32 _v_267 = 0;
+      u32 _v_268 = 0;
+      u32 _v_269 = 0;
+      u32 _v_270 = 0;
+      u32 _v_271 = 0;
+      u32 _v_272 = 0;
+      u32 _v_273 = 0;
+      u32 _v_274 = 0;
+      u32 _v_275 = 0;
+      u32 _v_276 = 0;
+      u32 _v_277 = 0;
+      u32 _v_278 = 0;
+      u32 _v_279 = 0;
+      u32 _v_280 = 0;
+      u32 _v_281 = 0;
+      u32 _v_282 = 0;
+      u32 _v_283 = 0;
+      u32 _v_284 = 0;
+      u32 _v_285 = 0;
+      u32 _v_286 = 0;
+      u32 _v_287 = 0;
+      u32 _v_288 = 0;
+      u32 _v_289 = 0;
+      u32 _v_290 = 0;
+      u32 _v_291 = 0;
+      u32 _v_292 = 0;
+      u32 _v_293 = 0;
+      u32 _v_294 = 0;
+      u32 _v_295 = 0;
+      u32 _v_296 = 0;
+      u32 _v_297 = 0;
+      u32 _v_298 = 0;
+      u32 _v_299 = 0;
+      u32 _v_300 = 0;
+      u32 _v_301 = 0;
+      u32 _v_302 = 0;
+      u32 _v_303 = 0;
+      u32 _v_304 = 0;
+      u32 _v_305 = 0;
+      u32 _v_306 = 0;
+      u32 _v_307 = 0;
+      u32 _v_308 = 0;
+      u32 _v_309 = 0;
+      u32 _v_310 = 0;
       u32 _v_311 = 0;
       u32 _v_312 = 0;
       u32 _v_313 = 0;
@@ -44363,6 +44579,139 @@ DFAR Term spin_37(Env e, THR Term* o, Term r0, Term r1, u64 q1, u32 r2, u32 r3, 
       u32 _v_372 = 0;
       u32 _v_373 = 0;
       u32 _v_374 = 0;
+      Term _o_8[129];
+      if (spin_34(e, _o_8, _r_99, _r_99 == h1 ? q1 : blk_loc(e.mem, _r_99), _w2_0) == 0) {
+        return 0;
+      }
+      _v_246 = _o_8[0];
+      _v_247 = (u32)_o_8[1];
+      _v_248 = (u32)_o_8[2];
+      _v_249 = (u32)_o_8[3];
+      _v_250 = (u32)_o_8[4];
+      _v_251 = (u32)_o_8[5];
+      _v_252 = (u32)_o_8[6];
+      _v_253 = (u32)_o_8[7];
+      _v_254 = (u32)_o_8[8];
+      _v_255 = (u32)_o_8[9];
+      _v_256 = (u32)_o_8[10];
+      _v_257 = (u32)_o_8[11];
+      _v_258 = (u32)_o_8[12];
+      _v_259 = (u32)_o_8[13];
+      _v_260 = (u32)_o_8[14];
+      _v_261 = (u32)_o_8[15];
+      _v_262 = (u32)_o_8[16];
+      _v_263 = (u32)_o_8[17];
+      _v_264 = (u32)_o_8[18];
+      _v_265 = (u32)_o_8[19];
+      _v_266 = (u32)_o_8[20];
+      _v_267 = (u32)_o_8[21];
+      _v_268 = (u32)_o_8[22];
+      _v_269 = (u32)_o_8[23];
+      _v_270 = (u32)_o_8[24];
+      _v_271 = (u32)_o_8[25];
+      _v_272 = (u32)_o_8[26];
+      _v_273 = (u32)_o_8[27];
+      _v_274 = (u32)_o_8[28];
+      _v_275 = (u32)_o_8[29];
+      _v_276 = (u32)_o_8[30];
+      _v_277 = (u32)_o_8[31];
+      _v_278 = (u32)_o_8[32];
+      _v_279 = (u32)_o_8[33];
+      _v_280 = (u32)_o_8[34];
+      _v_281 = (u32)_o_8[35];
+      _v_282 = (u32)_o_8[36];
+      _v_283 = (u32)_o_8[37];
+      _v_284 = (u32)_o_8[38];
+      _v_285 = (u32)_o_8[39];
+      _v_286 = (u32)_o_8[40];
+      _v_287 = (u32)_o_8[41];
+      _v_288 = (u32)_o_8[42];
+      _v_289 = (u32)_o_8[43];
+      _v_290 = (u32)_o_8[44];
+      _v_291 = (u32)_o_8[45];
+      _v_292 = (u32)_o_8[46];
+      _v_293 = (u32)_o_8[47];
+      _v_294 = (u32)_o_8[48];
+      _v_295 = (u32)_o_8[49];
+      _v_296 = (u32)_o_8[50];
+      _v_297 = (u32)_o_8[51];
+      _v_298 = (u32)_o_8[52];
+      _v_299 = (u32)_o_8[53];
+      _v_300 = (u32)_o_8[54];
+      _v_301 = (u32)_o_8[55];
+      _v_302 = (u32)_o_8[56];
+      _v_303 = (u32)_o_8[57];
+      _v_304 = (u32)_o_8[58];
+      _v_305 = (u32)_o_8[59];
+      _v_306 = (u32)_o_8[60];
+      _v_307 = (u32)_o_8[61];
+      _v_308 = (u32)_o_8[62];
+      _v_309 = (u32)_o_8[63];
+      _v_310 = (u32)_o_8[64];
+      _v_311 = (u32)_o_8[65];
+      _v_312 = (u32)_o_8[66];
+      _v_313 = (u32)_o_8[67];
+      _v_314 = (u32)_o_8[68];
+      _v_315 = (u32)_o_8[69];
+      _v_316 = (u32)_o_8[70];
+      _v_317 = (u32)_o_8[71];
+      _v_318 = (u32)_o_8[72];
+      _v_319 = (u32)_o_8[73];
+      _v_320 = (u32)_o_8[74];
+      _v_321 = (u32)_o_8[75];
+      _v_322 = (u32)_o_8[76];
+      _v_323 = (u32)_o_8[77];
+      _v_324 = (u32)_o_8[78];
+      _v_325 = (u32)_o_8[79];
+      _v_326 = (u32)_o_8[80];
+      _v_327 = (u32)_o_8[81];
+      _v_328 = (u32)_o_8[82];
+      _v_329 = (u32)_o_8[83];
+      _v_330 = (u32)_o_8[84];
+      _v_331 = (u32)_o_8[85];
+      _v_332 = (u32)_o_8[86];
+      _v_333 = (u32)_o_8[87];
+      _v_334 = (u32)_o_8[88];
+      _v_335 = (u32)_o_8[89];
+      _v_336 = (u32)_o_8[90];
+      _v_337 = (u32)_o_8[91];
+      _v_338 = (u32)_o_8[92];
+      _v_339 = (u32)_o_8[93];
+      _v_340 = (u32)_o_8[94];
+      _v_341 = (u32)_o_8[95];
+      _v_342 = (u32)_o_8[96];
+      _v_343 = (u32)_o_8[97];
+      _v_344 = (u32)_o_8[98];
+      _v_345 = (u32)_o_8[99];
+      _v_346 = (u32)_o_8[100];
+      _v_347 = (u32)_o_8[101];
+      _v_348 = (u32)_o_8[102];
+      _v_349 = (u32)_o_8[103];
+      _v_350 = (u32)_o_8[104];
+      _v_351 = (u32)_o_8[105];
+      _v_352 = (u32)_o_8[106];
+      _v_353 = (u32)_o_8[107];
+      _v_354 = (u32)_o_8[108];
+      _v_355 = (u32)_o_8[109];
+      _v_356 = (u32)_o_8[110];
+      _v_357 = (u32)_o_8[111];
+      _v_358 = (u32)_o_8[112];
+      _v_359 = (u32)_o_8[113];
+      _v_360 = (u32)_o_8[114];
+      _v_361 = (u32)_o_8[115];
+      _v_362 = (u32)_o_8[116];
+      _v_363 = (u32)_o_8[117];
+      _v_364 = (u32)_o_8[118];
+      _v_365 = (u32)_o_8[119];
+      _v_366 = (u32)_o_8[120];
+      _v_367 = (u32)_o_8[121];
+      _v_368 = (u32)_o_8[122];
+      _v_369 = (u32)_o_8[123];
+      _v_370 = (u32)_o_8[124];
+      _v_371 = (u32)_o_8[125];
+      _v_372 = (u32)_o_8[126];
+      _v_373 = (u32)_o_8[127];
+      _v_374 = (u32)_o_8[128];
       u32 _v_375 = 0;
       u32 _v_376 = 0;
       u32 _v_377 = 0;
@@ -44427,139 +44776,6 @@ DFAR Term spin_37(Env e, THR Term* o, Term r0, Term r1, u64 q1, u32 r2, u32 r3, 
       u32 _v_436 = 0;
       u32 _v_437 = 0;
       u32 _v_438 = 0;
-      Term _o_9[129];
-      if (spin_34(e, _o_9, _r_99, _r_99 == h1 ? q1 : blk_loc(e.mem, _r_99), _w2_0) == 0) {
-        return 0;
-      }
-      _v_310 = _o_9[0];
-      _v_311 = (u32)_o_9[1];
-      _v_312 = (u32)_o_9[2];
-      _v_313 = (u32)_o_9[3];
-      _v_314 = (u32)_o_9[4];
-      _v_315 = (u32)_o_9[5];
-      _v_316 = (u32)_o_9[6];
-      _v_317 = (u32)_o_9[7];
-      _v_318 = (u32)_o_9[8];
-      _v_319 = (u32)_o_9[9];
-      _v_320 = (u32)_o_9[10];
-      _v_321 = (u32)_o_9[11];
-      _v_322 = (u32)_o_9[12];
-      _v_323 = (u32)_o_9[13];
-      _v_324 = (u32)_o_9[14];
-      _v_325 = (u32)_o_9[15];
-      _v_326 = (u32)_o_9[16];
-      _v_327 = (u32)_o_9[17];
-      _v_328 = (u32)_o_9[18];
-      _v_329 = (u32)_o_9[19];
-      _v_330 = (u32)_o_9[20];
-      _v_331 = (u32)_o_9[21];
-      _v_332 = (u32)_o_9[22];
-      _v_333 = (u32)_o_9[23];
-      _v_334 = (u32)_o_9[24];
-      _v_335 = (u32)_o_9[25];
-      _v_336 = (u32)_o_9[26];
-      _v_337 = (u32)_o_9[27];
-      _v_338 = (u32)_o_9[28];
-      _v_339 = (u32)_o_9[29];
-      _v_340 = (u32)_o_9[30];
-      _v_341 = (u32)_o_9[31];
-      _v_342 = (u32)_o_9[32];
-      _v_343 = (u32)_o_9[33];
-      _v_344 = (u32)_o_9[34];
-      _v_345 = (u32)_o_9[35];
-      _v_346 = (u32)_o_9[36];
-      _v_347 = (u32)_o_9[37];
-      _v_348 = (u32)_o_9[38];
-      _v_349 = (u32)_o_9[39];
-      _v_350 = (u32)_o_9[40];
-      _v_351 = (u32)_o_9[41];
-      _v_352 = (u32)_o_9[42];
-      _v_353 = (u32)_o_9[43];
-      _v_354 = (u32)_o_9[44];
-      _v_355 = (u32)_o_9[45];
-      _v_356 = (u32)_o_9[46];
-      _v_357 = (u32)_o_9[47];
-      _v_358 = (u32)_o_9[48];
-      _v_359 = (u32)_o_9[49];
-      _v_360 = (u32)_o_9[50];
-      _v_361 = (u32)_o_9[51];
-      _v_362 = (u32)_o_9[52];
-      _v_363 = (u32)_o_9[53];
-      _v_364 = (u32)_o_9[54];
-      _v_365 = (u32)_o_9[55];
-      _v_366 = (u32)_o_9[56];
-      _v_367 = (u32)_o_9[57];
-      _v_368 = (u32)_o_9[58];
-      _v_369 = (u32)_o_9[59];
-      _v_370 = (u32)_o_9[60];
-      _v_371 = (u32)_o_9[61];
-      _v_372 = (u32)_o_9[62];
-      _v_373 = (u32)_o_9[63];
-      _v_374 = (u32)_o_9[64];
-      _v_375 = (u32)_o_9[65];
-      _v_376 = (u32)_o_9[66];
-      _v_377 = (u32)_o_9[67];
-      _v_378 = (u32)_o_9[68];
-      _v_379 = (u32)_o_9[69];
-      _v_380 = (u32)_o_9[70];
-      _v_381 = (u32)_o_9[71];
-      _v_382 = (u32)_o_9[72];
-      _v_383 = (u32)_o_9[73];
-      _v_384 = (u32)_o_9[74];
-      _v_385 = (u32)_o_9[75];
-      _v_386 = (u32)_o_9[76];
-      _v_387 = (u32)_o_9[77];
-      _v_388 = (u32)_o_9[78];
-      _v_389 = (u32)_o_9[79];
-      _v_390 = (u32)_o_9[80];
-      _v_391 = (u32)_o_9[81];
-      _v_392 = (u32)_o_9[82];
-      _v_393 = (u32)_o_9[83];
-      _v_394 = (u32)_o_9[84];
-      _v_395 = (u32)_o_9[85];
-      _v_396 = (u32)_o_9[86];
-      _v_397 = (u32)_o_9[87];
-      _v_398 = (u32)_o_9[88];
-      _v_399 = (u32)_o_9[89];
-      _v_400 = (u32)_o_9[90];
-      _v_401 = (u32)_o_9[91];
-      _v_402 = (u32)_o_9[92];
-      _v_403 = (u32)_o_9[93];
-      _v_404 = (u32)_o_9[94];
-      _v_405 = (u32)_o_9[95];
-      _v_406 = (u32)_o_9[96];
-      _v_407 = (u32)_o_9[97];
-      _v_408 = (u32)_o_9[98];
-      _v_409 = (u32)_o_9[99];
-      _v_410 = (u32)_o_9[100];
-      _v_411 = (u32)_o_9[101];
-      _v_412 = (u32)_o_9[102];
-      _v_413 = (u32)_o_9[103];
-      _v_414 = (u32)_o_9[104];
-      _v_415 = (u32)_o_9[105];
-      _v_416 = (u32)_o_9[106];
-      _v_417 = (u32)_o_9[107];
-      _v_418 = (u32)_o_9[108];
-      _v_419 = (u32)_o_9[109];
-      _v_420 = (u32)_o_9[110];
-      _v_421 = (u32)_o_9[111];
-      _v_422 = (u32)_o_9[112];
-      _v_423 = (u32)_o_9[113];
-      _v_424 = (u32)_o_9[114];
-      _v_425 = (u32)_o_9[115];
-      _v_426 = (u32)_o_9[116];
-      _v_427 = (u32)_o_9[117];
-      _v_428 = (u32)_o_9[118];
-      _v_429 = (u32)_o_9[119];
-      _v_430 = (u32)_o_9[120];
-      _v_431 = (u32)_o_9[121];
-      _v_432 = (u32)_o_9[122];
-      _v_433 = (u32)_o_9[123];
-      _v_434 = (u32)_o_9[124];
-      _v_435 = (u32)_o_9[125];
-      _v_436 = (u32)_o_9[126];
-      _v_437 = (u32)_o_9[127];
-      _v_438 = (u32)_o_9[128];
       u32 _v_439 = 0;
       u32 _v_440 = 0;
       u32 _v_441 = 0;
@@ -44624,279 +44840,355 @@ DFAR Term spin_37(Env e, THR Term* o, Term r0, Term r1, u64 q1, u32 r2, u32 r3, 
       u32 _v_500 = 0;
       u32 _v_501 = 0;
       u32 _v_502 = 0;
+      Term _o_9[64];
+      if (spin_39(e, _o_9, _cv_0, _cv_1, _cv_2, _cv_3, _cv_4, _cv_5, _cv_6, _cv_7, _cv_8, _cv_9, _cv_10, _cv_11, _cv_12, _cv_13, _cv_14, _cv_15, _cv_16, _cv_17, _cv_18, _cv_19, _cv_20, _cv_21, _cv_22, _cv_23, _cv_24, _cv_25, _cv_26, _cv_27, _cv_28, _cv_29, _cv_30, _cv_31, _cv_32, _cv_33, _cv_34, _cv_35, _cv_36, _cv_37, _cv_38, _cv_39, _cv_40, _cv_41, _cv_42, _cv_43, _cv_44, _cv_45, _cv_46, _cv_47, _cv_48, _cv_49, _cv_50, _cv_51, _cv_52, _cv_53, _cv_54, _cv_55, _cv_56, _cv_57, _cv_58, _cv_59, _cv_60, _cv_61, _cv_62, _cv_63, _d_0, _d_1, _d_2, _d_3, _d_4, _d_5, _d_6, _d_7) == 0) {
+        return 0;
+      }
+      _v_439 = (u32)_o_9[0];
+      _v_440 = (u32)_o_9[1];
+      _v_441 = (u32)_o_9[2];
+      _v_442 = (u32)_o_9[3];
+      _v_443 = (u32)_o_9[4];
+      _v_444 = (u32)_o_9[5];
+      _v_445 = (u32)_o_9[6];
+      _v_446 = (u32)_o_9[7];
+      _v_447 = (u32)_o_9[8];
+      _v_448 = (u32)_o_9[9];
+      _v_449 = (u32)_o_9[10];
+      _v_450 = (u32)_o_9[11];
+      _v_451 = (u32)_o_9[12];
+      _v_452 = (u32)_o_9[13];
+      _v_453 = (u32)_o_9[14];
+      _v_454 = (u32)_o_9[15];
+      _v_455 = (u32)_o_9[16];
+      _v_456 = (u32)_o_9[17];
+      _v_457 = (u32)_o_9[18];
+      _v_458 = (u32)_o_9[19];
+      _v_459 = (u32)_o_9[20];
+      _v_460 = (u32)_o_9[21];
+      _v_461 = (u32)_o_9[22];
+      _v_462 = (u32)_o_9[23];
+      _v_463 = (u32)_o_9[24];
+      _v_464 = (u32)_o_9[25];
+      _v_465 = (u32)_o_9[26];
+      _v_466 = (u32)_o_9[27];
+      _v_467 = (u32)_o_9[28];
+      _v_468 = (u32)_o_9[29];
+      _v_469 = (u32)_o_9[30];
+      _v_470 = (u32)_o_9[31];
+      _v_471 = (u32)_o_9[32];
+      _v_472 = (u32)_o_9[33];
+      _v_473 = (u32)_o_9[34];
+      _v_474 = (u32)_o_9[35];
+      _v_475 = (u32)_o_9[36];
+      _v_476 = (u32)_o_9[37];
+      _v_477 = (u32)_o_9[38];
+      _v_478 = (u32)_o_9[39];
+      _v_479 = (u32)_o_9[40];
+      _v_480 = (u32)_o_9[41];
+      _v_481 = (u32)_o_9[42];
+      _v_482 = (u32)_o_9[43];
+      _v_483 = (u32)_o_9[44];
+      _v_484 = (u32)_o_9[45];
+      _v_485 = (u32)_o_9[46];
+      _v_486 = (u32)_o_9[47];
+      _v_487 = (u32)_o_9[48];
+      _v_488 = (u32)_o_9[49];
+      _v_489 = (u32)_o_9[50];
+      _v_490 = (u32)_o_9[51];
+      _v_491 = (u32)_o_9[52];
+      _v_492 = (u32)_o_9[53];
+      _v_493 = (u32)_o_9[54];
+      _v_494 = (u32)_o_9[55];
+      _v_495 = (u32)_o_9[56];
+      _v_496 = (u32)_o_9[57];
+      _v_497 = (u32)_o_9[58];
+      _v_498 = (u32)_o_9[59];
+      _v_499 = (u32)_o_9[60];
+      _v_500 = (u32)_o_9[61];
+      _v_501 = (u32)_o_9[62];
+      _v_502 = (u32)_o_9[63];
       u32 _v_503 = 0;
       Term _o_10[1];
-      if (spin_39(e, _o_10, _p_0) == 0) {
+      if (spin_40(e, _o_10, _p_0) == 0) {
         return 0;
       }
       _v_503 = (u32)_o_10[0];
       Term _o_1803[64];
-      if (spin_40(e, _o_1803, _cv_0, _cv_1, _cv_2, _cv_3, _cv_4, _cv_5, _cv_6, _cv_7, _cv_8, _cv_9, _cv_10, _cv_11, _cv_12, _cv_13, _cv_14, _cv_15, _cv_16, _cv_17, _cv_18, _cv_19, _cv_20, _cv_21, _cv_22, _cv_23, _cv_24, _cv_25, _cv_26, _cv_27, _cv_28, _cv_29, _cv_30, _cv_31, _cv_32, _cv_33, _cv_34, _cv_35, _cv_36, _cv_37, _cv_38, _cv_39, _cv_40, _cv_41, _cv_42, _cv_43, _cv_44, _cv_45, _cv_46, _cv_47, _cv_48, _cv_49, _cv_50, _cv_51, _cv_52, _cv_53, _cv_54, _cv_55, _cv_56, _cv_57, _cv_58, _cv_59, _cv_60, _cv_61, _cv_62, _cv_63, _r_100, _r_101, _r_102, _r_103, _r_104, _r_105, _r_106, _r_107, _r_108, _r_109, _r_110, _r_111, _r_112, _r_113, _r_114, _r_115, _r_116, _r_117, _r_118, _r_119, _r_120, _r_121, _r_122, _r_123, _r_124, _r_125, _r_126, _r_127, _r_128, _r_129, _r_130, _r_131, _r_132, _r_133, _r_134, _r_135, _r_136, _r_137, _r_138, _r_139, _r_140, _r_141, _r_142, _r_143, _r_144, _r_145, _r_146, _r_147, _r_148, _r_149, _r_150, _r_151, _r_152, _r_153, _r_154, _r_155, _r_156, _r_157, _r_158, _r_159, _r_160, _r_161, _r_162, _r_163, _r_164, _r_165, _r_166, _r_167, _r_168, _r_169, _r_170, _r_171, _r_172, _r_173, _r_174, _r_175, _r_176, _r_177, _r_178, _r_179, _r_180, _r_181, _r_182, _r_183, _r_184, _r_185, _r_186, _r_187, _r_188, _r_189, _r_190, _r_191, _r_192, _r_193, _r_194, _r_195, _r_196, _r_197, _r_198, _r_199, _r_200, _r_201, _r_202, _r_203, _r_204, _r_205, _r_206, _r_207, _r_208, _r_209, _r_210, _r_211, _r_212, _r_213, _r_214, _r_215, _r_216, _r_217, _r_218, _r_219, _r_220, _r_221, _r_222, _r_223, _r_224, _r_225, _r_226, _r_227, _ctr_0, 1ull, _hi_2, 64ull, U32_BIN(U32_BIN(_fl_0, |, _v_503), |, _kf_2)) == 0) {
+      if (spin_41(e, _o_1803, _v_439, _v_440, _v_441, _v_442, _v_443, _v_444, _v_445, _v_446, _v_447, _v_448, _v_449, _v_450, _v_451, _v_452, _v_453, _v_454, _v_455, _v_456, _v_457, _v_458, _v_459, _v_460, _v_461, _v_462, _v_463, _v_464, _v_465, _v_466, _v_467, _v_468, _v_469, _v_470, _v_471, _v_472, _v_473, _v_474, _v_475, _v_476, _v_477, _v_478, _v_479, _v_480, _v_481, _v_482, _v_483, _v_484, _v_485, _v_486, _v_487, _v_488, _v_489, _v_490, _v_491, _v_492, _v_493, _v_494, _v_495, _v_496, _v_497, _v_498, _v_499, _v_500, _v_501, _v_502, _r_100, _r_101, _r_102, _r_103, _r_104, _r_105, _r_106, _r_107, _r_108, _r_109, _r_110, _r_111, _r_112, _r_113, _r_114, _r_115, _r_116, _r_117, _r_118, _r_119, _r_120, _r_121, _r_122, _r_123, _r_124, _r_125, _r_126, _r_127, _r_128, _r_129, _r_130, _r_131, _r_132, _r_133, _r_134, _r_135, _r_136, _r_137, _r_138, _r_139, _r_140, _r_141, _r_142, _r_143, _r_144, _r_145, _r_146, _r_147, _r_148, _r_149, _r_150, _r_151, _r_152, _r_153, _r_154, _r_155, _r_156, _r_157, _r_158, _r_159, _r_160, _r_161, _r_162, _r_163, _r_164, _r_165, _r_166, _r_167, _r_168, _r_169, _r_170, _r_171, _r_172, _r_173, _r_174, _r_175, _r_176, _r_177, _r_178, _r_179, _r_180, _r_181, _r_182, _r_183, _r_184, _r_185, _r_186, _r_187, _r_188, _r_189, _r_190, _r_191, _r_192, _r_193, _r_194, _r_195, _r_196, _r_197, _r_198, _r_199, _r_200, _r_201, _r_202, _r_203, _r_204, _r_205, _r_206, _r_207, _r_208, _r_209, _r_210, _r_211, _r_212, _r_213, _r_214, _r_215, _r_216, _r_217, _r_218, _r_219, _r_220, _r_221, _r_222, _r_223, _r_224, _r_225, _r_226, _r_227, _ctr_0, 1ull, _hi_2, 64ull, U32_BIN(U32_BIN(_fl_0, |, _v_503), |, _kf_2)) == 0) {
         return 0;
       }
-      _v_439 = (u32)_o_1803[0];
-      _v_440 = (u32)_o_1803[1];
-      _v_441 = (u32)_o_1803[2];
-      _v_442 = (u32)_o_1803[3];
-      _v_443 = (u32)_o_1803[4];
-      _v_444 = (u32)_o_1803[5];
-      _v_445 = (u32)_o_1803[6];
-      _v_446 = (u32)_o_1803[7];
-      _v_447 = (u32)_o_1803[8];
-      _v_448 = (u32)_o_1803[9];
-      _v_449 = (u32)_o_1803[10];
-      _v_450 = (u32)_o_1803[11];
-      _v_451 = (u32)_o_1803[12];
-      _v_452 = (u32)_o_1803[13];
-      _v_453 = (u32)_o_1803[14];
-      _v_454 = (u32)_o_1803[15];
-      _v_455 = (u32)_o_1803[16];
-      _v_456 = (u32)_o_1803[17];
-      _v_457 = (u32)_o_1803[18];
-      _v_458 = (u32)_o_1803[19];
-      _v_459 = (u32)_o_1803[20];
-      _v_460 = (u32)_o_1803[21];
-      _v_461 = (u32)_o_1803[22];
-      _v_462 = (u32)_o_1803[23];
-      _v_463 = (u32)_o_1803[24];
-      _v_464 = (u32)_o_1803[25];
-      _v_465 = (u32)_o_1803[26];
-      _v_466 = (u32)_o_1803[27];
-      _v_467 = (u32)_o_1803[28];
-      _v_468 = (u32)_o_1803[29];
-      _v_469 = (u32)_o_1803[30];
-      _v_470 = (u32)_o_1803[31];
-      _v_471 = (u32)_o_1803[32];
-      _v_472 = (u32)_o_1803[33];
-      _v_473 = (u32)_o_1803[34];
-      _v_474 = (u32)_o_1803[35];
-      _v_475 = (u32)_o_1803[36];
-      _v_476 = (u32)_o_1803[37];
-      _v_477 = (u32)_o_1803[38];
-      _v_478 = (u32)_o_1803[39];
-      _v_479 = (u32)_o_1803[40];
-      _v_480 = (u32)_o_1803[41];
-      _v_481 = (u32)_o_1803[42];
-      _v_482 = (u32)_o_1803[43];
-      _v_483 = (u32)_o_1803[44];
-      _v_484 = (u32)_o_1803[45];
-      _v_485 = (u32)_o_1803[46];
-      _v_486 = (u32)_o_1803[47];
-      _v_487 = (u32)_o_1803[48];
-      _v_488 = (u32)_o_1803[49];
-      _v_489 = (u32)_o_1803[50];
-      _v_490 = (u32)_o_1803[51];
-      _v_491 = (u32)_o_1803[52];
-      _v_492 = (u32)_o_1803[53];
-      _v_493 = (u32)_o_1803[54];
-      _v_494 = (u32)_o_1803[55];
-      _v_495 = (u32)_o_1803[56];
-      _v_496 = (u32)_o_1803[57];
-      _v_497 = (u32)_o_1803[58];
-      _v_498 = (u32)_o_1803[59];
-      _v_499 = (u32)_o_1803[60];
-      _v_500 = (u32)_o_1803[61];
-      _v_501 = (u32)_o_1803[62];
-      _v_502 = (u32)_o_1803[63];
+      _v_375 = (u32)_o_1803[0];
+      _v_376 = (u32)_o_1803[1];
+      _v_377 = (u32)_o_1803[2];
+      _v_378 = (u32)_o_1803[3];
+      _v_379 = (u32)_o_1803[4];
+      _v_380 = (u32)_o_1803[5];
+      _v_381 = (u32)_o_1803[6];
+      _v_382 = (u32)_o_1803[7];
+      _v_383 = (u32)_o_1803[8];
+      _v_384 = (u32)_o_1803[9];
+      _v_385 = (u32)_o_1803[10];
+      _v_386 = (u32)_o_1803[11];
+      _v_387 = (u32)_o_1803[12];
+      _v_388 = (u32)_o_1803[13];
+      _v_389 = (u32)_o_1803[14];
+      _v_390 = (u32)_o_1803[15];
+      _v_391 = (u32)_o_1803[16];
+      _v_392 = (u32)_o_1803[17];
+      _v_393 = (u32)_o_1803[18];
+      _v_394 = (u32)_o_1803[19];
+      _v_395 = (u32)_o_1803[20];
+      _v_396 = (u32)_o_1803[21];
+      _v_397 = (u32)_o_1803[22];
+      _v_398 = (u32)_o_1803[23];
+      _v_399 = (u32)_o_1803[24];
+      _v_400 = (u32)_o_1803[25];
+      _v_401 = (u32)_o_1803[26];
+      _v_402 = (u32)_o_1803[27];
+      _v_403 = (u32)_o_1803[28];
+      _v_404 = (u32)_o_1803[29];
+      _v_405 = (u32)_o_1803[30];
+      _v_406 = (u32)_o_1803[31];
+      _v_407 = (u32)_o_1803[32];
+      _v_408 = (u32)_o_1803[33];
+      _v_409 = (u32)_o_1803[34];
+      _v_410 = (u32)_o_1803[35];
+      _v_411 = (u32)_o_1803[36];
+      _v_412 = (u32)_o_1803[37];
+      _v_413 = (u32)_o_1803[38];
+      _v_414 = (u32)_o_1803[39];
+      _v_415 = (u32)_o_1803[40];
+      _v_416 = (u32)_o_1803[41];
+      _v_417 = (u32)_o_1803[42];
+      _v_418 = (u32)_o_1803[43];
+      _v_419 = (u32)_o_1803[44];
+      _v_420 = (u32)_o_1803[45];
+      _v_421 = (u32)_o_1803[46];
+      _v_422 = (u32)_o_1803[47];
+      _v_423 = (u32)_o_1803[48];
+      _v_424 = (u32)_o_1803[49];
+      _v_425 = (u32)_o_1803[50];
+      _v_426 = (u32)_o_1803[51];
+      _v_427 = (u32)_o_1803[52];
+      _v_428 = (u32)_o_1803[53];
+      _v_429 = (u32)_o_1803[54];
+      _v_430 = (u32)_o_1803[55];
+      _v_431 = (u32)_o_1803[56];
+      _v_432 = (u32)_o_1803[57];
+      _v_433 = (u32)_o_1803[58];
+      _v_434 = (u32)_o_1803[59];
+      _v_435 = (u32)_o_1803[60];
+      _v_436 = (u32)_o_1803[61];
+      _v_437 = (u32)_o_1803[62];
+      _v_438 = (u32)_o_1803[63];
       r0 = _p_0;
-      r1 = _v_310;
-      r2 = _v_311;
-      r3 = _v_312;
-      r4 = _v_313;
-      r5 = _v_314;
-      r6 = _v_315;
-      r7 = _v_316;
-      r8 = _v_317;
-      r9 = _v_318;
-      r10 = _v_319;
-      r11 = _v_320;
-      r12 = _v_321;
-      r13 = _v_322;
-      r14 = _v_323;
-      r15 = _v_324;
-      r16 = _v_325;
-      r17 = _v_326;
-      r18 = _v_327;
-      r19 = _v_328;
-      r20 = _v_329;
-      r21 = _v_330;
-      r22 = _v_331;
-      r23 = _v_332;
-      r24 = _v_333;
-      r25 = _v_334;
-      r26 = _v_335;
-      r27 = _v_336;
-      r28 = _v_337;
-      r29 = _v_338;
-      r30 = _v_339;
-      r31 = _v_340;
-      r32 = _v_341;
-      r33 = _v_342;
-      r34 = _v_343;
-      r35 = _v_344;
-      r36 = _v_345;
-      r37 = _v_346;
-      r38 = _v_347;
-      r39 = _v_348;
-      r40 = _v_349;
-      r41 = _v_350;
-      r42 = _v_351;
-      r43 = _v_352;
-      r44 = _v_353;
-      r45 = _v_354;
-      r46 = _v_355;
-      r47 = _v_356;
-      r48 = _v_357;
-      r49 = _v_358;
-      r50 = _v_359;
-      r51 = _v_360;
-      r52 = _v_361;
-      r53 = _v_362;
-      r54 = _v_363;
-      r55 = _v_364;
-      r56 = _v_365;
-      r57 = _v_366;
-      r58 = _v_367;
-      r59 = _v_368;
-      r60 = _v_369;
-      r61 = _v_370;
-      r62 = _v_371;
-      r63 = _v_372;
-      r64 = _v_373;
-      r65 = _v_374;
-      r66 = _v_375;
-      r67 = _v_376;
-      r68 = _v_377;
-      r69 = _v_378;
-      r70 = _v_379;
-      r71 = _v_380;
-      r72 = _v_381;
-      r73 = _v_382;
-      r74 = _v_383;
-      r75 = _v_384;
-      r76 = _v_385;
-      r77 = _v_386;
-      r78 = _v_387;
-      r79 = _v_388;
-      r80 = _v_389;
-      r81 = _v_390;
-      r82 = _v_391;
-      r83 = _v_392;
-      r84 = _v_393;
-      r85 = _v_394;
-      r86 = _v_395;
-      r87 = _v_396;
-      r88 = _v_397;
-      r89 = _v_398;
-      r90 = _v_399;
-      r91 = _v_400;
-      r92 = _v_401;
-      r93 = _v_402;
-      r94 = _v_403;
-      r95 = _v_404;
-      r96 = _v_405;
-      r97 = _v_406;
-      r98 = _v_407;
-      r99 = _v_408;
-      r100 = _v_409;
-      r101 = _v_410;
-      r102 = _v_411;
-      r103 = _v_412;
-      r104 = _v_413;
-      r105 = _v_414;
-      r106 = _v_415;
-      r107 = _v_416;
-      r108 = _v_417;
-      r109 = _v_418;
-      r110 = _v_419;
-      r111 = _v_420;
-      r112 = _v_421;
-      r113 = _v_422;
-      r114 = _v_423;
-      r115 = _v_424;
-      r116 = _v_425;
-      r117 = _v_426;
-      r118 = _v_427;
-      r119 = _v_428;
-      r120 = _v_429;
-      r121 = _v_430;
-      r122 = _v_431;
-      r123 = _v_432;
-      r124 = _v_433;
-      r125 = _v_434;
-      r126 = _v_435;
-      r127 = _v_436;
-      r128 = _v_437;
-      r129 = _v_438;
+      r1 = _v_246;
+      r2 = _v_247;
+      r3 = _v_248;
+      r4 = _v_249;
+      r5 = _v_250;
+      r6 = _v_251;
+      r7 = _v_252;
+      r8 = _v_253;
+      r9 = _v_254;
+      r10 = _v_255;
+      r11 = _v_256;
+      r12 = _v_257;
+      r13 = _v_258;
+      r14 = _v_259;
+      r15 = _v_260;
+      r16 = _v_261;
+      r17 = _v_262;
+      r18 = _v_263;
+      r19 = _v_264;
+      r20 = _v_265;
+      r21 = _v_266;
+      r22 = _v_267;
+      r23 = _v_268;
+      r24 = _v_269;
+      r25 = _v_270;
+      r26 = _v_271;
+      r27 = _v_272;
+      r28 = _v_273;
+      r29 = _v_274;
+      r30 = _v_275;
+      r31 = _v_276;
+      r32 = _v_277;
+      r33 = _v_278;
+      r34 = _v_279;
+      r35 = _v_280;
+      r36 = _v_281;
+      r37 = _v_282;
+      r38 = _v_283;
+      r39 = _v_284;
+      r40 = _v_285;
+      r41 = _v_286;
+      r42 = _v_287;
+      r43 = _v_288;
+      r44 = _v_289;
+      r45 = _v_290;
+      r46 = _v_291;
+      r47 = _v_292;
+      r48 = _v_293;
+      r49 = _v_294;
+      r50 = _v_295;
+      r51 = _v_296;
+      r52 = _v_297;
+      r53 = _v_298;
+      r54 = _v_299;
+      r55 = _v_300;
+      r56 = _v_301;
+      r57 = _v_302;
+      r58 = _v_303;
+      r59 = _v_304;
+      r60 = _v_305;
+      r61 = _v_306;
+      r62 = _v_307;
+      r63 = _v_308;
+      r64 = _v_309;
+      r65 = _v_310;
+      r66 = _v_311;
+      r67 = _v_312;
+      r68 = _v_313;
+      r69 = _v_314;
+      r70 = _v_315;
+      r71 = _v_316;
+      r72 = _v_317;
+      r73 = _v_318;
+      r74 = _v_319;
+      r75 = _v_320;
+      r76 = _v_321;
+      r77 = _v_322;
+      r78 = _v_323;
+      r79 = _v_324;
+      r80 = _v_325;
+      r81 = _v_326;
+      r82 = _v_327;
+      r83 = _v_328;
+      r84 = _v_329;
+      r85 = _v_330;
+      r86 = _v_331;
+      r87 = _v_332;
+      r88 = _v_333;
+      r89 = _v_334;
+      r90 = _v_335;
+      r91 = _v_336;
+      r92 = _v_337;
+      r93 = _v_338;
+      r94 = _v_339;
+      r95 = _v_340;
+      r96 = _v_341;
+      r97 = _v_342;
+      r98 = _v_343;
+      r99 = _v_344;
+      r100 = _v_345;
+      r101 = _v_346;
+      r102 = _v_347;
+      r103 = _v_348;
+      r104 = _v_349;
+      r105 = _v_350;
+      r106 = _v_351;
+      r107 = _v_352;
+      r108 = _v_353;
+      r109 = _v_354;
+      r110 = _v_355;
+      r111 = _v_356;
+      r112 = _v_357;
+      r113 = _v_358;
+      r114 = _v_359;
+      r115 = _v_360;
+      r116 = _v_361;
+      r117 = _v_362;
+      r118 = _v_363;
+      r119 = _v_364;
+      r120 = _v_365;
+      r121 = _v_366;
+      r122 = _v_367;
+      r123 = _v_368;
+      r124 = _v_369;
+      r125 = _v_370;
+      r126 = _v_371;
+      r127 = _v_372;
+      r128 = _v_373;
+      r129 = _v_374;
       r130 = _w2_0;
-      r131 = _v_439;
-      r132 = _v_440;
-      r133 = _v_441;
-      r134 = _v_442;
-      r135 = _v_443;
-      r136 = _v_444;
-      r137 = _v_445;
-      r138 = _v_446;
-      r139 = _v_447;
-      r140 = _v_448;
-      r141 = _v_449;
-      r142 = _v_450;
-      r143 = _v_451;
-      r144 = _v_452;
-      r145 = _v_453;
-      r146 = _v_454;
-      r147 = _v_455;
-      r148 = _v_456;
-      r149 = _v_457;
-      r150 = _v_458;
-      r151 = _v_459;
-      r152 = _v_460;
-      r153 = _v_461;
-      r154 = _v_462;
-      r155 = _v_463;
-      r156 = _v_464;
-      r157 = _v_465;
-      r158 = _v_466;
-      r159 = _v_467;
-      r160 = _v_468;
-      r161 = _v_469;
-      r162 = _v_470;
-      r163 = _v_471;
-      r164 = _v_472;
-      r165 = _v_473;
-      r166 = _v_474;
-      r167 = _v_475;
-      r168 = _v_476;
-      r169 = _v_477;
-      r170 = _v_478;
-      r171 = _v_479;
-      r172 = _v_480;
-      r173 = _v_481;
-      r174 = _v_482;
-      r175 = _v_483;
-      r176 = _v_484;
-      r177 = _v_485;
-      r178 = _v_486;
-      r179 = _v_487;
-      r180 = _v_488;
-      r181 = _v_489;
-      r182 = _v_490;
-      r183 = _v_491;
-      r184 = _v_492;
-      r185 = _v_493;
-      r186 = _v_494;
-      r187 = _v_495;
-      r188 = _v_496;
-      r189 = _v_497;
-      r190 = _v_498;
-      r191 = _v_499;
-      r192 = _v_500;
-      r193 = _v_501;
-      r194 = _v_502;
+      r131 = _v_375;
+      r132 = _v_376;
+      r133 = _v_377;
+      r134 = _v_378;
+      r135 = _v_379;
+      r136 = _v_380;
+      r137 = _v_381;
+      r138 = _v_382;
+      r139 = _v_383;
+      r140 = _v_384;
+      r141 = _v_385;
+      r142 = _v_386;
+      r143 = _v_387;
+      r144 = _v_388;
+      r145 = _v_389;
+      r146 = _v_390;
+      r147 = _v_391;
+      r148 = _v_392;
+      r149 = _v_393;
+      r150 = _v_394;
+      r151 = _v_395;
+      r152 = _v_396;
+      r153 = _v_397;
+      r154 = _v_398;
+      r155 = _v_399;
+      r156 = _v_400;
+      r157 = _v_401;
+      r158 = _v_402;
+      r159 = _v_403;
+      r160 = _v_404;
+      r161 = _v_405;
+      r162 = _v_406;
+      r163 = _v_407;
+      r164 = _v_408;
+      r165 = _v_409;
+      r166 = _v_410;
+      r167 = _v_411;
+      r168 = _v_412;
+      r169 = _v_413;
+      r170 = _v_414;
+      r171 = _v_415;
+      r172 = _v_416;
+      r173 = _v_417;
+      r174 = _v_418;
+      r175 = _v_419;
+      r176 = _v_420;
+      r177 = _v_421;
+      r178 = _v_422;
+      r179 = _v_423;
+      r180 = _v_424;
+      r181 = _v_425;
+      r182 = _v_426;
+      r183 = _v_427;
+      r184 = _v_428;
+      r185 = _v_429;
+      r186 = _v_430;
+      r187 = _v_431;
+      r188 = _v_432;
+      r189 = _v_433;
+      r190 = _v_434;
+      r191 = _v_435;
+      r192 = _v_436;
+      r193 = _v_437;
+      r194 = _v_438;
       r195 = _ctr_0;
       r196 = _hi_2;
       r197 = 0ull;
       r198 = _kf_2;
+      r199 = 0ull;
+      r200 = 0ull;
+      r201 = 0ull;
+      r202 = 0ull;
+      r203 = 0ull;
+      r204 = 0ull;
+      r205 = 0ull;
+      r206 = 0ull;
       _n_0 = r0;
       _r_99 = r1;
       _r_100 = r2;
@@ -45096,6 +45388,14 @@ DFAR Term spin_37(Env e, THR Term* o, Term r0, Term r1, u64 q1, u32 r2, u32 r3, 
       _hi_2 = r196;
       _fl_0 = r197;
       _kf_2 = r198;
+      _d_0 = r199;
+      _d_1 = r200;
+      _d_2 = r201;
+      _d_3 = r202;
+      _d_4 = r203;
+      _d_5 = r204;
+      _d_6 = r205;
+      _d_7 = r206;
       WL_AGAIN(spin_37);
     }
   break;
@@ -45384,140 +45684,8 @@ DFAR Term spin_33(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u
     _v_191 = (u32)_o_6[126];
     _v_192 = (u32)_o_6[127];
     _v_193 = (u32)_o_6[128];
-    u32 _v_245 = 0;
-    u32 _v_246 = 0;
-    u32 _v_247 = 0;
-    u32 _v_248 = 0;
-    u32 _v_249 = 0;
-    u32 _v_250 = 0;
-    u32 _v_251 = 0;
-    u32 _v_252 = 0;
-    u32 _v_253 = 0;
-    u32 _v_254 = 0;
-    u32 _v_255 = 0;
-    u32 _v_256 = 0;
-    u32 _v_257 = 0;
-    u32 _v_258 = 0;
-    u32 _v_259 = 0;
-    u32 _v_260 = 0;
-    u32 _v_261 = 0;
-    u32 _v_262 = 0;
-    u32 _v_263 = 0;
-    u32 _v_264 = 0;
-    u32 _v_265 = 0;
-    u32 _v_266 = 0;
-    u32 _v_267 = 0;
-    u32 _v_268 = 0;
-    u32 _v_269 = 0;
-    u32 _v_270 = 0;
-    u32 _v_271 = 0;
-    u32 _v_272 = 0;
-    u32 _v_273 = 0;
-    u32 _v_274 = 0;
-    u32 _v_275 = 0;
-    u32 _v_276 = 0;
-    u32 _v_277 = 0;
-    u32 _v_278 = 0;
-    u32 _v_279 = 0;
-    u32 _v_280 = 0;
-    u32 _v_281 = 0;
-    u32 _v_282 = 0;
-    u32 _v_283 = 0;
-    u32 _v_284 = 0;
-    u32 _v_285 = 0;
-    u32 _v_286 = 0;
-    u32 _v_287 = 0;
-    u32 _v_288 = 0;
-    u32 _v_289 = 0;
-    u32 _v_290 = 0;
-    u32 _v_291 = 0;
-    u32 _v_292 = 0;
-    u32 _v_293 = 0;
-    u32 _v_294 = 0;
-    u32 _v_295 = 0;
-    u32 _v_296 = 0;
-    u32 _v_297 = 0;
-    u32 _v_298 = 0;
-    u32 _v_299 = 0;
-    u32 _v_300 = 0;
-    u32 _v_301 = 0;
-    u32 _v_302 = 0;
-    u32 _v_303 = 0;
-    u32 _v_304 = 0;
-    u32 _v_305 = 0;
-    u32 _v_306 = 0;
-    u32 _v_307 = 0;
-    u32 _v_308 = 0;
-    Term _o_7[64];
-    if (spin_28(e, _o_7, _key_8, _key_9, _key_10, _key_11, _key_12, _key_13, _key_14, _key_15) == 0) {
-      return 0;
-    }
-    _v_245 = (u32)_o_7[0];
-    _v_246 = (u32)_o_7[1];
-    _v_247 = (u32)_o_7[2];
-    _v_248 = (u32)_o_7[3];
-    _v_249 = (u32)_o_7[4];
-    _v_250 = (u32)_o_7[5];
-    _v_251 = (u32)_o_7[6];
-    _v_252 = (u32)_o_7[7];
-    _v_253 = (u32)_o_7[8];
-    _v_254 = (u32)_o_7[9];
-    _v_255 = (u32)_o_7[10];
-    _v_256 = (u32)_o_7[11];
-    _v_257 = (u32)_o_7[12];
-    _v_258 = (u32)_o_7[13];
-    _v_259 = (u32)_o_7[14];
-    _v_260 = (u32)_o_7[15];
-    _v_261 = (u32)_o_7[16];
-    _v_262 = (u32)_o_7[17];
-    _v_263 = (u32)_o_7[18];
-    _v_264 = (u32)_o_7[19];
-    _v_265 = (u32)_o_7[20];
-    _v_266 = (u32)_o_7[21];
-    _v_267 = (u32)_o_7[22];
-    _v_268 = (u32)_o_7[23];
-    _v_269 = (u32)_o_7[24];
-    _v_270 = (u32)_o_7[25];
-    _v_271 = (u32)_o_7[26];
-    _v_272 = (u32)_o_7[27];
-    _v_273 = (u32)_o_7[28];
-    _v_274 = (u32)_o_7[29];
-    _v_275 = (u32)_o_7[30];
-    _v_276 = (u32)_o_7[31];
-    _v_277 = (u32)_o_7[32];
-    _v_278 = (u32)_o_7[33];
-    _v_279 = (u32)_o_7[34];
-    _v_280 = (u32)_o_7[35];
-    _v_281 = (u32)_o_7[36];
-    _v_282 = (u32)_o_7[37];
-    _v_283 = (u32)_o_7[38];
-    _v_284 = (u32)_o_7[39];
-    _v_285 = (u32)_o_7[40];
-    _v_286 = (u32)_o_7[41];
-    _v_287 = (u32)_o_7[42];
-    _v_288 = (u32)_o_7[43];
-    _v_289 = (u32)_o_7[44];
-    _v_290 = (u32)_o_7[45];
-    _v_291 = (u32)_o_7[46];
-    _v_292 = (u32)_o_7[47];
-    _v_293 = (u32)_o_7[48];
-    _v_294 = (u32)_o_7[49];
-    _v_295 = (u32)_o_7[50];
-    _v_296 = (u32)_o_7[51];
-    _v_297 = (u32)_o_7[52];
-    _v_298 = (u32)_o_7[53];
-    _v_299 = (u32)_o_7[54];
-    _v_300 = (u32)_o_7[55];
-    _v_301 = (u32)_o_7[56];
-    _v_302 = (u32)_o_7[57];
-    _v_303 = (u32)_o_7[58];
-    _v_304 = (u32)_o_7[59];
-    _v_305 = (u32)_o_7[60];
-    _v_306 = (u32)_o_7[61];
-    _v_307 = (u32)_o_7[62];
-    _v_308 = (u32)_o_7[63];
     Term _o_1804[65];
-    if (spin_37(e, _o_1804, 16ull, _v_65, _v_65 == h0 ? q0 : blk_loc(e.mem, _v_65), _v_66, _v_67, _v_68, _v_69, _v_70, _v_71, _v_72, _v_73, _v_74, _v_75, _v_76, _v_77, _v_78, _v_79, _v_80, _v_81, _v_82, _v_83, _v_84, _v_85, _v_86, _v_87, _v_88, _v_89, _v_90, _v_91, _v_92, _v_93, _v_94, _v_95, _v_96, _v_97, _v_98, _v_99, _v_100, _v_101, _v_102, _v_103, _v_104, _v_105, _v_106, _v_107, _v_108, _v_109, _v_110, _v_111, _v_112, _v_113, _v_114, _v_115, _v_116, _v_117, _v_118, _v_119, _v_120, _v_121, _v_122, _v_123, _v_124, _v_125, _v_126, _v_127, _v_128, _v_129, _v_130, _v_131, _v_132, _v_133, _v_134, _v_135, _v_136, _v_137, _v_138, _v_139, _v_140, _v_141, _v_142, _v_143, _v_144, _v_145, _v_146, _v_147, _v_148, _v_149, _v_150, _v_151, _v_152, _v_153, _v_154, _v_155, _v_156, _v_157, _v_158, _v_159, _v_160, _v_161, _v_162, _v_163, _v_164, _v_165, _v_166, _v_167, _v_168, _v_169, _v_170, _v_171, _v_172, _v_173, _v_174, _v_175, _v_176, _v_177, _v_178, _v_179, _v_180, _v_181, _v_182, _v_183, _v_184, _v_185, _v_186, _v_187, _v_188, _v_189, _v_190, _v_191, _v_192, _v_193, _w_0, _v_245, _v_246, _v_247, _v_248, _v_249, _v_250, _v_251, _v_252, _v_253, _v_254, _v_255, _v_256, _v_257, _v_258, _v_259, _v_260, _v_261, _v_262, _v_263, _v_264, _v_265, _v_266, _v_267, _v_268, _v_269, _v_270, _v_271, _v_272, _v_273, _v_274, _v_275, _v_276, _v_277, _v_278, _v_279, _v_280, _v_281, _v_282, _v_283, _v_284, _v_285, _v_286, _v_287, _v_288, _v_289, _v_290, _v_291, _v_292, _v_293, _v_294, _v_295, _v_296, _v_297, _v_298, _v_299, _v_300, _v_301, _v_302, _v_303, _v_304, _v_305, _v_306, _v_307, _v_308, _t_1, _hi_1, 1ull, _kf_1) == 0) {
+    if (spin_37(e, _o_1804, 16ull, _v_65, _v_65 == h0 ? q0 : blk_loc(e.mem, _v_65), _v_66, _v_67, _v_68, _v_69, _v_70, _v_71, _v_72, _v_73, _v_74, _v_75, _v_76, _v_77, _v_78, _v_79, _v_80, _v_81, _v_82, _v_83, _v_84, _v_85, _v_86, _v_87, _v_88, _v_89, _v_90, _v_91, _v_92, _v_93, _v_94, _v_95, _v_96, _v_97, _v_98, _v_99, _v_100, _v_101, _v_102, _v_103, _v_104, _v_105, _v_106, _v_107, _v_108, _v_109, _v_110, _v_111, _v_112, _v_113, _v_114, _v_115, _v_116, _v_117, _v_118, _v_119, _v_120, _v_121, _v_122, _v_123, _v_124, _v_125, _v_126, _v_127, _v_128, _v_129, _v_130, _v_131, _v_132, _v_133, _v_134, _v_135, _v_136, _v_137, _v_138, _v_139, _v_140, _v_141, _v_142, _v_143, _v_144, _v_145, _v_146, _v_147, _v_148, _v_149, _v_150, _v_151, _v_152, _v_153, _v_154, _v_155, _v_156, _v_157, _v_158, _v_159, _v_160, _v_161, _v_162, _v_163, _v_164, _v_165, _v_166, _v_167, _v_168, _v_169, _v_170, _v_171, _v_172, _v_173, _v_174, _v_175, _v_176, _v_177, _v_178, _v_179, _v_180, _v_181, _v_182, _v_183, _v_184, _v_185, _v_186, _v_187, _v_188, _v_189, _v_190, _v_191, _v_192, _v_193, _w_0, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, 0ull, _t_1, _hi_1, 1ull, _kf_1, _key_8, _key_9, _key_10, _key_11, _key_12, _key_13, _key_14, _key_15) == 0) {
       return 0;
     }
     o[0] = _o_1804[0];
@@ -45590,7 +45758,7 @@ DFAR Term spin_33(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u
   return 1;
 }
 
-DFAR Term spin_41(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65, u32 r66, u32 r67, u32 r68, u32 r69, u32 r70, u32 r71, u32 r72, u32 r73, u32 r74, u32 r75, u32 r76, u32 r77, u32 r78, u32 r79, u32 r80, u32 r81, u32 r82, u32 r83, u32 r84, u32 r85, u32 r86, u32 r87, u32 r88, u32 r89, u32 r90, u32 r91, u32 r92, u32 r93, u32 r94, u32 r95, u32 r96, u32 r97, u32 r98, u32 r99, u32 r100, u32 r101, u32 r102, u32 r103, u32 r104, u32 r105, u32 r106, u32 r107, u32 r108, u32 r109, u32 r110, u32 r111, u32 r112, u32 r113, u32 r114, u32 r115, u32 r116, u32 r117, u32 r118, u32 r119, u32 r120, u32 r121, u32 r122, u32 r123, u32 r124, u32 r125, u32 r126, u32 r127, u32 r128, u32 r129, u32 r130, u32 r131, u32 r132, u32 r133, u32 r134, u32 r135, u32 r136, u32 r137, u32 r138, u32 r139, u32 r140, u32 r141, u32 r142, u32 r143, u32 r144, u32 r145, u32 r146, u32 r147, u32 r148, u32 r149, u32 r150, u32 r151, u32 r152, u32 r153, u32 r154, u32 r155, u32 r156, u32 r157, u32 r158, u32 r159, u32 r160, u32 r161, u32 r162, u32 r163, u32 r164, u32 r165, u32 r166, u32 r167, u32 r168, u32 r169, u32 r170, u32 r171, u32 r172, u32 r173, u32 r174, u32 r175, u32 r176, u32 r177, u32 r178, u32 r179, u32 r180, u32 r181, u32 r182, u32 r183, u32 r184, u32 r185, u32 r186, u32 r187, u32 r188, u32 r189, u32 r190, u32 r191, u32 r192, u32 r193, u32 r194, u32 r195, u32 r196, u32 r197, u32 r198, u32 r199, u32 r200, u32 r201) {
+DFAR Term spin_42(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65, u32 r66, u32 r67, u32 r68, u32 r69, u32 r70, u32 r71, u32 r72, u32 r73, u32 r74, u32 r75, u32 r76, u32 r77, u32 r78, u32 r79, u32 r80, u32 r81, u32 r82, u32 r83, u32 r84, u32 r85, u32 r86, u32 r87, u32 r88, u32 r89, u32 r90, u32 r91, u32 r92, u32 r93, u32 r94, u32 r95, u32 r96, u32 r97, u32 r98, u32 r99, u32 r100, u32 r101, u32 r102, u32 r103, u32 r104, u32 r105, u32 r106, u32 r107, u32 r108, u32 r109, u32 r110, u32 r111, u32 r112, u32 r113, u32 r114, u32 r115, u32 r116, u32 r117, u32 r118, u32 r119, u32 r120, u32 r121, u32 r122, u32 r123, u32 r124, u32 r125, u32 r126, u32 r127, u32 r128, u32 r129, u32 r130, u32 r131, u32 r132, u32 r133, u32 r134, u32 r135, u32 r136, u32 r137, u32 r138, u32 r139, u32 r140, u32 r141, u32 r142, u32 r143, u32 r144, u32 r145, u32 r146, u32 r147, u32 r148, u32 r149, u32 r150, u32 r151, u32 r152, u32 r153, u32 r154, u32 r155, u32 r156, u32 r157, u32 r158, u32 r159, u32 r160, u32 r161, u32 r162, u32 r163, u32 r164, u32 r165, u32 r166, u32 r167, u32 r168, u32 r169, u32 r170, u32 r171, u32 r172, u32 r173, u32 r174, u32 r175, u32 r176, u32 r177, u32 r178, u32 r179, u32 r180, u32 r181, u32 r182, u32 r183, u32 r184, u32 r185, u32 r186, u32 r187, u32 r188, u32 r189, u32 r190, u32 r191, u32 r192, u32 r193, u32 r194, u32 r195, u32 r196, u32 r197, u32 r198, u32 r199, u32 r200, u32 r201) {
   u32 wpoll = 0;
   Term h0 = r0;
   Term _r_228 = r0;
@@ -46130,7 +46298,7 @@ DFAR Term spin_41(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u
   return 1;
 }
 
-DFAR Term spin_44(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65, u32 r66, u32 r67, u32 r68, u32 r69, u32 r70, u32 r71, u32 r72, u32 r73, u32 r74, u32 r75, u32 r76, u32 r77, u32 r78, u32 r79, u32 r80, u32 r81, u32 r82, u32 r83, u32 r84, u32 r85, u32 r86, u32 r87, u32 r88, u32 r89, u32 r90, u32 r91, u32 r92, u32 r93, u32 r94, u32 r95, u32 r96, u32 r97, u32 r98, u32 r99, u32 r100, u32 r101, u32 r102, u32 r103, u32 r104, u32 r105, u32 r106, u32 r107, u32 r108, u32 r109, u32 r110, u32 r111, u32 r112, u32 r113, u32 r114, u32 r115, u32 r116, u32 r117, u32 r118, u32 r119, u32 r120, u32 r121, u32 r122, u32 r123, u32 r124, u32 r125, u32 r126, u32 r127, u32 r128, u32 r129, u32 r130, u32 r131, u32 r132, u32 r133, u32 r134, u32 r135, u32 r136, u32 r137, u32 r138, u32 r139, u32 r140, u32 r141, u32 r142, u32 r143, u32 r144, u32 r145, u32 r146, u32 r147, u32 r148, u32 r149, u32 r150, u32 r151, u32 r152, u32 r153, u32 r154, u32 r155, u32 r156, u32 r157, u32 r158, u32 r159, u32 r160, u32 r161, u32 r162, u32 r163, u32 r164, u32 r165, u32 r166, u32 r167, u32 r168, u32 r169, u32 r170, u32 r171, u32 r172, u32 r173, u32 r174, u32 r175, u32 r176, u32 r177, u32 r178, u32 r179, u32 r180, u32 r181, u32 r182, u32 r183, u32 r184, u32 r185, u32 r186, u32 r187, u32 r188, u32 r189, u32 r190, u32 r191, u32 r192, u32 r193, u32 r194, u32 r195, u32 r196) {
+DFAR Term spin_45(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65, u32 r66, u32 r67, u32 r68, u32 r69, u32 r70, u32 r71, u32 r72, u32 r73, u32 r74, u32 r75, u32 r76, u32 r77, u32 r78, u32 r79, u32 r80, u32 r81, u32 r82, u32 r83, u32 r84, u32 r85, u32 r86, u32 r87, u32 r88, u32 r89, u32 r90, u32 r91, u32 r92, u32 r93, u32 r94, u32 r95, u32 r96, u32 r97, u32 r98, u32 r99, u32 r100, u32 r101, u32 r102, u32 r103, u32 r104, u32 r105, u32 r106, u32 r107, u32 r108, u32 r109, u32 r110, u32 r111, u32 r112, u32 r113, u32 r114, u32 r115, u32 r116, u32 r117, u32 r118, u32 r119, u32 r120, u32 r121, u32 r122, u32 r123, u32 r124, u32 r125, u32 r126, u32 r127, u32 r128, u32 r129, u32 r130, u32 r131, u32 r132, u32 r133, u32 r134, u32 r135, u32 r136, u32 r137, u32 r138, u32 r139, u32 r140, u32 r141, u32 r142, u32 r143, u32 r144, u32 r145, u32 r146, u32 r147, u32 r148, u32 r149, u32 r150, u32 r151, u32 r152, u32 r153, u32 r154, u32 r155, u32 r156, u32 r157, u32 r158, u32 r159, u32 r160, u32 r161, u32 r162, u32 r163, u32 r164, u32 r165, u32 r166, u32 r167, u32 r168, u32 r169, u32 r170, u32 r171, u32 r172, u32 r173, u32 r174, u32 r175, u32 r176, u32 r177, u32 r178, u32 r179, u32 r180, u32 r181, u32 r182, u32 r183, u32 r184, u32 r185, u32 r186, u32 r187, u32 r188, u32 r189, u32 r190, u32 r191, u32 r192, u32 r193, u32 r194, u32 r195, u32 r196) {
   u32 wpoll = 0;
   u32 _cv_64 = r0;
   u32 _cv_65 = r1;
@@ -58951,7 +59119,7 @@ DFAR Term spin_44(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u3
   return 1;
 }
 
-DFAR Term spin_43(Env e, THR Term* o, Term r0, Term r1, u64 q1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65, u32 r66, u32 r67, u32 r68, u32 r69, u32 r70, u32 r71, u32 r72, u32 r73, u32 r74, u32 r75, u32 r76, u32 r77, u32 r78, u32 r79, u32 r80, u32 r81, u32 r82, u32 r83, u32 r84, u32 r85, u32 r86, u32 r87, u32 r88, u32 r89, u32 r90, u32 r91, u32 r92, u32 r93, u32 r94, u32 r95, u32 r96, u32 r97, u32 r98, u32 r99, u32 r100, u32 r101, u32 r102, u32 r103, u32 r104, u32 r105, u32 r106, u32 r107, u32 r108, u32 r109, u32 r110, u32 r111, u32 r112, u32 r113, u32 r114, u32 r115, u32 r116, u32 r117, u32 r118, u32 r119, u32 r120, u32 r121, u32 r122, u32 r123, u32 r124, u32 r125, u32 r126, u32 r127, u32 r128, u32 r129, u32 r130, u32 r131, u32 r132, u32 r133, u32 r134, u32 r135, u32 r136, u32 r137, u32 r138, u32 r139, u32 r140, u32 r141, u32 r142, u32 r143, u32 r144, u32 r145, u32 r146, u32 r147, u32 r148, u32 r149, u32 r150, u32 r151, u32 r152, u32 r153, u32 r154, u32 r155, u32 r156, u32 r157, u32 r158, u32 r159, u32 r160, u32 r161, u32 r162, u32 r163, u32 r164, u32 r165, u32 r166, u32 r167, u32 r168, u32 r169, u32 r170, u32 r171, u32 r172, u32 r173, u32 r174, u32 r175, u32 r176, u32 r177, u32 r178, u32 r179, u32 r180, u32 r181, u32 r182, u32 r183, u32 r184, u32 r185, u32 r186, u32 r187, u32 r188, u32 r189, u32 r190, u32 r191, u32 r192, u32 r193, u32 r194, u32 r195, u32 r196, u32 r197) {
+DFAR Term spin_44(Env e, THR Term* o, Term r0, Term r1, u64 q1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65, u32 r66, u32 r67, u32 r68, u32 r69, u32 r70, u32 r71, u32 r72, u32 r73, u32 r74, u32 r75, u32 r76, u32 r77, u32 r78, u32 r79, u32 r80, u32 r81, u32 r82, u32 r83, u32 r84, u32 r85, u32 r86, u32 r87, u32 r88, u32 r89, u32 r90, u32 r91, u32 r92, u32 r93, u32 r94, u32 r95, u32 r96, u32 r97, u32 r98, u32 r99, u32 r100, u32 r101, u32 r102, u32 r103, u32 r104, u32 r105, u32 r106, u32 r107, u32 r108, u32 r109, u32 r110, u32 r111, u32 r112, u32 r113, u32 r114, u32 r115, u32 r116, u32 r117, u32 r118, u32 r119, u32 r120, u32 r121, u32 r122, u32 r123, u32 r124, u32 r125, u32 r126, u32 r127, u32 r128, u32 r129, u32 r130, u32 r131, u32 r132, u32 r133, u32 r134, u32 r135, u32 r136, u32 r137, u32 r138, u32 r139, u32 r140, u32 r141, u32 r142, u32 r143, u32 r144, u32 r145, u32 r146, u32 r147, u32 r148, u32 r149, u32 r150, u32 r151, u32 r152, u32 r153, u32 r154, u32 r155, u32 r156, u32 r157, u32 r158, u32 r159, u32 r160, u32 r161, u32 r162, u32 r163, u32 r164, u32 r165, u32 r166, u32 r167, u32 r168, u32 r169, u32 r170, u32 r171, u32 r172, u32 r173, u32 r174, u32 r175, u32 r176, u32 r177, u32 r178, u32 r179, u32 r180, u32 r181, u32 r182, u32 r183, u32 r184, u32 r185, u32 r186, u32 r187, u32 r188, u32 r189, u32 r190, u32 r191, u32 r192, u32 r193, u32 r194, u32 r195, u32 r196, u32 r197) {
   u32 wpoll = 0;
   Term h1 = r1;
   Term _n_0 = r0;
@@ -59556,12 +59724,12 @@ DFAR Term spin_43(Env e, THR Term* o, Term r0, Term r1, u64 q1, u32 r2, u32 r3, 
       u32 _v_387 = 0;
       u32 _v_388 = 0;
       Term _o_3[1];
-      if (spin_39(e, _o_3, _p_0) == 0) {
+      if (spin_40(e, _o_3, _p_0) == 0) {
         return 0;
       }
       _v_388 = (u32)_o_3[0];
       Term _o_1796[64];
-      if (spin_44(e, _o_1796, _cv_0, _cv_1, _cv_2, _cv_3, _cv_4, _cv_5, _cv_6, _cv_7, _cv_8, _cv_9, _cv_10, _cv_11, _cv_12, _cv_13, _cv_14, _cv_15, _cv_16, _cv_17, _cv_18, _cv_19, _cv_20, _cv_21, _cv_22, _cv_23, _cv_24, _cv_25, _cv_26, _cv_27, _cv_28, _cv_29, _cv_30, _cv_31, _cv_32, _cv_33, _cv_34, _cv_35, _cv_36, _cv_37, _cv_38, _cv_39, _cv_40, _cv_41, _cv_42, _cv_43, _cv_44, _cv_45, _cv_46, _cv_47, _cv_48, _cv_49, _cv_50, _cv_51, _cv_52, _cv_53, _cv_54, _cv_55, _cv_56, _cv_57, _cv_58, _cv_59, _cv_60, _cv_61, _cv_62, _cv_63, _r_66, _r_67, _r_68, _r_69, _r_70, _r_71, _r_72, _r_73, _r_74, _r_75, _r_76, _r_77, _r_78, _r_79, _r_80, _r_81, _r_82, _r_83, _r_84, _r_85, _r_86, _r_87, _r_88, _r_89, _r_90, _r_91, _r_92, _r_93, _r_94, _r_95, _r_96, _r_97, _r_98, _r_99, _r_100, _r_101, _r_102, _r_103, _r_104, _r_105, _r_106, _r_107, _r_108, _r_109, _r_110, _r_111, _r_112, _r_113, _r_114, _r_115, _r_116, _r_117, _r_118, _r_119, _r_120, _r_121, _r_122, _r_123, _r_124, _r_125, _r_126, _r_127, _r_128, _r_129, _r_130, _r_131, _r_132, _r_133, _r_134, _r_135, _r_136, _r_137, _r_138, _r_139, _r_140, _r_141, _r_142, _r_143, _r_144, _r_145, _r_146, _r_147, _r_148, _r_149, _r_150, _r_151, _r_152, _r_153, _r_154, _r_155, _r_156, _r_157, _r_158, _r_159, _r_160, _r_161, _r_162, _r_163, _r_164, _r_165, _r_166, _r_167, _r_168, _r_169, _r_170, _r_171, _r_172, _r_173, _r_174, _r_175, _r_176, _r_177, _r_178, _r_179, _r_180, _r_181, _r_182, _r_183, _r_184, _r_185, _r_186, _r_187, _r_188, _r_189, _r_190, _r_191, _r_192, _r_193, _ctr_0, 1ull, _hi_2, 64ull, U32_BIN(_fl_0, |, _v_388)) == 0) {
+      if (spin_45(e, _o_1796, _cv_0, _cv_1, _cv_2, _cv_3, _cv_4, _cv_5, _cv_6, _cv_7, _cv_8, _cv_9, _cv_10, _cv_11, _cv_12, _cv_13, _cv_14, _cv_15, _cv_16, _cv_17, _cv_18, _cv_19, _cv_20, _cv_21, _cv_22, _cv_23, _cv_24, _cv_25, _cv_26, _cv_27, _cv_28, _cv_29, _cv_30, _cv_31, _cv_32, _cv_33, _cv_34, _cv_35, _cv_36, _cv_37, _cv_38, _cv_39, _cv_40, _cv_41, _cv_42, _cv_43, _cv_44, _cv_45, _cv_46, _cv_47, _cv_48, _cv_49, _cv_50, _cv_51, _cv_52, _cv_53, _cv_54, _cv_55, _cv_56, _cv_57, _cv_58, _cv_59, _cv_60, _cv_61, _cv_62, _cv_63, _r_66, _r_67, _r_68, _r_69, _r_70, _r_71, _r_72, _r_73, _r_74, _r_75, _r_76, _r_77, _r_78, _r_79, _r_80, _r_81, _r_82, _r_83, _r_84, _r_85, _r_86, _r_87, _r_88, _r_89, _r_90, _r_91, _r_92, _r_93, _r_94, _r_95, _r_96, _r_97, _r_98, _r_99, _r_100, _r_101, _r_102, _r_103, _r_104, _r_105, _r_106, _r_107, _r_108, _r_109, _r_110, _r_111, _r_112, _r_113, _r_114, _r_115, _r_116, _r_117, _r_118, _r_119, _r_120, _r_121, _r_122, _r_123, _r_124, _r_125, _r_126, _r_127, _r_128, _r_129, _r_130, _r_131, _r_132, _r_133, _r_134, _r_135, _r_136, _r_137, _r_138, _r_139, _r_140, _r_141, _r_142, _r_143, _r_144, _r_145, _r_146, _r_147, _r_148, _r_149, _r_150, _r_151, _r_152, _r_153, _r_154, _r_155, _r_156, _r_157, _r_158, _r_159, _r_160, _r_161, _r_162, _r_163, _r_164, _r_165, _r_166, _r_167, _r_168, _r_169, _r_170, _r_171, _r_172, _r_173, _r_174, _r_175, _r_176, _r_177, _r_178, _r_179, _r_180, _r_181, _r_182, _r_183, _r_184, _r_185, _r_186, _r_187, _r_188, _r_189, _r_190, _r_191, _r_192, _r_193, _ctr_0, 1ull, _hi_2, 64ull, U32_BIN(_fl_0, |, _v_388)) == 0) {
         return 0;
       }
       _v_324 = (u32)_o_1796[0];
@@ -60024,14 +60192,14 @@ DFAR Term spin_43(Env e, THR Term* o, Term r0, Term r1, u64 q1, u32 r2, u32 r3, 
       _ctr_0 = r195;
       _hi_2 = r196;
       _fl_0 = r197;
-      WL_AGAIN(spin_43);
+      WL_AGAIN(spin_44);
     }
   break;
   }
   return 1;
 }
 
-DFAR Term spin_42(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3) {
+DFAR Term spin_43(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3) {
   u32 wpoll = 0;
   Term h0 = r0;
   Term _a_0 = r0;
@@ -60304,7 +60472,7 @@ DFAR Term spin_42(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3) {
     _v_192 = (u32)_o_0[127];
     _v_193 = (u32)_o_0[128];
     Term _o_1797[65];
-    if (spin_43(e, _o_1797, 16ull, _v_65, _v_65 == h0 ? q0 : blk_loc(e.mem, _v_65), _v_66, _v_67, _v_68, _v_69, _v_70, _v_71, _v_72, _v_73, _v_74, _v_75, _v_76, _v_77, _v_78, _v_79, _v_80, _v_81, _v_82, _v_83, _v_84, _v_85, _v_86, _v_87, _v_88, _v_89, _v_90, _v_91, _v_92, _v_93, _v_94, _v_95, _v_96, _v_97, _v_98, _v_99, _v_100, _v_101, _v_102, _v_103, _v_104, _v_105, _v_106, _v_107, _v_108, _v_109, _v_110, _v_111, _v_112, _v_113, _v_114, _v_115, _v_116, _v_117, _v_118, _v_119, _v_120, _v_121, _v_122, _v_123, _v_124, _v_125, _v_126, _v_127, _v_128, _v_129, _v_130, _v_131, _v_132, _v_133, _v_134, _v_135, _v_136, _v_137, _v_138, _v_139, _v_140, _v_141, _v_142, _v_143, _v_144, _v_145, _v_146, _v_147, _v_148, _v_149, _v_150, _v_151, _v_152, _v_153, _v_154, _v_155, _v_156, _v_157, _v_158, _v_159, _v_160, _v_161, _v_162, _v_163, _v_164, _v_165, _v_166, _v_167, _v_168, _v_169, _v_170, _v_171, _v_172, _v_173, _v_174, _v_175, _v_176, _v_177, _v_178, _v_179, _v_180, _v_181, _v_182, _v_183, _v_184, _v_185, _v_186, _v_187, _v_188, _v_189, _v_190, _v_191, _v_192, _v_193, _w_0, 1779033703ull, 1779033703ull, 1779033703ull, 1779033703ull, 1779033703ull, 1779033703ull, 1779033703ull, 1779033703ull, 3144134277ull, 3144134277ull, 3144134277ull, 3144134277ull, 3144134277ull, 3144134277ull, 3144134277ull, 3144134277ull, 1013904242ull, 1013904242ull, 1013904242ull, 1013904242ull, 1013904242ull, 1013904242ull, 1013904242ull, 1013904242ull, 2773480762ull, 2773480762ull, 2773480762ull, 2773480762ull, 2773480762ull, 2773480762ull, 2773480762ull, 2773480762ull, 1359893119ull, 1359893119ull, 1359893119ull, 1359893119ull, 1359893119ull, 1359893119ull, 1359893119ull, 1359893119ull, 2600822924ull, 2600822924ull, 2600822924ull, 2600822924ull, 2600822924ull, 2600822924ull, 2600822924ull, 2600822924ull, 528734635ull, 528734635ull, 528734635ull, 528734635ull, 528734635ull, 528734635ull, 528734635ull, 528734635ull, 1541459225ull, 1541459225ull, 1541459225ull, 1541459225ull, 1541459225ull, 1541459225ull, 1541459225ull, 1541459225ull, _t_1, _hi_1, 1ull) == 0) {
+    if (spin_44(e, _o_1797, 16ull, _v_65, _v_65 == h0 ? q0 : blk_loc(e.mem, _v_65), _v_66, _v_67, _v_68, _v_69, _v_70, _v_71, _v_72, _v_73, _v_74, _v_75, _v_76, _v_77, _v_78, _v_79, _v_80, _v_81, _v_82, _v_83, _v_84, _v_85, _v_86, _v_87, _v_88, _v_89, _v_90, _v_91, _v_92, _v_93, _v_94, _v_95, _v_96, _v_97, _v_98, _v_99, _v_100, _v_101, _v_102, _v_103, _v_104, _v_105, _v_106, _v_107, _v_108, _v_109, _v_110, _v_111, _v_112, _v_113, _v_114, _v_115, _v_116, _v_117, _v_118, _v_119, _v_120, _v_121, _v_122, _v_123, _v_124, _v_125, _v_126, _v_127, _v_128, _v_129, _v_130, _v_131, _v_132, _v_133, _v_134, _v_135, _v_136, _v_137, _v_138, _v_139, _v_140, _v_141, _v_142, _v_143, _v_144, _v_145, _v_146, _v_147, _v_148, _v_149, _v_150, _v_151, _v_152, _v_153, _v_154, _v_155, _v_156, _v_157, _v_158, _v_159, _v_160, _v_161, _v_162, _v_163, _v_164, _v_165, _v_166, _v_167, _v_168, _v_169, _v_170, _v_171, _v_172, _v_173, _v_174, _v_175, _v_176, _v_177, _v_178, _v_179, _v_180, _v_181, _v_182, _v_183, _v_184, _v_185, _v_186, _v_187, _v_188, _v_189, _v_190, _v_191, _v_192, _v_193, _w_0, 1779033703ull, 1779033703ull, 1779033703ull, 1779033703ull, 1779033703ull, 1779033703ull, 1779033703ull, 1779033703ull, 3144134277ull, 3144134277ull, 3144134277ull, 3144134277ull, 3144134277ull, 3144134277ull, 3144134277ull, 3144134277ull, 1013904242ull, 1013904242ull, 1013904242ull, 1013904242ull, 1013904242ull, 1013904242ull, 1013904242ull, 1013904242ull, 2773480762ull, 2773480762ull, 2773480762ull, 2773480762ull, 2773480762ull, 2773480762ull, 2773480762ull, 2773480762ull, 1359893119ull, 1359893119ull, 1359893119ull, 1359893119ull, 1359893119ull, 1359893119ull, 1359893119ull, 1359893119ull, 2600822924ull, 2600822924ull, 2600822924ull, 2600822924ull, 2600822924ull, 2600822924ull, 2600822924ull, 2600822924ull, 528734635ull, 528734635ull, 528734635ull, 528734635ull, 528734635ull, 528734635ull, 528734635ull, 528734635ull, 1541459225ull, 1541459225ull, 1541459225ull, 1541459225ull, 1541459225ull, 1541459225ull, 1541459225ull, 1541459225ull, _t_1, _hi_1, 1ull) == 0) {
       return 0;
     }
     o[0] = _o_1797[0];
@@ -60377,7 +60545,7 @@ DFAR Term spin_42(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3) {
   return 1;
 }
 
-DFAR Term spin_45(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65, u32 r66, u32 r67, u32 r68, u32 r69, u32 r70, u32 r71, u32 r72, u32 r73, u32 r74, u32 r75, u32 r76, u32 r77, u32 r78, u32 r79, u32 r80, u32 r81, u32 r82, u32 r83, u32 r84, u32 r85, u32 r86, u32 r87, u32 r88, u32 r89, u32 r90, u32 r91, u32 r92, u32 r93, u32 r94, u32 r95, u32 r96, u32 r97, u32 r98, u32 r99, u32 r100, u32 r101, u32 r102, u32 r103, u32 r104, u32 r105, u32 r106, u32 r107, u32 r108, u32 r109, u32 r110, u32 r111, u32 r112, u32 r113, u32 r114, u32 r115, u32 r116, u32 r117, u32 r118, u32 r119, u32 r120, u32 r121, u32 r122, u32 r123, u32 r124, u32 r125, u32 r126, u32 r127, u32 r128, u32 r129, u32 r130, u32 r131, u32 r132, u32 r133, u32 r134, u32 r135, u32 r136, u32 r137, u32 r138, u32 r139, u32 r140, u32 r141, u32 r142, u32 r143, u32 r144, u32 r145, u32 r146, u32 r147, u32 r148, u32 r149, u32 r150, u32 r151, u32 r152, u32 r153, u32 r154, u32 r155, u32 r156, u32 r157, u32 r158, u32 r159, u32 r160, u32 r161, u32 r162, u32 r163, u32 r164, u32 r165, u32 r166, u32 r167, u32 r168, u32 r169, u32 r170, u32 r171, u32 r172, u32 r173, u32 r174, u32 r175, u32 r176, u32 r177, u32 r178, u32 r179, u32 r180, u32 r181, u32 r182, u32 r183, u32 r184, u32 r185, u32 r186, u32 r187, u32 r188, u32 r189, u32 r190, u32 r191, u32 r192) {
+DFAR Term spin_46(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65, u32 r66, u32 r67, u32 r68, u32 r69, u32 r70, u32 r71, u32 r72, u32 r73, u32 r74, u32 r75, u32 r76, u32 r77, u32 r78, u32 r79, u32 r80, u32 r81, u32 r82, u32 r83, u32 r84, u32 r85, u32 r86, u32 r87, u32 r88, u32 r89, u32 r90, u32 r91, u32 r92, u32 r93, u32 r94, u32 r95, u32 r96, u32 r97, u32 r98, u32 r99, u32 r100, u32 r101, u32 r102, u32 r103, u32 r104, u32 r105, u32 r106, u32 r107, u32 r108, u32 r109, u32 r110, u32 r111, u32 r112, u32 r113, u32 r114, u32 r115, u32 r116, u32 r117, u32 r118, u32 r119, u32 r120, u32 r121, u32 r122, u32 r123, u32 r124, u32 r125, u32 r126, u32 r127, u32 r128, u32 r129, u32 r130, u32 r131, u32 r132, u32 r133, u32 r134, u32 r135, u32 r136, u32 r137, u32 r138, u32 r139, u32 r140, u32 r141, u32 r142, u32 r143, u32 r144, u32 r145, u32 r146, u32 r147, u32 r148, u32 r149, u32 r150, u32 r151, u32 r152, u32 r153, u32 r154, u32 r155, u32 r156, u32 r157, u32 r158, u32 r159, u32 r160, u32 r161, u32 r162, u32 r163, u32 r164, u32 r165, u32 r166, u32 r167, u32 r168, u32 r169, u32 r170, u32 r171, u32 r172, u32 r173, u32 r174, u32 r175, u32 r176, u32 r177, u32 r178, u32 r179, u32 r180, u32 r181, u32 r182, u32 r183, u32 r184, u32 r185, u32 r186, u32 r187, u32 r188, u32 r189, u32 r190, u32 r191, u32 r192) {
   u32 wpoll = 0;
   Term h0 = r0;
   Term _r_194 = r0;
@@ -60908,7 +61076,7 @@ DFAR Term spin_45(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u
   return 1;
 }
 
-DFAR Term spin_46(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65, u32 r66, u32 r67, u32 r68, u32 r69, u32 r70, u32 r71, u32 r72, u32 r73, u32 r74, u32 r75, u32 r76, u32 r77, u32 r78, u32 r79, u32 r80, u32 r81, u32 r82, u32 r83, u32 r84, u32 r85, u32 r86, u32 r87, u32 r88, u32 r89, u32 r90, u32 r91, u32 r92, u32 r93, u32 r94, u32 r95, u32 r96, u32 r97, u32 r98, u32 r99, u32 r100, u32 r101, u32 r102, u32 r103, u32 r104, u32 r105, u32 r106, u32 r107, u32 r108, u32 r109, u32 r110, u32 r111, u32 r112, u32 r113, u32 r114, u32 r115, u32 r116, u32 r117, u32 r118, u32 r119, u32 r120, u32 r121, u32 r122, u32 r123, u32 r124, u32 r125, u32 r126, u32 r127, u32 r128, u32 r129, u32 r130, u32 r131, u32 r132, u32 r133, u32 r134, u32 r135, u32 r136, u32 r137, u32 r138, u32 r139, u32 r140) {
+DFAR Term spin_47(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65, u32 r66, u32 r67, u32 r68, u32 r69, u32 r70, u32 r71, u32 r72, u32 r73, u32 r74, u32 r75, u32 r76, u32 r77, u32 r78, u32 r79, u32 r80, u32 r81, u32 r82, u32 r83, u32 r84, u32 r85, u32 r86, u32 r87, u32 r88, u32 r89, u32 r90, u32 r91, u32 r92, u32 r93, u32 r94, u32 r95, u32 r96, u32 r97, u32 r98, u32 r99, u32 r100, u32 r101, u32 r102, u32 r103, u32 r104, u32 r105, u32 r106, u32 r107, u32 r108, u32 r109, u32 r110, u32 r111, u32 r112, u32 r113, u32 r114, u32 r115, u32 r116, u32 r117, u32 r118, u32 r119, u32 r120, u32 r121, u32 r122, u32 r123, u32 r124, u32 r125, u32 r126, u32 r127, u32 r128, u32 r129, u32 r130, u32 r131, u32 r132, u32 r133, u32 r134, u32 r135, u32 r136, u32 r137, u32 r138, u32 r139, u32 r140) {
   u32 wpoll = 0;
   Term h0 = r0;
   Term _r_65 = r0;
@@ -61188,7 +61356,7 @@ DFAR Term spin_46(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u
     _v_192 = (u32)_o_2[63];
     _v_193 = (u32)_o_2[64];
     Term _o_3[65];
-    if (spin_41(e, _o_3, _v_129, _v_129 == h0 ? q0 : blk_loc(e.mem, _v_129), _v_130, _v_131, _v_132, _v_133, _v_134, _v_135, _v_136, _v_137, _v_138, _v_139, _v_140, _v_141, _v_142, _v_143, _v_144, _v_145, _v_146, _v_147, _v_148, _v_149, _v_150, _v_151, _v_152, _v_153, _v_154, _v_155, _v_156, _v_157, _v_158, _v_159, _v_160, _v_161, _v_162, _v_163, _v_164, _v_165, _v_166, _v_167, _v_168, _v_169, _v_170, _v_171, _v_172, _v_173, _v_174, _v_175, _v_176, _v_177, _v_178, _v_179, _v_180, _v_181, _v_182, _v_183, _v_184, _v_185, _v_186, _v_187, _v_188, _v_189, _v_190, _v_191, _v_192, _v_193, _x_0, _x_1, _x_2, _x_3, _x_4, _x_5, _x_6, _x_7, _x_8, _x_9, _x_10, _x_11, _x_12, _x_13, _x_14, _x_15, _x_16, _x_17, _x_18, _x_19, _x_20, _x_21, _x_22, _x_23, _x_24, _x_25, _x_26, _x_27, _x_28, _x_29, _x_30, _x_31, _x_32, _x_33, _x_34, _x_35, _x_36, _x_37, _x_38, _x_39, _x_40, _x_41, _x_42, _x_43, _x_44, _x_45, _x_46, _x_47, _x_48, _x_49, _x_50, _x_51, _x_52, _x_53, _x_54, _x_55, _x_56, _x_57, _x_58, _x_59, _x_60, _x_61, _x_62, _x_63, _r_66, _r_67, _r_68, _r_69, _r_70, _r_71, _r_72, _r_73, _r_74, _r_75, _r_76, _r_77, _r_78, _r_79, _r_80, _r_81, _r_82, _r_83, _r_84, _r_85, _r_86, _r_87, _r_88, _r_89, _r_90, _r_91, _r_92, _r_93, _r_94, _r_95, _r_96, _r_97, _r_98, _r_99, _r_100, _r_101, _r_102, _r_103, _r_104, _r_105, _r_106, _r_107, _r_108, _r_109, _r_110, _r_111, _r_112, _r_113, _r_114, _r_115, _r_116, _r_117, _r_118, _r_119, _r_120, _r_121, _r_122, _r_123, _r_124, _r_125, _r_126, _r_127, _r_128, _r_129, _key_8, _key_9, _key_10, _key_11, _key_12, _key_13, _key_14, _key_15, _kf_1) == 0) {
+    if (spin_42(e, _o_3, _v_129, _v_129 == h0 ? q0 : blk_loc(e.mem, _v_129), _v_130, _v_131, _v_132, _v_133, _v_134, _v_135, _v_136, _v_137, _v_138, _v_139, _v_140, _v_141, _v_142, _v_143, _v_144, _v_145, _v_146, _v_147, _v_148, _v_149, _v_150, _v_151, _v_152, _v_153, _v_154, _v_155, _v_156, _v_157, _v_158, _v_159, _v_160, _v_161, _v_162, _v_163, _v_164, _v_165, _v_166, _v_167, _v_168, _v_169, _v_170, _v_171, _v_172, _v_173, _v_174, _v_175, _v_176, _v_177, _v_178, _v_179, _v_180, _v_181, _v_182, _v_183, _v_184, _v_185, _v_186, _v_187, _v_188, _v_189, _v_190, _v_191, _v_192, _v_193, _x_0, _x_1, _x_2, _x_3, _x_4, _x_5, _x_6, _x_7, _x_8, _x_9, _x_10, _x_11, _x_12, _x_13, _x_14, _x_15, _x_16, _x_17, _x_18, _x_19, _x_20, _x_21, _x_22, _x_23, _x_24, _x_25, _x_26, _x_27, _x_28, _x_29, _x_30, _x_31, _x_32, _x_33, _x_34, _x_35, _x_36, _x_37, _x_38, _x_39, _x_40, _x_41, _x_42, _x_43, _x_44, _x_45, _x_46, _x_47, _x_48, _x_49, _x_50, _x_51, _x_52, _x_53, _x_54, _x_55, _x_56, _x_57, _x_58, _x_59, _x_60, _x_61, _x_62, _x_63, _r_66, _r_67, _r_68, _r_69, _r_70, _r_71, _r_72, _r_73, _r_74, _r_75, _r_76, _r_77, _r_78, _r_79, _r_80, _r_81, _r_82, _r_83, _r_84, _r_85, _r_86, _r_87, _r_88, _r_89, _r_90, _r_91, _r_92, _r_93, _r_94, _r_95, _r_96, _r_97, _r_98, _r_99, _r_100, _r_101, _r_102, _r_103, _r_104, _r_105, _r_106, _r_107, _r_108, _r_109, _r_110, _r_111, _r_112, _r_113, _r_114, _r_115, _r_116, _r_117, _r_118, _r_119, _r_120, _r_121, _r_122, _r_123, _r_124, _r_125, _r_126, _r_127, _r_128, _r_129, _key_8, _key_9, _key_10, _key_11, _key_12, _key_13, _key_14, _key_15, _kf_1) == 0) {
       return 0;
     }
     o[0] = _o_3[0];
@@ -61261,7 +61429,7 @@ DFAR Term spin_46(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u
   return 1;
 }
 
-INLINE Term spin_49(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15) {
+INLINE Term spin_50(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15) {
   u32 wpoll = 0;
   u32 _m_0 = r0;
   u32 _m_1 = r1;
@@ -61301,7 +61469,7 @@ INLINE Term spin_49(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, 
   return 1;
 }
 
-INLINE Term spin_50(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31) {
+INLINE Term spin_51(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31) {
   u32 wpoll = 0;
   u32 _s_0 = r0;
   u32 _s_1 = r1;
@@ -61581,7 +61749,7 @@ INLINE Term spin_50(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, 
   return 1;
 }
 
-INLINE Term spin_51(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15) {
+INLINE Term spin_52(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15) {
   u32 wpoll = 0;
   u32 _s_16 = r0;
   u32 _s_17 = r1;
@@ -61613,7 +61781,7 @@ INLINE Term spin_51(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, 
   return 1;
 }
 
-DFAR Term spin_48(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27) {
+DFAR Term spin_49(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27) {
   u32 wpoll = 0;
   u32 _cv_0 = r0;
   u32 _cv_1 = r1;
@@ -61661,7 +61829,7 @@ DFAR Term spin_48(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u3
     u32 _v_30 = 0;
     u32 _v_31 = 0;
     Term _o_0[16];
-    if (spin_49(e, _o_0, _m1_0, _m1_1, _m1_2, _m1_3, _m1_4, _m1_5, _m1_6, _m1_7, _m1_8, _m1_9, _m1_10, _m1_11, _m1_12, _m1_13, _m1_14, _m1_15) == 0) {
+    if (spin_50(e, _o_0, _m1_0, _m1_1, _m1_2, _m1_3, _m1_4, _m1_5, _m1_6, _m1_7, _m1_8, _m1_9, _m1_10, _m1_11, _m1_12, _m1_13, _m1_14, _m1_15) == 0) {
       return 0;
     }
     _v_16 = (u32)_o_0[0];
@@ -61697,7 +61865,7 @@ DFAR Term spin_48(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u3
     u32 _v_46 = 0;
     u32 _v_47 = 0;
     Term _o_1[16];
-    if (spin_49(e, _o_1, _v_16, _v_17, _v_18, _v_19, _v_20, _v_21, _v_22, _v_23, _v_24, _v_25, _v_26, _v_27, _v_28, _v_29, _v_30, _v_31) == 0) {
+    if (spin_50(e, _o_1, _v_16, _v_17, _v_18, _v_19, _v_20, _v_21, _v_22, _v_23, _v_24, _v_25, _v_26, _v_27, _v_28, _v_29, _v_30, _v_31) == 0) {
       return 0;
     }
     _v_32 = (u32)_o_1[0];
@@ -61733,7 +61901,7 @@ DFAR Term spin_48(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u3
     u32 _v_62 = 0;
     u32 _v_63 = 0;
     Term _o_2[16];
-    if (spin_49(e, _o_2, _v_32, _v_33, _v_34, _v_35, _v_36, _v_37, _v_38, _v_39, _v_40, _v_41, _v_42, _v_43, _v_44, _v_45, _v_46, _v_47) == 0) {
+    if (spin_50(e, _o_2, _v_32, _v_33, _v_34, _v_35, _v_36, _v_37, _v_38, _v_39, _v_40, _v_41, _v_42, _v_43, _v_44, _v_45, _v_46, _v_47) == 0) {
       return 0;
     }
     _v_48 = (u32)_o_2[0];
@@ -61769,7 +61937,7 @@ DFAR Term spin_48(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u3
     u32 _v_78 = 0;
     u32 _v_79 = 0;
     Term _o_3[16];
-    if (spin_49(e, _o_3, _v_48, _v_49, _v_50, _v_51, _v_52, _v_53, _v_54, _v_55, _v_56, _v_57, _v_58, _v_59, _v_60, _v_61, _v_62, _v_63) == 0) {
+    if (spin_50(e, _o_3, _v_48, _v_49, _v_50, _v_51, _v_52, _v_53, _v_54, _v_55, _v_56, _v_57, _v_58, _v_59, _v_60, _v_61, _v_62, _v_63) == 0) {
       return 0;
     }
     _v_64 = (u32)_o_3[0];
@@ -61805,7 +61973,7 @@ DFAR Term spin_48(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u3
     u32 _v_94 = 0;
     u32 _v_95 = 0;
     Term _o_4[16];
-    if (spin_49(e, _o_4, _v_64, _v_65, _v_66, _v_67, _v_68, _v_69, _v_70, _v_71, _v_72, _v_73, _v_74, _v_75, _v_76, _v_77, _v_78, _v_79) == 0) {
+    if (spin_50(e, _o_4, _v_64, _v_65, _v_66, _v_67, _v_68, _v_69, _v_70, _v_71, _v_72, _v_73, _v_74, _v_75, _v_76, _v_77, _v_78, _v_79) == 0) {
       return 0;
     }
     _v_80 = (u32)_o_4[0];
@@ -61841,7 +62009,7 @@ DFAR Term spin_48(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u3
     u32 _v_110 = 0;
     u32 _v_111 = 0;
     Term _o_5[16];
-    if (spin_49(e, _o_5, _v_80, _v_81, _v_82, _v_83, _v_84, _v_85, _v_86, _v_87, _v_88, _v_89, _v_90, _v_91, _v_92, _v_93, _v_94, _v_95) == 0) {
+    if (spin_50(e, _o_5, _v_80, _v_81, _v_82, _v_83, _v_84, _v_85, _v_86, _v_87, _v_88, _v_89, _v_90, _v_91, _v_92, _v_93, _v_94, _v_95) == 0) {
       return 0;
     }
     _v_96 = (u32)_o_5[0];
@@ -61977,7 +62145,7 @@ DFAR Term spin_48(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u3
     u32 _v_222 = 0;
     u32 _v_223 = 0;
     Term _o_38[16];
-    if (spin_50(e, _o_38, _cv_0, _cv_1, _cv_2, _cv_3, _cv_4, _cv_5, _cv_6, _cv_7, _s0_0, _s0_1, _s0_2, _s0_3, _t0_0, _t1_0, _blen_0, _flags_0, _m1_0, _m1_1, _m1_2, _m1_3, _m1_4, _m1_5, _m1_6, _m1_7, _m1_8, _m1_9, _m1_10, _m1_11, _m1_12, _m1_13, _m1_14, _m1_15) == 0) {
+    if (spin_51(e, _o_38, _cv_0, _cv_1, _cv_2, _cv_3, _cv_4, _cv_5, _cv_6, _cv_7, _s0_0, _s0_1, _s0_2, _s0_3, _t0_0, _t1_0, _blen_0, _flags_0, _m1_0, _m1_1, _m1_2, _m1_3, _m1_4, _m1_5, _m1_6, _m1_7, _m1_8, _m1_9, _m1_10, _m1_11, _m1_12, _m1_13, _m1_14, _m1_15) == 0) {
       return 0;
     }
     _v_208 = (u32)_o_38[0];
@@ -61997,7 +62165,7 @@ DFAR Term spin_48(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u3
     _v_222 = (u32)_o_38[14];
     _v_223 = (u32)_o_38[15];
     Term _o_39[16];
-    if (spin_50(e, _o_39, _v_208, _v_209, _v_210, _v_211, _v_212, _v_213, _v_214, _v_215, _v_216, _v_217, _v_218, _v_219, _v_220, _v_221, _v_222, _v_223, _v_16, _v_17, _v_18, _v_19, _v_20, _v_21, _v_22, _v_23, _v_24, _v_25, _v_26, _v_27, _v_28, _v_29, _v_30, _v_31) == 0) {
+    if (spin_51(e, _o_39, _v_208, _v_209, _v_210, _v_211, _v_212, _v_213, _v_214, _v_215, _v_216, _v_217, _v_218, _v_219, _v_220, _v_221, _v_222, _v_223, _v_16, _v_17, _v_18, _v_19, _v_20, _v_21, _v_22, _v_23, _v_24, _v_25, _v_26, _v_27, _v_28, _v_29, _v_30, _v_31) == 0) {
       return 0;
     }
     _v_192 = (u32)_o_39[0];
@@ -62017,7 +62185,7 @@ DFAR Term spin_48(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u3
     _v_206 = (u32)_o_39[14];
     _v_207 = (u32)_o_39[15];
     Term _o_40[16];
-    if (spin_50(e, _o_40, _v_192, _v_193, _v_194, _v_195, _v_196, _v_197, _v_198, _v_199, _v_200, _v_201, _v_202, _v_203, _v_204, _v_205, _v_206, _v_207, _v_32, _v_33, _v_34, _v_35, _v_36, _v_37, _v_38, _v_39, _v_40, _v_41, _v_42, _v_43, _v_44, _v_45, _v_46, _v_47) == 0) {
+    if (spin_51(e, _o_40, _v_192, _v_193, _v_194, _v_195, _v_196, _v_197, _v_198, _v_199, _v_200, _v_201, _v_202, _v_203, _v_204, _v_205, _v_206, _v_207, _v_32, _v_33, _v_34, _v_35, _v_36, _v_37, _v_38, _v_39, _v_40, _v_41, _v_42, _v_43, _v_44, _v_45, _v_46, _v_47) == 0) {
       return 0;
     }
     _v_176 = (u32)_o_40[0];
@@ -62037,7 +62205,7 @@ DFAR Term spin_48(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u3
     _v_190 = (u32)_o_40[14];
     _v_191 = (u32)_o_40[15];
     Term _o_41[16];
-    if (spin_50(e, _o_41, _v_176, _v_177, _v_178, _v_179, _v_180, _v_181, _v_182, _v_183, _v_184, _v_185, _v_186, _v_187, _v_188, _v_189, _v_190, _v_191, _v_48, _v_49, _v_50, _v_51, _v_52, _v_53, _v_54, _v_55, _v_56, _v_57, _v_58, _v_59, _v_60, _v_61, _v_62, _v_63) == 0) {
+    if (spin_51(e, _o_41, _v_176, _v_177, _v_178, _v_179, _v_180, _v_181, _v_182, _v_183, _v_184, _v_185, _v_186, _v_187, _v_188, _v_189, _v_190, _v_191, _v_48, _v_49, _v_50, _v_51, _v_52, _v_53, _v_54, _v_55, _v_56, _v_57, _v_58, _v_59, _v_60, _v_61, _v_62, _v_63) == 0) {
       return 0;
     }
     _v_160 = (u32)_o_41[0];
@@ -62057,7 +62225,7 @@ DFAR Term spin_48(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u3
     _v_174 = (u32)_o_41[14];
     _v_175 = (u32)_o_41[15];
     Term _o_42[16];
-    if (spin_50(e, _o_42, _v_160, _v_161, _v_162, _v_163, _v_164, _v_165, _v_166, _v_167, _v_168, _v_169, _v_170, _v_171, _v_172, _v_173, _v_174, _v_175, _v_64, _v_65, _v_66, _v_67, _v_68, _v_69, _v_70, _v_71, _v_72, _v_73, _v_74, _v_75, _v_76, _v_77, _v_78, _v_79) == 0) {
+    if (spin_51(e, _o_42, _v_160, _v_161, _v_162, _v_163, _v_164, _v_165, _v_166, _v_167, _v_168, _v_169, _v_170, _v_171, _v_172, _v_173, _v_174, _v_175, _v_64, _v_65, _v_66, _v_67, _v_68, _v_69, _v_70, _v_71, _v_72, _v_73, _v_74, _v_75, _v_76, _v_77, _v_78, _v_79) == 0) {
       return 0;
     }
     _v_144 = (u32)_o_42[0];
@@ -62077,7 +62245,7 @@ DFAR Term spin_48(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u3
     _v_158 = (u32)_o_42[14];
     _v_159 = (u32)_o_42[15];
     Term _o_43[16];
-    if (spin_50(e, _o_43, _v_144, _v_145, _v_146, _v_147, _v_148, _v_149, _v_150, _v_151, _v_152, _v_153, _v_154, _v_155, _v_156, _v_157, _v_158, _v_159, _v_80, _v_81, _v_82, _v_83, _v_84, _v_85, _v_86, _v_87, _v_88, _v_89, _v_90, _v_91, _v_92, _v_93, _v_94, _v_95) == 0) {
+    if (spin_51(e, _o_43, _v_144, _v_145, _v_146, _v_147, _v_148, _v_149, _v_150, _v_151, _v_152, _v_153, _v_154, _v_155, _v_156, _v_157, _v_158, _v_159, _v_80, _v_81, _v_82, _v_83, _v_84, _v_85, _v_86, _v_87, _v_88, _v_89, _v_90, _v_91, _v_92, _v_93, _v_94, _v_95) == 0) {
       return 0;
     }
     _v_128 = (u32)_o_43[0];
@@ -62097,7 +62265,7 @@ DFAR Term spin_48(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u3
     _v_142 = (u32)_o_43[14];
     _v_143 = (u32)_o_43[15];
     Term _o_44[16];
-    if (spin_50(e, _o_44, _v_128, _v_129, _v_130, _v_131, _v_132, _v_133, _v_134, _v_135, _v_136, _v_137, _v_138, _v_139, _v_140, _v_141, _v_142, _v_143, _v_96, _v_97, _v_98, _v_99, _v_100, _v_101, _v_102, _v_103, _v_104, _v_105, _v_106, _v_107, _v_108, _v_109, _v_110, _v_111) == 0) {
+    if (spin_51(e, _o_44, _v_128, _v_129, _v_130, _v_131, _v_132, _v_133, _v_134, _v_135, _v_136, _v_137, _v_138, _v_139, _v_140, _v_141, _v_142, _v_143, _v_96, _v_97, _v_98, _v_99, _v_100, _v_101, _v_102, _v_103, _v_104, _v_105, _v_106, _v_107, _v_108, _v_109, _v_110, _v_111) == 0) {
       return 0;
     }
     _v_112 = (u32)_o_44[0];
@@ -62117,7 +62285,7 @@ DFAR Term spin_48(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u3
     _v_126 = (u32)_o_44[14];
     _v_127 = (u32)_o_44[15];
     Term _o_45[8];
-    if (spin_51(e, _o_45, _v_112, _v_113, _v_114, _v_115, _v_116, _v_117, _v_118, _v_119, _v_120, _v_121, _v_122, _v_123, _v_124, _v_125, _v_126, _v_127) == 0) {
+    if (spin_52(e, _o_45, _v_112, _v_113, _v_114, _v_115, _v_116, _v_117, _v_118, _v_119, _v_120, _v_121, _v_122, _v_123, _v_124, _v_125, _v_126, _v_127) == 0) {
       return 0;
     }
     o[0] = (u32)_o_45[0];
@@ -62133,7 +62301,7 @@ DFAR Term spin_48(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u3
   return 1;
 }
 
-INLINE Term spin_47(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25) {
+INLINE Term spin_48(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25) {
   u32 wpoll = 0;
   u32 _l_0 = r0;
   u32 _l_1 = r1;
@@ -62163,7 +62331,7 @@ INLINE Term spin_47(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, 
   u32 _kf_1 = r25;
   WL_SPIN
     Term _o_46[8];
-    if (spin_48(e, _o_46, _key_8, _key_9, _key_10, _key_11, _key_12, _key_13, _key_14, _key_15, _l_0, _l_1, _l_2, _l_3, _l_4, _l_5, _l_6, _l_7, _r_0, _r_1, _r_2, _r_3, _r_4, _r_5, _r_6, _r_7, 0ull, 0ull, 64ull, U32_BIN(U32_BIN(4ull, |, _rf_1), |, _kf_1)) == 0) {
+    if (spin_49(e, _o_46, _key_8, _key_9, _key_10, _key_11, _key_12, _key_13, _key_14, _key_15, _l_0, _l_1, _l_2, _l_3, _l_4, _l_5, _l_6, _l_7, _r_0, _r_1, _r_2, _r_3, _r_4, _r_5, _r_6, _r_7, 0ull, 0ull, 64ull, U32_BIN(U32_BIN(4ull, |, _rf_1), |, _kf_1)) == 0) {
       return 0;
     }
     o[0] = (u32)_o_46[0];
@@ -62179,7 +62347,7 @@ INLINE Term spin_47(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, 
   return 1;
 }
 
-INLINE Term spin_52(Env e, THR Term* o, u32 r0) {
+INLINE Term spin_53(Env e, THR Term* o, u32 r0) {
   u32 wpoll = 0;
   u32 _b_1 = r0;
   WL_SPIN
@@ -62193,7 +62361,7 @@ INLINE Term spin_52(Env e, THR Term* o, u32 r0) {
   return 1;
 }
 
-DFAR Term spin_53(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65, u32 r66, u32 r67, u32 r68, u32 r69, u32 r70, u32 r71, u32 r72, u32 r73, u32 r74, u32 r75, u32 r76, u32 r77, u32 r78, u32 r79, u32 r80, u32 r81, u32 r82, u32 r83, u32 r84, u32 r85, u32 r86, u32 r87, u32 r88, u32 r89, u32 r90, u32 r91, u32 r92, u32 r93, u32 r94, u32 r95, u32 r96, u32 r97, u32 r98, u32 r99, u32 r100, u32 r101, u32 r102, u32 r103, u32 r104, u32 r105, u32 r106, u32 r107, u32 r108, u32 r109, u32 r110, u32 r111, u32 r112, u32 r113, u32 r114, u32 r115, u32 r116, u32 r117, u32 r118, u32 r119, u32 r120, u32 r121, u32 r122, u32 r123, u32 r124, u32 r125, u32 r126, u32 r127, u32 r128, u32 r129, u32 r130, u32 r131) {
+DFAR Term spin_54(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65, u32 r66, u32 r67, u32 r68, u32 r69, u32 r70, u32 r71, u32 r72, u32 r73, u32 r74, u32 r75, u32 r76, u32 r77, u32 r78, u32 r79, u32 r80, u32 r81, u32 r82, u32 r83, u32 r84, u32 r85, u32 r86, u32 r87, u32 r88, u32 r89, u32 r90, u32 r91, u32 r92, u32 r93, u32 r94, u32 r95, u32 r96, u32 r97, u32 r98, u32 r99, u32 r100, u32 r101, u32 r102, u32 r103, u32 r104, u32 r105, u32 r106, u32 r107, u32 r108, u32 r109, u32 r110, u32 r111, u32 r112, u32 r113, u32 r114, u32 r115, u32 r116, u32 r117, u32 r118, u32 r119, u32 r120, u32 r121, u32 r122, u32 r123, u32 r124, u32 r125, u32 r126, u32 r127, u32 r128, u32 r129, u32 r130, u32 r131) {
   u32 wpoll = 0;
   Term h0 = r0;
   Term _r_65 = r0;
@@ -62395,7 +62563,7 @@ DFAR Term spin_53(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u
     u32 _v_192 = 0;
     u32 _v_193 = 0;
     Term _o_2[65];
-    if (spin_42(e, _o_2, _r_65, _r_65 == h0 ? q0 : blk_loc(e.mem, _r_65), U32_BIN(_c_1, +, 24ull), U32_BIN(_t_1, +, 24ull), _hi_1) == 0) {
+    if (spin_43(e, _o_2, _r_65, _r_65 == h0 ? q0 : blk_loc(e.mem, _r_65), U32_BIN(_c_1, +, 24ull), U32_BIN(_t_1, +, 24ull), _hi_1) == 0) {
       return 0;
     }
     _v_129 = _o_2[0];
@@ -62464,7 +62632,7 @@ DFAR Term spin_53(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u
     _v_192 = (u32)_o_2[63];
     _v_193 = (u32)_o_2[64];
     Term _o_3[65];
-    if (spin_45(e, _o_3, _v_129, _v_129 == h0 ? q0 : blk_loc(e.mem, _v_129), _v_130, _v_131, _v_132, _v_133, _v_134, _v_135, _v_136, _v_137, _v_138, _v_139, _v_140, _v_141, _v_142, _v_143, _v_144, _v_145, _v_146, _v_147, _v_148, _v_149, _v_150, _v_151, _v_152, _v_153, _v_154, _v_155, _v_156, _v_157, _v_158, _v_159, _v_160, _v_161, _v_162, _v_163, _v_164, _v_165, _v_166, _v_167, _v_168, _v_169, _v_170, _v_171, _v_172, _v_173, _v_174, _v_175, _v_176, _v_177, _v_178, _v_179, _v_180, _v_181, _v_182, _v_183, _v_184, _v_185, _v_186, _v_187, _v_188, _v_189, _v_190, _v_191, _v_192, _v_193, _x_0, _x_1, _x_2, _x_3, _x_4, _x_5, _x_6, _x_7, _x_8, _x_9, _x_10, _x_11, _x_12, _x_13, _x_14, _x_15, _x_16, _x_17, _x_18, _x_19, _x_20, _x_21, _x_22, _x_23, _x_24, _x_25, _x_26, _x_27, _x_28, _x_29, _x_30, _x_31, _x_32, _x_33, _x_34, _x_35, _x_36, _x_37, _x_38, _x_39, _x_40, _x_41, _x_42, _x_43, _x_44, _x_45, _x_46, _x_47, _x_48, _x_49, _x_50, _x_51, _x_52, _x_53, _x_54, _x_55, _x_56, _x_57, _x_58, _x_59, _x_60, _x_61, _x_62, _x_63, _r_66, _r_67, _r_68, _r_69, _r_70, _r_71, _r_72, _r_73, _r_74, _r_75, _r_76, _r_77, _r_78, _r_79, _r_80, _r_81, _r_82, _r_83, _r_84, _r_85, _r_86, _r_87, _r_88, _r_89, _r_90, _r_91, _r_92, _r_93, _r_94, _r_95, _r_96, _r_97, _r_98, _r_99, _r_100, _r_101, _r_102, _r_103, _r_104, _r_105, _r_106, _r_107, _r_108, _r_109, _r_110, _r_111, _r_112, _r_113, _r_114, _r_115, _r_116, _r_117, _r_118, _r_119, _r_120, _r_121, _r_122, _r_123, _r_124, _r_125, _r_126, _r_127, _r_128, _r_129) == 0) {
+    if (spin_46(e, _o_3, _v_129, _v_129 == h0 ? q0 : blk_loc(e.mem, _v_129), _v_130, _v_131, _v_132, _v_133, _v_134, _v_135, _v_136, _v_137, _v_138, _v_139, _v_140, _v_141, _v_142, _v_143, _v_144, _v_145, _v_146, _v_147, _v_148, _v_149, _v_150, _v_151, _v_152, _v_153, _v_154, _v_155, _v_156, _v_157, _v_158, _v_159, _v_160, _v_161, _v_162, _v_163, _v_164, _v_165, _v_166, _v_167, _v_168, _v_169, _v_170, _v_171, _v_172, _v_173, _v_174, _v_175, _v_176, _v_177, _v_178, _v_179, _v_180, _v_181, _v_182, _v_183, _v_184, _v_185, _v_186, _v_187, _v_188, _v_189, _v_190, _v_191, _v_192, _v_193, _x_0, _x_1, _x_2, _x_3, _x_4, _x_5, _x_6, _x_7, _x_8, _x_9, _x_10, _x_11, _x_12, _x_13, _x_14, _x_15, _x_16, _x_17, _x_18, _x_19, _x_20, _x_21, _x_22, _x_23, _x_24, _x_25, _x_26, _x_27, _x_28, _x_29, _x_30, _x_31, _x_32, _x_33, _x_34, _x_35, _x_36, _x_37, _x_38, _x_39, _x_40, _x_41, _x_42, _x_43, _x_44, _x_45, _x_46, _x_47, _x_48, _x_49, _x_50, _x_51, _x_52, _x_53, _x_54, _x_55, _x_56, _x_57, _x_58, _x_59, _x_60, _x_61, _x_62, _x_63, _r_66, _r_67, _r_68, _r_69, _r_70, _r_71, _r_72, _r_73, _r_74, _r_75, _r_76, _r_77, _r_78, _r_79, _r_80, _r_81, _r_82, _r_83, _r_84, _r_85, _r_86, _r_87, _r_88, _r_89, _r_90, _r_91, _r_92, _r_93, _r_94, _r_95, _r_96, _r_97, _r_98, _r_99, _r_100, _r_101, _r_102, _r_103, _r_104, _r_105, _r_106, _r_107, _r_108, _r_109, _r_110, _r_111, _r_112, _r_113, _r_114, _r_115, _r_116, _r_117, _r_118, _r_119, _r_120, _r_121, _r_122, _r_123, _r_124, _r_125, _r_126, _r_127, _r_128, _r_129) == 0) {
       return 0;
     }
     o[0] = _o_3[0];
@@ -62537,7 +62705,7 @@ DFAR Term spin_53(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u
   return 1;
 }
 
-INLINE Term spin_54(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16) {
+INLINE Term spin_55(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16) {
   u32 wpoll = 0;
   u32 _l_0 = r0;
   u32 _l_1 = r1;
@@ -62558,7 +62726,7 @@ INLINE Term spin_54(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, 
   u32 _rf_1 = r16;
   WL_SPIN
     Term _o_0[8];
-    if (spin_48(e, _o_0, 1779033703ull, 3144134277ull, 1013904242ull, 2773480762ull, 1359893119ull, 2600822924ull, 528734635ull, 1541459225ull, _l_0, _l_1, _l_2, _l_3, _l_4, _l_5, _l_6, _l_7, _r_0, _r_1, _r_2, _r_3, _r_4, _r_5, _r_6, _r_7, 0ull, 0ull, 64ull, U32_BIN(4ull, |, _rf_1)) == 0) {
+    if (spin_49(e, _o_0, 1779033703ull, 3144134277ull, 1013904242ull, 2773480762ull, 1359893119ull, 2600822924ull, 528734635ull, 1541459225ull, _l_0, _l_1, _l_2, _l_3, _l_4, _l_5, _l_6, _l_7, _r_0, _r_1, _r_2, _r_3, _r_4, _r_5, _r_6, _r_7, 0ull, 0ull, 64ull, U32_BIN(4ull, |, _rf_1)) == 0) {
       return 0;
     }
     o[0] = (u32)_o_0[0];
@@ -62574,7 +62742,7 @@ INLINE Term spin_54(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, 
   return 1;
 }
 
-DFAR Term spin_55(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65, u32 r66, u32 r67, u32 r68, u32 r69, u32 r70, u32 r71, u32 r72, u32 r73, u32 r74, u32 r75, u32 r76, u32 r77, u32 r78, u32 r79, u32 r80, u32 r81, u32 r82, u32 r83, u32 r84, u32 r85, u32 r86, u32 r87, u32 r88, u32 r89, u32 r90, u32 r91, u32 r92, u32 r93, u32 r94, u32 r95, u32 r96, u32 r97, u32 r98, u32 r99, u32 r100, u32 r101, u32 r102, u32 r103, u32 r104, u32 r105, u32 r106, u32 r107, u32 r108, u32 r109, u32 r110, u32 r111, u32 r112, u32 r113, u32 r114, u32 r115, u32 r116, u32 r117, u32 r118, u32 r119, u32 r120, u32 r121, u32 r122, u32 r123, u32 r124, u32 r125, u32 r126, u32 r127, u32 r128, u32 r129, u32 r130, u32 r131, u32 r132, u32 r133, u32 r134, u32 r135, u32 r136, u32 r137, u32 r138, u32 r139, u32 r140) {
+DFAR Term spin_56(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65, u32 r66, u32 r67, u32 r68, u32 r69, u32 r70, u32 r71, u32 r72, u32 r73, u32 r74, u32 r75, u32 r76, u32 r77, u32 r78, u32 r79, u32 r80, u32 r81, u32 r82, u32 r83, u32 r84, u32 r85, u32 r86, u32 r87, u32 r88, u32 r89, u32 r90, u32 r91, u32 r92, u32 r93, u32 r94, u32 r95, u32 r96, u32 r97, u32 r98, u32 r99, u32 r100, u32 r101, u32 r102, u32 r103, u32 r104, u32 r105, u32 r106, u32 r107, u32 r108, u32 r109, u32 r110, u32 r111, u32 r112, u32 r113, u32 r114, u32 r115, u32 r116, u32 r117, u32 r118, u32 r119, u32 r120, u32 r121, u32 r122, u32 r123, u32 r124, u32 r125, u32 r126, u32 r127, u32 r128, u32 r129, u32 r130, u32 r131, u32 r132, u32 r133, u32 r134, u32 r135, u32 r136, u32 r137, u32 r138, u32 r139, u32 r140) {
   u32 wpoll = 0;
   Term h0 = r0;
   Term _r_65 = r0;
@@ -62986,7 +63154,7 @@ DFAR Term spin_55(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u
     _v_192 = (u32)_o_2[62];
     _v_193 = (u32)_o_2[63];
     Term _o_3[65];
-    if (spin_46(e, _o_3, _v_65, _v_65 == h0 ? q0 : blk_loc(e.mem, _v_65), _v_66, _v_67, _v_68, _v_69, _v_70, _v_71, _v_72, _v_73, _v_74, _v_75, _v_76, _v_77, _v_78, _v_79, _v_80, _v_81, _v_82, _v_83, _v_84, _v_85, _v_86, _v_87, _v_88, _v_89, _v_90, _v_91, _v_92, _v_93, _v_94, _v_95, _v_96, _v_97, _v_98, _v_99, _v_100, _v_101, _v_102, _v_103, _v_104, _v_105, _v_106, _v_107, _v_108, _v_109, _v_110, _v_111, _v_112, _v_113, _v_114, _v_115, _v_116, _v_117, _v_118, _v_119, _v_120, _v_121, _v_122, _v_123, _v_124, _v_125, _v_126, _v_127, _v_128, _v_129, _c_1, _t_1, _hi_1, _v_130, _v_131, _v_132, _v_133, _v_134, _v_135, _v_136, _v_137, _v_138, _v_139, _v_140, _v_141, _v_142, _v_143, _v_144, _v_145, _v_146, _v_147, _v_148, _v_149, _v_150, _v_151, _v_152, _v_153, _v_154, _v_155, _v_156, _v_157, _v_158, _v_159, _v_160, _v_161, _v_162, _v_163, _v_164, _v_165, _v_166, _v_167, _v_168, _v_169, _v_170, _v_171, _v_172, _v_173, _v_174, _v_175, _v_176, _v_177, _v_178, _v_179, _v_180, _v_181, _v_182, _v_183, _v_184, _v_185, _v_186, _v_187, _v_188, _v_189, _v_190, _v_191, _v_192, _v_193, _key_8, _key_9, _key_10, _key_11, _key_12, _key_13, _key_14, _key_15, _kf_1) == 0) {
+    if (spin_47(e, _o_3, _v_65, _v_65 == h0 ? q0 : blk_loc(e.mem, _v_65), _v_66, _v_67, _v_68, _v_69, _v_70, _v_71, _v_72, _v_73, _v_74, _v_75, _v_76, _v_77, _v_78, _v_79, _v_80, _v_81, _v_82, _v_83, _v_84, _v_85, _v_86, _v_87, _v_88, _v_89, _v_90, _v_91, _v_92, _v_93, _v_94, _v_95, _v_96, _v_97, _v_98, _v_99, _v_100, _v_101, _v_102, _v_103, _v_104, _v_105, _v_106, _v_107, _v_108, _v_109, _v_110, _v_111, _v_112, _v_113, _v_114, _v_115, _v_116, _v_117, _v_118, _v_119, _v_120, _v_121, _v_122, _v_123, _v_124, _v_125, _v_126, _v_127, _v_128, _v_129, _c_1, _t_1, _hi_1, _v_130, _v_131, _v_132, _v_133, _v_134, _v_135, _v_136, _v_137, _v_138, _v_139, _v_140, _v_141, _v_142, _v_143, _v_144, _v_145, _v_146, _v_147, _v_148, _v_149, _v_150, _v_151, _v_152, _v_153, _v_154, _v_155, _v_156, _v_157, _v_158, _v_159, _v_160, _v_161, _v_162, _v_163, _v_164, _v_165, _v_166, _v_167, _v_168, _v_169, _v_170, _v_171, _v_172, _v_173, _v_174, _v_175, _v_176, _v_177, _v_178, _v_179, _v_180, _v_181, _v_182, _v_183, _v_184, _v_185, _v_186, _v_187, _v_188, _v_189, _v_190, _v_191, _v_192, _v_193, _key_8, _key_9, _key_10, _key_11, _key_12, _key_13, _key_14, _key_15, _kf_1) == 0) {
       return 0;
     }
     o[0] = _o_3[0];
@@ -63059,7 +63227,7 @@ DFAR Term spin_55(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u
   return 1;
 }
 
-INLINE Term spin_56(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65, u32 r66, u32 r67, u32 r68, u32 r69, u32 r70, u32 r71, u32 r72, u32 r73) {
+INLINE Term spin_57(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65, u32 r66, u32 r67, u32 r68, u32 r69, u32 r70, u32 r71, u32 r72, u32 r73) {
   u32 wpoll = 0;
   u32 _x_0 = r0;
   u32 _x_1 = r1;
@@ -63153,7 +63321,7 @@ INLINE Term spin_56(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, 
     u32 _v_14 = 0;
     u32 _v_15 = 0;
     Term _o_0[8];
-    if (spin_47(e, _o_0, _x_0, _x_8, _x_16, _x_24, _x_32, _x_40, _x_48, _x_56, _x_1, _x_9, _x_17, _x_25, _x_33, _x_41, _x_49, _x_57, 0ull, _key_8, _key_9, _key_10, _key_11, _key_12, _key_13, _key_14, _key_15, _kf_1) == 0) {
+    if (spin_48(e, _o_0, _x_0, _x_8, _x_16, _x_24, _x_32, _x_40, _x_48, _x_56, _x_1, _x_9, _x_17, _x_25, _x_33, _x_41, _x_49, _x_57, 0ull, _key_8, _key_9, _key_10, _key_11, _key_12, _key_13, _key_14, _key_15, _kf_1) == 0) {
       return 0;
     }
     _v_8 = (u32)_o_0[0];
@@ -63173,7 +63341,7 @@ INLINE Term spin_56(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, 
     u32 _v_22 = 0;
     u32 _v_23 = 0;
     Term _o_1[8];
-    if (spin_47(e, _o_1, _x_2, _x_10, _x_18, _x_26, _x_34, _x_42, _x_50, _x_58, _x_3, _x_11, _x_19, _x_27, _x_35, _x_43, _x_51, _x_59, 0ull, _key_8, _key_9, _key_10, _key_11, _key_12, _key_13, _key_14, _key_15, _kf_1) == 0) {
+    if (spin_48(e, _o_1, _x_2, _x_10, _x_18, _x_26, _x_34, _x_42, _x_50, _x_58, _x_3, _x_11, _x_19, _x_27, _x_35, _x_43, _x_51, _x_59, 0ull, _key_8, _key_9, _key_10, _key_11, _key_12, _key_13, _key_14, _key_15, _kf_1) == 0) {
       return 0;
     }
     _v_16 = (u32)_o_1[0];
@@ -63185,7 +63353,7 @@ INLINE Term spin_56(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, 
     _v_22 = (u32)_o_1[6];
     _v_23 = (u32)_o_1[7];
     Term _o_2[8];
-    if (spin_47(e, _o_2, _v_8, _v_9, _v_10, _v_11, _v_12, _v_13, _v_14, _v_15, _v_16, _v_17, _v_18, _v_19, _v_20, _v_21, _v_22, _v_23, 0ull, _key_8, _key_9, _key_10, _key_11, _key_12, _key_13, _key_14, _key_15, _kf_1) == 0) {
+    if (spin_48(e, _o_2, _v_8, _v_9, _v_10, _v_11, _v_12, _v_13, _v_14, _v_15, _v_16, _v_17, _v_18, _v_19, _v_20, _v_21, _v_22, _v_23, 0ull, _key_8, _key_9, _key_10, _key_11, _key_12, _key_13, _key_14, _key_15, _kf_1) == 0) {
       return 0;
     }
     _v_0 = (u32)_o_2[0];
@@ -63213,7 +63381,7 @@ INLINE Term spin_56(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, 
     u32 _v_38 = 0;
     u32 _v_39 = 0;
     Term _o_3[8];
-    if (spin_47(e, _o_3, _x_4, _x_12, _x_20, _x_28, _x_36, _x_44, _x_52, _x_60, _x_5, _x_13, _x_21, _x_29, _x_37, _x_45, _x_53, _x_61, 0ull, _key_8, _key_9, _key_10, _key_11, _key_12, _key_13, _key_14, _key_15, _kf_1) == 0) {
+    if (spin_48(e, _o_3, _x_4, _x_12, _x_20, _x_28, _x_36, _x_44, _x_52, _x_60, _x_5, _x_13, _x_21, _x_29, _x_37, _x_45, _x_53, _x_61, 0ull, _key_8, _key_9, _key_10, _key_11, _key_12, _key_13, _key_14, _key_15, _kf_1) == 0) {
       return 0;
     }
     _v_32 = (u32)_o_3[0];
@@ -63233,7 +63401,7 @@ INLINE Term spin_56(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, 
     u32 _v_46 = 0;
     u32 _v_47 = 0;
     Term _o_4[8];
-    if (spin_47(e, _o_4, _x_6, _x_14, _x_22, _x_30, _x_38, _x_46, _x_54, _x_62, _x_7, _x_15, _x_23, _x_31, _x_39, _x_47, _x_55, _x_63, 0ull, _key_8, _key_9, _key_10, _key_11, _key_12, _key_13, _key_14, _key_15, _kf_1) == 0) {
+    if (spin_48(e, _o_4, _x_6, _x_14, _x_22, _x_30, _x_38, _x_46, _x_54, _x_62, _x_7, _x_15, _x_23, _x_31, _x_39, _x_47, _x_55, _x_63, 0ull, _key_8, _key_9, _key_10, _key_11, _key_12, _key_13, _key_14, _key_15, _kf_1) == 0) {
       return 0;
     }
     _v_40 = (u32)_o_4[0];
@@ -63245,7 +63413,7 @@ INLINE Term spin_56(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, 
     _v_46 = (u32)_o_4[6];
     _v_47 = (u32)_o_4[7];
     Term _o_5[8];
-    if (spin_47(e, _o_5, _v_32, _v_33, _v_34, _v_35, _v_36, _v_37, _v_38, _v_39, _v_40, _v_41, _v_42, _v_43, _v_44, _v_45, _v_46, _v_47, 0ull, _key_8, _key_9, _key_10, _key_11, _key_12, _key_13, _key_14, _key_15, _kf_1) == 0) {
+    if (spin_48(e, _o_5, _v_32, _v_33, _v_34, _v_35, _v_36, _v_37, _v_38, _v_39, _v_40, _v_41, _v_42, _v_43, _v_44, _v_45, _v_46, _v_47, 0ull, _key_8, _key_9, _key_10, _key_11, _key_12, _key_13, _key_14, _key_15, _kf_1) == 0) {
       return 0;
     }
     _v_24 = (u32)_o_5[0];
@@ -63257,7 +63425,7 @@ INLINE Term spin_56(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, 
     _v_30 = (u32)_o_5[6];
     _v_31 = (u32)_o_5[7];
     Term _o_6[8];
-    if (spin_47(e, _o_6, _v_0, _v_1, _v_2, _v_3, _v_4, _v_5, _v_6, _v_7, _v_24, _v_25, _v_26, _v_27, _v_28, _v_29, _v_30, _v_31, _rf_1, _key_8, _key_9, _key_10, _key_11, _key_12, _key_13, _key_14, _key_15, _kf_1) == 0) {
+    if (spin_48(e, _o_6, _v_0, _v_1, _v_2, _v_3, _v_4, _v_5, _v_6, _v_7, _v_24, _v_25, _v_26, _v_27, _v_28, _v_29, _v_30, _v_31, _rf_1, _key_8, _key_9, _key_10, _key_11, _key_12, _key_13, _key_14, _key_15, _kf_1) == 0) {
       return 0;
     }
     o[0] = (u32)_o_6[0];
@@ -63273,7 +63441,7 @@ INLINE Term spin_56(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, 
   return 1;
 }
 
-INLINE Term spin_57(Env e, THR Term* o, u32 r0, u32 r1) {
+INLINE Term spin_58(Env e, THR Term* o, u32 r0, u32 r1) {
   u32 wpoll = 0;
   u32 _a_0 = r0;
   u32 _b_0 = r1;
@@ -63288,7 +63456,7 @@ INLINE Term spin_57(Env e, THR Term* o, u32 r0, u32 r1) {
   return 1;
 }
 
-INLINE Term spin_58(Env e, THR Term* o, u32 r0, u32 r1) {
+INLINE Term spin_59(Env e, THR Term* o, u32 r0, u32 r1) {
   u32 wpoll = 0;
   u32 _b_0 = r0;
   u32 _k_1 = r1;
@@ -63297,7 +63465,7 @@ INLINE Term spin_58(Env e, THR Term* o, u32 r0, u32 r1) {
       o[0] = 3;
     } else {
       Term _o_0[1];
-      if (spin_52(e, _o_0, U32_BIN(_k_1, ==, 3ull)) == 0) {
+      if (spin_53(e, _o_0, U32_BIN(_k_1, ==, 3ull)) == 0) {
         return 0;
       }
       o[0] = (u32)_o_0[0];
@@ -63307,7 +63475,7 @@ INLINE Term spin_58(Env e, THR Term* o, u32 r0, u32 r1) {
   return 1;
 }
 
-DFAR Term spin_59(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65, u32 r66, u32 r67, u32 r68, u32 r69, u32 r70, u32 r71, u32 r72, u32 r73, u32 r74, u32 r75, u32 r76, u32 r77, u32 r78, u32 r79, u32 r80, u32 r81, u32 r82, u32 r83, u32 r84, u32 r85, u32 r86, u32 r87, u32 r88, u32 r89, u32 r90, u32 r91, u32 r92, u32 r93, u32 r94, u32 r95, u32 r96, u32 r97, u32 r98, u32 r99, u32 r100, u32 r101, u32 r102, u32 r103, u32 r104, u32 r105, u32 r106, u32 r107, u32 r108, u32 r109, u32 r110, u32 r111, u32 r112, u32 r113, u32 r114, u32 r115, u32 r116, u32 r117, u32 r118, u32 r119, u32 r120, u32 r121, u32 r122, u32 r123, u32 r124, u32 r125, u32 r126, u32 r127, u32 r128, u32 r129, u32 r130, u32 r131) {
+DFAR Term spin_60(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65, u32 r66, u32 r67, u32 r68, u32 r69, u32 r70, u32 r71, u32 r72, u32 r73, u32 r74, u32 r75, u32 r76, u32 r77, u32 r78, u32 r79, u32 r80, u32 r81, u32 r82, u32 r83, u32 r84, u32 r85, u32 r86, u32 r87, u32 r88, u32 r89, u32 r90, u32 r91, u32 r92, u32 r93, u32 r94, u32 r95, u32 r96, u32 r97, u32 r98, u32 r99, u32 r100, u32 r101, u32 r102, u32 r103, u32 r104, u32 r105, u32 r106, u32 r107, u32 r108, u32 r109, u32 r110, u32 r111, u32 r112, u32 r113, u32 r114, u32 r115, u32 r116, u32 r117, u32 r118, u32 r119, u32 r120, u32 r121, u32 r122, u32 r123, u32 r124, u32 r125, u32 r126, u32 r127, u32 r128, u32 r129, u32 r130, u32 r131) {
   u32 wpoll = 0;
   Term h0 = r0;
   Term _r_65 = r0;
@@ -63509,7 +63677,7 @@ DFAR Term spin_59(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u
     u32 _v_128 = 0;
     u32 _v_129 = 0;
     Term _o_1[65];
-    if (spin_42(e, _o_1, _r_65, _r_65 == h0 ? q0 : blk_loc(e.mem, _r_65), U32_BIN(_c_1, +, 16ull), U32_BIN(_t_1, +, 16ull), _hi_1) == 0) {
+    if (spin_43(e, _o_1, _r_65, _r_65 == h0 ? q0 : blk_loc(e.mem, _r_65), U32_BIN(_c_1, +, 16ull), U32_BIN(_t_1, +, 16ull), _hi_1) == 0) {
       return 0;
     }
     _v_65 = _o_1[0];
@@ -63710,7 +63878,7 @@ DFAR Term spin_59(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u
     _v_192 = (u32)_o_2[62];
     _v_193 = (u32)_o_2[63];
     Term _o_3[65];
-    if (spin_53(e, _o_3, _v_65, _v_65 == h0 ? q0 : blk_loc(e.mem, _v_65), _v_66, _v_67, _v_68, _v_69, _v_70, _v_71, _v_72, _v_73, _v_74, _v_75, _v_76, _v_77, _v_78, _v_79, _v_80, _v_81, _v_82, _v_83, _v_84, _v_85, _v_86, _v_87, _v_88, _v_89, _v_90, _v_91, _v_92, _v_93, _v_94, _v_95, _v_96, _v_97, _v_98, _v_99, _v_100, _v_101, _v_102, _v_103, _v_104, _v_105, _v_106, _v_107, _v_108, _v_109, _v_110, _v_111, _v_112, _v_113, _v_114, _v_115, _v_116, _v_117, _v_118, _v_119, _v_120, _v_121, _v_122, _v_123, _v_124, _v_125, _v_126, _v_127, _v_128, _v_129, _c_1, _t_1, _hi_1, _v_130, _v_131, _v_132, _v_133, _v_134, _v_135, _v_136, _v_137, _v_138, _v_139, _v_140, _v_141, _v_142, _v_143, _v_144, _v_145, _v_146, _v_147, _v_148, _v_149, _v_150, _v_151, _v_152, _v_153, _v_154, _v_155, _v_156, _v_157, _v_158, _v_159, _v_160, _v_161, _v_162, _v_163, _v_164, _v_165, _v_166, _v_167, _v_168, _v_169, _v_170, _v_171, _v_172, _v_173, _v_174, _v_175, _v_176, _v_177, _v_178, _v_179, _v_180, _v_181, _v_182, _v_183, _v_184, _v_185, _v_186, _v_187, _v_188, _v_189, _v_190, _v_191, _v_192, _v_193) == 0) {
+    if (spin_54(e, _o_3, _v_65, _v_65 == h0 ? q0 : blk_loc(e.mem, _v_65), _v_66, _v_67, _v_68, _v_69, _v_70, _v_71, _v_72, _v_73, _v_74, _v_75, _v_76, _v_77, _v_78, _v_79, _v_80, _v_81, _v_82, _v_83, _v_84, _v_85, _v_86, _v_87, _v_88, _v_89, _v_90, _v_91, _v_92, _v_93, _v_94, _v_95, _v_96, _v_97, _v_98, _v_99, _v_100, _v_101, _v_102, _v_103, _v_104, _v_105, _v_106, _v_107, _v_108, _v_109, _v_110, _v_111, _v_112, _v_113, _v_114, _v_115, _v_116, _v_117, _v_118, _v_119, _v_120, _v_121, _v_122, _v_123, _v_124, _v_125, _v_126, _v_127, _v_128, _v_129, _c_1, _t_1, _hi_1, _v_130, _v_131, _v_132, _v_133, _v_134, _v_135, _v_136, _v_137, _v_138, _v_139, _v_140, _v_141, _v_142, _v_143, _v_144, _v_145, _v_146, _v_147, _v_148, _v_149, _v_150, _v_151, _v_152, _v_153, _v_154, _v_155, _v_156, _v_157, _v_158, _v_159, _v_160, _v_161, _v_162, _v_163, _v_164, _v_165, _v_166, _v_167, _v_168, _v_169, _v_170, _v_171, _v_172, _v_173, _v_174, _v_175, _v_176, _v_177, _v_178, _v_179, _v_180, _v_181, _v_182, _v_183, _v_184, _v_185, _v_186, _v_187, _v_188, _v_189, _v_190, _v_191, _v_192, _v_193) == 0) {
       return 0;
     }
     o[0] = _o_3[0];
@@ -63783,7 +63951,7 @@ DFAR Term spin_59(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u
   return 1;
 }
 
-INLINE Term spin_60(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64) {
+INLINE Term spin_61(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64) {
   u32 wpoll = 0;
   u32 _x_0 = r0;
   u32 _x_1 = r1;
@@ -63868,7 +64036,7 @@ INLINE Term spin_60(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, 
     u32 _v_14 = 0;
     u32 _v_15 = 0;
     Term _o_0[8];
-    if (spin_54(e, _o_0, _x_0, _x_8, _x_16, _x_24, _x_32, _x_40, _x_48, _x_56, _x_1, _x_9, _x_17, _x_25, _x_33, _x_41, _x_49, _x_57, 0ull) == 0) {
+    if (spin_55(e, _o_0, _x_0, _x_8, _x_16, _x_24, _x_32, _x_40, _x_48, _x_56, _x_1, _x_9, _x_17, _x_25, _x_33, _x_41, _x_49, _x_57, 0ull) == 0) {
       return 0;
     }
     _v_8 = (u32)_o_0[0];
@@ -63888,7 +64056,7 @@ INLINE Term spin_60(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, 
     u32 _v_22 = 0;
     u32 _v_23 = 0;
     Term _o_1[8];
-    if (spin_54(e, _o_1, _x_2, _x_10, _x_18, _x_26, _x_34, _x_42, _x_50, _x_58, _x_3, _x_11, _x_19, _x_27, _x_35, _x_43, _x_51, _x_59, 0ull) == 0) {
+    if (spin_55(e, _o_1, _x_2, _x_10, _x_18, _x_26, _x_34, _x_42, _x_50, _x_58, _x_3, _x_11, _x_19, _x_27, _x_35, _x_43, _x_51, _x_59, 0ull) == 0) {
       return 0;
     }
     _v_16 = (u32)_o_1[0];
@@ -63900,7 +64068,7 @@ INLINE Term spin_60(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, 
     _v_22 = (u32)_o_1[6];
     _v_23 = (u32)_o_1[7];
     Term _o_2[8];
-    if (spin_54(e, _o_2, _v_8, _v_9, _v_10, _v_11, _v_12, _v_13, _v_14, _v_15, _v_16, _v_17, _v_18, _v_19, _v_20, _v_21, _v_22, _v_23, 0ull) == 0) {
+    if (spin_55(e, _o_2, _v_8, _v_9, _v_10, _v_11, _v_12, _v_13, _v_14, _v_15, _v_16, _v_17, _v_18, _v_19, _v_20, _v_21, _v_22, _v_23, 0ull) == 0) {
       return 0;
     }
     _v_0 = (u32)_o_2[0];
@@ -63928,7 +64096,7 @@ INLINE Term spin_60(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, 
     u32 _v_38 = 0;
     u32 _v_39 = 0;
     Term _o_3[8];
-    if (spin_54(e, _o_3, _x_4, _x_12, _x_20, _x_28, _x_36, _x_44, _x_52, _x_60, _x_5, _x_13, _x_21, _x_29, _x_37, _x_45, _x_53, _x_61, 0ull) == 0) {
+    if (spin_55(e, _o_3, _x_4, _x_12, _x_20, _x_28, _x_36, _x_44, _x_52, _x_60, _x_5, _x_13, _x_21, _x_29, _x_37, _x_45, _x_53, _x_61, 0ull) == 0) {
       return 0;
     }
     _v_32 = (u32)_o_3[0];
@@ -63948,7 +64116,7 @@ INLINE Term spin_60(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, 
     u32 _v_46 = 0;
     u32 _v_47 = 0;
     Term _o_4[8];
-    if (spin_54(e, _o_4, _x_6, _x_14, _x_22, _x_30, _x_38, _x_46, _x_54, _x_62, _x_7, _x_15, _x_23, _x_31, _x_39, _x_47, _x_55, _x_63, 0ull) == 0) {
+    if (spin_55(e, _o_4, _x_6, _x_14, _x_22, _x_30, _x_38, _x_46, _x_54, _x_62, _x_7, _x_15, _x_23, _x_31, _x_39, _x_47, _x_55, _x_63, 0ull) == 0) {
       return 0;
     }
     _v_40 = (u32)_o_4[0];
@@ -63960,7 +64128,7 @@ INLINE Term spin_60(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, 
     _v_46 = (u32)_o_4[6];
     _v_47 = (u32)_o_4[7];
     Term _o_5[8];
-    if (spin_54(e, _o_5, _v_32, _v_33, _v_34, _v_35, _v_36, _v_37, _v_38, _v_39, _v_40, _v_41, _v_42, _v_43, _v_44, _v_45, _v_46, _v_47, 0ull) == 0) {
+    if (spin_55(e, _o_5, _v_32, _v_33, _v_34, _v_35, _v_36, _v_37, _v_38, _v_39, _v_40, _v_41, _v_42, _v_43, _v_44, _v_45, _v_46, _v_47, 0ull) == 0) {
       return 0;
     }
     _v_24 = (u32)_o_5[0];
@@ -63972,7 +64140,7 @@ INLINE Term spin_60(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, 
     _v_30 = (u32)_o_5[6];
     _v_31 = (u32)_o_5[7];
     Term _o_6[8];
-    if (spin_54(e, _o_6, _v_0, _v_1, _v_2, _v_3, _v_4, _v_5, _v_6, _v_7, _v_24, _v_25, _v_26, _v_27, _v_28, _v_29, _v_30, _v_31, _rf_1) == 0) {
+    if (spin_55(e, _o_6, _v_0, _v_1, _v_2, _v_3, _v_4, _v_5, _v_6, _v_7, _v_24, _v_25, _v_26, _v_27, _v_28, _v_29, _v_30, _v_31, _rf_1) == 0) {
       return 0;
     }
     o[0] = (u32)_o_6[0];
@@ -63988,7 +64156,7 @@ INLINE Term spin_60(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, 
   return 1;
 }
 
-INLINE Term spin_61(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65, u32 r66, u32 r67, u32 r68, u32 r69, u32 r70, u32 r71, u32 r72, u32 r73, u32 r74) {
+INLINE Term spin_62(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65, u32 r66, u32 r67, u32 r68, u32 r69, u32 r70, u32 r71, u32 r72, u32 r73, u32 r74) {
   u32 wpoll = 0;
   Term h0 = r0;
   Term _r_0 = r0;
@@ -64069,7 +64237,7 @@ INLINE Term spin_61(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
   WL_SPIN
     term_sink(e, _r_0);
     Term _o_1[8];
-    if (spin_56(e, _o_1, _r_1, _r_2, _r_3, _r_4, _r_5, _r_6, _r_7, _r_8, _r_9, _r_10, _r_11, _r_12, _r_13, _r_14, _r_15, _r_16, _r_17, _r_18, _r_19, _r_20, _r_21, _r_22, _r_23, _r_24, _r_25, _r_26, _r_27, _r_28, _r_29, _r_30, _r_31, _r_32, _r_33, _r_34, _r_35, _r_36, _r_37, _r_38, _r_39, _r_40, _r_41, _r_42, _r_43, _r_44, _r_45, _r_46, _r_47, _r_48, _r_49, _r_50, _r_51, _r_52, _r_53, _r_54, _r_55, _r_56, _r_57, _r_58, _r_59, _r_60, _r_61, _r_62, _r_63, _r_64, _rf_1, _key_8, _key_9, _key_10, _key_11, _key_12, _key_13, _key_14, _key_15, _kf_1) == 0) {
+    if (spin_57(e, _o_1, _r_1, _r_2, _r_3, _r_4, _r_5, _r_6, _r_7, _r_8, _r_9, _r_10, _r_11, _r_12, _r_13, _r_14, _r_15, _r_16, _r_17, _r_18, _r_19, _r_20, _r_21, _r_22, _r_23, _r_24, _r_25, _r_26, _r_27, _r_28, _r_29, _r_30, _r_31, _r_32, _r_33, _r_34, _r_35, _r_36, _r_37, _r_38, _r_39, _r_40, _r_41, _r_42, _r_43, _r_44, _r_45, _r_46, _r_47, _r_48, _r_49, _r_50, _r_51, _r_52, _r_53, _r_54, _r_55, _r_56, _r_57, _r_58, _r_59, _r_60, _r_61, _r_62, _r_63, _r_64, _rf_1, _key_8, _key_9, _key_10, _key_11, _key_12, _key_13, _key_14, _key_15, _kf_1) == 0) {
       return 0;
     }
     o[0] = (u32)_o_1[0];
@@ -64085,7 +64253,7 @@ INLINE Term spin_61(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
   return 1;
 }
 
-INLINE Term spin_62(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65, u32 r66, u32 r67, u32 r68, u32 r69, u32 r70, u32 r71, u32 r72, u32 r73, u32 r74, u32 r75, u32 r76) {
+INLINE Term spin_63(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65, u32 r66, u32 r67, u32 r68, u32 r69, u32 r70, u32 r71, u32 r72, u32 r73, u32 r74, u32 r75, u32 r76) {
   u32 wpoll = 0;
   Term h0 = r0;
   Term _r_0 = r0;
@@ -64301,7 +64469,7 @@ INLINE Term spin_62(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
     _v_193 = (u32)_o_1[63];
     _v_194 = (u32)_o_1[64];
     Term _o_2[65];
-    if (spin_55(e, _o_2, _v_130, _v_130 == h0 ? q0 : blk_loc(e.mem, _v_130), _v_131, _v_132, _v_133, _v_134, _v_135, _v_136, _v_137, _v_138, _v_139, _v_140, _v_141, _v_142, _v_143, _v_144, _v_145, _v_146, _v_147, _v_148, _v_149, _v_150, _v_151, _v_152, _v_153, _v_154, _v_155, _v_156, _v_157, _v_158, _v_159, _v_160, _v_161, _v_162, _v_163, _v_164, _v_165, _v_166, _v_167, _v_168, _v_169, _v_170, _v_171, _v_172, _v_173, _v_174, _v_175, _v_176, _v_177, _v_178, _v_179, _v_180, _v_181, _v_182, _v_183, _v_184, _v_185, _v_186, _v_187, _v_188, _v_189, _v_190, _v_191, _v_192, _v_193, _v_194, _c_1, _t_1, _hi_1, _r_1, _r_2, _r_3, _r_4, _r_5, _r_6, _r_7, _r_8, _r_9, _r_10, _r_11, _r_12, _r_13, _r_14, _r_15, _r_16, _r_17, _r_18, _r_19, _r_20, _r_21, _r_22, _r_23, _r_24, _r_25, _r_26, _r_27, _r_28, _r_29, _r_30, _r_31, _r_32, _r_33, _r_34, _r_35, _r_36, _r_37, _r_38, _r_39, _r_40, _r_41, _r_42, _r_43, _r_44, _r_45, _r_46, _r_47, _r_48, _r_49, _r_50, _r_51, _r_52, _r_53, _r_54, _r_55, _r_56, _r_57, _r_58, _r_59, _r_60, _r_61, _r_62, _r_63, _r_64, _key_8, _key_9, _key_10, _key_11, _key_12, _key_13, _key_14, _key_15, _kf_1) == 0) {
+    if (spin_56(e, _o_2, _v_130, _v_130 == h0 ? q0 : blk_loc(e.mem, _v_130), _v_131, _v_132, _v_133, _v_134, _v_135, _v_136, _v_137, _v_138, _v_139, _v_140, _v_141, _v_142, _v_143, _v_144, _v_145, _v_146, _v_147, _v_148, _v_149, _v_150, _v_151, _v_152, _v_153, _v_154, _v_155, _v_156, _v_157, _v_158, _v_159, _v_160, _v_161, _v_162, _v_163, _v_164, _v_165, _v_166, _v_167, _v_168, _v_169, _v_170, _v_171, _v_172, _v_173, _v_174, _v_175, _v_176, _v_177, _v_178, _v_179, _v_180, _v_181, _v_182, _v_183, _v_184, _v_185, _v_186, _v_187, _v_188, _v_189, _v_190, _v_191, _v_192, _v_193, _v_194, _c_1, _t_1, _hi_1, _r_1, _r_2, _r_3, _r_4, _r_5, _r_6, _r_7, _r_8, _r_9, _r_10, _r_11, _r_12, _r_13, _r_14, _r_15, _r_16, _r_17, _r_18, _r_19, _r_20, _r_21, _r_22, _r_23, _r_24, _r_25, _r_26, _r_27, _r_28, _r_29, _r_30, _r_31, _r_32, _r_33, _r_34, _r_35, _r_36, _r_37, _r_38, _r_39, _r_40, _r_41, _r_42, _r_43, _r_44, _r_45, _r_46, _r_47, _r_48, _r_49, _r_50, _r_51, _r_52, _r_53, _r_54, _r_55, _r_56, _r_57, _r_58, _r_59, _r_60, _r_61, _r_62, _r_63, _r_64, _key_8, _key_9, _key_10, _key_11, _key_12, _key_13, _key_14, _key_15, _kf_1) == 0) {
       return 0;
     }
     o[0] = _o_2[0];
@@ -64374,7 +64542,7 @@ INLINE Term spin_62(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
   return 1;
 }
 
-INLINE Term spin_63(Env e, THR Term* o, u32 r0, u32 r1, u32 r2) {
+INLINE Term spin_64(Env e, THR Term* o, u32 r0, u32 r1, u32 r2) {
   u32 wpoll = 0;
   u32 _e_0 = r0;
   u32 _nch_1 = r1;
@@ -64382,7 +64550,7 @@ INLINE Term spin_63(Env e, THR Term* o, u32 r0, u32 r1, u32 r2) {
   WL_SPIN
     u32 _v_2 = 0;
     Term _o_0[1];
-    if (spin_57(e, _o_0, U32_BIN(_e_0, ==, _nch_1), U32_BIN(_last_1, ==, 1024ull)) == 0) {
+    if (spin_58(e, _o_0, U32_BIN(_e_0, ==, _nch_1), U32_BIN(_last_1, ==, 1024ull)) == 0) {
       return 0;
     }
     _v_2 = (u32)_o_0[0];
@@ -64392,7 +64560,7 @@ INLINE Term spin_63(Env e, THR Term* o, u32 r0, u32 r1, u32 r2) {
   return 1;
 }
 
-INLINE Term spin_64(Env e, THR Term* o, u32 r0, u32 r1) {
+INLINE Term spin_65(Env e, THR Term* o, u32 r0, u32 r1) {
   u32 wpoll = 0;
   u32 _k_1 = r0;
   u32 _full_0 = r1;
@@ -64401,7 +64569,7 @@ INLINE Term spin_64(Env e, THR Term* o, u32 r0, u32 r1) {
       o[0] = 1;
     } else {
       Term _o_3[1];
-      if (spin_58(e, _o_3, U32_BIN(_k_1, ==, 5ull), _k_1) == 0) {
+      if (spin_59(e, _o_3, U32_BIN(_k_1, ==, 5ull), _k_1) == 0) {
         return 0;
       }
       o[0] = (u32)_o_3[0];
@@ -64411,7 +64579,7 @@ INLINE Term spin_64(Env e, THR Term* o, u32 r0, u32 r1) {
   return 1;
 }
 
-INLINE Term spin_65(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65) {
+INLINE Term spin_66(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65) {
   u32 wpoll = 0;
   Term h0 = r0;
   Term _r_0 = r0;
@@ -64483,7 +64651,7 @@ INLINE Term spin_65(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
   WL_SPIN
     term_sink(e, _r_0);
     Term _o_1[8];
-    if (spin_60(e, _o_1, _r_1, _r_2, _r_3, _r_4, _r_5, _r_6, _r_7, _r_8, _r_9, _r_10, _r_11, _r_12, _r_13, _r_14, _r_15, _r_16, _r_17, _r_18, _r_19, _r_20, _r_21, _r_22, _r_23, _r_24, _r_25, _r_26, _r_27, _r_28, _r_29, _r_30, _r_31, _r_32, _r_33, _r_34, _r_35, _r_36, _r_37, _r_38, _r_39, _r_40, _r_41, _r_42, _r_43, _r_44, _r_45, _r_46, _r_47, _r_48, _r_49, _r_50, _r_51, _r_52, _r_53, _r_54, _r_55, _r_56, _r_57, _r_58, _r_59, _r_60, _r_61, _r_62, _r_63, _r_64, _rf_1) == 0) {
+    if (spin_61(e, _o_1, _r_1, _r_2, _r_3, _r_4, _r_5, _r_6, _r_7, _r_8, _r_9, _r_10, _r_11, _r_12, _r_13, _r_14, _r_15, _r_16, _r_17, _r_18, _r_19, _r_20, _r_21, _r_22, _r_23, _r_24, _r_25, _r_26, _r_27, _r_28, _r_29, _r_30, _r_31, _r_32, _r_33, _r_34, _r_35, _r_36, _r_37, _r_38, _r_39, _r_40, _r_41, _r_42, _r_43, _r_44, _r_45, _r_46, _r_47, _r_48, _r_49, _r_50, _r_51, _r_52, _r_53, _r_54, _r_55, _r_56, _r_57, _r_58, _r_59, _r_60, _r_61, _r_62, _r_63, _r_64, _rf_1) == 0) {
       return 0;
     }
     o[0] = (u32)_o_1[0];
@@ -64499,7 +64667,7 @@ INLINE Term spin_65(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
   return 1;
 }
 
-INLINE Term spin_66(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65, u32 r66, u32 r67) {
+INLINE Term spin_67(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32, u32 r33, u32 r34, u32 r35, u32 r36, u32 r37, u32 r38, u32 r39, u32 r40, u32 r41, u32 r42, u32 r43, u32 r44, u32 r45, u32 r46, u32 r47, u32 r48, u32 r49, u32 r50, u32 r51, u32 r52, u32 r53, u32 r54, u32 r55, u32 r56, u32 r57, u32 r58, u32 r59, u32 r60, u32 r61, u32 r62, u32 r63, u32 r64, u32 r65, u32 r66, u32 r67) {
   u32 wpoll = 0;
   Term h0 = r0;
   Term _r_0 = r0;
@@ -64637,7 +64805,7 @@ INLINE Term spin_66(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
     u32 _v_193 = 0;
     u32 _v_194 = 0;
     Term _o_1[65];
-    if (spin_42(e, _o_1, _r_0, _r_0 == h0 ? q0 : blk_loc(e.mem, _r_0), U32_BIN(_c_1, +, 8ull), U32_BIN(_t_1, +, 8ull), _hi_1) == 0) {
+    if (spin_43(e, _o_1, _r_0, _r_0 == h0 ? q0 : blk_loc(e.mem, _r_0), U32_BIN(_c_1, +, 8ull), U32_BIN(_t_1, +, 8ull), _hi_1) == 0) {
       return 0;
     }
     _v_130 = _o_1[0];
@@ -64706,7 +64874,7 @@ INLINE Term spin_66(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
     _v_193 = (u32)_o_1[63];
     _v_194 = (u32)_o_1[64];
     Term _o_2[65];
-    if (spin_59(e, _o_2, _v_130, _v_130 == h0 ? q0 : blk_loc(e.mem, _v_130), _v_131, _v_132, _v_133, _v_134, _v_135, _v_136, _v_137, _v_138, _v_139, _v_140, _v_141, _v_142, _v_143, _v_144, _v_145, _v_146, _v_147, _v_148, _v_149, _v_150, _v_151, _v_152, _v_153, _v_154, _v_155, _v_156, _v_157, _v_158, _v_159, _v_160, _v_161, _v_162, _v_163, _v_164, _v_165, _v_166, _v_167, _v_168, _v_169, _v_170, _v_171, _v_172, _v_173, _v_174, _v_175, _v_176, _v_177, _v_178, _v_179, _v_180, _v_181, _v_182, _v_183, _v_184, _v_185, _v_186, _v_187, _v_188, _v_189, _v_190, _v_191, _v_192, _v_193, _v_194, _c_1, _t_1, _hi_1, _r_1, _r_2, _r_3, _r_4, _r_5, _r_6, _r_7, _r_8, _r_9, _r_10, _r_11, _r_12, _r_13, _r_14, _r_15, _r_16, _r_17, _r_18, _r_19, _r_20, _r_21, _r_22, _r_23, _r_24, _r_25, _r_26, _r_27, _r_28, _r_29, _r_30, _r_31, _r_32, _r_33, _r_34, _r_35, _r_36, _r_37, _r_38, _r_39, _r_40, _r_41, _r_42, _r_43, _r_44, _r_45, _r_46, _r_47, _r_48, _r_49, _r_50, _r_51, _r_52, _r_53, _r_54, _r_55, _r_56, _r_57, _r_58, _r_59, _r_60, _r_61, _r_62, _r_63, _r_64) == 0) {
+    if (spin_60(e, _o_2, _v_130, _v_130 == h0 ? q0 : blk_loc(e.mem, _v_130), _v_131, _v_132, _v_133, _v_134, _v_135, _v_136, _v_137, _v_138, _v_139, _v_140, _v_141, _v_142, _v_143, _v_144, _v_145, _v_146, _v_147, _v_148, _v_149, _v_150, _v_151, _v_152, _v_153, _v_154, _v_155, _v_156, _v_157, _v_158, _v_159, _v_160, _v_161, _v_162, _v_163, _v_164, _v_165, _v_166, _v_167, _v_168, _v_169, _v_170, _v_171, _v_172, _v_173, _v_174, _v_175, _v_176, _v_177, _v_178, _v_179, _v_180, _v_181, _v_182, _v_183, _v_184, _v_185, _v_186, _v_187, _v_188, _v_189, _v_190, _v_191, _v_192, _v_193, _v_194, _c_1, _t_1, _hi_1, _r_1, _r_2, _r_3, _r_4, _r_5, _r_6, _r_7, _r_8, _r_9, _r_10, _r_11, _r_12, _r_13, _r_14, _r_15, _r_16, _r_17, _r_18, _r_19, _r_20, _r_21, _r_22, _r_23, _r_24, _r_25, _r_26, _r_27, _r_28, _r_29, _r_30, _r_31, _r_32, _r_33, _r_34, _r_35, _r_36, _r_37, _r_38, _r_39, _r_40, _r_41, _r_42, _r_43, _r_44, _r_45, _r_46, _r_47, _r_48, _r_49, _r_50, _r_51, _r_52, _r_53, _r_54, _r_55, _r_56, _r_57, _r_58, _r_59, _r_60, _r_61, _r_62, _r_63, _r_64) == 0) {
       return 0;
     }
     o[0] = _o_2[0];
@@ -64779,7 +64947,7 @@ INLINE Term spin_66(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
   return 1;
 }
 
-INLINE Term spin_67(Env e, THR Term* o, u32 r0, u32 r1, u32 r2) {
+INLINE Term spin_68(Env e, THR Term* o, u32 r0, u32 r1, u32 r2) {
   u32 wpoll = 0;
   u32 _c_0 = r0;
   u32 _a_1 = r1;
@@ -64795,7 +64963,7 @@ INLINE Term spin_67(Env e, THR Term* o, u32 r0, u32 r1, u32 r2) {
   return 1;
 }
 
-INLINE Term spin_68(Env e, THR Term* o, Term r0, u64 q0) {
+INLINE Term spin_69(Env e, THR Term* o, Term r0, u64 q0) {
   u32 wpoll = 0;
   Term h0 = r0;
   Term _s_1 = r0;
@@ -64831,7 +64999,7 @@ INLINE Term spin_68(Env e, THR Term* o, Term r0, u64 q0) {
         u32 _v_7 = 0;
         u32 _v_8 = 0;
         Term _o_0[8];
-        if (spin_54(e, _o_0, _f_10, _f_11, _f_12, _f_13, _f_14, _f_15, _f_16, _f_17, _f_1, _f_2, _f_3, _f_4, _f_5, _f_6, _f_7, _f_8, 0ull) == 0) {
+        if (spin_55(e, _o_0, _f_10, _f_11, _f_12, _f_13, _f_14, _f_15, _f_16, _f_17, _f_1, _f_2, _f_3, _f_4, _f_5, _f_6, _f_7, _f_8, 0ull) == 0) {
           return 0;
         }
         _v_1 = (u32)_o_0[0];
@@ -64875,12 +65043,12 @@ INLINE Term spin_68(Env e, THR Term* o, Term r0, u64 q0) {
   return 1;
 }
 
-INLINE Term spin_69(Env e, THR Term* o, u32 r0) {
+INLINE Term spin_70(Env e, THR Term* o, u32 r0) {
   u32 wpoll = 0;
   u32 _n_1 = r0;
   WL_SPIN
     Term _o_2[1];
-    if (spin_57(e, _o_2, U32_BIN(U32_BIN(_n_1, &, 1ull), ==, 0ull), U32_BIN(_n_1, !=, 0ull)) == 0) {
+    if (spin_58(e, _o_2, U32_BIN(U32_BIN(_n_1, &, 1ull), ==, 0ull), U32_BIN(_n_1, !=, 0ull)) == 0) {
       return 0;
     }
     o[0] = (u32)_o_2[0];
@@ -64889,7 +65057,7 @@ INLINE Term spin_69(Env e, THR Term* o, u32 r0) {
   return 1;
 }
 
-INLINE Term spin_70(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8) {
+INLINE Term spin_71(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8) {
   u32 wpoll = 0;
   Term h0 = r0;
   Term _s_1 = r0;
@@ -64924,7 +65092,7 @@ INLINE Term spin_70(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
       Term _f_17 = e.mem[_sp_1 + 8];
       if (term_aux(_f_17) == CID____stack_KNil) {
         Term _o_0[8];
-        if (spin_54(e, _o_0, _f_9, _f_10, _f_11, _f_12, _f_13, _f_14, _f_15, _f_16, _r_0, _r_1, _r_2, _r_3, _r_4, _r_5, _r_6, _r_7, 8ull) == 0) {
+        if (spin_55(e, _o_0, _f_9, _f_10, _f_11, _f_12, _f_13, _f_14, _f_15, _f_16, _r_0, _r_1, _r_2, _r_3, _r_4, _r_5, _r_6, _r_7, 8ull) == 0) {
           return 0;
         }
         o[0] = (u32)_o_0[0];
@@ -64946,7 +65114,7 @@ INLINE Term spin_70(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
         u32 _v_6 = 0;
         u32 _v_7 = 0;
         Term _o_1[8];
-        if (spin_54(e, _o_1, _f_9, _f_10, _f_11, _f_12, _f_13, _f_14, _f_15, _f_16, _r_0, _r_1, _r_2, _r_3, _r_4, _r_5, _r_6, _r_7, 0ull) == 0) {
+        if (spin_55(e, _o_1, _f_9, _f_10, _f_11, _f_12, _f_13, _f_14, _f_15, _f_16, _r_0, _r_1, _r_2, _r_3, _r_4, _r_5, _r_6, _r_7, 0ull) == 0) {
           return 0;
         }
         _v_0 = (u32)_o_1[0];
@@ -64976,7 +65144,7 @@ INLINE Term spin_70(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
         _r_5 = r6;
         _r_6 = r7;
         _r_7 = r8;
-        WL_AGAIN(spin_70);
+        WL_AGAIN(spin_71);
       }
     }
   break;
@@ -64984,7 +65152,7 @@ INLINE Term spin_70(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
   return 1;
 }
 
-INLINE Term spin_71(Env e, THR Term* o) {
+INLINE Term spin_72(Env e, THR Term* o) {
   u32 wpoll = 0;
   WL_SPIN
     o[0] = 1779033703ull;
@@ -65000,7 +65168,7 @@ INLINE Term spin_71(Env e, THR Term* o) {
   return 1;
 }
 
-INLINE Term spin_73(Env e, THR Term* o, u32 r0) {
+INLINE Term spin_74(Env e, THR Term* o, u32 r0) {
   u32 wpoll = 0;
   u32 _b_0 = r0;
   WL_SPIN
@@ -65014,7 +65182,7 @@ INLINE Term spin_73(Env e, THR Term* o, u32 r0) {
   return 1;
 }
 
-INLINE Term spin_74(Env e, THR Term* o, u32 r0, u32 r1) {
+INLINE Term spin_75(Env e, THR Term* o, u32 r0, u32 r1) {
   u32 wpoll = 0;
   u32 _a_4 = r0;
   u32 _b_1 = r1;
@@ -65084,7 +65252,7 @@ INLINE Term spin_74(Env e, THR Term* o, u32 r0, u32 r1) {
     u32 _y_30 = ((_b_1 >> 30) & 1);
     u32 _y_31 = ((_b_1 >> 31) & 1);
     Term _o_1[1];
-    if (spin_67(e, _o_1, U32_BIN((((u64)_x_0 << 0) | ((u64)_x_1 << 1) | ((u64)_x_2 << 2) | ((u64)_x_3 << 3) | ((u64)_x_4 << 4) | ((u64)_x_5 << 5) | ((u64)_x_6 << 6) | ((u64)_x_7 << 7) | ((u64)_x_8 << 8) | ((u64)_x_9 << 9) | ((u64)_x_10 << 10) | ((u64)_x_11 << 11) | ((u64)_x_12 << 12) | ((u64)_x_13 << 13) | ((u64)_x_14 << 14) | ((u64)_x_15 << 15) | ((u64)_x_16 << 16) | ((u64)_x_17 << 17) | ((u64)_x_18 << 18) | ((u64)_x_19 << 19) | ((u64)_x_20 << 20) | ((u64)_x_21 << 21) | ((u64)_x_22 << 22) | ((u64)_x_23 << 23) | ((u64)_x_24 << 24) | ((u64)_x_25 << 25) | ((u64)_x_26 << 26) | ((u64)_x_27 << 27) | ((u64)_x_28 << 28) | ((u64)_x_29 << 29) | ((u64)_x_30 << 30) | ((u64)_x_31 << 31)), <, (((u64)_y_0 << 0) | ((u64)_y_1 << 1) | ((u64)_y_2 << 2) | ((u64)_y_3 << 3) | ((u64)_y_4 << 4) | ((u64)_y_5 << 5) | ((u64)_y_6 << 6) | ((u64)_y_7 << 7) | ((u64)_y_8 << 8) | ((u64)_y_9 << 9) | ((u64)_y_10 << 10) | ((u64)_y_11 << 11) | ((u64)_y_12 << 12) | ((u64)_y_13 << 13) | ((u64)_y_14 << 14) | ((u64)_y_15 << 15) | ((u64)_y_16 << 16) | ((u64)_y_17 << 17) | ((u64)_y_18 << 18) | ((u64)_y_19 << 19) | ((u64)_y_20 << 20) | ((u64)_y_21 << 21) | ((u64)_y_22 << 22) | ((u64)_y_23 << 23) | ((u64)_y_24 << 24) | ((u64)_y_25 << 25) | ((u64)_y_26 << 26) | ((u64)_y_27 << 27) | ((u64)_y_28 << 28) | ((u64)_y_29 << 29) | ((u64)_y_30 << 30) | ((u64)_y_31 << 31))), (((u64)_y_0 << 0) | ((u64)_y_1 << 1) | ((u64)_y_2 << 2) | ((u64)_y_3 << 3) | ((u64)_y_4 << 4) | ((u64)_y_5 << 5) | ((u64)_y_6 << 6) | ((u64)_y_7 << 7) | ((u64)_y_8 << 8) | ((u64)_y_9 << 9) | ((u64)_y_10 << 10) | ((u64)_y_11 << 11) | ((u64)_y_12 << 12) | ((u64)_y_13 << 13) | ((u64)_y_14 << 14) | ((u64)_y_15 << 15) | ((u64)_y_16 << 16) | ((u64)_y_17 << 17) | ((u64)_y_18 << 18) | ((u64)_y_19 << 19) | ((u64)_y_20 << 20) | ((u64)_y_21 << 21) | ((u64)_y_22 << 22) | ((u64)_y_23 << 23) | ((u64)_y_24 << 24) | ((u64)_y_25 << 25) | ((u64)_y_26 << 26) | ((u64)_y_27 << 27) | ((u64)_y_28 << 28) | ((u64)_y_29 << 29) | ((u64)_y_30 << 30) | ((u64)_y_31 << 31)), (((u64)_x_0 << 0) | ((u64)_x_1 << 1) | ((u64)_x_2 << 2) | ((u64)_x_3 << 3) | ((u64)_x_4 << 4) | ((u64)_x_5 << 5) | ((u64)_x_6 << 6) | ((u64)_x_7 << 7) | ((u64)_x_8 << 8) | ((u64)_x_9 << 9) | ((u64)_x_10 << 10) | ((u64)_x_11 << 11) | ((u64)_x_12 << 12) | ((u64)_x_13 << 13) | ((u64)_x_14 << 14) | ((u64)_x_15 << 15) | ((u64)_x_16 << 16) | ((u64)_x_17 << 17) | ((u64)_x_18 << 18) | ((u64)_x_19 << 19) | ((u64)_x_20 << 20) | ((u64)_x_21 << 21) | ((u64)_x_22 << 22) | ((u64)_x_23 << 23) | ((u64)_x_24 << 24) | ((u64)_x_25 << 25) | ((u64)_x_26 << 26) | ((u64)_x_27 << 27) | ((u64)_x_28 << 28) | ((u64)_x_29 << 29) | ((u64)_x_30 << 30) | ((u64)_x_31 << 31))) == 0) {
+    if (spin_68(e, _o_1, U32_BIN((((u64)_x_0 << 0) | ((u64)_x_1 << 1) | ((u64)_x_2 << 2) | ((u64)_x_3 << 3) | ((u64)_x_4 << 4) | ((u64)_x_5 << 5) | ((u64)_x_6 << 6) | ((u64)_x_7 << 7) | ((u64)_x_8 << 8) | ((u64)_x_9 << 9) | ((u64)_x_10 << 10) | ((u64)_x_11 << 11) | ((u64)_x_12 << 12) | ((u64)_x_13 << 13) | ((u64)_x_14 << 14) | ((u64)_x_15 << 15) | ((u64)_x_16 << 16) | ((u64)_x_17 << 17) | ((u64)_x_18 << 18) | ((u64)_x_19 << 19) | ((u64)_x_20 << 20) | ((u64)_x_21 << 21) | ((u64)_x_22 << 22) | ((u64)_x_23 << 23) | ((u64)_x_24 << 24) | ((u64)_x_25 << 25) | ((u64)_x_26 << 26) | ((u64)_x_27 << 27) | ((u64)_x_28 << 28) | ((u64)_x_29 << 29) | ((u64)_x_30 << 30) | ((u64)_x_31 << 31)), <, (((u64)_y_0 << 0) | ((u64)_y_1 << 1) | ((u64)_y_2 << 2) | ((u64)_y_3 << 3) | ((u64)_y_4 << 4) | ((u64)_y_5 << 5) | ((u64)_y_6 << 6) | ((u64)_y_7 << 7) | ((u64)_y_8 << 8) | ((u64)_y_9 << 9) | ((u64)_y_10 << 10) | ((u64)_y_11 << 11) | ((u64)_y_12 << 12) | ((u64)_y_13 << 13) | ((u64)_y_14 << 14) | ((u64)_y_15 << 15) | ((u64)_y_16 << 16) | ((u64)_y_17 << 17) | ((u64)_y_18 << 18) | ((u64)_y_19 << 19) | ((u64)_y_20 << 20) | ((u64)_y_21 << 21) | ((u64)_y_22 << 22) | ((u64)_y_23 << 23) | ((u64)_y_24 << 24) | ((u64)_y_25 << 25) | ((u64)_y_26 << 26) | ((u64)_y_27 << 27) | ((u64)_y_28 << 28) | ((u64)_y_29 << 29) | ((u64)_y_30 << 30) | ((u64)_y_31 << 31))), (((u64)_y_0 << 0) | ((u64)_y_1 << 1) | ((u64)_y_2 << 2) | ((u64)_y_3 << 3) | ((u64)_y_4 << 4) | ((u64)_y_5 << 5) | ((u64)_y_6 << 6) | ((u64)_y_7 << 7) | ((u64)_y_8 << 8) | ((u64)_y_9 << 9) | ((u64)_y_10 << 10) | ((u64)_y_11 << 11) | ((u64)_y_12 << 12) | ((u64)_y_13 << 13) | ((u64)_y_14 << 14) | ((u64)_y_15 << 15) | ((u64)_y_16 << 16) | ((u64)_y_17 << 17) | ((u64)_y_18 << 18) | ((u64)_y_19 << 19) | ((u64)_y_20 << 20) | ((u64)_y_21 << 21) | ((u64)_y_22 << 22) | ((u64)_y_23 << 23) | ((u64)_y_24 << 24) | ((u64)_y_25 << 25) | ((u64)_y_26 << 26) | ((u64)_y_27 << 27) | ((u64)_y_28 << 28) | ((u64)_y_29 << 29) | ((u64)_y_30 << 30) | ((u64)_y_31 << 31)), (((u64)_x_0 << 0) | ((u64)_x_1 << 1) | ((u64)_x_2 << 2) | ((u64)_x_3 << 3) | ((u64)_x_4 << 4) | ((u64)_x_5 << 5) | ((u64)_x_6 << 6) | ((u64)_x_7 << 7) | ((u64)_x_8 << 8) | ((u64)_x_9 << 9) | ((u64)_x_10 << 10) | ((u64)_x_11 << 11) | ((u64)_x_12 << 12) | ((u64)_x_13 << 13) | ((u64)_x_14 << 14) | ((u64)_x_15 << 15) | ((u64)_x_16 << 16) | ((u64)_x_17 << 17) | ((u64)_x_18 << 18) | ((u64)_x_19 << 19) | ((u64)_x_20 << 20) | ((u64)_x_21 << 21) | ((u64)_x_22 << 22) | ((u64)_x_23 << 23) | ((u64)_x_24 << 24) | ((u64)_x_25 << 25) | ((u64)_x_26 << 26) | ((u64)_x_27 << 27) | ((u64)_x_28 << 28) | ((u64)_x_29 << 29) | ((u64)_x_30 << 30) | ((u64)_x_31 << 31))) == 0) {
       return 0;
     }
     o[0] = (u32)_o_1[0];
@@ -65093,7 +65261,7 @@ INLINE Term spin_74(Env e, THR Term* o, u32 r0, u32 r1) {
   return 1;
 }
 
-INLINE Term spin_75(Env e, THR Term* o, Term r0, Term r1, u64 q1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32) {
+INLINE Term spin_76(Env e, THR Term* o, Term r0, Term r1, u64 q1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31, u32 r32) {
   u32 wpoll = 0;
   Term h1 = r1;
   Term _n_1 = r0;
@@ -65140,7 +65308,7 @@ INLINE Term spin_75(Env e, THR Term* o, Term r0, Term r1, u64 q1, u32 r2, u32 r3
       u32 _v_34 = 0;
       u32 _v_35 = 0;
       Term _o_4[8];
-      if (spin_48(e, _o_4, _cv_0, _cv_1, _cv_2, _cv_3, _cv_4, _cv_5, _cv_6, _cv_7, _r_1, _r_2, _r_3, _r_4, _r_5, _r_6, _r_7, _r_8, _r_9, _r_10, _r_11, _r_12, _r_13, _r_14, _r_15, _r_16, _ctr_0, _hi_2, _lastlen_1, U32_BIN(U32_BIN(_fl_0, |, _endf_0), |, _kf_2)) == 0) {
+      if (spin_49(e, _o_4, _cv_0, _cv_1, _cv_2, _cv_3, _cv_4, _cv_5, _cv_6, _cv_7, _r_1, _r_2, _r_3, _r_4, _r_5, _r_6, _r_7, _r_8, _r_9, _r_10, _r_11, _r_12, _r_13, _r_14, _r_15, _r_16, _ctr_0, _hi_2, _lastlen_1, U32_BIN(U32_BIN(_fl_0, |, _endf_0), |, _kf_2)) == 0) {
         return 0;
       }
       _v_28 = (u32)_o_4[0];
@@ -65210,7 +65378,7 @@ INLINE Term spin_75(Env e, THR Term* o, Term r0, Term r1, u64 q1, u32 r2, u32 r3
       u32 _v_59 = 0;
       u32 _v_60 = 0;
       Term _o_6[8];
-      if (spin_48(e, _o_6, _cv_0, _cv_1, _cv_2, _cv_3, _cv_4, _cv_5, _cv_6, _cv_7, _r_1, _r_2, _r_3, _r_4, _r_5, _r_6, _r_7, _r_8, _r_9, _r_10, _r_11, _r_12, _r_13, _r_14, _r_15, _r_16, _ctr_0, _hi_2, 64ull, U32_BIN(_fl_0, |, _kf_2)) == 0) {
+      if (spin_49(e, _o_6, _cv_0, _cv_1, _cv_2, _cv_3, _cv_4, _cv_5, _cv_6, _cv_7, _r_1, _r_2, _r_3, _r_4, _r_5, _r_6, _r_7, _r_8, _r_9, _r_10, _r_11, _r_12, _r_13, _r_14, _r_15, _r_16, _ctr_0, _hi_2, 64ull, U32_BIN(_fl_0, |, _kf_2)) == 0) {
         return 0;
       }
       _v_53 = (u32)_o_6[0];
@@ -65287,14 +65455,14 @@ INLINE Term spin_75(Env e, THR Term* o, Term r0, Term r1, u64 q1, u32 r2, u32 r3
       _endf_0 = r30;
       _lastlen_1 = r31;
       _kf_2 = r32;
-      WL_AGAIN(spin_75);
+      WL_AGAIN(spin_76);
     }
   break;
   }
   return 1;
 }
 
-INLINE Term spin_76(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8) {
+INLINE Term spin_77(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8) {
   u32 wpoll = 0;
   Term h0 = r0;
   Term _r_17 = r0;
@@ -65321,7 +65489,7 @@ INLINE Term spin_76(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
   return 1;
 }
 
-INLINE Term spin_72(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15) {
+INLINE Term spin_73(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15) {
   u32 wpoll = 0;
   Term h0 = r0;
   Term _a_0 = r0;
@@ -65345,7 +65513,7 @@ INLINE Term spin_72(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
     u32 _w_0 = (_a_1 >= 32 ? 0 : U32_BIN(_c_1, <<, _a_1));
     u32 _v_0 = 0;
     Term _o_0[1];
-    if (spin_73(e, _o_0, U32_BIN(U32_BIN(_c_1, +, 1ull), ==, _nch_1)) == 0) {
+    if (spin_74(e, _o_0, U32_BIN(U32_BIN(_c_1, +, 1ull), ==, _nch_1)) == 0) {
       return 0;
     }
     _v_0 = (u32)_o_0[0];
@@ -65355,7 +65523,7 @@ INLINE Term spin_72(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
     Term _a_2 = U32_BIN(_rem_0, +, 63ull);
     Term _a_3 = 6ull;
     Term _o_2[1];
-    if (spin_74(e, _o_2, (_a_3 >= 32 ? 0 : U32_BIN(_a_2, >>, _a_3)), 1ull) == 0) {
+    if (spin_75(e, _o_2, (_a_3 >= 32 ? 0 : U32_BIN(_a_2, >>, _a_3)), 1ull) == 0) {
       return 0;
     }
     _v_1 = (u32)_o_2[0];
@@ -65410,7 +65578,7 @@ INLINE Term spin_72(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
     _v_26 = (u32)_o_3[15];
     _v_27 = (u32)_o_3[16];
     Term _o_7[9];
-    if (spin_75(e, _o_7, ((u64)U32_BIN(_v_1, -, 1ull)), _v_11, _v_11 == h0 ? q0 : blk_loc(e.mem, _v_11), _v_12, _v_13, _v_14, _v_15, _v_16, _v_17, _v_18, _v_19, _v_20, _v_21, _v_22, _v_23, _v_24, _v_25, _v_26, _v_27, _w_0, _key_8, _key_9, _key_10, _key_11, _key_12, _key_13, _key_14, _key_15, U32_BIN(_cb_1, +, _c_1), _hi_1, 1ull, U32_BIN(2ull, |, _rf_1), _lastlen_0, _kf_1) == 0) {
+    if (spin_76(e, _o_7, ((u64)U32_BIN(_v_1, -, 1ull)), _v_11, _v_11 == h0 ? q0 : blk_loc(e.mem, _v_11), _v_12, _v_13, _v_14, _v_15, _v_16, _v_17, _v_18, _v_19, _v_20, _v_21, _v_22, _v_23, _v_24, _v_25, _v_26, _v_27, _w_0, _key_8, _key_9, _key_10, _key_11, _key_12, _key_13, _key_14, _key_15, U32_BIN(_cb_1, +, _c_1), _hi_1, 1ull, U32_BIN(2ull, |, _rf_1), _lastlen_0, _kf_1) == 0) {
       return 0;
     }
     _v_2 = _o_7[0];
@@ -65423,7 +65591,7 @@ INLINE Term spin_72(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
     _v_9 = (u32)_o_7[7];
     _v_10 = (u32)_o_7[8];
     Term _o_8[8];
-    if (spin_76(e, _o_8, _v_2, _v_2 == h0 ? q0 : blk_loc(e.mem, _v_2), _v_3, _v_4, _v_5, _v_6, _v_7, _v_8, _v_9, _v_10) == 0) {
+    if (spin_77(e, _o_8, _v_2, _v_2 == h0 ? q0 : blk_loc(e.mem, _v_2), _v_3, _v_4, _v_5, _v_6, _v_7, _v_8, _v_9, _v_10) == 0) {
       return 0;
     }
     o[0] = (u32)_o_8[0];
@@ -65439,7 +65607,7 @@ INLINE Term spin_72(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
   return 1;
 }
 
-INLINE Term spin_78(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5) {
+INLINE Term spin_79(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5) {
   u32 wpoll = 0;
   u32 _k_2 = r0;
   u32 _n_3 = r1;
@@ -65456,17 +65624,17 @@ INLINE Term spin_78(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, 
       Term _a_10 = ((u64)_k_2);
       u32 _v_63 = 0;
       Term _o_10[1];
-      if (spin_63(e, _o_10, U32_BIN(_c_3, +, _n_3), _nch_3, _last_3) == 0) {
+      if (spin_64(e, _o_10, U32_BIN(_c_3, +, _n_3), _nch_3, _last_3) == 0) {
         return 0;
       }
       _v_63 = (u32)_o_10[0];
       Term _o_11[1];
-      if (spin_57(e, _o_11, U32_BIN(_n_3, ==, (_a_10 >= 32 ? 0 : U32_BIN(_a_9, <<, _a_10))), _v_63) == 0) {
+      if (spin_58(e, _o_11, U32_BIN(_n_3, ==, (_a_10 >= 32 ? 0 : U32_BIN(_a_9, <<, _a_10))), _v_63) == 0) {
         return 0;
       }
       _v_62 = (u32)_o_11[0];
       Term _o_12[1];
-      if (spin_64(e, _o_12, _k_2, _v_62) == 0) {
+      if (spin_65(e, _o_12, _k_2, _v_62) == 0) {
         return 0;
       }
       o[0] = (u32)_o_12[0];
@@ -65476,7 +65644,7 @@ INLINE Term spin_78(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, 
   return 1;
 }
 
-INLINE Term spin_77(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4) {
+INLINE Term spin_78(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4) {
   u32 wpoll = 0;
   u32 _k_1 = r0;
   u32 _n_2 = r1;
@@ -65487,7 +65655,7 @@ INLINE Term spin_77(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4) 
     Term _a_7 = 1ull;
     Term _a_8 = ((u64)U32_BIN(_k_1, -, 1ull));
     Term _o_13[1];
-    if (spin_78(e, _o_13, _k_1, _n_2, _c_2, _nch_2, _last_2, U32_BIN(_n_2, >, (_a_8 >= 32 ? 0 : U32_BIN(_a_7, <<, _a_8)))) == 0) {
+    if (spin_79(e, _o_13, _k_1, _n_2, _c_2, _nch_2, _last_2, U32_BIN(_n_2, >, (_a_8 >= 32 ? 0 : U32_BIN(_a_7, <<, _a_8)))) == 0) {
       return 0;
     }
     o[0] = (u32)_o_13[0];
@@ -65496,7 +65664,7 @@ INLINE Term spin_77(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4) 
   return 1;
 }
 
-DFAR Term spin_79(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13) {
+DFAR Term spin_80(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13) {
   u32 wpoll = 0;
   Term h0 = r0;
   Term _a_11 = r0;
@@ -65714,7 +65882,7 @@ DFAR Term spin_79(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u
     _v_192 = (u32)_o_15[63];
     _v_193 = (u32)_o_15[64];
     Term _o_16[65];
-    if (spin_62(e, _o_16, _v_129, _v_129 == h0 ? q0 : blk_loc(e.mem, _v_129), _v_130, _v_131, _v_132, _v_133, _v_134, _v_135, _v_136, _v_137, _v_138, _v_139, _v_140, _v_141, _v_142, _v_143, _v_144, _v_145, _v_146, _v_147, _v_148, _v_149, _v_150, _v_151, _v_152, _v_153, _v_154, _v_155, _v_156, _v_157, _v_158, _v_159, _v_160, _v_161, _v_162, _v_163, _v_164, _v_165, _v_166, _v_167, _v_168, _v_169, _v_170, _v_171, _v_172, _v_173, _v_174, _v_175, _v_176, _v_177, _v_178, _v_179, _v_180, _v_181, _v_182, _v_183, _v_184, _v_185, _v_186, _v_187, _v_188, _v_189, _v_190, _v_191, _v_192, _v_193, _c_4, _t_0, _hi_3, _key_16, _key_17, _key_18, _key_19, _key_20, _key_21, _key_22, _key_23, _kf_3) == 0) {
+    if (spin_63(e, _o_16, _v_129, _v_129 == h0 ? q0 : blk_loc(e.mem, _v_129), _v_130, _v_131, _v_132, _v_133, _v_134, _v_135, _v_136, _v_137, _v_138, _v_139, _v_140, _v_141, _v_142, _v_143, _v_144, _v_145, _v_146, _v_147, _v_148, _v_149, _v_150, _v_151, _v_152, _v_153, _v_154, _v_155, _v_156, _v_157, _v_158, _v_159, _v_160, _v_161, _v_162, _v_163, _v_164, _v_165, _v_166, _v_167, _v_168, _v_169, _v_170, _v_171, _v_172, _v_173, _v_174, _v_175, _v_176, _v_177, _v_178, _v_179, _v_180, _v_181, _v_182, _v_183, _v_184, _v_185, _v_186, _v_187, _v_188, _v_189, _v_190, _v_191, _v_192, _v_193, _c_4, _t_0, _hi_3, _key_16, _key_17, _key_18, _key_19, _key_20, _key_21, _key_22, _key_23, _kf_3) == 0) {
       return 0;
     }
     _v_64 = _o_16[0];
@@ -65783,7 +65951,7 @@ DFAR Term spin_79(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u
     _v_127 = (u32)_o_16[63];
     _v_128 = (u32)_o_16[64];
     Term _o_17[8];
-    if (spin_61(e, _o_17, _v_64, _v_64 == h0 ? q0 : blk_loc(e.mem, _v_64), _v_65, _v_66, _v_67, _v_68, _v_69, _v_70, _v_71, _v_72, _v_73, _v_74, _v_75, _v_76, _v_77, _v_78, _v_79, _v_80, _v_81, _v_82, _v_83, _v_84, _v_85, _v_86, _v_87, _v_88, _v_89, _v_90, _v_91, _v_92, _v_93, _v_94, _v_95, _v_96, _v_97, _v_98, _v_99, _v_100, _v_101, _v_102, _v_103, _v_104, _v_105, _v_106, _v_107, _v_108, _v_109, _v_110, _v_111, _v_112, _v_113, _v_114, _v_115, _v_116, _v_117, _v_118, _v_119, _v_120, _v_121, _v_122, _v_123, _v_124, _v_125, _v_126, _v_127, _v_128, _rf_2, _key_16, _key_17, _key_18, _key_19, _key_20, _key_21, _key_22, _key_23, _kf_3) == 0) {
+    if (spin_62(e, _o_17, _v_64, _v_64 == h0 ? q0 : blk_loc(e.mem, _v_64), _v_65, _v_66, _v_67, _v_68, _v_69, _v_70, _v_71, _v_72, _v_73, _v_74, _v_75, _v_76, _v_77, _v_78, _v_79, _v_80, _v_81, _v_82, _v_83, _v_84, _v_85, _v_86, _v_87, _v_88, _v_89, _v_90, _v_91, _v_92, _v_93, _v_94, _v_95, _v_96, _v_97, _v_98, _v_99, _v_100, _v_101, _v_102, _v_103, _v_104, _v_105, _v_106, _v_107, _v_108, _v_109, _v_110, _v_111, _v_112, _v_113, _v_114, _v_115, _v_116, _v_117, _v_118, _v_119, _v_120, _v_121, _v_122, _v_123, _v_124, _v_125, _v_126, _v_127, _v_128, _rf_2, _key_16, _key_17, _key_18, _key_19, _key_20, _key_21, _key_22, _key_23, _kf_3) == 0) {
       return 0;
     }
     o[0] = (u32)_o_17[0];
@@ -65799,7 +65967,7 @@ DFAR Term spin_79(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u
   return 1;
 }
 
-INLINE Term spin_80(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13) {
+INLINE Term spin_81(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13) {
   u32 wpoll = 0;
   Term h0 = r0;
   Term _a_12 = r0;
@@ -65952,7 +66120,7 @@ INLINE Term spin_80(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
     _v_257 = (u32)_o_19[63];
     _v_258 = (u32)_o_19[64];
     Term _o_20[8];
-    if (spin_61(e, _o_20, _v_194, _v_194 == h0 ? q0 : blk_loc(e.mem, _v_194), _v_195, _v_196, _v_197, _v_198, _v_199, _v_200, _v_201, _v_202, _v_203, _v_204, _v_205, _v_206, _v_207, _v_208, _v_209, _v_210, _v_211, _v_212, _v_213, _v_214, _v_215, _v_216, _v_217, _v_218, _v_219, _v_220, _v_221, _v_222, _v_223, _v_224, _v_225, _v_226, _v_227, _v_228, _v_229, _v_230, _v_231, _v_232, _v_233, _v_234, _v_235, _v_236, _v_237, _v_238, _v_239, _v_240, _v_241, _v_242, _v_243, _v_244, _v_245, _v_246, _v_247, _v_248, _v_249, _v_250, _v_251, _v_252, _v_253, _v_254, _v_255, _v_256, _v_257, _v_258, _rf_3, _key_24, _key_25, _key_26, _key_27, _key_28, _key_29, _key_30, _key_31, _kf_4) == 0) {
+    if (spin_62(e, _o_20, _v_194, _v_194 == h0 ? q0 : blk_loc(e.mem, _v_194), _v_195, _v_196, _v_197, _v_198, _v_199, _v_200, _v_201, _v_202, _v_203, _v_204, _v_205, _v_206, _v_207, _v_208, _v_209, _v_210, _v_211, _v_212, _v_213, _v_214, _v_215, _v_216, _v_217, _v_218, _v_219, _v_220, _v_221, _v_222, _v_223, _v_224, _v_225, _v_226, _v_227, _v_228, _v_229, _v_230, _v_231, _v_232, _v_233, _v_234, _v_235, _v_236, _v_237, _v_238, _v_239, _v_240, _v_241, _v_242, _v_243, _v_244, _v_245, _v_246, _v_247, _v_248, _v_249, _v_250, _v_251, _v_252, _v_253, _v_254, _v_255, _v_256, _v_257, _v_258, _rf_3, _key_24, _key_25, _key_26, _key_27, _key_28, _key_29, _key_30, _key_31, _kf_4) == 0) {
       return 0;
     }
     o[0] = (u32)_o_20[0];
@@ -65968,7 +66136,7 @@ INLINE Term spin_80(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
   return 1;
 }
 
-INLINE Term spin_82(Env e, THR Term* o, Term r0, u64 q0) {
+INLINE Term spin_83(Env e, THR Term* o, Term r0, u64 q0) {
   u32 wpoll = 0;
   Term h0 = r0;
   Term _a_15 = r0;
@@ -65981,13 +66149,13 @@ INLINE Term spin_82(Env e, THR Term* o, Term r0, u64 q0) {
   return 1;
 }
 
-INLINE Term spin_81(Env e, THR Term* o, Term r0, u64 q0) {
+INLINE Term spin_82(Env e, THR Term* o, Term r0, u64 q0) {
   u32 wpoll = 0;
   Term h0 = r0;
   Term _a_14 = r0;
   WL_SPIN
     Term _o_23[2];
-    if (spin_82(e, _o_23, _a_14, _a_14 == h0 ? q0 : blk_loc(e.mem, _a_14)) == 0) {
+    if (spin_83(e, _o_23, _a_14, _a_14 == h0 ? q0 : blk_loc(e.mem, _a_14)) == 0) {
       return 0;
     }
     o[0] = _o_23[0];
@@ -65997,7 +66165,7 @@ INLINE Term spin_81(Env e, THR Term* o, Term r0, u64 q0) {
   return 1;
 }
 
-INLINE Term spin_84(Env e, THR Term* o, Term r0, Term r1, u64 q1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31) {
+INLINE Term spin_85(Env e, THR Term* o, Term r0, Term r1, u64 q1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, u32 r8, u32 r9, u32 r10, u32 r11, u32 r12, u32 r13, u32 r14, u32 r15, u32 r16, u32 r17, u32 r18, u32 r19, u32 r20, u32 r21, u32 r22, u32 r23, u32 r24, u32 r25, u32 r26, u32 r27, u32 r28, u32 r29, u32 r30, u32 r31) {
   u32 wpoll = 0;
   Term h1 = r1;
   Term _n_1 = r0;
@@ -66043,7 +66211,7 @@ INLINE Term spin_84(Env e, THR Term* o, Term r0, Term r1, u64 q1, u32 r2, u32 r3
       u32 _v_34 = 0;
       u32 _v_35 = 0;
       Term _o_3[8];
-      if (spin_48(e, _o_3, _cv_0, _cv_1, _cv_2, _cv_3, _cv_4, _cv_5, _cv_6, _cv_7, _r_1, _r_2, _r_3, _r_4, _r_5, _r_6, _r_7, _r_8, _r_9, _r_10, _r_11, _r_12, _r_13, _r_14, _r_15, _r_16, _ctr_0, _hi_2, _lastlen_1, U32_BIN(_fl_0, |, _endf_0)) == 0) {
+      if (spin_49(e, _o_3, _cv_0, _cv_1, _cv_2, _cv_3, _cv_4, _cv_5, _cv_6, _cv_7, _r_1, _r_2, _r_3, _r_4, _r_5, _r_6, _r_7, _r_8, _r_9, _r_10, _r_11, _r_12, _r_13, _r_14, _r_15, _r_16, _ctr_0, _hi_2, _lastlen_1, U32_BIN(_fl_0, |, _endf_0)) == 0) {
         return 0;
       }
       _v_28 = (u32)_o_3[0];
@@ -66113,7 +66281,7 @@ INLINE Term spin_84(Env e, THR Term* o, Term r0, Term r1, u64 q1, u32 r2, u32 r3
       u32 _v_59 = 0;
       u32 _v_60 = 0;
       Term _o_5[8];
-      if (spin_48(e, _o_5, _cv_0, _cv_1, _cv_2, _cv_3, _cv_4, _cv_5, _cv_6, _cv_7, _r_1, _r_2, _r_3, _r_4, _r_5, _r_6, _r_7, _r_8, _r_9, _r_10, _r_11, _r_12, _r_13, _r_14, _r_15, _r_16, _ctr_0, _hi_2, 64ull, _fl_0) == 0) {
+      if (spin_49(e, _o_5, _cv_0, _cv_1, _cv_2, _cv_3, _cv_4, _cv_5, _cv_6, _cv_7, _r_1, _r_2, _r_3, _r_4, _r_5, _r_6, _r_7, _r_8, _r_9, _r_10, _r_11, _r_12, _r_13, _r_14, _r_15, _r_16, _ctr_0, _hi_2, 64ull, _fl_0) == 0) {
         return 0;
       }
       _v_53 = (u32)_o_5[0];
@@ -66188,14 +66356,14 @@ INLINE Term spin_84(Env e, THR Term* o, Term r0, Term r1, u64 q1, u32 r2, u32 r3
       _fl_0 = r29;
       _endf_0 = r30;
       _lastlen_1 = r31;
-      WL_AGAIN(spin_84);
+      WL_AGAIN(spin_85);
     }
   break;
   }
   return 1;
 }
 
-INLINE Term spin_83(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6) {
+INLINE Term spin_84(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6) {
   u32 wpoll = 0;
   Term h0 = r0;
   Term _a_0 = r0;
@@ -66210,7 +66378,7 @@ INLINE Term spin_83(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
     u32 _w_0 = (_a_1 >= 32 ? 0 : U32_BIN(_c_1, <<, _a_1));
     u32 _v_0 = 0;
     Term _o_0[1];
-    if (spin_73(e, _o_0, U32_BIN(U32_BIN(_c_1, +, 1ull), ==, _nch_1)) == 0) {
+    if (spin_74(e, _o_0, U32_BIN(U32_BIN(_c_1, +, 1ull), ==, _nch_1)) == 0) {
       return 0;
     }
     _v_0 = (u32)_o_0[0];
@@ -66220,7 +66388,7 @@ INLINE Term spin_83(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
     Term _a_2 = U32_BIN(_rem_0, +, 63ull);
     Term _a_3 = 6ull;
     Term _o_1[1];
-    if (spin_74(e, _o_1, (_a_3 >= 32 ? 0 : U32_BIN(_a_2, >>, _a_3)), 1ull) == 0) {
+    if (spin_75(e, _o_1, (_a_3 >= 32 ? 0 : U32_BIN(_a_2, >>, _a_3)), 1ull) == 0) {
       return 0;
     }
     _v_1 = (u32)_o_1[0];
@@ -66275,7 +66443,7 @@ INLINE Term spin_83(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
     _v_26 = (u32)_o_2[15];
     _v_27 = (u32)_o_2[16];
     Term _o_6[9];
-    if (spin_84(e, _o_6, ((u64)U32_BIN(_v_1, -, 1ull)), _v_11, _v_11 == h0 ? q0 : blk_loc(e.mem, _v_11), _v_12, _v_13, _v_14, _v_15, _v_16, _v_17, _v_18, _v_19, _v_20, _v_21, _v_22, _v_23, _v_24, _v_25, _v_26, _v_27, _w_0, 1779033703ull, 3144134277ull, 1013904242ull, 2773480762ull, 1359893119ull, 2600822924ull, 528734635ull, 1541459225ull, U32_BIN(_cb_1, +, _c_1), _hi_1, 1ull, U32_BIN(2ull, |, _rf_1), _lastlen_0) == 0) {
+    if (spin_85(e, _o_6, ((u64)U32_BIN(_v_1, -, 1ull)), _v_11, _v_11 == h0 ? q0 : blk_loc(e.mem, _v_11), _v_12, _v_13, _v_14, _v_15, _v_16, _v_17, _v_18, _v_19, _v_20, _v_21, _v_22, _v_23, _v_24, _v_25, _v_26, _v_27, _w_0, 1779033703ull, 3144134277ull, 1013904242ull, 2773480762ull, 1359893119ull, 2600822924ull, 528734635ull, 1541459225ull, U32_BIN(_cb_1, +, _c_1), _hi_1, 1ull, U32_BIN(2ull, |, _rf_1), _lastlen_0) == 0) {
       return 0;
     }
     _v_2 = _o_6[0];
@@ -66288,7 +66456,7 @@ INLINE Term spin_83(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
     _v_9 = (u32)_o_6[7];
     _v_10 = (u32)_o_6[8];
     Term _o_7[8];
-    if (spin_76(e, _o_7, _v_2, _v_2 == h0 ? q0 : blk_loc(e.mem, _v_2), _v_3, _v_4, _v_5, _v_6, _v_7, _v_8, _v_9, _v_10) == 0) {
+    if (spin_77(e, _o_7, _v_2, _v_2 == h0 ? q0 : blk_loc(e.mem, _v_2), _v_3, _v_4, _v_5, _v_6, _v_7, _v_8, _v_9, _v_10) == 0) {
       return 0;
     }
     o[0] = (u32)_o_7[0];
@@ -66304,7 +66472,7 @@ INLINE Term spin_83(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
   return 1;
 }
 
-INLINE Term spin_85(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4) {
+INLINE Term spin_86(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4) {
   u32 wpoll = 0;
   Term h0 = r0;
   Term _a_6 = r0;
@@ -66444,7 +66612,7 @@ INLINE Term spin_85(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
     u32 _v_190 = 0;
     u32 _v_191 = 0;
     Term _o_10[65];
-    if (spin_42(e, _o_10, _a_6, _a_6 == h0 ? q0 : blk_loc(e.mem, _a_6), _c_2, _t_0, _hi_3) == 0) {
+    if (spin_43(e, _o_10, _a_6, _a_6 == h0 ? q0 : blk_loc(e.mem, _a_6), _c_2, _t_0, _hi_3) == 0) {
       return 0;
     }
     _v_127 = _o_10[0];
@@ -66513,7 +66681,7 @@ INLINE Term spin_85(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
     _v_190 = (u32)_o_10[63];
     _v_191 = (u32)_o_10[64];
     Term _o_11[65];
-    if (spin_66(e, _o_11, _v_127, _v_127 == h0 ? q0 : blk_loc(e.mem, _v_127), _v_128, _v_129, _v_130, _v_131, _v_132, _v_133, _v_134, _v_135, _v_136, _v_137, _v_138, _v_139, _v_140, _v_141, _v_142, _v_143, _v_144, _v_145, _v_146, _v_147, _v_148, _v_149, _v_150, _v_151, _v_152, _v_153, _v_154, _v_155, _v_156, _v_157, _v_158, _v_159, _v_160, _v_161, _v_162, _v_163, _v_164, _v_165, _v_166, _v_167, _v_168, _v_169, _v_170, _v_171, _v_172, _v_173, _v_174, _v_175, _v_176, _v_177, _v_178, _v_179, _v_180, _v_181, _v_182, _v_183, _v_184, _v_185, _v_186, _v_187, _v_188, _v_189, _v_190, _v_191, _c_2, _t_0, _hi_3) == 0) {
+    if (spin_67(e, _o_11, _v_127, _v_127 == h0 ? q0 : blk_loc(e.mem, _v_127), _v_128, _v_129, _v_130, _v_131, _v_132, _v_133, _v_134, _v_135, _v_136, _v_137, _v_138, _v_139, _v_140, _v_141, _v_142, _v_143, _v_144, _v_145, _v_146, _v_147, _v_148, _v_149, _v_150, _v_151, _v_152, _v_153, _v_154, _v_155, _v_156, _v_157, _v_158, _v_159, _v_160, _v_161, _v_162, _v_163, _v_164, _v_165, _v_166, _v_167, _v_168, _v_169, _v_170, _v_171, _v_172, _v_173, _v_174, _v_175, _v_176, _v_177, _v_178, _v_179, _v_180, _v_181, _v_182, _v_183, _v_184, _v_185, _v_186, _v_187, _v_188, _v_189, _v_190, _v_191, _c_2, _t_0, _hi_3) == 0) {
       return 0;
     }
     _v_62 = _o_11[0];
@@ -66582,7 +66750,7 @@ INLINE Term spin_85(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
     _v_125 = (u32)_o_11[63];
     _v_126 = (u32)_o_11[64];
     Term _o_12[8];
-    if (spin_65(e, _o_12, _v_62, _v_62 == h0 ? q0 : blk_loc(e.mem, _v_62), _v_63, _v_64, _v_65, _v_66, _v_67, _v_68, _v_69, _v_70, _v_71, _v_72, _v_73, _v_74, _v_75, _v_76, _v_77, _v_78, _v_79, _v_80, _v_81, _v_82, _v_83, _v_84, _v_85, _v_86, _v_87, _v_88, _v_89, _v_90, _v_91, _v_92, _v_93, _v_94, _v_95, _v_96, _v_97, _v_98, _v_99, _v_100, _v_101, _v_102, _v_103, _v_104, _v_105, _v_106, _v_107, _v_108, _v_109, _v_110, _v_111, _v_112, _v_113, _v_114, _v_115, _v_116, _v_117, _v_118, _v_119, _v_120, _v_121, _v_122, _v_123, _v_124, _v_125, _v_126, _rf_2) == 0) {
+    if (spin_66(e, _o_12, _v_62, _v_62 == h0 ? q0 : blk_loc(e.mem, _v_62), _v_63, _v_64, _v_65, _v_66, _v_67, _v_68, _v_69, _v_70, _v_71, _v_72, _v_73, _v_74, _v_75, _v_76, _v_77, _v_78, _v_79, _v_80, _v_81, _v_82, _v_83, _v_84, _v_85, _v_86, _v_87, _v_88, _v_89, _v_90, _v_91, _v_92, _v_93, _v_94, _v_95, _v_96, _v_97, _v_98, _v_99, _v_100, _v_101, _v_102, _v_103, _v_104, _v_105, _v_106, _v_107, _v_108, _v_109, _v_110, _v_111, _v_112, _v_113, _v_114, _v_115, _v_116, _v_117, _v_118, _v_119, _v_120, _v_121, _v_122, _v_123, _v_124, _v_125, _v_126, _rf_2) == 0) {
       return 0;
     }
     o[0] = (u32)_o_12[0];
@@ -66598,7 +66766,7 @@ INLINE Term spin_85(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
   return 1;
 }
 
-INLINE Term spin_86(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4) {
+INLINE Term spin_87(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3, u32 r4) {
   u32 wpoll = 0;
   Term h0 = r0;
   Term _a_7 = r0;
@@ -66673,7 +66841,7 @@ INLINE Term spin_86(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
     u32 _v_255 = 0;
     u32 _v_256 = 0;
     Term _o_14[65];
-    if (spin_42(e, _o_14, _a_7, _a_7 == h0 ? q0 : blk_loc(e.mem, _a_7), _c_3, _t_1, _hi_4) == 0) {
+    if (spin_43(e, _o_14, _a_7, _a_7 == h0 ? q0 : blk_loc(e.mem, _a_7), _c_3, _t_1, _hi_4) == 0) {
       return 0;
     }
     _v_192 = _o_14[0];
@@ -66742,7 +66910,7 @@ INLINE Term spin_86(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
     _v_255 = (u32)_o_14[63];
     _v_256 = (u32)_o_14[64];
     Term _o_15[8];
-    if (spin_65(e, _o_15, _v_192, _v_192 == h0 ? q0 : blk_loc(e.mem, _v_192), _v_193, _v_194, _v_195, _v_196, _v_197, _v_198, _v_199, _v_200, _v_201, _v_202, _v_203, _v_204, _v_205, _v_206, _v_207, _v_208, _v_209, _v_210, _v_211, _v_212, _v_213, _v_214, _v_215, _v_216, _v_217, _v_218, _v_219, _v_220, _v_221, _v_222, _v_223, _v_224, _v_225, _v_226, _v_227, _v_228, _v_229, _v_230, _v_231, _v_232, _v_233, _v_234, _v_235, _v_236, _v_237, _v_238, _v_239, _v_240, _v_241, _v_242, _v_243, _v_244, _v_245, _v_246, _v_247, _v_248, _v_249, _v_250, _v_251, _v_252, _v_253, _v_254, _v_255, _v_256, _rf_3) == 0) {
+    if (spin_66(e, _o_15, _v_192, _v_192 == h0 ? q0 : blk_loc(e.mem, _v_192), _v_193, _v_194, _v_195, _v_196, _v_197, _v_198, _v_199, _v_200, _v_201, _v_202, _v_203, _v_204, _v_205, _v_206, _v_207, _v_208, _v_209, _v_210, _v_211, _v_212, _v_213, _v_214, _v_215, _v_216, _v_217, _v_218, _v_219, _v_220, _v_221, _v_222, _v_223, _v_224, _v_225, _v_226, _v_227, _v_228, _v_229, _v_230, _v_231, _v_232, _v_233, _v_234, _v_235, _v_236, _v_237, _v_238, _v_239, _v_240, _v_241, _v_242, _v_243, _v_244, _v_245, _v_246, _v_247, _v_248, _v_249, _v_250, _v_251, _v_252, _v_253, _v_254, _v_255, _v_256, _rf_3) == 0) {
       return 0;
     }
     o[0] = (u32)_o_15[0];
@@ -66758,7 +66926,7 @@ INLINE Term spin_86(Env e, THR Term* o, Term r0, u64 q0, u32 r1, u32 r2, u32 r3,
   return 1;
 }
 
-INLINE Term spin_87(Env e, THR Term* o, Term r0, u64 q0) {
+INLINE Term spin_88(Env e, THR Term* o, Term r0, u64 q0) {
   u32 wpoll = 0;
   Term h0 = r0;
   Term _s_2 = r0;
@@ -66775,7 +66943,7 @@ INLINE Term spin_87(Env e, THR Term* o, Term r0, u64 q0) {
       u32 _f_7 = e.mem[_sp_0 + 7];
       Term _f_8 = e.mem[_sp_0 + 8];
       Term _o_0[8];
-      if (spin_70(e, _o_0, _f_8, _f_8 == h0 ? q0 : blk_loc(e.mem, _f_8), _f_0, _f_1, _f_2, _f_3, _f_4, _f_5, _f_6, _f_7) == 0) {
+      if (spin_71(e, _o_0, _f_8, _f_8 == h0 ? q0 : blk_loc(e.mem, _f_8), _f_0, _f_1, _f_2, _f_3, _f_4, _f_5, _f_6, _f_7) == 0) {
         return 0;
       }
       o[0] = (u32)_o_0[0];
@@ -66789,7 +66957,7 @@ INLINE Term spin_87(Env e, THR Term* o, Term r0, u64 q0) {
       heap_free(e, cls_fit(9), _sp_0);
     } else {
       Term _o_1[8];
-      if (spin_71(e, _o_1) == 0) {
+      if (spin_72(e, _o_1) == 0) {
         return 0;
       }
       o[0] = (u32)_o_1[0];
@@ -66806,7 +66974,7 @@ INLINE Term spin_87(Env e, THR Term* o, Term r0, u64 q0) {
   return 1;
 }
 
-INLINE Term spin_88(Env e, THR Term* o, Term r0, Term r1, u64 q1, u32 r2, u32 r3) {
+INLINE Term spin_89(Env e, THR Term* o, Term r0, Term r1, u64 q1, u32 r2, u32 r3) {
   u32 wpoll = 0;
   Term h1 = r1;
   Term _fuel_0 = r0;
@@ -66823,13 +66991,13 @@ INLINE Term spin_88(Env e, THR Term* o, Term r0, Term r1, u64 q1, u32 r2, u32 r3
         u32 _m_0 = (_a_0 >= 32 ? 0 : U32_BIN(_n_1, >>, _a_0));
         Term _v_10 = 0;
         Term _o_4[1];
-        if (spin_68(e, _o_4, _s_6, _s_6 == h1 ? q1 : blk_loc(e.mem, _s_6)) == 0) {
+        if (spin_69(e, _o_4, _s_6, _s_6 == h1 ? q1 : blk_loc(e.mem, _s_6)) == 0) {
           return 0;
         }
         _v_10 = _o_4[0];
         u32 _v_11 = 0;
         Term _o_5[1];
-        if (spin_69(e, _o_5, _m_0) == 0) {
+        if (spin_70(e, _o_5, _m_0) == 0) {
           return 0;
         }
         _v_11 = (u32)_o_5[0];
@@ -66841,7 +67009,7 @@ INLINE Term spin_88(Env e, THR Term* o, Term r0, Term r1, u64 q1, u32 r2, u32 r3
         _s_6 = r1;
         _n_1 = r2;
         _b_0 = r3;
-        WL_AGAIN(spin_88);
+        WL_AGAIN(spin_89);
       } else {
         o[0] = _s_6;
       }
@@ -66851,7 +67019,7 @@ INLINE Term spin_88(Env e, THR Term* o, Term r0, Term r1, u64 q1, u32 r2, u32 r3
   return 1;
 }
 
-INLINE Term spin_89(Env e, THR Term* o, u32 r0, u32 r1) {
+INLINE Term spin_90(Env e, THR Term* o, u32 r0, u32 r1) {
   u32 wpoll = 0;
   u32 _b_0 = r0;
   u32 _n_1 = r1;
@@ -66866,14 +67034,14 @@ INLINE Term spin_89(Env e, THR Term* o, u32 r0, u32 r1) {
   return 1;
 }
 
-INLINE Term spin_90(Env e, THR Term* o, u32 r0) {
+INLINE Term spin_91(Env e, THR Term* o, u32 r0) {
   u32 wpoll = 0;
   u32 _len_1 = r0;
   WL_SPIN
     Term _a_1 = U32_BIN(_len_1, +, 1023ull);
     Term _a_2 = 10ull;
     Term _o_0[1];
-    if (spin_74(e, _o_0, (_a_2 >= 32 ? 0 : U32_BIN(_a_1, >>, _a_2)), 1ull) == 0) {
+    if (spin_75(e, _o_0, (_a_2 >= 32 ? 0 : U32_BIN(_a_1, >>, _a_2)), 1ull) == 0) {
       return 0;
     }
     o[0] = (u32)_o_0[0];
@@ -66882,7 +67050,7 @@ INLINE Term spin_90(Env e, THR Term* o, u32 r0) {
   return 1;
 }
 
-INLINE Term spin_91(Env e, THR Term* o, u32 r0, u32 r1) {
+INLINE Term spin_92(Env e, THR Term* o, u32 r0, u32 r1) {
   u32 wpoll = 0;
   u32 _len_2 = r0;
   u32 _n_0 = r1;
@@ -66895,12 +67063,12 @@ INLINE Term spin_91(Env e, THR Term* o, u32 r0, u32 r1) {
   return 1;
 }
 
-INLINE Term spin_92(Env e, THR Term* o, u32 r0) {
+INLINE Term spin_93(Env e, THR Term* o, u32 r0) {
   u32 wpoll = 0;
   u32 _n_0 = r0;
   WL_SPIN
     Term _o_0[1];
-    if (spin_89(e, _o_0, U32_BIN(_n_0, <=, 1ull), _n_0) == 0) {
+    if (spin_90(e, _o_0, U32_BIN(_n_0, <=, 1ull), _n_0) == 0) {
       return 0;
     }
     o[0] = _o_0[0];
@@ -66909,7 +67077,7 @@ INLINE Term spin_92(Env e, THR Term* o, u32 r0) {
   return 1;
 }
 
-INLINE Term spin_93(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, Term r8, u64 q8) {
+INLINE Term spin_94(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, u32 r5, u32 r6, u32 r7, Term r8, u64 q8) {
   u32 wpoll = 0;
   Term h8 = r8;
   u32 _cv_0 = r0;
@@ -66932,7 +67100,7 @@ INLINE Term spin_93(Env e, THR Term* o, u32 r0, u32 r1, u32 r2, u32 r3, u32 r4, 
     e.mem[_nd_2 + 6] = _cv_6;
     e.mem[_nd_2 + 7] = _cv_7;
     e.mem[_nd_2 + 8] = _name_0;
-    o[0] = term_clo(FID____b3io_fill_k_c156, _nd_2);
+    o[0] = term_clo(FID____b3io_fill_k_c158, _nd_2);
   break;
   }
   return 1;
@@ -66988,13 +67156,13 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     u64 _nd_0 = heap_alloc(e, cls_fit(2));
     e.mem[_nd_0 + 0] = _id_0;
     e.mem[_nd_0 + 1] = _k_0;
-    r0 = term_clo(FID____b3io_stream_seg_c85, _nd_0);
+    r0 = term_clo(FID____b3io_stream_seg_c87, _nd_0);
     WL_RETN(1);
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____b3io_stream_seg_c85)
+  WL_CASE(FID____b3io_stream_seg_c87)
     u32 _id_1 = r0;
     u32 _k_1 = r1;
     Term _x_0 = r2;
@@ -67005,19 +67173,19 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     if (!DEVICE && !seq && fid_nofk(FID_IO_bind)) {
       u64 _t_3 = task_node(e, FID_IO_bind, WL_CONT, WL_IDX, 0);
       e.mem[_t_3 + 0] = term_clo(FID____b3io_B3IO_seg, _nd_1);
-      e.mem[_t_3 + 1] = term_clo(FID____b3io_stream_seg_c86, 0);
+      e.mem[_t_3 + 1] = term_clo(FID____b3io_stream_seg_c88, 0);
       e.mem[_t_3 + 2] = _x_0;
       return term_tsk(FID_IO_bind, _t_3);
     }
     r0 = term_clo(FID____b3io_B3IO_seg, _nd_1);
-    r1 = term_clo(FID____b3io_stream_seg_c86, 0);
+    r1 = term_clo(FID____b3io_stream_seg_c88, 0);
     r2 = _x_0;
     WL_JMP(FID_IO_bind);
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____b3io_stream_seg_c86)
+  WL_CASE(FID____b3io_stream_seg_c88)
     Term _x_1 = r0;
     WL_OPEN
     u64 _sp_0 = term_loc(_x_1);
@@ -67029,11 +67197,11 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     heap_free(e, cls_fit(5), _sp_0);
     if (seq) {
       WL_ROOM(1);
-      STK(0) = FID____b3io_stream_seg_k87;
+      STK(0) = FID____b3io_stream_seg_k89;
       WL_PUSHN(1);
     } else {
-      u64 _t_0 = task_node(e, FID____b3io_stream_seg_k87, WL_CONT, WL_IDX, 1);
-      WL_CONT = term_tsk(FID____b3io_stream_seg_k87, _t_0);
+      u64 _t_0 = task_node(e, FID____b3io_stream_seg_k89, WL_CONT, WL_IDX, 1);
+      WL_CONT = term_tsk(FID____b3io_stream_seg_k89, _t_0);
       WL_IDX = 0;
     }
     if (!DEVICE && !seq && fid_nofk(FID____b3io_part_cv)) {
@@ -67057,7 +67225,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____b3io_stream_seg_k87)
+  WL_CASE(FID____b3io_stream_seg_k89)
     u32 _h_0 = r0;
     u32 _h_1 = r1;
     u32 _h_2 = r2;
@@ -67076,13 +67244,13 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     e.mem[_nd_2 + 5] = _h_5;
     e.mem[_nd_2 + 6] = _h_6;
     e.mem[_nd_2 + 7] = _h_7;
-    r0 = term_clo(FID____b3io_stream_seg_c88, _nd_2);
+    r0 = term_clo(FID____b3io_stream_seg_c90, _nd_2);
     WL_RETN(1);
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____b3io_stream_seg_c88)
+  WL_CASE(FID____b3io_stream_seg_c90)
     u32 _h_8 = r0;
     u32 _h_9 = r1;
     u32 _h_10 = r2;
@@ -67171,7 +67339,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     if (_k_0 == 0) {
       term_sink(e, _aa_1);
       Term _o_9[8];
-      if (spin_72(e, _o_9, _aa_0, blk_loc(e.mem, _aa_0), _c_0, _cb_0, _hi_0, _nch_0, _last_0, _rf_0, _key_0, _key_1, _key_2, _key_3, _key_4, _key_5, _key_6, _key_7, _kf_0) == 0) {
+      if (spin_73(e, _o_9, _aa_0, blk_loc(e.mem, _aa_0), _c_0, _cb_0, _hi_0, _nch_0, _last_0, _rf_0, _key_0, _key_1, _key_2, _key_3, _key_4, _key_5, _key_6, _key_7, _kf_0) == 0) {
         return 0;
       }
       r0 = (u32)_o_9[0];
@@ -67189,7 +67357,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
         u32 _kp_0 = U32_BIN(_ku_0, -, 1ull);
         u32 _v_61 = 0;
         Term _o_14[1];
-        if (spin_77(e, _o_14, _kp_0, _n_0, _c_0, _nch_0, _last_0) == 0) {
+        if (spin_78(e, _o_14, _kp_0, _n_0, _c_0, _nch_0, _last_0) == 0) {
           return 0;
         }
         _v_61 = (u32)_o_14[0];
@@ -67239,7 +67407,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
       } else if (_d_0 == 3) {
         term_sink(e, _aa_1);
         Term _o_18[8];
-        if (spin_79(e, _o_18, _aa_0, blk_loc(e.mem, _aa_0), _c_0, U32_BIN(_cb_0, +, _c_0), _hi_0, _rf_0, _key_0, _key_1, _key_2, _key_3, _key_4, _key_5, _key_6, _key_7, _kf_0) == 0) {
+        if (spin_80(e, _o_18, _aa_0, blk_loc(e.mem, _aa_0), _c_0, U32_BIN(_cb_0, +, _c_0), _hi_0, _rf_0, _key_0, _key_1, _key_2, _key_3, _key_4, _key_5, _key_6, _key_7, _kf_0) == 0) {
           return 0;
         }
         r0 = (u32)_o_18[0];
@@ -67254,7 +67422,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
       } else if (_d_0 == 2) {
         term_sink(e, _aa_1);
         Term _o_21[8];
-        if (spin_80(e, _o_21, _aa_0, blk_loc(e.mem, _aa_0), _c_0, U32_BIN(_cb_0, +, _c_0), _hi_0, _rf_0, _key_0, _key_1, _key_2, _key_3, _key_4, _key_5, _key_6, _key_7, _kf_0) == 0) {
+        if (spin_81(e, _o_21, _aa_0, blk_loc(e.mem, _aa_0), _c_0, U32_BIN(_cb_0, +, _c_0), _hi_0, _rf_0, _key_0, _key_1, _key_2, _key_3, _key_4, _key_5, _key_6, _key_7, _kf_0) == 0) {
           return 0;
         }
         r0 = (u32)_o_21[0];
@@ -67275,33 +67443,33 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
         if (!seq) {
           u32 _v_259 = 0;
           Term _o_22[1];
-          if (spin_77(e, _o_22, _kp_1, _h_0, _c_0, _nch_0, _last_0) == 0) {
+          if (spin_78(e, _o_22, _kp_1, _h_0, _c_0, _nch_0, _last_0) == 0) {
             return 0;
           }
           _v_259 = (u32)_o_22[0];
           Term _v_260 = 0;
           Term _v_261 = 0;
           Term _o_24[2];
-          if (spin_81(e, _o_24, _aa_0, blk_loc(e.mem, _aa_0)) == 0) {
+          if (spin_82(e, _o_24, _aa_0, blk_loc(e.mem, _aa_0)) == 0) {
             return 0;
           }
           _v_260 = _o_24[0];
           _v_261 = _o_24[1];
           u32 _v_262 = 0;
           Term _o_25[1];
-          if (spin_77(e, _o_25, _kp_1, _n2_0, _c2_0, _nch_0, _last_0) == 0) {
+          if (spin_78(e, _o_25, _kp_1, _n2_0, _c2_0, _nch_0, _last_0) == 0) {
             return 0;
           }
           _v_262 = (u32)_o_25[0];
           Term _v_263 = 0;
           Term _v_264 = 0;
           Term _o_26[2];
-          if (spin_81(e, _o_26, _aa_1, blk_loc(e.mem, _aa_1)) == 0) {
+          if (spin_82(e, _o_26, _aa_1, blk_loc(e.mem, _aa_1)) == 0) {
             return 0;
           }
           _v_263 = _o_26[0];
           _v_264 = _o_26[1];
-          u64 _t_2 = task_node(e, FID____blake3_tree8_k_0_j92, WL_CONT, WL_IDX, 2);
+          u64 _t_2 = task_node(e, FID____blake3_tree8_k_0_j94, WL_CONT, WL_IDX, 2);
           e.mem[_t_2 + 0] = _rf_0;
           e.mem[_t_2 + 1] = _key_0;
           e.mem[_t_2 + 2] = _key_1;
@@ -67312,7 +67480,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
           e.mem[_t_2 + 7] = _key_6;
           e.mem[_t_2 + 8] = _key_7;
           e.mem[_t_2 + 9] = _kf_0;
-          u64 _t_3 = task_node(e, FID____blake3_tree8_k_0, term_tsk(FID____blake3_tree8_k_0_j92, _t_2), 10, 0);
+          u64 _t_3 = task_node(e, FID____blake3_tree8_k_0, term_tsk(FID____blake3_tree8_k_0_j94, _t_2), 10, 0);
           e.mem[_t_3 + 0] = _p_1;
           e.mem[_t_3 + 1] = _kp_1;
           e.mem[_t_3 + 2] = _v_259;
@@ -67335,7 +67503,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
           e.mem[_t_3 + 19] = _key_7;
           e.mem[_t_3 + 20] = _kf_0;
           e.mem[_t_2 + 10] = term_tsk(FID____blake3_tree8_k_0, _t_3);
-          u64 _t_4 = task_node(e, FID____blake3_tree8_k_0, term_tsk(FID____blake3_tree8_k_0_j92, _t_2), 18, 0);
+          u64 _t_4 = task_node(e, FID____blake3_tree8_k_0, term_tsk(FID____blake3_tree8_k_0_j94, _t_2), 18, 0);
           e.mem[_t_4 + 0] = _p_1;
           e.mem[_t_4 + 1] = _kp_1;
           e.mem[_t_4 + 2] = _v_262;
@@ -67358,18 +67526,18 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
           e.mem[_t_4 + 19] = _key_7;
           e.mem[_t_4 + 20] = _kf_0;
           e.mem[_t_2 + 18] = term_tsk(FID____blake3_tree8_k_0, _t_4);
-          return term_tsk(FID____blake3_tree8_k_0_j92, _t_2);
+          return term_tsk(FID____blake3_tree8_k_0_j94, _t_2);
         }
         u32 _v_265 = 0;
         Term _o_27[1];
-        if (spin_77(e, _o_27, _kp_1, _h_0, _c_0, _nch_0, _last_0) == 0) {
+        if (spin_78(e, _o_27, _kp_1, _h_0, _c_0, _nch_0, _last_0) == 0) {
           return 0;
         }
         _v_265 = (u32)_o_27[0];
         Term _v_266 = 0;
         Term _v_267 = 0;
         Term _o_28[2];
-        if (spin_81(e, _o_28, _aa_0, blk_loc(e.mem, _aa_0)) == 0) {
+        if (spin_82(e, _o_28, _aa_0, blk_loc(e.mem, _aa_0)) == 0) {
           return 0;
         }
         _v_266 = _o_28[0];
@@ -67394,7 +67562,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
         STK(16) = _kp_1;
         STK(17) = _n2_0;
         STK(18) = _c2_0;
-        STK(19) = FID____blake3_tree8_k_0_k92;
+        STK(19) = FID____blake3_tree8_k_0_k94;
         WL_PUSHN(20);
         r0 = _p_1;
         r1 = _kp_1;
@@ -67446,7 +67614,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____blake3_tree8_k_0_k92)
+  WL_CASE(FID____blake3_tree8_k_0_k94)
     Term _p_2 = STK(-19);
     Term _aa_2 = STK(-18);
     u32 _cb_2 = STK(-17);
@@ -67477,14 +67645,14 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     WL_OPEN
     u32 _v_268 = 0;
     Term _o_29[1];
-    if (spin_77(e, _o_29, _kp_2, _n2_1, _c2_1, _nch_4, _last_4) == 0) {
+    if (spin_78(e, _o_29, _kp_2, _n2_1, _c2_1, _nch_4, _last_4) == 0) {
       return 0;
     }
     _v_268 = (u32)_o_29[0];
     Term _v_269 = 0;
     Term _v_270 = 0;
     Term _o_30[2];
-    if (spin_81(e, _o_30, _aa_2, blk_loc(e.mem, _aa_2)) == 0) {
+    if (spin_82(e, _o_30, _aa_2, blk_loc(e.mem, _aa_2)) == 0) {
       return 0;
     }
     _v_269 = _o_30[0];
@@ -67498,7 +67666,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     STK(5) = _l_5;
     STK(6) = _l_6;
     STK(7) = _l_7;
-    STK(8) = FID____blake3_tree8_k_0_k93;
+    STK(8) = FID____blake3_tree8_k_0_k95;
     WL_PUSHN(9);
     if (!DEVICE && !seq && fid_nofk(FID____blake3_tree8_k_0)) {
       u64 _t_5 = task_node(e, FID____blake3_tree8_k_0, WL_CONT, WL_IDX, 0);
@@ -67551,7 +67719,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____blake3_tree8_k_0_k93)
+  WL_CASE(FID____blake3_tree8_k_0_k95)
     WL_POPN(27);
     u32 _rf_5 = STK(6);
     u32 _key_40 = STK(7);
@@ -67580,8 +67748,8 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     u32 _r_32 = r6;
     u32 _r_33 = r7;
     WL_OPEN
-    if (!DEVICE && !seq && fid_nofk(FID____blake3_tree8_k_0_j92)) {
-      u64 _t_6 = task_node(e, FID____blake3_tree8_k_0_j92, WL_CONT, WL_IDX, 0);
+    if (!DEVICE && !seq && fid_nofk(FID____blake3_tree8_k_0_j94)) {
+      u64 _t_6 = task_node(e, FID____blake3_tree8_k_0_j94, WL_CONT, WL_IDX, 0);
       e.mem[_t_6 + 0] = _rf_5;
       e.mem[_t_6 + 1] = _key_40;
       e.mem[_t_6 + 2] = _key_41;
@@ -67608,7 +67776,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
       e.mem[_t_6 + 23] = _r_31;
       e.mem[_t_6 + 24] = _r_32;
       e.mem[_t_6 + 25] = _r_33;
-      return term_tsk(FID____blake3_tree8_k_0_j92, _t_6);
+      return term_tsk(FID____blake3_tree8_k_0_j94, _t_6);
     }
     r0 = _rf_5;
     r1 = _key_40;
@@ -67636,12 +67804,12 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     r23 = _r_31;
     r24 = _r_32;
     r25 = _r_33;
-    WL_JMP(FID____blake3_tree8_k_0_j92);
+    WL_JMP(FID____blake3_tree8_k_0_j94);
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____blake3_tree8_k_0_j92)
+  WL_CASE(FID____blake3_tree8_k_0_j94)
     u32 _rf_6 = r0;
     u32 _key_48 = r1;
     u32 _key_49 = r2;
@@ -67670,7 +67838,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     u32 _r_41 = r25;
     WL_OPEN
     Term _o_31[8];
-    if (spin_47(e, _o_31, _l_16, _l_17, _l_18, _l_19, _l_20, _l_21, _l_22, _l_23, _r_34, _r_35, _r_36, _r_37, _r_38, _r_39, _r_40, _r_41, _rf_6, _key_48, _key_49, _key_50, _key_51, _key_52, _key_53, _key_54, _key_55, _kf_7) == 0) {
+    if (spin_48(e, _o_31, _l_16, _l_17, _l_18, _l_19, _l_20, _l_21, _l_22, _l_23, _r_34, _r_35, _r_36, _r_37, _r_38, _r_39, _r_40, _r_41, _rf_6, _key_48, _key_49, _key_50, _key_51, _key_52, _key_53, _key_54, _key_55, _kf_7) == 0) {
       return 0;
     }
     r0 = (u32)_o_31[0];
@@ -67704,7 +67872,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     if (_k_0 == 0) {
       term_sink(e, _aa_1);
       Term _o_8[8];
-      if (spin_83(e, _o_8, _aa_0, blk_loc(e.mem, _aa_0), _c_0, _cb_0, _hi_0, _nch_0, _last_0, _rf_0) == 0) {
+      if (spin_84(e, _o_8, _aa_0, blk_loc(e.mem, _aa_0), _c_0, _cb_0, _hi_0, _nch_0, _last_0, _rf_0) == 0) {
         return 0;
       }
       r0 = (u32)_o_8[0];
@@ -67722,7 +67890,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
         u32 _kp_0 = U32_BIN(_ku_0, -, 1ull);
         u32 _v_61 = 0;
         Term _o_9[1];
-        if (spin_77(e, _o_9, _kp_0, _n_0, _c_0, _nch_0, _last_0) == 0) {
+        if (spin_78(e, _o_9, _kp_0, _n_0, _c_0, _nch_0, _last_0) == 0) {
           return 0;
         }
         _v_61 = (u32)_o_9[0];
@@ -67754,7 +67922,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
       } else if (_d_0 == 3) {
         term_sink(e, _aa_1);
         Term _o_13[8];
-        if (spin_85(e, _o_13, _aa_0, blk_loc(e.mem, _aa_0), _c_0, U32_BIN(_cb_0, +, _c_0), _hi_0, _rf_0) == 0) {
+        if (spin_86(e, _o_13, _aa_0, blk_loc(e.mem, _aa_0), _c_0, U32_BIN(_cb_0, +, _c_0), _hi_0, _rf_0) == 0) {
           return 0;
         }
         r0 = (u32)_o_13[0];
@@ -67769,7 +67937,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
       } else if (_d_0 == 2) {
         term_sink(e, _aa_1);
         Term _o_16[8];
-        if (spin_86(e, _o_16, _aa_0, blk_loc(e.mem, _aa_0), _c_0, U32_BIN(_cb_0, +, _c_0), _hi_0, _rf_0) == 0) {
+        if (spin_87(e, _o_16, _aa_0, blk_loc(e.mem, _aa_0), _c_0, U32_BIN(_cb_0, +, _c_0), _hi_0, _rf_0) == 0) {
           return 0;
         }
         r0 = (u32)_o_16[0];
@@ -67790,35 +67958,35 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
         if (!seq) {
           u32 _v_257 = 0;
           Term _o_17[1];
-          if (spin_77(e, _o_17, _kp_1, _h_0, _c_0, _nch_0, _last_0) == 0) {
+          if (spin_78(e, _o_17, _kp_1, _h_0, _c_0, _nch_0, _last_0) == 0) {
             return 0;
           }
           _v_257 = (u32)_o_17[0];
           Term _v_258 = 0;
           Term _v_259 = 0;
           Term _o_18[2];
-          if (spin_81(e, _o_18, _aa_0, blk_loc(e.mem, _aa_0)) == 0) {
+          if (spin_82(e, _o_18, _aa_0, blk_loc(e.mem, _aa_0)) == 0) {
             return 0;
           }
           _v_258 = _o_18[0];
           _v_259 = _o_18[1];
           u32 _v_260 = 0;
           Term _o_19[1];
-          if (spin_77(e, _o_19, _kp_1, _n2_0, _c2_0, _nch_0, _last_0) == 0) {
+          if (spin_78(e, _o_19, _kp_1, _n2_0, _c2_0, _nch_0, _last_0) == 0) {
             return 0;
           }
           _v_260 = (u32)_o_19[0];
           Term _v_261 = 0;
           Term _v_262 = 0;
           Term _o_20[2];
-          if (spin_81(e, _o_20, _aa_1, blk_loc(e.mem, _aa_1)) == 0) {
+          if (spin_82(e, _o_20, _aa_1, blk_loc(e.mem, _aa_1)) == 0) {
             return 0;
           }
           _v_261 = _o_20[0];
           _v_262 = _o_20[1];
-          u64 _t_2 = task_node(e, FID____blake3_tree8_0_j100, WL_CONT, WL_IDX, 2);
+          u64 _t_2 = task_node(e, FID____blake3_tree8_0_j102, WL_CONT, WL_IDX, 2);
           e.mem[_t_2 + 0] = _rf_0;
-          u64 _t_3 = task_node(e, FID____blake3_tree8_0, term_tsk(FID____blake3_tree8_0_j100, _t_2), 1, 0);
+          u64 _t_3 = task_node(e, FID____blake3_tree8_0, term_tsk(FID____blake3_tree8_0_j102, _t_2), 1, 0);
           e.mem[_t_3 + 0] = _p_1;
           e.mem[_t_3 + 1] = _kp_1;
           e.mem[_t_3 + 2] = _v_257;
@@ -67832,7 +68000,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
           e.mem[_t_3 + 10] = _last_0;
           e.mem[_t_3 + 11] = 0ull;
           e.mem[_t_2 + 1] = term_tsk(FID____blake3_tree8_0, _t_3);
-          u64 _t_4 = task_node(e, FID____blake3_tree8_0, term_tsk(FID____blake3_tree8_0_j100, _t_2), 9, 0);
+          u64 _t_4 = task_node(e, FID____blake3_tree8_0, term_tsk(FID____blake3_tree8_0_j102, _t_2), 9, 0);
           e.mem[_t_4 + 0] = _p_1;
           e.mem[_t_4 + 1] = _kp_1;
           e.mem[_t_4 + 2] = _v_260;
@@ -67846,18 +68014,18 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
           e.mem[_t_4 + 10] = _last_0;
           e.mem[_t_4 + 11] = 0ull;
           e.mem[_t_2 + 9] = term_tsk(FID____blake3_tree8_0, _t_4);
-          return term_tsk(FID____blake3_tree8_0_j100, _t_2);
+          return term_tsk(FID____blake3_tree8_0_j102, _t_2);
         }
         u32 _v_263 = 0;
         Term _o_21[1];
-        if (spin_77(e, _o_21, _kp_1, _h_0, _c_0, _nch_0, _last_0) == 0) {
+        if (spin_78(e, _o_21, _kp_1, _h_0, _c_0, _nch_0, _last_0) == 0) {
           return 0;
         }
         _v_263 = (u32)_o_21[0];
         Term _v_264 = 0;
         Term _v_265 = 0;
         Term _o_22[2];
-        if (spin_81(e, _o_22, _aa_0, blk_loc(e.mem, _aa_0)) == 0) {
+        if (spin_82(e, _o_22, _aa_0, blk_loc(e.mem, _aa_0)) == 0) {
           return 0;
         }
         _v_264 = _o_22[0];
@@ -67873,7 +68041,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
         STK(7) = _kp_1;
         STK(8) = _n2_0;
         STK(9) = _c2_0;
-        STK(10) = FID____blake3_tree8_0_k100;
+        STK(10) = FID____blake3_tree8_0_k102;
         WL_PUSHN(11);
         r0 = _p_1;
         r1 = _kp_1;
@@ -67907,7 +68075,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____blake3_tree8_0_k100)
+  WL_CASE(FID____blake3_tree8_0_k102)
     Term _p_2 = STK(-10);
     Term _aa_2 = STK(-9);
     u32 _cb_2 = STK(-8);
@@ -67929,14 +68097,14 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     WL_OPEN
     u32 _v_266 = 0;
     Term _o_23[1];
-    if (spin_77(e, _o_23, _kp_2, _n2_1, _c2_1, _nch_2, _last_2) == 0) {
+    if (spin_78(e, _o_23, _kp_2, _n2_1, _c2_1, _nch_2, _last_2) == 0) {
       return 0;
     }
     _v_266 = (u32)_o_23[0];
     Term _v_267 = 0;
     Term _v_268 = 0;
     Term _o_24[2];
-    if (spin_81(e, _o_24, _aa_2, blk_loc(e.mem, _aa_2)) == 0) {
+    if (spin_82(e, _o_24, _aa_2, blk_loc(e.mem, _aa_2)) == 0) {
       return 0;
     }
     _v_267 = _o_24[0];
@@ -67950,7 +68118,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     STK(5) = _l_5;
     STK(6) = _l_6;
     STK(7) = _l_7;
-    STK(8) = FID____blake3_tree8_0_k101;
+    STK(8) = FID____blake3_tree8_0_k103;
     WL_PUSHN(9);
     if (!DEVICE && !seq && fid_nofk(FID____blake3_tree8_0)) {
       u64 _t_5 = task_node(e, FID____blake3_tree8_0, WL_CONT, WL_IDX, 0);
@@ -67985,7 +68153,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____blake3_tree8_0_k101)
+  WL_CASE(FID____blake3_tree8_0_k103)
     WL_POPN(18);
     u32 _rf_5 = STK(6);
     u32 _l_8 = STK(10);
@@ -68005,8 +68173,8 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     u32 _r_23 = r6;
     u32 _r_24 = r7;
     WL_OPEN
-    if (!DEVICE && !seq && fid_nofk(FID____blake3_tree8_0_j100)) {
-      u64 _t_6 = task_node(e, FID____blake3_tree8_0_j100, WL_CONT, WL_IDX, 0);
+    if (!DEVICE && !seq && fid_nofk(FID____blake3_tree8_0_j102)) {
+      u64 _t_6 = task_node(e, FID____blake3_tree8_0_j102, WL_CONT, WL_IDX, 0);
       e.mem[_t_6 + 0] = _rf_5;
       e.mem[_t_6 + 1] = _l_8;
       e.mem[_t_6 + 2] = _l_9;
@@ -68024,7 +68192,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
       e.mem[_t_6 + 14] = _r_22;
       e.mem[_t_6 + 15] = _r_23;
       e.mem[_t_6 + 16] = _r_24;
-      return term_tsk(FID____blake3_tree8_0_j100, _t_6);
+      return term_tsk(FID____blake3_tree8_0_j102, _t_6);
     }
     r0 = _rf_5;
     r1 = _l_8;
@@ -68043,12 +68211,12 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     r14 = _r_22;
     r15 = _r_23;
     r16 = _r_24;
-    WL_JMP(FID____blake3_tree8_0_j100);
+    WL_JMP(FID____blake3_tree8_0_j102);
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____blake3_tree8_0_j100)
+  WL_CASE(FID____blake3_tree8_0_j102)
     u32 _rf_6 = r0;
     u32 _l_16 = r1;
     u32 _l_17 = r2;
@@ -68068,7 +68236,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     u32 _r_32 = r16;
     WL_OPEN
     Term _o_25[8];
-    if (spin_54(e, _o_25, _l_16, _l_17, _l_18, _l_19, _l_20, _l_21, _l_22, _l_23, _r_25, _r_26, _r_27, _r_28, _r_29, _r_30, _r_31, _r_32, _rf_6) == 0) {
+    if (spin_55(e, _o_25, _l_16, _l_17, _l_18, _l_19, _l_20, _l_21, _l_22, _l_23, _r_25, _r_26, _r_27, _r_28, _r_29, _r_30, _r_31, _r_32, _rf_6) == 0) {
       return 0;
     }
     r0 = (u32)_o_25[0];
@@ -68093,7 +68261,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     if (_n_0 == 0) {
       u64 _nd_0 = heap_alloc(e, cls_fit(1));
       e.mem[_nd_0 + 0] = _s_0;
-      r0 = term_clo(FID____stack_stk_go_0_c110, _nd_0);
+      r0 = term_clo(FID____stack_stk_go_0_c112, _nd_0);
       WL_RETN(1);
     } else {
       Term _p_0 = (_n_0 - 1);
@@ -68103,15 +68271,15 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
         STK(1) = _id_0;
         STK(2) = _k_0;
         STK(3) = _s_0;
-        STK(4) = FID____stack_stk_go_0_k111;
+        STK(4) = FID____stack_stk_go_0_k113;
         WL_PUSHN(5);
       } else {
-        u64 _t_1 = task_node(e, FID____stack_stk_go_0_k111, WL_CONT, WL_IDX, 1);
+        u64 _t_1 = task_node(e, FID____stack_stk_go_0_k113, WL_CONT, WL_IDX, 1);
         e.mem[_t_1 + 0] = _p_0;
         e.mem[_t_1 + 1] = _id_0;
         e.mem[_t_1 + 2] = _k_0;
         e.mem[_t_1 + 3] = _s_0;
-        WL_CONT = term_tsk(FID____stack_stk_go_0_k111, _t_1);
+        WL_CONT = term_tsk(FID____stack_stk_go_0_k113, _t_1);
         WL_IDX = 4;
       }
       if (!DEVICE && !seq && fid_nofk(FID____b3io_stream_seg)) {
@@ -68128,7 +68296,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____stack_stk_go_0_c110)
+  WL_CASE(FID____stack_stk_go_0_c112)
     Term _s_1 = r0;
     Term _x_0 = r1;
     WL_OPEN
@@ -68141,7 +68309,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     u32 _v_6 = 0;
     u32 _v_7 = 0;
     Term _o_2[8];
-    if (spin_87(e, _o_2, _s_1, blk_loc(e.mem, _s_1)) == 0) {
+    if (spin_88(e, _o_2, _s_1, blk_loc(e.mem, _s_1)) == 0) {
       return 0;
     }
     _v_0 = (u32)_o_2[0];
@@ -68174,7 +68342,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____stack_stk_go_0_k111)
+  WL_CASE(FID____stack_stk_go_0_k113)
     WL_POPN(4);
     Term _p_1 = STK(0);
     u32 _id_1 = STK(1);
@@ -68188,13 +68356,13 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     e.mem[_nd_2 + 2] = _k_1;
     e.mem[_nd_2 + 3] = _s_3;
     e.mem[_nd_2 + 4] = _h_0;
-    r0 = term_clo(FID____stack_stk_go_0_c112, _nd_2);
+    r0 = term_clo(FID____stack_stk_go_0_c114, _nd_2);
     WL_RETN(1);
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____stack_stk_go_0_c112)
+  WL_CASE(FID____stack_stk_go_0_c114)
     Term _p_2 = r0;
     u32 _id_2 = r1;
     u32 _k_2 = r2;
@@ -68210,19 +68378,19 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     if (!DEVICE && !seq && fid_nofk(FID_IO_bind)) {
       u64 _t_4 = task_node(e, FID_IO_bind, WL_CONT, WL_IDX, 0);
       e.mem[_t_4 + 0] = _h_1;
-      e.mem[_t_4 + 1] = term_clo(FID____stack_stk_go_0_c113, _nd_3);
+      e.mem[_t_4 + 1] = term_clo(FID____stack_stk_go_0_c115, _nd_3);
       e.mem[_t_4 + 2] = _x_1;
       return term_tsk(FID_IO_bind, _t_4);
     }
     r0 = _h_1;
-    r1 = term_clo(FID____stack_stk_go_0_c113, _nd_3);
+    r1 = term_clo(FID____stack_stk_go_0_c115, _nd_3);
     r2 = _x_1;
     WL_JMP(FID_IO_bind);
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____stack_stk_go_0_c113)
+  WL_CASE(FID____stack_stk_go_0_c115)
     Term _p_3 = r0;
     u32 _id_3 = r1;
     u32 _k_3 = r2;
@@ -68242,12 +68410,12 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     Term _v_8 = 0;
     u32 _v_9 = 0;
     Term _o_3[1];
-    if (spin_69(e, _o_3, _k_3) == 0) {
+    if (spin_70(e, _o_3, _k_3) == 0) {
       return 0;
     }
     _v_9 = (u32)_o_3[0];
     Term _o_6[1];
-    if (spin_88(e, _o_6, 32ull, _s_5, blk_loc(e.mem, _s_5), _k_3, _v_9) == 0) {
+    if (spin_89(e, _o_6, 32ull, _s_5, blk_loc(e.mem, _s_5), _k_3, _v_9) == 0) {
       return 0;
     }
     _v_8 = _o_6[0];
@@ -68288,13 +68456,13 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     WL_OPEN
     Term _v_0 = 0;
     Term _o_0[1];
-    if (spin_92(e, _o_0, _nch_0) == 0) {
+    if (spin_93(e, _o_0, _nch_0) == 0) {
       return 0;
     }
     _v_0 = _o_0[0];
     if (_v_0 == 0) {
       Term _o_1[8];
-      if (spin_83(e, _o_1, _a_0, blk_loc(e.mem, _a_0), 0ull, _cb_0, _hi_0, _nch_0, _last_0, _rf_0) == 0) {
+      if (spin_84(e, _o_1, _a_0, blk_loc(e.mem, _a_0), 0ull, _cb_0, _hi_0, _nch_0, _last_0, _rf_0) == 0) {
         return 0;
       }
       r0 = (u32)_o_1[0];
@@ -68311,14 +68479,14 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
       u32 _ku_0 = ((u64)(u32)(nat_chk(e, _p_0 + 1)));
       u32 _v_1 = 0;
       Term _o_2[1];
-      if (spin_77(e, _o_2, _ku_0, _nch_0, 0ull, _nch_0, _last_0) == 0) {
+      if (spin_78(e, _o_2, _ku_0, _nch_0, 0ull, _nch_0, _last_0) == 0) {
         return 0;
       }
       _v_1 = (u32)_o_2[0];
       Term _v_2 = 0;
       Term _v_3 = 0;
       Term _o_3[2];
-      if (spin_81(e, _o_3, _a_0, blk_loc(e.mem, _a_0)) == 0) {
+      if (spin_82(e, _o_3, _a_0, blk_loc(e.mem, _a_0)) == 0) {
         return 0;
       }
       _v_2 = _o_3[0];
@@ -68393,22 +68561,22 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
       Term _f_6 = e.mem[_sp_1 + 1];
       heap_free(e, cls_fit(2), _sp_1);
       if (!seq) {
-        u64 _t_1 = task_node(e, FID____b3io_segs_j133, WL_CONT, WL_IDX, 2);
+        u64 _t_1 = task_node(e, FID____b3io_segs_j135, WL_CONT, WL_IDX, 2);
         e.mem[_t_1 + 0] = _rf_0;
-        u64 _t_2 = task_node(e, FID____b3io_segs, term_tsk(FID____b3io_segs_j133, _t_1), 1, 0);
+        u64 _t_2 = task_node(e, FID____b3io_segs, term_tsk(FID____b3io_segs_j135, _t_1), 1, 0);
         e.mem[_t_2 + 0] = _f_5;
         e.mem[_t_2 + 1] = 0ull;
         e.mem[_t_1 + 1] = term_tsk(FID____b3io_segs, _t_2);
-        u64 _t_3 = task_node(e, FID____b3io_segs, term_tsk(FID____b3io_segs_j133, _t_1), 9, 0);
+        u64 _t_3 = task_node(e, FID____b3io_segs, term_tsk(FID____b3io_segs_j135, _t_1), 9, 0);
         e.mem[_t_3 + 0] = _f_6;
         e.mem[_t_3 + 1] = 0ull;
         e.mem[_t_1 + 9] = term_tsk(FID____b3io_segs, _t_3);
-        return term_tsk(FID____b3io_segs_j133, _t_1);
+        return term_tsk(FID____b3io_segs_j135, _t_1);
       }
       WL_ROOM(3);
       STK(0) = _f_6;
       STK(1) = _rf_0;
-      STK(2) = FID____b3io_segs_k133;
+      STK(2) = FID____b3io_segs_k135;
       WL_PUSHN(3);
       r0 = _f_5;
       r1 = 0ull;
@@ -68421,7 +68589,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____b3io_segs_k133)
+  WL_CASE(FID____b3io_segs_k135)
     Term _f_7 = STK(-2);
     u32 _rf_1 = STK(-1);
     u32 _x_0 = r0;
@@ -68442,7 +68610,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     STK(5) = _x_5;
     STK(6) = _x_6;
     STK(7) = _x_7;
-    STK(8) = FID____b3io_segs_k134;
+    STK(8) = FID____b3io_segs_k136;
     WL_PUSHN(9);
     if (!DEVICE && !seq && fid_nofk(FID____b3io_segs)) {
       u64 _t_4 = task_node(e, FID____b3io_segs, WL_CONT, WL_IDX, 0);
@@ -68457,7 +68625,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____b3io_segs_k134)
+  WL_CASE(FID____b3io_segs_k136)
     WL_POPN(10);
     u32 _rf_2 = STK(1);
     u32 _x_8 = STK(2);
@@ -68477,8 +68645,8 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     u32 _y_6 = r6;
     u32 _y_7 = r7;
     WL_OPEN
-    if (!DEVICE && !seq && fid_nofk(FID____b3io_segs_j133)) {
-      u64 _t_5 = task_node(e, FID____b3io_segs_j133, WL_CONT, WL_IDX, 0);
+    if (!DEVICE && !seq && fid_nofk(FID____b3io_segs_j135)) {
+      u64 _t_5 = task_node(e, FID____b3io_segs_j135, WL_CONT, WL_IDX, 0);
       e.mem[_t_5 + 0] = _rf_2;
       e.mem[_t_5 + 1] = _x_8;
       e.mem[_t_5 + 2] = _x_9;
@@ -68496,7 +68664,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
       e.mem[_t_5 + 14] = _y_5;
       e.mem[_t_5 + 15] = _y_6;
       e.mem[_t_5 + 16] = _y_7;
-      return term_tsk(FID____b3io_segs_j133, _t_5);
+      return term_tsk(FID____b3io_segs_j135, _t_5);
     }
     r0 = _rf_2;
     r1 = _x_8;
@@ -68515,12 +68683,12 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     r14 = _y_5;
     r15 = _y_6;
     r16 = _y_7;
-    WL_JMP(FID____b3io_segs_j133);
+    WL_JMP(FID____b3io_segs_j135);
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____b3io_segs_j133)
+  WL_CASE(FID____b3io_segs_j135)
     u32 _rf_3 = r0;
     u32 _x_16 = r1;
     u32 _x_17 = r2;
@@ -68540,7 +68708,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     u32 _y_15 = r16;
     WL_OPEN
     Term _o_0[8];
-    if (spin_54(e, _o_0, _x_16, _x_17, _x_18, _x_19, _x_20, _x_21, _x_22, _x_23, _y_8, _y_9, _y_10, _y_11, _y_12, _y_13, _y_14, _y_15, _rf_3) == 0) {
+    if (spin_55(e, _o_0, _x_16, _x_17, _x_18, _x_19, _x_20, _x_21, _x_22, _x_23, _y_8, _y_9, _y_10, _y_11, _y_12, _y_13, _y_14, _y_15, _rf_3) == 0) {
       return 0;
     }
     r0 = (u32)_o_0[0];
@@ -68562,13 +68730,13 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     WL_OPEN
     u32 _v_0 = 0;
     Term _o_0[1];
-    if (spin_90(e, _o_0, _len_0) == 0) {
+    if (spin_91(e, _o_0, _len_0) == 0) {
       return 0;
     }
     _v_0 = (u32)_o_0[0];
     u32 _v_1 = 0;
     Term _o_1[1];
-    if (spin_91(e, _o_1, _len_0, _v_0) == 0) {
+    if (spin_92(e, _o_1, _len_0, _v_0) == 0) {
       return 0;
     }
     _v_1 = (u32)_o_1[0];
@@ -68601,7 +68769,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     if (_s_0 == 1) {
       u64 _nd_0 = heap_alloc(e, cls_fit(1));
       e.mem[_nd_0 + 0] = _id_0;
-      r0 = term_clo(FID____b3io_stream_c140, _nd_0);
+      r0 = term_clo(FID____b3io_stream_c142, _nd_0);
       WL_RETN(1);
     } else {
       if (!DEVICE && !seq && fid_nofk(FID____stack_stk_go_0)) {
@@ -68622,7 +68790,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____b3io_stream_c140)
+  WL_CASE(FID____b3io_stream_c142)
     u32 _id_1 = r0;
     Term _x_0 = r1;
     WL_OPEN
@@ -68632,19 +68800,19 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     if (!DEVICE && !seq && fid_nofk(FID_IO_bind)) {
       u64 _t_3 = task_node(e, FID_IO_bind, WL_CONT, WL_IDX, 0);
       e.mem[_t_3 + 0] = term_clo(FID____b3io_B3IO_seg, _nd_1);
-      e.mem[_t_3 + 1] = term_clo(FID____b3io_stream_c141, 0);
+      e.mem[_t_3 + 1] = term_clo(FID____b3io_stream_c143, 0);
       e.mem[_t_3 + 2] = _x_0;
       return term_tsk(FID_IO_bind, _t_3);
     }
     r0 = term_clo(FID____b3io_B3IO_seg, _nd_1);
-    r1 = term_clo(FID____b3io_stream_c141, 0);
+    r1 = term_clo(FID____b3io_stream_c143, 0);
     r2 = _x_0;
     WL_JMP(FID_IO_bind);
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____b3io_stream_c141)
+  WL_CASE(FID____b3io_stream_c143)
     Term _x_1 = r0;
     WL_OPEN
     u64 _sp_0 = term_loc(_x_1);
@@ -68656,11 +68824,11 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     heap_free(e, cls_fit(5), _sp_0);
     if (seq) {
       WL_ROOM(1);
-      STK(0) = FID____b3io_stream_k142;
+      STK(0) = FID____b3io_stream_k144;
       WL_PUSHN(1);
     } else {
-      u64 _t_0 = task_node(e, FID____b3io_stream_k142, WL_CONT, WL_IDX, 1);
-      WL_CONT = term_tsk(FID____b3io_stream_k142, _t_0);
+      u64 _t_0 = task_node(e, FID____b3io_stream_k144, WL_CONT, WL_IDX, 1);
+      WL_CONT = term_tsk(FID____b3io_stream_k144, _t_0);
       WL_IDX = 0;
     }
     if (!DEVICE && !seq && fid_nofk(FID____b3io_part_cv)) {
@@ -68684,7 +68852,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____b3io_stream_k142)
+  WL_CASE(FID____b3io_stream_k144)
     u32 _h_0 = r0;
     u32 _h_1 = r1;
     u32 _h_2 = r2;
@@ -68703,13 +68871,13 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     e.mem[_nd_2 + 5] = _h_5;
     e.mem[_nd_2 + 6] = _h_6;
     e.mem[_nd_2 + 7] = _h_7;
-    r0 = term_clo(FID____b3io_stream_c143, _nd_2);
+    r0 = term_clo(FID____b3io_stream_c145, _nd_2);
     WL_RETN(1);
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____b3io_stream_c143)
+  WL_CASE(FID____b3io_stream_c145)
     u32 _h_8 = r0;
     u32 _h_9 = r1;
     u32 _h_10 = r2;
@@ -68787,12 +68955,12 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
       if (seq) {
         WL_ROOM(2);
         STK(0) = _f_2;
-        STK(1) = FID____b3io_hash_k147;
+        STK(1) = FID____b3io_hash_k149;
         WL_PUSHN(2);
       } else {
-        u64 _t_1 = task_node(e, FID____b3io_hash_k147, WL_CONT, WL_IDX, 1);
+        u64 _t_1 = task_node(e, FID____b3io_hash_k149, WL_CONT, WL_IDX, 1);
         e.mem[_t_1 + 0] = _f_2;
-        WL_CONT = term_tsk(FID____b3io_hash_k147, _t_1);
+        WL_CONT = term_tsk(FID____b3io_hash_k149, _t_1);
         WL_IDX = 1;
       }
       if (!DEVICE && !seq && fid_nofk(FID____hash_hash)) {
@@ -68812,12 +68980,12 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
       if (seq) {
         WL_ROOM(2);
         STK(0) = _f_5;
-        STK(1) = FID____b3io_hash_k148;
+        STK(1) = FID____b3io_hash_k150;
         WL_PUSHN(2);
       } else {
-        u64 _t_3 = task_node(e, FID____b3io_hash_k148, WL_CONT, WL_IDX, 1);
+        u64 _t_3 = task_node(e, FID____b3io_hash_k150, WL_CONT, WL_IDX, 1);
         e.mem[_t_3 + 0] = _f_5;
-        WL_CONT = term_tsk(FID____b3io_hash_k148, _t_3);
+        WL_CONT = term_tsk(FID____b3io_hash_k150, _t_3);
         WL_IDX = 1;
       }
       if (!DEVICE && !seq && fid_nofk(FID____b3io_segs)) {
@@ -68855,18 +69023,18 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
       Term _f_13 = e.mem[_sp_4 + 1];
       heap_free(e, cls_fit(2), _sp_4);
       if (!seq) {
-        u64 _t_5 = task_node(e, FID____b3io_hash_j149, WL_CONT, WL_IDX, 2);
-        u64 _t_6 = task_node(e, FID____b3io_hash, term_tsk(FID____b3io_hash_j149, _t_5), 0, 0);
+        u64 _t_5 = task_node(e, FID____b3io_hash_j151, WL_CONT, WL_IDX, 2);
+        u64 _t_6 = task_node(e, FID____b3io_hash, term_tsk(FID____b3io_hash_j151, _t_5), 0, 0);
         e.mem[_t_6 + 0] = _f_12;
         e.mem[_t_5 + 0] = term_tsk(FID____b3io_hash, _t_6);
-        u64 _t_7 = task_node(e, FID____b3io_hash, term_tsk(FID____b3io_hash_j149, _t_5), 1, 0);
+        u64 _t_7 = task_node(e, FID____b3io_hash, term_tsk(FID____b3io_hash_j151, _t_5), 1, 0);
         e.mem[_t_7 + 0] = _f_13;
         e.mem[_t_5 + 1] = term_tsk(FID____b3io_hash, _t_7);
-        return term_tsk(FID____b3io_hash_j149, _t_5);
+        return term_tsk(FID____b3io_hash_j151, _t_5);
       }
       WL_ROOM(2);
       STK(0) = _f_13;
-      STK(1) = FID____b3io_hash_k149;
+      STK(1) = FID____b3io_hash_k151;
       WL_PUSHN(2);
       r0 = _f_12;
       _t_0 = r0;
@@ -68877,7 +69045,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____b3io_hash_k147)
+  WL_CASE(FID____b3io_hash_k149)
     WL_POPN(1);
     Term _f_3 = STK(0);
     u32 _h_0 = r0;
@@ -68905,7 +69073,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____b3io_hash_k148)
+  WL_CASE(FID____b3io_hash_k150)
     WL_POPN(1);
     Term _f_6 = STK(0);
     u32 _h_8 = r0;
@@ -68933,13 +69101,13 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____b3io_hash_k149)
+  WL_CASE(FID____b3io_hash_k151)
     Term _f_14 = STK(-1);
     Term _x_0 = r0;
     WL_OPEN
     WL_ROOM(2);
     STK(0) = _x_0;
-    STK(1) = FID____b3io_hash_k150;
+    STK(1) = FID____b3io_hash_k152;
     WL_PUSHN(2);
     if (!DEVICE && !seq && fid_nofk(FID____b3io_hash)) {
       u64 _t_8 = task_node(e, FID____b3io_hash, WL_CONT, WL_IDX, 0);
@@ -68952,25 +69120,25 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____b3io_hash_k150)
+  WL_CASE(FID____b3io_hash_k152)
     WL_POPN(2);
     Term _x_1 = STK(1);
     Term _y_0 = r0;
     WL_OPEN
-    if (!DEVICE && !seq && fid_nofk(FID____b3io_hash_j149)) {
-      u64 _t_9 = task_node(e, FID____b3io_hash_j149, WL_CONT, WL_IDX, 0);
+    if (!DEVICE && !seq && fid_nofk(FID____b3io_hash_j151)) {
+      u64 _t_9 = task_node(e, FID____b3io_hash_j151, WL_CONT, WL_IDX, 0);
       e.mem[_t_9 + 0] = _x_1;
       e.mem[_t_9 + 1] = _y_0;
-      return term_tsk(FID____b3io_hash_j149, _t_9);
+      return term_tsk(FID____b3io_hash_j151, _t_9);
     }
     r0 = _x_1;
     r1 = _y_0;
-    WL_JMP(FID____b3io_hash_j149);
+    WL_JMP(FID____b3io_hash_j151);
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____b3io_hash_j149)
+  WL_CASE(FID____b3io_hash_j151)
     Term _x_2 = r0;
     Term _y_1 = r1;
     WL_OPEN
@@ -68996,12 +69164,12 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
       if (seq) {
         WL_ROOM(2);
         STK(0) = _f_2;
-        STK(1) = FID____b3io_fill_k153;
+        STK(1) = FID____b3io_fill_k155;
         WL_PUSHN(2);
       } else {
-        u64 _t_0 = task_node(e, FID____b3io_fill_k153, WL_CONT, WL_IDX, 1);
+        u64 _t_0 = task_node(e, FID____b3io_fill_k155, WL_CONT, WL_IDX, 1);
         e.mem[_t_0 + 0] = _f_2;
-        WL_CONT = term_tsk(FID____b3io_fill_k153, _t_0);
+        WL_CONT = term_tsk(FID____b3io_fill_k155, _t_0);
         WL_IDX = 1;
       }
       if (!DEVICE && !seq && fid_nofk(FID____b3io_stream)) {
@@ -69021,19 +69189,19 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
       if (seq) {
         WL_ROOM(2);
         STK(0) = _f_15;
-        STK(1) = FID____b3io_fill_k157;
+        STK(1) = FID____b3io_fill_k159;
         WL_PUSHN(2);
       } else {
-        u64 _t_4 = task_node(e, FID____b3io_fill_k157, WL_CONT, WL_IDX, 1);
+        u64 _t_4 = task_node(e, FID____b3io_fill_k159, WL_CONT, WL_IDX, 1);
         e.mem[_t_4 + 0] = _f_15;
-        WL_CONT = term_tsk(FID____b3io_fill_k157, _t_4);
+        WL_CONT = term_tsk(FID____b3io_fill_k159, _t_4);
         WL_IDX = 1;
       }
       r0 = _f_14;
       _o_0 = r0;
       WL_AGAIN(FID____b3io_fill);
     } else if (term_aux(_o_0) == CID____b3io_ONone) {
-      r0 = term_clo(FID____b3io_fill_c164, 0);
+      r0 = term_clo(FID____b3io_fill_c166, 0);
       WL_RETN(1);
     } else if (term_aux(_o_0) == CID____b3io_OHash) {
       u64 _sp_3 = term_loc(_o_0);
@@ -69057,7 +69225,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
       e.mem[_nd_10 + 7] = _f_26;
       e.mem[_nd_10 + 8] = _f_27;
       heap_free(e, cls_fit(9), _sp_3);
-      r0 = term_clo(FID____b3io_fill_c165, _nd_10);
+      r0 = term_clo(FID____b3io_fill_c167, _nd_10);
       WL_RETN(1);
     } else {
       u64 _sp_4 = term_loc(_o_0);
@@ -69067,7 +69235,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
       e.mem[_nd_12 + 0] = _f_37;
       e.mem[_nd_12 + 1] = _f_38;
       heap_free(e, cls_fit(2), _sp_4);
-      r0 = term_clo(FID____b3io_fill_c166, _nd_12);
+      r0 = term_clo(FID____b3io_fill_c168, _nd_12);
       WL_RETN(1);
     }
     WL_SPUN
@@ -69075,7 +69243,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____b3io_fill_k153)
+  WL_CASE(FID____b3io_fill_k155)
     WL_POPN(1);
     Term _f_3 = STK(0);
     Term _h_0 = r0;
@@ -69083,13 +69251,13 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     u64 _nd_0 = heap_alloc(e, cls_fit(2));
     e.mem[_nd_0 + 0] = _f_3;
     e.mem[_nd_0 + 1] = _h_0;
-    r0 = term_clo(FID____b3io_fill_c154, _nd_0);
+    r0 = term_clo(FID____b3io_fill_c156, _nd_0);
     WL_RETN(1);
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____b3io_fill_c154)
+  WL_CASE(FID____b3io_fill_c156)
     Term _f_4 = r0;
     Term _h_1 = r1;
     Term _x_0 = r2;
@@ -69099,19 +69267,19 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     if (!DEVICE && !seq && fid_nofk(FID_IO_bind)) {
       u64 _t_3 = task_node(e, FID_IO_bind, WL_CONT, WL_IDX, 0);
       e.mem[_t_3 + 0] = _h_1;
-      e.mem[_t_3 + 1] = term_clo(FID____b3io_fill_c155, _nd_1);
+      e.mem[_t_3 + 1] = term_clo(FID____b3io_fill_c157, _nd_1);
       e.mem[_t_3 + 2] = _x_0;
       return term_tsk(FID_IO_bind, _t_3);
     }
     r0 = _h_1;
-    r1 = term_clo(FID____b3io_fill_c155, _nd_1);
+    r1 = term_clo(FID____b3io_fill_c157, _nd_1);
     r2 = _x_0;
     WL_JMP(FID_IO_bind);
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____b3io_fill_c155)
+  WL_CASE(FID____b3io_fill_c157)
     Term _f_5 = r0;
     Term _x_1 = r1;
     WL_OPEN
@@ -69126,7 +69294,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     u32 _f_13 = e.mem[_sp_1 + 7];
     heap_free(e, cls_fit(8), _sp_1);
     Term _o_1[1];
-    if (spin_93(e, _o_1, _f_6, _f_7, _f_8, _f_9, _f_10, _f_11, _f_12, _f_13, _f_5, blk_loc(e.mem, _f_5)) == 0) {
+    if (spin_94(e, _o_1, _f_6, _f_7, _f_8, _f_9, _f_10, _f_11, _f_12, _f_13, _f_5, blk_loc(e.mem, _f_5)) == 0) {
       return 0;
     }
     r0 = _o_1[0];
@@ -69135,7 +69303,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____b3io_fill_k_c156)
+  WL_CASE(FID____b3io_fill_k_c158)
     u32 _cv_8 = r0;
     u32 _cv_9 = r1;
     u32 _cv_10 = r2;
@@ -69170,7 +69338,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____b3io_fill_k157)
+  WL_CASE(FID____b3io_fill_k159)
     WL_POPN(1);
     Term _f_16 = STK(0);
     Term _h_2 = r0;
@@ -69178,13 +69346,13 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     u64 _nd_4 = heap_alloc(e, cls_fit(2));
     e.mem[_nd_4 + 0] = _f_16;
     e.mem[_nd_4 + 1] = _h_2;
-    r0 = term_clo(FID____b3io_fill_c158, _nd_4);
+    r0 = term_clo(FID____b3io_fill_c160, _nd_4);
     WL_RETN(1);
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____b3io_fill_c158)
+  WL_CASE(FID____b3io_fill_c160)
     Term _f_17 = r0;
     Term _h_3 = r1;
     Term _x_3 = r2;
@@ -69194,31 +69362,31 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     if (!DEVICE && !seq && fid_nofk(FID_IO_bind)) {
       u64 _t_9 = task_node(e, FID_IO_bind, WL_CONT, WL_IDX, 0);
       e.mem[_t_9 + 0] = _h_3;
-      e.mem[_t_9 + 1] = term_clo(FID____b3io_fill_c159, _nd_5);
+      e.mem[_t_9 + 1] = term_clo(FID____b3io_fill_c161, _nd_5);
       e.mem[_t_9 + 2] = _x_3;
       return term_tsk(FID_IO_bind, _t_9);
     }
     r0 = _h_3;
-    r1 = term_clo(FID____b3io_fill_c159, _nd_5);
+    r1 = term_clo(FID____b3io_fill_c161, _nd_5);
     r2 = _x_3;
     WL_JMP(FID_IO_bind);
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____b3io_fill_c159)
+  WL_CASE(FID____b3io_fill_c161)
     Term _f_18 = r0;
     Term _x_4 = r1;
     WL_OPEN
     if (seq) {
       WL_ROOM(2);
       STK(0) = _x_4;
-      STK(1) = FID____b3io_fill_k160;
+      STK(1) = FID____b3io_fill_k162;
       WL_PUSHN(2);
     } else {
-      u64 _t_5 = task_node(e, FID____b3io_fill_k160, WL_CONT, WL_IDX, 1);
+      u64 _t_5 = task_node(e, FID____b3io_fill_k162, WL_CONT, WL_IDX, 1);
       e.mem[_t_5 + 0] = _x_4;
-      WL_CONT = term_tsk(FID____b3io_fill_k160, _t_5);
+      WL_CONT = term_tsk(FID____b3io_fill_k162, _t_5);
       WL_IDX = 1;
     }
     if (!DEVICE && !seq && fid_nofk(FID____b3io_fill)) {
@@ -69232,7 +69400,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____b3io_fill_k160)
+  WL_CASE(FID____b3io_fill_k162)
     WL_POPN(1);
     Term _x_5 = STK(0);
     Term _h_4 = r0;
@@ -69240,13 +69408,13 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     u64 _nd_6 = heap_alloc(e, cls_fit(2));
     e.mem[_nd_6 + 0] = _x_5;
     e.mem[_nd_6 + 1] = _h_4;
-    r0 = term_clo(FID____b3io_fill_c161, _nd_6);
+    r0 = term_clo(FID____b3io_fill_c163, _nd_6);
     WL_RETN(1);
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____b3io_fill_c161)
+  WL_CASE(FID____b3io_fill_c163)
     Term _x_7 = r0;
     Term _h_5 = r1;
     Term _x_6 = r2;
@@ -69256,32 +69424,32 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     if (!DEVICE && !seq && fid_nofk(FID_IO_bind)) {
       u64 _t_8 = task_node(e, FID_IO_bind, WL_CONT, WL_IDX, 0);
       e.mem[_t_8 + 0] = _h_5;
-      e.mem[_t_8 + 1] = term_clo(FID____b3io_fill_c162, _nd_7);
+      e.mem[_t_8 + 1] = term_clo(FID____b3io_fill_c164, _nd_7);
       e.mem[_t_8 + 2] = _x_6;
       return term_tsk(FID_IO_bind, _t_8);
     }
     r0 = _h_5;
-    r1 = term_clo(FID____b3io_fill_c162, _nd_7);
+    r1 = term_clo(FID____b3io_fill_c164, _nd_7);
     r2 = _x_6;
     WL_JMP(FID_IO_bind);
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____b3io_fill_c162)
+  WL_CASE(FID____b3io_fill_c164)
     Term _x_9 = r0;
     Term _x_8 = r1;
     WL_OPEN
     u64 _nd_8 = heap_alloc(e, cls_fit(2));
     e.mem[_nd_8 + 0] = _x_9;
     e.mem[_nd_8 + 1] = _x_8;
-    r0 = term_clo(FID____b3io_fill_c163, _nd_8);
+    r0 = term_clo(FID____b3io_fill_c165, _nd_8);
     WL_RETN(1);
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____b3io_fill_c163)
+  WL_CASE(FID____b3io_fill_c165)
     Term _x_11 = r0;
     Term _x_12 = r1;
     Term _x_10 = r2;
@@ -69302,7 +69470,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____b3io_fill_c164)
+  WL_CASE(FID____b3io_fill_c166)
     Term _x_13 = r0;
     WL_OPEN
     if (!DEVICE && !seq && fid_nofk(FID_IO_pure)) {
@@ -69318,7 +69486,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____b3io_fill_c165)
+  WL_CASE(FID____b3io_fill_c167)
     u32 _f_28 = r0;
     u32 _f_29 = r1;
     u32 _f_30 = r2;
@@ -69353,7 +69521,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID____b3io_fill_c166)
+  WL_CASE(FID____b3io_fill_c168)
     Term _f_39 = r0;
     Term _f_40 = r1;
     Term _x_15 = r2;
@@ -69413,13 +69581,13 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
       u32 _rf_0 = 0ull;
       Term _v_0 = 0;
       Term _o_0[1];
-      if (spin_92(e, _o_0, _nch_0) == 0) {
+      if (spin_93(e, _o_0, _nch_0) == 0) {
         return 0;
       }
       _v_0 = _o_0[0];
       if (_v_0 == 0) {
         Term _o_1[8];
-        if (spin_72(e, _o_1, _a_0, blk_loc(e.mem, _a_0), 0ull, _cb_0, _hi_0, _nch_0, _last_0, _rf_0, _key_0, _key_1, _key_2, _key_3, _key_4, _key_5, _key_6, _key_7, _kf_0) == 0) {
+        if (spin_73(e, _o_1, _a_0, blk_loc(e.mem, _a_0), 0ull, _cb_0, _hi_0, _nch_0, _last_0, _rf_0, _key_0, _key_1, _key_2, _key_3, _key_4, _key_5, _key_6, _key_7, _kf_0) == 0) {
           return 0;
         }
         r0 = (u32)_o_1[0];
@@ -69436,14 +69604,14 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
         u32 _ku_0 = ((u64)(u32)(nat_chk(e, _p_0 + 1)));
         u32 _v_1 = 0;
         Term _o_2[1];
-        if (spin_77(e, _o_2, _ku_0, _nch_0, 0ull, _nch_0, _last_0) == 0) {
+        if (spin_78(e, _o_2, _ku_0, _nch_0, 0ull, _nch_0, _last_0) == 0) {
           return 0;
         }
         _v_1 = (u32)_o_2[0];
         Term _v_2 = 0;
         Term _v_3 = 0;
         Term _o_3[2];
-        if (spin_81(e, _o_3, _a_0, blk_loc(e.mem, _a_0)) == 0) {
+        if (spin_82(e, _o_3, _a_0, blk_loc(e.mem, _a_0)) == 0) {
           return 0;
         }
         _v_2 = _o_3[0];
@@ -69527,11 +69695,11 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
       heap_free(e, cls_fit(14), _sp_0);
       if (seq) {
         WL_ROOM(1);
-        STK(0) = FID_cvs_k178;
+        STK(0) = FID_cvs_k180;
         WL_PUSHN(1);
       } else {
-        u64 _t_0 = task_node(e, FID_cvs_k178, WL_CONT, WL_IDX, 1);
-        WL_CONT = term_tsk(FID_cvs_k178, _t_0);
+        u64 _t_0 = task_node(e, FID_cvs_k180, WL_CONT, WL_IDX, 1);
+        WL_CONT = term_tsk(FID_cvs_k180, _t_0);
         WL_IDX = 0;
       }
       if (!DEVICE && !seq && fid_nofk(FID_span)) {
@@ -69575,18 +69743,18 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
       Term _f_15 = e.mem[_sp_1 + 1];
       heap_free(e, cls_fit(2), _sp_1);
       if (!seq) {
-        u64 _t_2 = task_node(e, FID_cvs_j179, WL_CONT, WL_IDX, 2);
-        u64 _t_3 = task_node(e, FID_cvs, term_tsk(FID_cvs_j179, _t_2), 0, 0);
+        u64 _t_2 = task_node(e, FID_cvs_j181, WL_CONT, WL_IDX, 2);
+        u64 _t_3 = task_node(e, FID_cvs, term_tsk(FID_cvs_j181, _t_2), 0, 0);
         e.mem[_t_3 + 0] = _f_14;
         e.mem[_t_2 + 0] = term_tsk(FID_cvs, _t_3);
-        u64 _t_4 = task_node(e, FID_cvs, term_tsk(FID_cvs_j179, _t_2), 1, 0);
+        u64 _t_4 = task_node(e, FID_cvs, term_tsk(FID_cvs_j181, _t_2), 1, 0);
         e.mem[_t_4 + 0] = _f_15;
         e.mem[_t_2 + 1] = term_tsk(FID_cvs, _t_4);
-        return term_tsk(FID_cvs_j179, _t_2);
+        return term_tsk(FID_cvs_j181, _t_2);
       }
       WL_ROOM(2);
       STK(0) = _f_15;
-      STK(1) = FID_cvs_k179;
+      STK(1) = FID_cvs_k181;
       WL_PUSHN(2);
       r0 = _f_14;
       _s_0 = r0;
@@ -69597,7 +69765,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID_cvs_k178)
+  WL_CASE(FID_cvs_k180)
     u32 _h_0 = r0;
     u32 _h_1 = r1;
     u32 _h_2 = r2;
@@ -69622,13 +69790,13 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID_cvs_k179)
+  WL_CASE(FID_cvs_k181)
     Term _f_16 = STK(-1);
     Term _x_0 = r0;
     WL_OPEN
     WL_ROOM(2);
     STK(0) = _x_0;
-    STK(1) = FID_cvs_k180;
+    STK(1) = FID_cvs_k182;
     WL_PUSHN(2);
     if (!DEVICE && !seq && fid_nofk(FID_cvs)) {
       u64 _t_5 = task_node(e, FID_cvs, WL_CONT, WL_IDX, 0);
@@ -69641,25 +69809,25 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID_cvs_k180)
+  WL_CASE(FID_cvs_k182)
     WL_POPN(2);
     Term _x_1 = STK(1);
     Term _y_0 = r0;
     WL_OPEN
-    if (!DEVICE && !seq && fid_nofk(FID_cvs_j179)) {
-      u64 _t_6 = task_node(e, FID_cvs_j179, WL_CONT, WL_IDX, 0);
+    if (!DEVICE && !seq && fid_nofk(FID_cvs_j181)) {
+      u64 _t_6 = task_node(e, FID_cvs_j181, WL_CONT, WL_IDX, 0);
       e.mem[_t_6 + 0] = _x_1;
       e.mem[_t_6 + 1] = _y_0;
-      return term_tsk(FID_cvs_j179, _t_6);
+      return term_tsk(FID_cvs_j181, _t_6);
     }
     r0 = _x_1;
     r1 = _y_0;
-    WL_JMP(FID_cvs_j179);
+    WL_JMP(FID_cvs_j181);
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID_cvs_j179)
+  WL_CASE(FID_cvs_j181)
     Term _x_2 = r0;
     Term _y_1 = r1;
     WL_OPEN
@@ -69680,11 +69848,11 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     if (_j_0 == 0) {
       if (seq) {
         WL_ROOM(1);
-        STK(0) = FID_work_k183;
+        STK(0) = FID_work_k185;
         WL_PUSHN(1);
       } else {
-        u64 _t_0 = task_node(e, FID_work_k183, WL_CONT, WL_IDX, 1);
-        WL_CONT = term_tsk(FID_work_k183, _t_0);
+        u64 _t_0 = task_node(e, FID_work_k185, WL_CONT, WL_IDX, 1);
+        WL_CONT = term_tsk(FID_work_k185, _t_0);
         WL_IDX = 0;
       }
       if (!DEVICE && !seq && fid_nofk(FID_cvs)) {
@@ -69697,14 +69865,14 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     } else {
       u64 _nd_1 = heap_alloc(e, cls_fit(1));
       e.mem[_nd_1 + 0] = _threads_0;
-      r0 = term_clo(FID_work_c184, _nd_1);
+      r0 = term_clo(FID_work_c186, _nd_1);
       WL_RETN(1);
     }
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID_work_k183)
+  WL_CASE(FID_work_k185)
     Term _h_0 = r0;
     WL_OPEN
     u64 _nd_0 = heap_alloc(e, cls_fit(1));
@@ -69715,7 +69883,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID_work_c184)
+  WL_CASE(FID_work_c186)
     u32 _threads_1 = r0;
     Term _x_0 = r1;
     WL_OPEN
@@ -69724,28 +69892,28 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     if (!DEVICE && !seq && fid_nofk(FID_IO_bind)) {
       u64 _t_8 = task_node(e, FID_IO_bind, WL_CONT, WL_IDX, 0);
       e.mem[_t_8 + 0] = term_clo(FID____b3io_B3IO_take, _nd_2);
-      e.mem[_t_8 + 1] = term_clo(FID_work_c185, 0);
+      e.mem[_t_8 + 1] = term_clo(FID_work_c187, 0);
       e.mem[_t_8 + 2] = _x_0;
       return term_tsk(FID_IO_bind, _t_8);
     }
     r0 = term_clo(FID____b3io_B3IO_take, _nd_2);
-    r1 = term_clo(FID_work_c185, 0);
+    r1 = term_clo(FID_work_c187, 0);
     r2 = _x_0;
     WL_JMP(FID_IO_bind);
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID_work_c185)
+  WL_CASE(FID_work_c187)
     Term _x_1 = r0;
     WL_OPEN
     if (seq) {
       WL_ROOM(1);
-      STK(0) = FID_work_k186;
+      STK(0) = FID_work_k188;
       WL_PUSHN(1);
     } else {
-      u64 _t_2 = task_node(e, FID_work_k186, WL_CONT, WL_IDX, 1);
-      WL_CONT = term_tsk(FID_work_k186, _t_2);
+      u64 _t_2 = task_node(e, FID_work_k188, WL_CONT, WL_IDX, 1);
+      WL_CONT = term_tsk(FID_work_k188, _t_2);
       WL_IDX = 0;
     }
     if (!DEVICE && !seq && fid_nofk(FID____b3io_hash)) {
@@ -69759,16 +69927,16 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID_work_k186)
+  WL_CASE(FID_work_k188)
     Term _h_1 = r0;
     WL_OPEN
     if (seq) {
       WL_ROOM(1);
-      STK(0) = FID_work_k187;
+      STK(0) = FID_work_k189;
       WL_PUSHN(1);
     } else {
-      u64 _t_4 = task_node(e, FID_work_k187, WL_CONT, WL_IDX, 1);
-      WL_CONT = term_tsk(FID_work_k187, _t_4);
+      u64 _t_4 = task_node(e, FID_work_k189, WL_CONT, WL_IDX, 1);
+      WL_CONT = term_tsk(FID_work_k189, _t_4);
       WL_IDX = 0;
     }
     if (!DEVICE && !seq && fid_nofk(FID____b3io_fill)) {
@@ -69782,48 +69950,48 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID_work_k187)
+  WL_CASE(FID_work_k189)
     Term _h_2 = r0;
     WL_OPEN
     u64 _nd_3 = heap_alloc(e, cls_fit(1));
     e.mem[_nd_3 + 0] = _h_2;
-    r0 = term_clo(FID_work_c188, _nd_3);
-    WL_RETN(1);
-  }}
-#endif
-
-#if !DEVICE
-  WL_CASE(FID_work_c188)
-    Term _h_3 = r0;
-    Term _x_2 = r1;
-    WL_OPEN
-    if (!DEVICE && !seq && fid_nofk(FID_IO_bind)) {
-      u64 _t_7 = task_node(e, FID_IO_bind, WL_CONT, WL_IDX, 0);
-      e.mem[_t_7 + 0] = _h_3;
-      e.mem[_t_7 + 1] = term_clo(FID_work_c189, 0);
-      e.mem[_t_7 + 2] = _x_2;
-      return term_tsk(FID_IO_bind, _t_7);
-    }
-    r0 = _h_3;
-    r1 = term_clo(FID_work_c189, 0);
-    r2 = _x_2;
-    WL_JMP(FID_IO_bind);
-  }}
-#endif
-
-#if !DEVICE
-  WL_CASE(FID_work_c189)
-    Term _x_3 = r0;
-    WL_OPEN
-    u64 _nd_4 = heap_alloc(e, cls_fit(1));
-    e.mem[_nd_4 + 0] = _x_3;
-    r0 = term_clo(FID_work_c190, _nd_4);
+    r0 = term_clo(FID_work_c190, _nd_3);
     WL_RETN(1);
   }}
 #endif
 
 #if !DEVICE
   WL_CASE(FID_work_c190)
+    Term _h_3 = r0;
+    Term _x_2 = r1;
+    WL_OPEN
+    if (!DEVICE && !seq && fid_nofk(FID_IO_bind)) {
+      u64 _t_7 = task_node(e, FID_IO_bind, WL_CONT, WL_IDX, 0);
+      e.mem[_t_7 + 0] = _h_3;
+      e.mem[_t_7 + 1] = term_clo(FID_work_c191, 0);
+      e.mem[_t_7 + 2] = _x_2;
+      return term_tsk(FID_IO_bind, _t_7);
+    }
+    r0 = _h_3;
+    r1 = term_clo(FID_work_c191, 0);
+    r2 = _x_2;
+    WL_JMP(FID_IO_bind);
+  }}
+#endif
+
+#if !DEVICE
+  WL_CASE(FID_work_c191)
+    Term _x_3 = r0;
+    WL_OPEN
+    u64 _nd_4 = heap_alloc(e, cls_fit(1));
+    e.mem[_nd_4 + 0] = _x_3;
+    r0 = term_clo(FID_work_c192, _nd_4);
+    WL_RETN(1);
+  }}
+#endif
+
+#if !DEVICE
+  WL_CASE(FID_work_c192)
     Term _x_5 = r0;
     Term _x_4 = r1;
     WL_OPEN
@@ -69832,19 +70000,19 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     if (!DEVICE && !seq && fid_nofk(FID_IO_bind)) {
       u64 _t_6 = task_node(e, FID_IO_bind, WL_CONT, WL_IDX, 0);
       e.mem[_t_6 + 0] = term_clo(FID____b3io_B3IO_give, _nd_5);
-      e.mem[_t_6 + 1] = term_clo(FID_work_c191, 0);
+      e.mem[_t_6 + 1] = term_clo(FID_work_c193, 0);
       e.mem[_t_6 + 2] = _x_4;
       return term_tsk(FID_IO_bind, _t_6);
     }
     r0 = term_clo(FID____b3io_B3IO_give, _nd_5);
-    r1 = term_clo(FID_work_c191, 0);
+    r1 = term_clo(FID_work_c193, 0);
     r2 = _x_4;
     WL_JMP(FID_IO_bind);
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID_work_c191)
+  WL_CASE(FID_work_c193)
     Term _x_6 = r0;
     WL_OPEN
     r0 = term_clo(FID____b3io_B3IO_release, 0);
@@ -69858,21 +70026,21 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     u32 _threads_0 = r1;
     WL_OPEN
     if (_n_0 == 0) {
-      r0 = term_clo(FID_serve_c193, 0);
+      r0 = term_clo(FID_serve_c195, 0);
       WL_RETN(1);
     } else {
       Term _p_0 = (_n_0 - 1);
       u64 _nd_0 = heap_alloc(e, cls_fit(2));
       e.mem[_nd_0 + 0] = _p_0;
       e.mem[_nd_0 + 1] = _threads_0;
-      r0 = term_clo(FID_serve_c194, _nd_0);
+      r0 = term_clo(FID_serve_c196, _nd_0);
       WL_RETN(1);
     }
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID_serve_c193)
+  WL_CASE(FID_serve_c195)
     Term _x_0 = r0;
     WL_OPEN
     if (!DEVICE && !seq && fid_nofk(FID_IO_pure)) {
@@ -69888,7 +70056,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID_serve_c194)
+  WL_CASE(FID_serve_c196)
     Term _p_1 = r0;
     u32 _threads_1 = r1;
     Term _x_1 = r2;
@@ -69899,19 +70067,19 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     if (!DEVICE && !seq && fid_nofk(FID_IO_bind)) {
       u64 _t_5 = task_node(e, FID_IO_bind, WL_CONT, WL_IDX, 0);
       e.mem[_t_5 + 0] = term_clo(FID_Eng_next, 0);
-      e.mem[_t_5 + 1] = term_clo(FID_serve_c195, _nd_1);
+      e.mem[_t_5 + 1] = term_clo(FID_serve_c197, _nd_1);
       e.mem[_t_5 + 2] = _x_1;
       return term_tsk(FID_IO_bind, _t_5);
     }
     r0 = term_clo(FID_Eng_next, 0);
-    r1 = term_clo(FID_serve_c195, _nd_1);
+    r1 = term_clo(FID_serve_c197, _nd_1);
     r2 = _x_1;
     WL_JMP(FID_IO_bind);
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID_serve_c195)
+  WL_CASE(FID_serve_c197)
     Term _p_2 = r0;
     u32 _threads_2 = r1;
     Term _x_2 = r2;
@@ -69931,13 +70099,13 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
       WL_ROOM(3);
       STK(0) = _p_2;
       STK(1) = _threads_2;
-      STK(2) = FID_serve_k196;
+      STK(2) = FID_serve_k198;
       WL_PUSHN(3);
     } else {
-      u64 _t_1 = task_node(e, FID_serve_k196, WL_CONT, WL_IDX, 1);
+      u64 _t_1 = task_node(e, FID_serve_k198, WL_CONT, WL_IDX, 1);
       e.mem[_t_1 + 0] = _p_2;
       e.mem[_t_1 + 1] = _threads_2;
-      WL_CONT = term_tsk(FID_serve_k196, _t_1);
+      WL_CONT = term_tsk(FID_serve_k198, _t_1);
       WL_IDX = 2;
     }
     if (!DEVICE && !seq && fid_nofk(FID_work)) {
@@ -69955,7 +70123,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID_serve_k196)
+  WL_CASE(FID_serve_k198)
     WL_POPN(2);
     Term _p_3 = STK(0);
     u32 _threads_3 = STK(1);
@@ -69965,13 +70133,13 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     e.mem[_nd_2 + 0] = _p_3;
     e.mem[_nd_2 + 1] = _threads_3;
     e.mem[_nd_2 + 2] = _h_0;
-    r0 = term_clo(FID_serve_c197, _nd_2);
+    r0 = term_clo(FID_serve_c199, _nd_2);
     WL_RETN(1);
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID_serve_c197)
+  WL_CASE(FID_serve_c199)
     Term _p_4 = r0;
     u32 _threads_4 = r1;
     Term _h_1 = r2;
@@ -69983,19 +70151,19 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     if (!DEVICE && !seq && fid_nofk(FID_IO_bind)) {
       u64 _t_4 = task_node(e, FID_IO_bind, WL_CONT, WL_IDX, 0);
       e.mem[_t_4 + 0] = _h_1;
-      e.mem[_t_4 + 1] = term_clo(FID_serve_c198, _nd_3);
+      e.mem[_t_4 + 1] = term_clo(FID_serve_c200, _nd_3);
       e.mem[_t_4 + 2] = _x_3;
       return term_tsk(FID_IO_bind, _t_4);
     }
     r0 = _h_1;
-    r1 = term_clo(FID_serve_c198, _nd_3);
+    r1 = term_clo(FID_serve_c200, _nd_3);
     r2 = _x_3;
     WL_JMP(FID_IO_bind);
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID_serve_c198)
+  WL_CASE(FID_serve_c200)
     Term _p_5 = r0;
     u32 _threads_5 = r1;
     Term _x_4 = r2;
@@ -70035,7 +70203,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     u32 _threads_0 = r1;
     WL_OPEN
     if (_n_0 == 0) {
-      r0 = term_clo(FID_laps_c201, 0);
+      r0 = term_clo(FID_laps_c203, 0);
       WL_RETN(1);
     } else {
       Term _p_0 = (_n_0 - 1);
@@ -70043,13 +70211,13 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
         WL_ROOM(3);
         STK(0) = _p_0;
         STK(1) = _threads_0;
-        STK(2) = FID_laps_k202;
+        STK(2) = FID_laps_k204;
         WL_PUSHN(3);
       } else {
-        u64 _t_1 = task_node(e, FID_laps_k202, WL_CONT, WL_IDX, 1);
+        u64 _t_1 = task_node(e, FID_laps_k204, WL_CONT, WL_IDX, 1);
         e.mem[_t_1 + 0] = _p_0;
         e.mem[_t_1 + 1] = _threads_0;
-        WL_CONT = term_tsk(FID_laps_k202, _t_1);
+        WL_CONT = term_tsk(FID_laps_k204, _t_1);
         WL_IDX = 2;
       }
       if (!DEVICE && !seq && fid_nofk(FID_serve)) {
@@ -70066,7 +70234,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID_laps_c201)
+  WL_CASE(FID_laps_c203)
     Term _x_0 = r0;
     WL_OPEN
     if (!DEVICE && !seq && fid_nofk(FID_IO_pure)) {
@@ -70082,7 +70250,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID_laps_k202)
+  WL_CASE(FID_laps_k204)
     WL_POPN(2);
     Term _p_1 = STK(0);
     u32 _threads_1 = STK(1);
@@ -70092,13 +70260,13 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     e.mem[_nd_0 + 0] = _p_1;
     e.mem[_nd_0 + 1] = _threads_1;
     e.mem[_nd_0 + 2] = _h_0;
-    r0 = term_clo(FID_laps_c203, _nd_0);
+    r0 = term_clo(FID_laps_c205, _nd_0);
     WL_RETN(1);
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID_laps_c203)
+  WL_CASE(FID_laps_c205)
     Term _p_2 = r0;
     u32 _threads_2 = r1;
     Term _h_1 = r2;
@@ -70110,19 +70278,19 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     if (!DEVICE && !seq && fid_nofk(FID_IO_bind)) {
       u64 _t_4 = task_node(e, FID_IO_bind, WL_CONT, WL_IDX, 0);
       e.mem[_t_4 + 0] = _h_1;
-      e.mem[_t_4 + 1] = term_clo(FID_laps_c204, _nd_1);
+      e.mem[_t_4 + 1] = term_clo(FID_laps_c206, _nd_1);
       e.mem[_t_4 + 2] = _x_1;
       return term_tsk(FID_IO_bind, _t_4);
     }
     r0 = _h_1;
-    r1 = term_clo(FID_laps_c204, _nd_1);
+    r1 = term_clo(FID_laps_c206, _nd_1);
     r2 = _x_1;
     WL_JMP(FID_IO_bind);
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID_laps_c204)
+  WL_CASE(FID_laps_c206)
     Term _p_3 = r0;
     u32 _threads_3 = r1;
     Term _x_2 = r2;
@@ -70151,17 +70319,17 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     if (!DEVICE && !seq && fid_nofk(FID_Clo_apply)) {
       u64 _t_3 = task_node(e, FID_Clo_apply, WL_CONT, WL_IDX, 0);
       e.mem[_t_3 + 0] = _m_0;
-      e.mem[_t_3 + 1] = term_clo(FID_IO_bind_c206, _nd_0);
+      e.mem[_t_3 + 1] = term_clo(FID_IO_bind_c208, _nd_0);
       return term_tsk(FID_Clo_apply, _t_3);
     }
     r0 = _m_0;
-    r1 = term_clo(FID_IO_bind_c206, _nd_0);
+    r1 = term_clo(FID_IO_bind_c208, _nd_0);
     WL_JMP(FID_Clo_apply);
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID_IO_bind_c206)
+  WL_CASE(FID_IO_bind_c208)
     Term _f_1 = r0;
     Term _k_1 = r1;
     Term _x_0 = r2;
@@ -70169,12 +70337,12 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
     if (seq) {
       WL_ROOM(2);
       STK(0) = _k_1;
-      STK(1) = FID_IO_bind_k207;
+      STK(1) = FID_IO_bind_k209;
       WL_PUSHN(2);
     } else {
-      u64 _t_0 = task_node(e, FID_IO_bind_k207, WL_CONT, WL_IDX, 1);
+      u64 _t_0 = task_node(e, FID_IO_bind_k209, WL_CONT, WL_IDX, 1);
       e.mem[_t_0 + 0] = _k_1;
-      WL_CONT = term_tsk(FID_IO_bind_k207, _t_0);
+      WL_CONT = term_tsk(FID_IO_bind_k209, _t_0);
       WL_IDX = 1;
     }
     if (!DEVICE && !seq && fid_nofk(FID_Clo_apply)) {
@@ -70190,7 +70358,7 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #endif
 
 #if !DEVICE
-  WL_CASE(FID_IO_bind_k207)
+  WL_CASE(FID_IO_bind_k209)
     WL_POPN(1);
     Term _k_2 = STK(0);
     Term _h_0 = r0;
@@ -70210,31 +70378,31 @@ static Term work_loop(Env e, DEV Term* sp, Term t, u32 seq) {
 #if !DEVICE
   WL_CASE(FID_main)
     WL_OPEN
-    r0 = term_clo(FID_main_c209, 0);
+    r0 = term_clo(FID_main_c211, 0);
     WL_RETN(1);
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID_main_c209)
+  WL_CASE(FID_main_c211)
     Term _x_0 = r0;
     WL_OPEN
     if (!DEVICE && !seq && fid_nofk(FID_IO_bind)) {
       u64 _t_1 = task_node(e, FID_IO_bind, WL_CONT, WL_IDX, 0);
       e.mem[_t_1 + 0] = term_clo(FID_IO_thread_count, 0);
-      e.mem[_t_1 + 1] = term_clo(FID_main_c210, 0);
+      e.mem[_t_1 + 1] = term_clo(FID_main_c212, 0);
       e.mem[_t_1 + 2] = _x_0;
       return term_tsk(FID_IO_bind, _t_1);
     }
     r0 = term_clo(FID_IO_thread_count, 0);
-    r1 = term_clo(FID_main_c210, 0);
+    r1 = term_clo(FID_main_c212, 0);
     r2 = _x_0;
     WL_JMP(FID_IO_bind);
   }}
 #endif
 
 #if !DEVICE
-  WL_CASE(FID_main_c210)
+  WL_CASE(FID_main_c212)
     Term _x_1 = r0;
     WL_OPEN
     if (!DEVICE && !seq && fid_nofk(FID_laps)) {

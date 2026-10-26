@@ -250,7 +250,10 @@ HEAD = '''\
 # is cpu.bend's, transformed by tools/proofs/keyed.py: each default-mode
 # def is its .k twin, the key is written as its eight words k0..k7 (so key8
 # unfolds as IV8 does) and the flag kf is or-ed into every compression's
-# flags. Lemmas the mode does not touch are cpu.bend's (C.).
+# flags. The keyed loop starts from ZERO8() and xors the key into its first
+# block's CVs (mix8), so the lemmas that unfold it take that delta, and two
+# facts about xor (mix8.zero, zk) close the gap to cpu.bend's proof. Lemmas
+# the mode does not touch are cpu.bend's (C.).
 
 import Base
 import ../blake3.bend as B3
@@ -363,9 +366,149 @@ def keyed.spec(a, cb, hi, nch, last, rf, key, kf):
 '''
 
 
+# The keyed loop's delta. c8.go.k starts from ZERO8() and xors the key into
+# its first block's CVs (mix8), where c8.go starts from IV8(): a loop whose
+# CVs start from values known only at run time is not vectorized by clang,
+# so the keyed tree ran 2.2x slower per core (ADR 0019). The lemmas that
+# unfold the loop (loop.l*, c8.eta) take the delta d, the ones that start it
+# (gl.l*.h2, group.eta.h2) pass ZERO8() and the key, and two facts about
+# xor bridge the rest: mix8(x, 0) is x, and a lane of mix8(ZERO8(), key) is
+# the key.
+KEY8 = f"B3.key8({KEY})"
+ZERO = "B3.CV{" + ", ".join("0" for _ in range(8)) + "}"
+DELTA = {f"loop.l{l}" for l in range(8)} | {"c8.eta"}
+CV8_FIELDS = [f"x{l}_{i}" for i in range(8) for l in range(8)]
+
+
+def calls(text, name, f):
+    """text with each call of name (not its def) rewritten by f(args)."""
+    pat = re.compile(r"(?<![\w.])" + re.escape(name) + r"\(")
+    out, i = [], 0
+    while True:
+        m = pat.search(text, i)
+        if not m:
+            out.append(text[i:])
+            return "".join(out)
+        lp = m.end() - 1
+        rp = close_of(text, lp)
+        out.append(text[i:m.start()])
+        if text[max(0, m.start() - 4):m.start()] == "def ":
+            out.append(text[m.start():rp + 1])
+        else:
+            out.append(name + "(" + ",".join(f(split_args(text[lp + 1:rp]))) + ")")
+        i = rp + 1
+
+
+def start(args, d):
+    """A loop's arguments with the delta: the key's CVs become ZERO8() and the
+    key the delta; any other start takes d."""
+    if any(a.strip() == KEY8 for a in args):
+        return [" B3.ZERO8()" if a.strip() == KEY8 else a for a in args] + [" " + KEY]
+    return args + [" " + d]
+
+
+def delta_ih(text, l):
+    """loop.l<l>'s step: the hypothesis ends at mix8(C8, ZERO), which
+    mix8.zero turns back into the C8 the rest of the step expects."""
+    lines = text.splitlines(keepends=True)
+    i = next(k for k, s in enumerate(lines) if s.lstrip().startswith(f"+ih = loop.l{l}("))
+    j = next(k for k, s in enumerate(lines) if s.lstrip().startswith("%Equal.sym(B3.CV, ") and s.rstrip().endswith("ih) :"))
+    s = lines[j].lstrip()[1:]
+    ihl, ihr = [a.strip() for a in split_args(s[s.index("(") + 1:close_of(s, s.index("("))])][1:3]
+    go = ihl[ihl.index("B3.c8.go.k("):]
+    c8 = split_args(go[go.index("(") + 1:close_of(go, go.index("("))])[3].strip()
+    at = f"Laws.cv.at(Laws.L{l}{{}}, {c8})"
+    assert ihr.count(at) == 1, ihr
+    ihr_new = ihr.replace(at, f"Laws.cv.at(Laws.L{l}{{}}, B3.mix8({c8}, {ZERO}))")
+    ihr_x = ihr.replace(at, f"Laws.cv.at(Laws.L{l}{{}}, cvz)")
+    ind = lines[i][:len(lines[i]) - len(lines[i].lstrip())]
+    lines[i] = lines[i].replace("+ih = ", "+ih0 = ", 1)
+    lines.insert(i + 1, f"{ind}+ih = Equal.trans(B3.CV, {ihl}, {ihr_new}, {ihr}, ih0, "
+                        f"Equal.cong(B3.CV8, B3.CV, cvz => {ihr_x}, B3.mix8({c8}, {ZERO}), {c8}, mix8.zero({c8})))\n")
+    return "".join(lines)
+
+
+def delta_gl(text, l):
+    """gl.l<l>.h2: its loop now ends at mix8(ZERO8(), key) in lane l, which zk
+    makes the key the rest of the proof expects."""
+    mixed = f"Laws.cv.at(Laws.L{l}{{}}, B3.mix8(B3.ZERO8(), {KEY}))"
+    lines = text.splitlines(keepends=True)
+    i = next(k for k, s in enumerate(lines) if s.lstrip().startswith("+lp = "))
+    j = next(k for k, s in enumerate(lines) if s.lstrip().startswith("%Equal.sym(B3.CV, ") and s.rstrip().endswith("lp) :"))
+    for k in (i, j):
+        lines[k] = lines[k].replace(f"Laws.cv.at(Laws.L{l}{{}}, {KEY8})", mixed)
+    s = lines[j].lstrip()[1:]
+    lp_r = split_args(s[s.index("(") + 1:close_of(s, s.index("("))])[2].strip()
+    assert lp_r.count(mixed) == 1, lp_r
+    goal = lines[j + 1].strip()
+    assert goal.startswith("{_ == "), goal
+    ind = lines[j][:len(lines[j]) - len(lines[j].lstrip())]
+    lines.insert(j + 2, f"{ind}%Equal.sym(B3.CV, {mixed}, {KEY}, zk({', '.join(KEYW)})) :\n"
+                        f"{ind}  {{{lp_r.replace(mixed, '_')}{goal[2:]}\n")
+    return "".join(lines)
+
+
+def delta(body):
+    """The transformed proof with c8.go.k's delta threaded through."""
+    out = []
+    for kind, name, t in items(body):
+        if kind == "law":
+            t = calls(t, "B3.c8.go.k", lambda a: start(a, "d"))
+        else:
+            t = calls(t, "B3.c8.go.k", lambda a: start(a, ZERO))
+        for n in DELTA:
+            t = calls(t, n, lambda a: start(a, ZERO))
+        if name in DELTA:
+            t = t.replace("B3.compress8.k(cv, m,", "B3.compress8.k(B3.mix8(cv, d), m,")
+            for l in range(8):
+                t = t.replace(f"Laws.cv.at(Laws.L{l}{{}}, cv)", f"Laws.cv.at(Laws.L{l}{{}}, B3.mix8(cv, d))")
+                t = t.replace(f"compress8.lane(Laws.L{l}{{}}, cv, m,", f"compress8.lane(Laws.L{l}{{}}, B3.mix8(cv, d), m,")
+            if kind == "law":
+                lines = t.splitlines(keepends=True)
+                at = max(k for k, s in enumerate(lines) if s.startswith("  for "))
+                t = "".join(lines[:at + 1]) + "  for +d: B3.CV\n" + "".join(lines[at + 1:])
+            else:
+                m = re.search(r"(?m)^def " + re.escape(name) + r"\(", t)
+                rp = close_of(t, m.end() - 1)
+                t = t[:rp] + ", d" + t[rp:]
+                if name.startswith("loop.l"):
+                    t = delta_ih(t, int(name[6:]))
+        if kind == "def" and re.fullmatch(r"gl\.l\d\.h2", name):
+            t = delta_gl(t, int(name[4]))
+        out.append(t)
+    return "".join(out)
+
+
+XOR = f'''
+# A zero delta leaves the CVs as they are.
+law mix8.zero:
+  for +cv: B3.CV8
+  {{B3.mix8(cv, {ZERO}) == cv : B3.CV8}}
+
+def mix8.zero(cv):
+  match cv:
+    case B3.CV8{{{", ".join("+" + x for x in CV8_FIELDS)}}}:
+''' + "".join(
+    f"      %Equal.sym(U32, U32.xor({x}, 0), {x}, A.u.xor_zero_r({x})) :\n"
+    f"        {{B3.CV8{{{', '.join('_' if y == x else (y if k < n else f'U32.xor({y}, 0)') for k, y in enumerate(CV8_FIELDS))}}} == "
+    f"B3.CV8{{{', '.join(CV8_FIELDS)}}} : B3.CV8}}\n"
+    for n, x in enumerate(CV8_FIELDS)) + f'''      {{==}}
+
+# A lane of the key xor-ed into ZERO8() is the key.
+law zk:
+''' + "".join(f"  for +{k}: U32\n" for k in KEYW) + f'''  {{B3.CV{{{", ".join(f"U32.xor(0, {k})" for k in KEYW)}}} == {KEY} : B3.CV}}
+
+def zk({", ".join(KEYW)}):
+''' + "".join(
+    f"  %Equal.sym(U32, U32.xor(0, {k}), {k}, A.u.xor_zero_l({k})) :\n"
+    f"    {{B3.CV{{{', '.join('_' if j == i else (KEYW[j] if j < i else f'U32.xor(0, {KEYW[j]})') for j in range(8))}}} == {KEY} : B3.CV}}\n"
+    for i, k in enumerate(KEYW)) + "  {==}\n"
+
+
 def text(cpu, spec):
     body = cpu[cpu.index("import ./words.bend as A\n") + len("import ./words.bend as A\n"):]
     out, _ = transform(body)
+    out = XOR + delta(out)
     sbody = spec[spec.index("import ./gpu.bend as G\n") + len("import ./gpu.bend as G\n"):]
     sout, _ = transform(sbody, roots={"cpu.spec"}, keep_as="S.")
     head = HEAD.replace("import ./cpu.bend as C\n", "import ./cpu.bend as C\nimport ./spec.bend as S\n")

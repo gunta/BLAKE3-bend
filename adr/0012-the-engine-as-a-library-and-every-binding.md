@@ -76,7 +76,8 @@ lies in that window, the engine reads it in place.
   its window over it from the first input's address (`b3e_hint`): no copy.
 - **macOS:** every big allocation lies below 512 GiB, a range reserved for
   malloc where no heap can be mapped. Spans are copied, by helper threads one
-  64 MiB block ahead, into two warm blocks of Bend's heap.
+  64 MiB block ahead, into two warm blocks of Bend's heap (until ADR 0016,
+  which moves the window over the host's memory).
 
 ### The bindings
 
@@ -144,12 +145,20 @@ vectorizes it (ADR 0002). The keyed tree now has its own copies
 The general rule for the generator: a program that holds two trees needs a
 compress8 per tree.
 
+### Addendum: the keyed loop
+
+With its own compress8 the keyed tree still ran 2.2x slower per core than
+the default tree: its chunk loop started from the key, and clang does not
+vectorize that loop. [ADR 0019](0019-the-keyed-loop-starts-from-constants.md)
+starts it from constants and takes the key as a delta (keyed 1 GiB on every
+core: 70-75 ms to 34-36).
+
 ## Consequences
 
 - One engine, six ecosystems: a speed-up in `engine.bend` or `blake3.bend`
   reaches every binding with a rebuild.
-- **The Mac's copy still costs the lead.** On a buffer already in the
-  window the engine hashes 1 GiB in 28-31 ms, as fast as b3sum's Bend;
+- **The Mac's copy cost the lead, until ADR 0016.** On a buffer already in
+  the window the engine hashes 1 GiB in 28-31 ms, as fast as b3sum's Bend;
   through the library, with each span copied in, 34-38 ms. The official crate
   on rayon reads in place and gets about 30-32 ms, so it wins from 16 MiB up
   on the Mac (Rust's `update_rayon`, and blake3-py's `max_threads=AUTO`, which
@@ -157,7 +166,10 @@ compress8 per tree.
   Aliasing the caller's pages into the window with `mach_vm_remap` instead
   of copying them is worse: the remap itself is 0.02 ms, but the first touch
   of each 16 KiB page faults (1 GiB hashed in 41.7 ms) and unmapping costs
-  8 ms more.
+  8 ms more. [ADR 0016](0016-turboblake-never-slower-than-b3sum.md) removes
+  the copy: a reservation made when the library loads puts the window over
+  the host's memory, so buffers from 4 MiB up are read in place (1 GiB in
+  26-29 ms, against 34-38 copied).
 - **AVX-512 wants 16 lanes.** On an x86-64 with AVX-512 the official crate's
   16-way kernel beats the 8-lane engine at 1 GiB (15.0 ms against 28.2 ms on
   Modal's 32 vCPUs, after the fix), though the engine wins up to 256 MiB

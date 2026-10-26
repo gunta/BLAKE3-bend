@@ -15434,8 +15434,22 @@ def key8(+k: CV) -> CV8:
     case CV{+h0, +h1, +h2, +h3, +h4, +h5, +h6, +h7}:
       CV8{h0, h0, h0, h0, h0, h0, h0, h0, h1, h1, h1, h1, h1, h1, h1, h1, h2, h2, h2, h2, h2, h2, h2, h2, h3, h3, h3, h3, h3, h3, h3, h3, h4, h4, h4, h4, h4, h4, h4, h4, h5, h5, h5, h5, h5, h5, h5, h5, h6, h6, h6, h6, h6, h6, h6, h6, h7, h7, h7, h7, h7, h7, h7, h7}
 
+def ZERO8() -> CV8:
+  CV8{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+
+# cv with each lane's word i xor-ed with d's word i.
+def mix8(cv: CV8, +d: CV) -> CV8:
+  match cv d:
+    case CV8{+x0_0, +x1_0, +x2_0, +x3_0, +x4_0, +x5_0, +x6_0, +x7_0, +x0_1, +x1_1, +x2_1, +x3_1, +x4_1, +x5_1, +x6_1, +x7_1, +x0_2, +x1_2, +x2_2, +x3_2, +x4_2, +x5_2, +x6_2, +x7_2, +x0_3, +x1_3, +x2_3, +x3_3, +x4_3, +x5_3, +x6_3, +x7_3, +x0_4, +x1_4, +x2_4, +x3_4, +x4_4, +x5_4, +x6_4, +x7_4, +x0_5, +x1_5, +x2_5, +x3_5, +x4_5, +x5_5, +x6_5, +x7_5, +x0_6, +x1_6, +x2_6, +x3_6, +x4_6, +x5_6, +x6_6, +x7_6, +x0_7, +x1_7, +x2_7, +x3_7, +x4_7, +x5_7, +x6_7, +x7_7} CV{+d0, +d1, +d2, +d3, +d4, +d5, +d6, +d7}:
+      CV8{(x0_0 .^. d0 : U32), (x1_0 .^. d0 : U32), (x2_0 .^. d0 : U32), (x3_0 .^. d0 : U32), (x4_0 .^. d0 : U32), (x5_0 .^. d0 : U32), (x6_0 .^. d0 : U32), (x7_0 .^. d0 : U32), (x0_1 .^. d1 : U32), (x1_1 .^. d1 : U32), (x2_1 .^. d1 : U32), (x3_1 .^. d1 : U32), (x4_1 .^. d1 : U32), (x5_1 .^. d1 : U32), (x6_1 .^. d1 : U32), (x7_1 .^. d1 : U32), (x0_2 .^. d2 : U32), (x1_2 .^. d2 : U32), (x2_2 .^. d2 : U32), (x3_2 .^. d2 : U32), (x4_2 .^. d2 : U32), (x5_2 .^. d2 : U32), (x6_2 .^. d2 : U32), (x7_2 .^. d2 : U32), (x0_3 .^. d3 : U32), (x1_3 .^. d3 : U32), (x2_3 .^. d3 : U32), (x3_3 .^. d3 : U32), (x4_3 .^. d3 : U32), (x5_3 .^. d3 : U32), (x6_3 .^. d3 : U32), (x7_3 .^. d3 : U32), (x0_4 .^. d4 : U32), (x1_4 .^. d4 : U32), (x2_4 .^. d4 : U32), (x3_4 .^. d4 : U32), (x4_4 .^. d4 : U32), (x5_4 .^. d4 : U32), (x6_4 .^. d4 : U32), (x7_4 .^. d4 : U32), (x0_5 .^. d5 : U32), (x1_5 .^. d5 : U32), (x2_5 .^. d5 : U32), (x3_5 .^. d5 : U32), (x4_5 .^. d5 : U32), (x5_5 .^. d5 : U32), (x6_5 .^. d5 : U32), (x7_5 .^. d5 : U32), (x0_6 .^. d6 : U32), (x1_6 .^. d6 : U32), (x2_6 .^. d6 : U32), (x3_6 .^. d6 : U32), (x4_6 .^. d6 : U32), (x5_6 .^. d6 : U32), (x6_6 .^. d6 : U32), (x7_6 .^. d6 : U32), (x0_7 .^. d7 : U32), (x1_7 .^. d7 : U32), (x2_7 .^. d7 : U32), (x3_7 .^. d7 : U32), (x4_7 .^. d7 : U32), (x5_7 .^. d7 : U32), (x6_7 .^. d7 : U32), (x7_7 .^. d7 : U32)}
+
+# c8.go in the keyed modes. Its CVs start at ZERO8() and the key comes in as
+# the delta d, xor-ed into the first block's CVs (the later blocks get a
+# zero delta). Started at key8(key), the loop's CVs begin as values known
+# only at run time, and clang vectorizes it in pairs at best: 2.2x slower
+# per core than c8.go (ADR 0019).
 def c8.go.k(+n: Nat, r: Array<U32> & B128, +w: U32, cv: CV8, +ctr: U32,
-  +hi: U32, +fl: U32, +kf: U32) -> Array<U32> & CV8:
+  +hi: U32, +fl: U32, +kf: U32, +d: CV) -> Array<U32> & CV8:
   match n:
     case 0n:
       (a, m) = r
@@ -15443,12 +15457,12 @@ def c8.go.k(+n: Nat, r: Array<U32> & B128, +w: U32, cv: CV8, +ctr: U32,
     case 1n+p:
       (a, m) = r
       +w2 = (w + step(p) : U32)
-      c8.go.k(p, ld8(a, w2), w2, compress8.k(cv, m, ctr, 1, hi, 64,
-        ((fl .|. endf(p) : U32) .|. kf : U32)), ctr, hi, 0, kf)
+      c8.go.k(p, ld8(a, w2), w2, compress8.k(mix8(cv, d), m, ctr, 1, hi, 64,
+        ((fl .|. endf(p) : U32) .|. kf : U32)), ctr, hi, 0, kf, CV{0, 0, 0, 0, 0, 0, 0, 0})
 
 def group.k(a: Array<U32>, +c: U32, +t: U32, +hi: U32, +key: CV, +kf: U32) -> Array<U32> & CV8:
   +w = (c << 8n : U32)
-  c8.go.k(16n, ld8(a, w), w, key8(key), t, hi, CHUNK_START(), kf)
+  c8.go.k(16n, ld8(a, w), w, ZERO8(), t, hi, CHUNK_START(), kf, key)
 
 # One level of parents over 16 CVs: lanes 0-3 merge x's lane pairs,
 # lanes 4-7 merge y's, so a level stays in lane order.

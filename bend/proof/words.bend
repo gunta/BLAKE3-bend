@@ -1153,6 +1153,60 @@ def u.or_zero(x):
     case U32{w}:
       Equal.cong(Word(32n), U32, z => U32{z}, Word.or(32n, w, Word.zero(32n)), w, w.or_zero(32n, w))
 
+law w.xor_zero_r:
+  for +n: Nat
+  for +w: Word(n)
+  {Word.xor(n, w, Word.zero(n)) == w : Word(n)}
+
+def w.xor_zero_r(n, w):
+  match n:
+    case 0n:
+      match w:
+        case WNil{}:
+          {==}
+    case 1n+p:
+      match w:
+        case WCon{False{}, t}:
+          Equal.cong(Word(p), Word(1n+p), z => WCon{False{}, z}, Word.xor(p, t, Word.zero(p)), t, w.xor_zero_r(p, t))
+        case WCon{True{}, t}:
+          Equal.cong(Word(p), Word(1n+p), z => WCon{True{}, z}, Word.xor(p, t, Word.zero(p)), t, w.xor_zero_r(p, t))
+
+law u.xor_zero_r:
+  for +x: U32
+  {U32.xor(x, 0) == x : U32}
+
+def u.xor_zero_r(x):
+  match x:
+    case U32{w}:
+      Equal.cong(Word(32n), U32, z => U32{z}, Word.xor(32n, w, Word.zero(32n)), w, w.xor_zero_r(32n, w))
+
+law w.xor_zero_l:
+  for +n: Nat
+  for +w: Word(n)
+  {Word.xor(n, Word.zero(n), w) == w : Word(n)}
+
+def w.xor_zero_l(n, w):
+  match n:
+    case 0n:
+      match w:
+        case WNil{}:
+          {==}
+    case 1n+p:
+      match w:
+        case WCon{False{}, t}:
+          Equal.cong(Word(p), Word(1n+p), z => WCon{False{}, z}, Word.xor(p, Word.zero(p), t), t, w.xor_zero_l(p, t))
+        case WCon{True{}, t}:
+          Equal.cong(Word(p), Word(1n+p), z => WCon{True{}, z}, Word.xor(p, Word.zero(p), t), t, w.xor_zero_l(p, t))
+
+law u.xor_zero_l:
+  for +x: U32
+  {U32.xor(0, x) == x : U32}
+
+def u.xor_zero_l(x):
+  match x:
+    case U32{w}:
+      Equal.cong(Word(32n), U32, z => U32{z}, Word.xor(32n, Word.zero(32n), w), w, w.xor_zero_l(32n, w))
+
 law w.and_zero:
   for +n: Nat
   for +w: Word(n)

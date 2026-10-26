@@ -266,7 +266,9 @@ def gen_keyed8():
     copies (compress8.k, compress8.p.k): a program with both trees, such as
     the library's engine, then calls each compress8 from one place, and clang
     inlines and vectorizes it there (ADR 0002); a second caller left it a
-    call with 100-odd arguments, 1.47x slower."""
+    call with 100-odd arguments, 1.47x slower. The chunk loop starts from
+    constant CVs as the default mode's does, and takes the key as a delta
+    (c8.go.k)."""
     k8 = ", ".join(f"h{i}" for l, i in cv8_order())
     par8 = gen_par8().replace(
         "def par8(x: CV8, y: CV8) -> CV8:", "def par8.k(x: CV8, y: CV8, +key: CV, +kf: U32) -> CV8:"
@@ -295,8 +297,22 @@ def key8(+k: CV) -> CV8:
     case CV{{{", ".join(f"+h{i}" for i in range(8))}}}:
       CV8{{{k8}}}
 
+def ZERO8() -> CV8:
+  CV8{{{", ".join("0" for _ in cv8_order())}}}
+
+# cv with each lane's word i xor-ed with d's word i.
+def mix8(cv: CV8, +d: CV) -> CV8:
+  match cv d:
+    case CV8{{{cv8_fields("x", plus=True)}}} CV{{{", ".join(f"+d{i}" for i in range(8))}}}:
+      CV8{{{", ".join(f"(x{l}_{i} .^. d{i} : U32)" for l, i in cv8_order())}}}
+
+# c8.go in the keyed modes. Its CVs start at ZERO8() and the key comes in as
+# the delta d, xor-ed into the first block's CVs (the later blocks get a
+# zero delta). Started at key8(key), the loop's CVs begin as values known
+# only at run time, and clang vectorizes it in pairs at best: 2.2x slower
+# per core than c8.go (ADR 0019).
 def c8.go.k(+n: Nat, r: Array<U32> & B128, +w: U32, cv: CV8, +ctr: U32,
-  +hi: U32, +fl: U32, +kf: U32) -> Array<U32> & CV8:
+  +hi: U32, +fl: U32, +kf: U32, +d: CV) -> Array<U32> & CV8:
   match n:
     case 0n:
       (a, m) = r
@@ -304,12 +320,12 @@ def c8.go.k(+n: Nat, r: Array<U32> & B128, +w: U32, cv: CV8, +ctr: U32,
     case 1n+p:
       (a, m) = r
       +w2 = (w + step(p) : U32)
-      c8.go.k(p, ld8(a, w2), w2, compress8.k(cv, m, ctr, 1, hi, 64,
-        ((fl .|. endf(p) : U32) .|. kf : U32)), ctr, hi, 0, kf)
+      c8.go.k(p, ld8(a, w2), w2, compress8.k(mix8(cv, d), m, ctr, 1, hi, 64,
+        ((fl .|. endf(p) : U32) .|. kf : U32)), ctr, hi, 0, kf, CV{{0, 0, 0, 0, 0, 0, 0, 0}})
 
 def group.k(a: Array<U32>, +c: U32, +t: U32, +hi: U32, +key: CV, +kf: U32) -> Array<U32> & CV8:
   +w = (c << 8n : U32)
-  c8.go.k(16n, ld8(a, w), w, key8(key), t, hi, CHUNK_START(), kf)
+  c8.go.k(16n, ld8(a, w), w, ZERO8(), t, hi, CHUNK_START(), kf, key)
 
 {par8}
 {fold8}
