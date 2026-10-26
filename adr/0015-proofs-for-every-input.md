@@ -14,8 +14,10 @@ checker computes at ~0.6 s a compression. The site's "What is not proven"
 list said so: Leaf32, g16 and g64 were left to the runtime vectors, the
 loaders to the known answers ("a read of a symbolic array is stuck"), and
 `tree1.digits` tied blake3.bend's split rule to the tree model only up to
-1,024 chunks, by computation. The user asked whether those parts could be
-proven too.
+1,024 chunks, by computation. The streaming laws (ADR 0010) were about a
+model of b3io's merge stack (Nat counts, no ROOT flag), since b3io.bend
+imports the effects and Array.fork and so cannot be named by a law. The
+user asked whether those parts could be proven too.
 
 Not all of it can. What the checker cannot see stays trusted: the C that
 moves bytes, Bend's compiler and runtime, Array.fork's sharing, and the
@@ -37,10 +39,11 @@ to BLAKE3's tree, in generated proof modules under `bend/proof/`
 | `tree1.digits` | chunk count: `tree1`'s split rule is the digit rule of the tree model (was: 1 to 1,024 chunks, by computation) | `spec.bend` |
 | `ref.spec`, `cpu.spec`, `gpu.spec`, `keyed.spec` | array and span: the trees compute `ev(tree(digits(depth, nch - 1)))`, BLAKE3's left-full tree over the chunks, each leaf a chunk and each node a parent (keyed: with the key and the flag) | `spec.bend` (48) |
 | `share.fork` | array: the laws' copy of the input is Array.fork's own body, `(a, a)` | `cpu.bend` |
+| `stream.hash` | segment count and every CV the reads answer: the loop b3io runs on a streamed file (stack.bend's `stk.go`) answers BLAKE3's tree over the segments' CVs, ROOT on the top parent | `PROOF.bend` (27 lemmas) |
 
 `words.bend` (95 lemmas) holds the arithmetic: U32 as Nat while it fits,
 comparisons, carries, shifts and powers of two, each an induction over
-the bits. The gate is 38 laws and 385 lemmas.
+the bits. The gate is 39 laws and 412 lemmas.
 
 ### How
 
@@ -73,6 +76,17 @@ the bits. The gate is 38 laws and 385 lemmas.
   `k0..k7, kf` are threaded through the lemmas that then need them; the
   others are cpu.bend's and spec.bend's, referenced as `C.` and `S.`. It
   checked the first time.
+- **Streaming.** b3io's merge stack moved to `stack.bend`, which imports
+  only blake3.bend. Its loop, `stk.go`, takes the segment reads as a
+  template (`~rd`): b3io passes its read-and-hash (`stream.seg`), the law a
+  pure read from a list of CVs, and both compile the same loop. The proof
+  maps the model's stack of Trees onto the real stack of CVs and shows
+  every step commutes with the map: `pop2`, `lazy` (the U32 `n & 1` and
+  `n >> 1` are the model's parity and half), `fin` (it flags the top parent
+  ROOT, which the model leaves out), and the IO loop itself, rewritten
+  under IO's continuation (`R => k => ...`); the U32 counter does not wrap
+  while segments remain. Then `stream.shape` and `stream.order` make the
+  model's tree BLAKE3's tree over the segments, in order.
 
 ## Results
 
@@ -81,7 +95,8 @@ the machine's load was not controlled). That is shorter than the 4:10 the
 gate took with only the CPU proof added, because `tree1.digits` no longer
 computes 1,024 trees. Without the known answers (a scratch copy with the
 `kat.*` laws stripped) the rest checks in 41 s, ~12 s of it the keyed
-module. The generated modules are
+module. With `stream.hash` added the gate took 3:41 (259 s user, load 5-7)
+and the stripped copy 58 s (load ~7). The generated modules are
 large (cpu.bend 476 KB, keyed.bend 518 KB, gpu.bend 238 KB) because each
 rewrite states its motive in full; they are build products of
 `tools/proofs/`.
@@ -95,11 +110,13 @@ rewrite states its motive in full; they are build products of
 - **The compression function.** `compress` (the rounds and G) is pinned by
   the official vectors and the `schedule` law. There is no second
   description of BLAKE3's compression in Bend to prove it against.
-- **Streaming and a big file's parts.** `b3io.bend` imports the effects and
-  Array.fork, so the stream laws are about a model of its merge stack (Nat
-  counts, no ROOT flag on the last merge), and how the loader cuts a file
-  into parts is the loader's. Moving `stk.*` into a proof-safe module would
-  let the laws name them.
+- **A big file's parts.** How the loader cuts a file into 1 GiB parts and
+  reads them is the loader's (`effs/load.c`): `stream.hash` holds for
+  every CV the reads answer, and that read k hands over segment k's bytes
+  and chunk offset (its CV is then `hash.at`, the proven CPU tree) is the
+  loader's part. b3io's own glue is not named by a law
+  either: `stream.seg` (read, then `hash.at`), and `stream.pick`, which
+  sends a one-segment stream to `stream.one` (hashed with ROOT).
 - **Outside Bend.** The C that moves bytes (`effs/load.c`, `effs/emit.c`,
   the library's hook in the official C), the native Metal and CUDA kernels
   (ADR 0013), the CPU + GPU split in `split.bend` (bench code), and Bend's
@@ -118,3 +135,9 @@ rewrite states its motive in full; they are build products of
 - The 4 TiB branch adds a high counter word to every compression; merging
   it means regenerating the proofs (the counters are terms in every lane
   and chain lemma), which the generators make mechanical.
+- Moving the stack changes the engine's C, so `bend/lib/csrc`, the Rust
+  crate's copy and the Go module's C and macOS objects are regenerated;
+  they also pick up `ld8` as eight scalar loads (ab5b899), which they had
+  not followed yet. The Go Linux objects are built on Modal
+  (`bench/modal_linux.py --steps go`) and still hold the previous engine,
+  which hashes the same.

@@ -17,6 +17,7 @@ appears only in the effects that move bytes in and out (`effs/`).
 | `LAWS.bend`, `PROOF.bend` | the laws and their proofs (`tools/gen_laws.py`); `prove.sh` is the gate |
 | `b3sum.bend`            | the CLI                                               |
 | `b3io.bend`, `effs/`    | `B3IO.load` (parallel, mmap) and `B3IO.emit` effects  |
+| `stack.bend`            | a streamed file's merge stack, apart from the reads so the laws can name it |
 | `build.sh`              | bend -> C -> clang with the tuned flags (ADR 0002)    |
 | `test/`                 | official test vectors (both paths), big-file test     |
 | `bench/`                | in-memory bench, file bench, race vs b3sum, Rust ref; `duo` (CPU + GPU), `gpusum` |
@@ -47,8 +48,8 @@ for comparison: `cargo build --release --features neon` in `../b3sum`.
 ## Laws
 
 `LAWS.bend` states what the code must satisfy and `PROOF.bend` proves it
-(ADRs 0007, 0010 and 0015): 38 laws, 385 lemmas. The gate, about three and a
-half minutes, most of it the checker computing BLAKE3 itself:
+(ADRs 0007, 0010 and 0015): 39 laws, 412 lemmas. The gate, under four
+minutes, most of it the checker computing BLAKE3 itself:
 
 ```bash
 bend/prove.sh
@@ -76,9 +77,11 @@ It prints ALL PROOFS CHECK when every law holds:
   level-by-level reduction (pair neighbours, carry the odd one) builds the
   same tree, with n leaves and n - 1 parents for n chunks; `tree1`'s split
   rule is the digit form for every chunk count.
-- **Streaming, for any segment count**: `b3io.bend`'s lazy merge stack
-  (modelled with Nat counts) builds that tree, every segment once and in
-  order.
+- **Streaming, for any segment count**: the loop b3io runs on a streamed
+  file (`stack.bend`'s `stk.go`, its reads a template) answers BLAKE3's
+  tree over the segments' CVs, ROOT on the top parent, for every CV the
+  reads answer; its lazy merge stack builds that tree, every segment once
+  and in order.
 
 `python3 bend/tools/gen_laws.py` regenerates both files.
 
