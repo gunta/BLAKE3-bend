@@ -37,6 +37,9 @@ export declare const blake3: {
 };
 export default blake3;
 
+/** Which engine runs: "native" (the addon over libblake3-bend) or "bend-js" (Bend's BLAKE3 emitted to JS). */
+export declare const backend: "native" | "bend-js";
+
 /** Extended output from a position, as the npm blake3 package's HashReader. */
 export declare class HashReader {
   position: bigint;

@@ -1,7 +1,8 @@
 // Builds build/b3bend.node: src/addon.c over libblake3-bend (the C in
 // ./csrc, or ../lib/csrc in the repository), with clang. The engine gets
-// bend/build.sh's vectorizer flags. Run by `npm install`; needs clang and
-// the Node-API headers (Node's own, or the node-api-headers package).
+// bend/build.sh's vectorizer flags. Run by `npm install` (with --optional:
+// a failure is a warning, and b3bend runs on Bend's JavaScript instead);
+// needs clang and the Node-API headers (Node's own, or node-api-headers).
 // B3BEND_PORTABLE=1 builds for the baseline CPU instead of this one.
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, cpSync } from "node:fs";
@@ -33,9 +34,16 @@ const slp = ["-mllvm", "-slp-max-reg-size=512", "-mllvm", "-slp-recursion-max-de
   "-mllvm", "-slp-threshold=-20", "-mllvm", "-inline-threshold=20000"];
 const out = join(here, "build");
 mkdirSync(out, { recursive: true });
+const optional = process.argv.includes("--optional");
 const run = (args) => {
   console.log([cc, ...args].join(" "));
-  execFileSync(cc, args, { stdio: "inherit" });
+  try {
+    execFileSync(cc, args, { stdio: "inherit" });
+  } catch (e) {
+    if (!optional) throw e;
+    console.warn("b3bend: could not build the native addon; using Bend's JavaScript engine (slower)");
+    process.exit(0);
+  }
 };
 
 const objs = [];

@@ -1,0 +1,36 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>b3bend in a browser</title>
+<pre id="out">running…</pre>
+<script type="module">
+  // b3bend's browser entry (Bend's BLAKE3, emitted to JS) against the
+  // official test vectors, every mode, extended output and a seekless stream.
+  import { blake3, backend, createHash } from "../js/index.js";
+  const out = document.getElementById("out");
+  const hex = (u) => Array.from(u, (x) => x.toString(16).padStart(2, "0")).join("");
+  const v = await (await fetch("../../../test_vectors/test_vectors.json")).json();
+  const enc = new TextEncoder();
+  const key = enc.encode(v.key), ctx = enc.encode(v.context_string);
+  let ok = 0, bad = 0;
+  const t0 = performance.now();
+  for (const c of v.cases) {
+    const input = Uint8Array.from({ length: c.input_len }, (_, i) => i % 251);
+    const full = c.hash.length / 2;
+    for (const [opts, want] of [[{}, c.hash], [{ key }, c.keyed_hash], [{ context: ctx }, c.derive_key]]) {
+      const got = hex(blake3(input, { ...opts, dkLen: full }));
+      got === want ? ok++ : bad++;
+      const h = blake3.create(opts);
+      for (let i = 0; i < input.length; i += 1000) h.update(input.subarray(i, i + 1000));
+      hex(h.digest()) === want.slice(0, 64) ? ok++ : bad++;
+    }
+    createHash().update(input).digest("hex") === c.hash.slice(0, 64) ? ok++ : bad++;
+  }
+  const big = new Uint8Array(8 << 20).map((_, i) => (i * 7) & 255);
+  const t1 = performance.now();
+  const d = hex(blake3(big));
+  const ms = performance.now() - t1;
+  out.textContent = `backend ${backend}: ${ok} checks pass, ${bad} fail (${(t1 - t0).toFixed(0)} ms)\n` +
+    `8 MiB: ${d.slice(0, 16)} in ${ms.toFixed(0)} ms (${(8 * 1.048576 / ms * 1000).toFixed(0)} MB/s)\n` +
+    `${navigator.userAgent}`;
+  document.title = bad === 0 ? "b3bend: pass" : "b3bend: FAIL";
+</script>

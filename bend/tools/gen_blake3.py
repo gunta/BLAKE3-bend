@@ -8,6 +8,7 @@ kept verbatim in the templates below.
 """
 
 import pathlib
+import sys
 
 OUT = pathlib.Path(__file__).resolve().parent.parent / "blake3.bend"
 
@@ -866,6 +867,131 @@ def depth.go(b: Bool, +n: U32) -> Nat:
 def depth(+n: U32) -> Nat:
   depth.go(U32.is_le(n, 1), n)
 
+
+# Keyed hashing, key derivation, extended output
+# ----------------------------------------------
+#
+# BLAKE3's keyed and key-derivation modes hash the same tree from another
+# starting key, with a mode flag on every compression: `key` is that key
+# (the 32-byte key, or the context's derived key) and kf the flag
+# (KEYED_HASH 16, DERIVE_KEY_CONTEXT 32, DERIVE_KEY_MATERIAL 64). The .k
+# defs are the default mode's with the two threaded through; key = IV() and
+# kf = 0 is the default mode.
+
+def KEYED_HASH() -> U32:
+  16
+
+def DERIVE_KEY_CONTEXT() -> U32:
+  32
+
+def DERIVE_KEY_MATERIAL() -> U32:
+  64
+
+def chunk.go.k(n: Nat, r: Array<U32> & M16, +w: U32, cv: CV, +ctr: U32, +fl: U32,
+  +endf: U32, +lastlen: U32, +kf: U32) -> Array<U32> & CV:
+  match n:
+    case 0n:
+      (a, m) = r
+      (a, compress(cv, m, ctr, 0, lastlen, ((fl .|. endf : U32) .|. kf : U32)))
+    case 1n+p:
+      (a, m) = r
+      +w2 = (w + 16 : U32)
+      chunk.go.k(p, ld(a, w2), w2, compress(cv, m, ctr, 0, 64, (fl .|. kf : U32)), ctr, 0,
+        endf, lastlen, kf)
+
+def chunk.k(a: Array<U32>, +c: U32, +cb: U32, +nch: U32, +last: U32,
+  +rf: U32, +key: CV, +kf: U32) -> CV:
+  +w = (c << 8n : U32)
+  +m = (0 - Bool.to_u32(U32.is_eq((c + 1 : U32), nch)) : U32)
+  +rem = ((last .&. m) .|. (1024 .&. U32.not(m)) : U32)
+  +nb = U32.max(((rem + 63 : U32) >> 6n : U32), 1)
+  +lastlen = (rem - ((nb - 1 : U32) << 6n : U32) : U32)
+  chunk.fin(chunk.go.k(U32.to_nat((nb - 1 : U32)), ld(a, w), w, key,
+    (cb + c : U32), CHUNK_START(), (CHUNK_END() .|. rf : U32), lastlen, kf))
+
+def parent.k(l: CV, r: CV, +rf: U32, +key: CV, +kf: U32) -> CV:
+  match l r:
+    case CV{l0, l1, l2, l3, l4, l5, l6, l7} CV{r0, r1, r2, r3, r4, r5, r6, r7}:
+      compress(key, M16{l0, l1, l2, l3, l4, l5, l6, l7, r0, r1, r2, r3, r4, r5, r6, r7}, 0, 0, 64, ((PARENT() .|. rf : U32) .|. kf : U32))
+
+def tree1.k(~dup: Array<U32> -> Array<U32> & Array<U32>,
+  +k: Nat, b: Bool, aa: Array<U32> & Array<U32>, +c: U32, +n: U32,
+  +cb: U32, +nch: U32, +last: U32, +rf: U32, +key: CV, +kf: U32) -> CV:
+  match k b:
+    case 0n _:
+      (a1, a2) = aa
+      _ = a2
+      chunk.k(a1, c, cb, nch, last, rf, key, kf)
+    case 1n+p False{}:
+      tree1.k(~dup, p, big(p, n), aa, c, n, cb, nch, last, rf, key, kf)
+    case 1n+p True{}:
+      (a1, a2) = aa
+      +h = U32.shln(1, p)
+      +n2 = (n - h : U32)
+      l r = tree1.k(~dup, p, big(p, h), dup(a1), c, h, cb, nch, last, 0, key, kf) tree1.k(~dup, p, big(p, n2), dup(a2), (c + h : U32), n2, cb, nch, last, 0, key, kf)
+      parent.k(l, r, rf, key, kf)
+
+# The CV of a span (as hash.at) in any mode, on the scalar tree.
+def hash.at.k(~dup: Array<U32> -> Array<U32> & Array<U32>,
+  a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32, +key: CV, +kf: U32) -> CV:
+  +k = depth(nch)
+  tree1.k(~dup, k, big(k, nch), dup(a), 0, nch, cb, nch, last, rf, key, kf)
+
+# The root's node before its last compression: what the extended output
+# expands, a block of 64 bytes for each counter (root.out).
+type Root is Data:
+  Root{cv: CV, m: M16, blen: U32, fl: U32}
+
+def chunk.root.go(n: Nat, r: Array<U32> & M16, +w: U32, cv: CV, +ctr: U32, +fl: U32,
+  +lastlen: U32, +kf: U32) -> Root:
+  match n:
+    case 0n:
+      (a, m) = r
+      _ = a
+      Root{cv, m, lastlen, ((fl .|. CHUNK_END() : U32) .|. kf : U32)}
+    case 1n+p:
+      (a, m) = r
+      +w2 = (w + 16 : U32)
+      chunk.root.go(p, ld(a, w2), w2, compress(cv, m, ctr, 0, 64, (fl .|. kf : U32)), ctr, 0,
+        lastlen, kf)
+
+# The root of a one-chunk input (`last` bytes, counter cb): its last block.
+def chunk.root(a: Array<U32>, +cb: U32, +last: U32, +key: CV, +kf: U32) -> Root:
+  +nb = U32.max(((last + 63 : U32) >> 6n : U32), 1)
+  +lastlen = (last - ((nb - 1 : U32) << 6n : U32) : U32)
+  chunk.root.go(U32.to_nat((nb - 1 : U32)), ld(a, 0), 0, key, cb, CHUNK_START(), lastlen, kf)
+
+# The root of a bigger input: the parent of its two children.
+def parent.root(l: CV, r: CV, +key: CV, +kf: U32) -> Root:
+  match l r:
+    case CV{l0, l1, l2, l3, l4, l5, l6, l7} CV{r0, r1, r2, r3, r4, r5, r6, r7}:
+      Root{key, M16{l0, l1, l2, l3, l4, l5, l6, l7, r0, r1, r2, r3, r4, r5, r6, r7}, 64, (PARENT() .|. kf : U32)}
+
+# The whole compression: its first 8 words (as compress) and its last 8.
+def out2(s: S16, c: CV) -> CV & CV:
+  match s c:
+    case S16{v0, v1, v2, v3, v4, v5, v6, v7, +v8, +v9, +v10, +v11, +v12, +v13, +v14, +v15} CV{h0, h1, h2, h3, h4, h5, h6, h7}:
+      (CV{(v0 .^. v8 : U32), (v1 .^. v9 : U32), (v2 .^. v10 : U32), (v3 .^. v11 : U32), (v4 .^. v12 : U32), (v5 .^. v13 : U32), (v6 .^. v14 : U32), (v7 .^. v15 : U32)}, CV{(v8 .^. h0 : U32), (v9 .^. h1 : U32), (v10 .^. h2 : U32), (v11 .^. h3 : U32), (v12 .^. h4 : U32), (v13 .^. h5 : U32), (v14 .^. h6 : U32), (v15 .^. h7 : U32)})
+
+def compress.xof(cv: CV, +m1: M16, +t0: U32, +t1: U32, +blen: U32, +flags: U32) -> CV & CV:
+  match cv:
+    case CV{+h0, +h1, +h2, +h3, +h4, +h5, +h6, +h7}:
+      +m2 = perm(m1)
+      +m3 = perm(m2)
+      +m4 = perm(m3)
+      +m5 = perm(m4)
+      +m6 = perm(m5)
+      +m7 = perm(m6)
+      s0 = {S16{h0, h1, h2, h3, h4, h5, h6, h7, 1779033703, 3144134277, 1013904242, 2773480762, t0, t1, blen, flags} : S16}
+      out2(round(round(round(round(round(round(round(s0, m1), m2), m3), m4), m5), m6), m7),
+        CV{h0, h1, h2, h3, h4, h5, h6, h7})
+
+# Block t (t1:t0) of the extended output: 64 bytes, as two CVs' words.
+def root.out(r: Root, +t0: U32, +t1: U32) -> CV & CV:
+  match r:
+    case Root{cv, m, blen, fl}:
+      compress.xof(cv, m, t0, t1, blen, (fl .|. ROOT() : U32))
+
 @@WIDE@@
 # Hex
 # ---
@@ -899,7 +1025,35 @@ def hex(cv: CV) -> String:
 '''
 
 
+# The entry points of the scalar module (--scalar): the fork tree of
+# one-chunk leaves (tree1), with no 8-lane code. It is what JavaScript runs
+# (the JS target is sequential, and its emitter overflows on compress8).
+SCALAR = """
+# Scalar entry points
+# -------------------
+
+# The bytes of the last chunk of a len-byte input of n chunks.
+def tail(+len: U32, +n: U32) -> U32:
+  (len - ((n - 1 : U32) << 10n : U32) : U32)
+
+# The CV of a span: nch chunks counted from cb, the last holding `last`
+# bytes; rf is ROOT for a whole input, 0 for a subtree.
+def hash.at(~dup: Array<U32> -> Array<U32> & Array<U32>,
+  a: Array<U32>, +cb: U32, +nch: U32, +last: U32, +rf: U32) -> CV:
+  +k = depth(nch)
+  tree1(~dup, k, big(k, nch), dup(a), 0, nch, cb, nch, last, rf)
+
+# The BLAKE3 hash (first 32 bytes) of `len` bytes held in `a`.
+def hash(~dup: Array<U32> -> Array<U32> & Array<U32>,
+  a: Array<U32>, +len: U32) -> CV:
+  +n = chunks(len)
+  hash.at(~dup, a, 0, n, tail(len, n), ROOT())
+
+"""
+
+
 def main():
+    scalar = "--scalar" in sys.argv
     m16 = ", ".join(f"m{i}: U32" for i in range(16))
     s16 = ", ".join(f"v{i}: U32" for i in range(16))
     iv = ", ".join(str(x) for x in IV)
@@ -923,6 +1077,12 @@ def main():
         fold8=gen_fold8(),
         cv8f=cv8_fields("x"),
         **{f"c{l}": "CV{" + ", ".join(f"x{l}_{i}" for i in range(8)) + "}" for l in range(L)})
+    if scalar:
+        out = pathlib.Path(sys.argv[sys.argv.index("--scalar") + 1])
+        src = src.replace("# BLAKE3 in Bend2", "# BLAKE3 in Bend2, scalar (gen_blake3.py --scalar)", 1)
+        out.write_text(src + TREE.replace("@@WIDE@@", SCALAR))
+        print(f"wrote {out}")
+        return
     src += TREE.replace("@@WIDE@@", GPU_LEAVES + wide)
     OUT.write_text(src)
     print(f"wrote {OUT}")

@@ -8,6 +8,7 @@ import { blake3 as noble } from "@noble/hashes/blake3.js";
 import { blake3 as hashWasm } from "hash-wasm";
 import { blake3 as napiRs } from "@napi-rs/blake-hash";
 import { blake3 } from "./index.js";
+import { blake3 as bendJs } from "./js/index.js";
 
 const runtime = typeof Bun !== "undefined" ? `bun ${Bun.version}` : `node ${process.versions.node}`;
 const SIZES = [1 << 10, 64 << 10, 1 << 20, 16 << 20, 256 << 20, 1 << 30];
@@ -17,6 +18,7 @@ for (let i = 0; i < data.length; i += 1) data[i] = (Math.imul(i, 2654435761) >>>
 
 const sides = {
   b3bend: (b) => blake3(b),
+  "b3bend (Bend's JS)": (b) => bendJs(b),
   "@napi-rs/blake-hash": (b) => napiRs(b),
   "hash-wasm": (b) => hashWasm(b),
   "@noble/hashes": (b) => noble(b),
@@ -37,7 +39,7 @@ for (const n of SIZES) {
   for (const [k, f] of Object.entries(sides)) d[k] = hex(await f(b));
   for (let r = 0; r < reps(n); r += 1) {
     for (const [k, f] of Object.entries(sides)) {
-      if (k === "@noble/hashes" && n > 256 << 20 && r > 0) continue;
+      if ((k === "@noble/hashes" || k.includes("Bend's JS")) && n > 256 << 20 && r > 0) continue;
       const s = performance.now();
       await f(b);
       t[k].push(performance.now() - s);
@@ -48,7 +50,7 @@ for (const n of SIZES) {
     rows.push({ impl: k, bytes: n, ms: v[v.length >> 1], digest: d[k] });
   }
 }
-const agree = SIZES.every((n) => ["b3bend", "@napi-rs/blake-hash", "hash-wasm", "@noble/hashes"]
+const agree = SIZES.every((n) => ["b3bend", "b3bend (Bend's JS)", "@napi-rs/blake-hash", "hash-wasm", "@noble/hashes"]
   .every((k) => rows.find((r) => r.impl === k && r.bytes === n).digest === rows.find((r) => r.impl === "b3bend" && r.bytes === n).digest));
 const impls = Object.keys(sides);
 console.log(`${runtime}\n\n| bytes | ${impls.join(" | ")} |\n|---:|${"---:|".repeat(impls.length)}`);
