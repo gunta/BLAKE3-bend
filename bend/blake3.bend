@@ -368,6 +368,73 @@ def g.fin(r: Array<U32> & CV) -> CV:
   _ = a
   cv
 
+# Strided lanes for big subtrees
+# ------------------------------
+# 64-chunk leaves make 16384 lanes stream 16384 separate 64 KiB runs spread
+# over the input, and the GPU reads that at 2/3 of what it can (ADR 0006).
+# So at that leaf level a whole subtree of 64 S chunks goes to S lanes (as
+# many as its leaves) that read neighbouring memory: lane l hashes the
+# 16-chunk groups l, l + S, l + 2S and l + 3S, so the lanes running together
+# read one window of 16 S KiB (ADR 0011). The fork over the lanes is the
+# tree over lane numbers, and a join pairs its halves' four CVs group for
+# group: BLAKE3's tree of groups, level by level (the `levels` law), so
+# after log2(S) joins the four CVs are the subtree's quarters.
+
+# Four CVs, one per quarter of a subtree, in order.
+type CV4 is Data:
+  CV4{a: CV, b: CV, c: CV, d: CV}
+
+def quad.s3(r: Array<U32> & CV, x0: CV, x1: CV, x2: CV) -> CV4:
+  (a, x3) = r
+  _ = a
+  CV4{x0, x1, x2, x3}
+
+def quad.s2(r: Array<U32> & CV, +c: U32, +t: U32, +st: U32, x0: CV, x1: CV) ->
+  CV4:
+  (a, x2) = r
+  +s3 = (st + (st << 1n : U32) : U32)
+  quad.s3(g16(a, (c + s3 : U32), (t + s3 : U32), 0), x0, x1, x2)
+
+def quad.s1(r: Array<U32> & CV, +c: U32, +t: U32, +st: U32, x0: CV) -> CV4:
+  (a, x1) = r
+  +s2 = (st << 1n : U32)
+  quad.s2(g16(a, (c + s2 : U32), (t + s2 : U32), 0), c, t, st, x0, x1)
+
+def quad.s0(r: Array<U32> & CV, +c: U32, +t: U32, +st: U32) -> CV4:
+  (a, x0) = r
+  quad.s1(g16(a, (c + st : U32), (t + st : U32), 0), c, t, st, x0)
+
+# One lane: the 16-chunk groups at array chunks c, c + st, c + 2st and
+# c + 3st (counters t, t + st, ...).
+def quad(a: Array<U32>, +c: U32, +t: U32, +st: U32) -> CV4:
+  quad.s0(g16(a, c, t, 0), c, t, st)
+
+def par4(x: CV4, y: CV4) -> CV4:
+  match x y:
+    case CV4{x0, x1, x2, x3} CV4{y0, y1, y2, y3}:
+      CV4{parent(x0, y0, 0), parent(x1, y1, 0), parent(x2, y2, 0),
+        parent(x3, y3, 0)}
+
+def fold4(x: CV4, +rf: U32) -> CV:
+  match x:
+    case CV4{x0, x1, x2, x3}:
+      parent(parent(x0, x1, 0), parent(x2, x3, 0), rf)
+
+# 2^k lanes from the one whose first group is at array chunk c (counter t),
+# st chunks between a lane's groups.
+def qtree(~dup: Array<U32> -> Array<U32> & Array<U32>,
+  +k: Nat, aa: Array<U32> & Array<U32>, +c: U32, +t: U32, +st: U32) -> CV4:
+  match k:
+    case 0n:
+      (a1, a2) = aa
+      _ = a2
+      quad(a1, c, t, st)
+    case 1n+p:
+      (a1, a2) = aa
+      +h = U32.shln(16, p)
+      l r = qtree(~dup, p, dup(a1), c, t, st) qtree(~dup, p, dup(a2), (c + h : U32), (t + h : U32), st)
+      par4(l, r)
+
 # Whether chunks up to e (exclusive) are all full: the last chunk, nch - 1,
 # holds `last` bytes.
 def full(+e: U32, +nch: U32, +last: U32) -> Bool:
@@ -379,6 +446,7 @@ type Node1 is Data:
   G4{}
   G16{}
   G64{}
+  GQuad{}
 
 def kind1.at4(b: Bool) -> Node1:
   match b:
@@ -408,17 +476,33 @@ def kind1.full(+k: U32, full: Bool) -> Node1:
     case True{}:
       kind1.at64(U32.is_eq(k, 6), k)
 
+def kind1.wq(q: Bool, +k: U32, +lv: U32) -> Node1:
+  match q:
+    case True{}:
+      GQuad{}
+    case False{}:
+      kind1.full(k, U32.is_le(k, lv))
+
+def kind1.whole(+k: U32, +lv: U32, whole: Bool) -> Node1:
+  match whole:
+    case False{}:
+      GSplit{}
+    case True{}:
+      kind1.wq(U32.is_eq(lv, 6) && U32.is_gt(k, 6), k, lv)
+
 def kind1.big(+k: U32, +n: U32, +c: U32, +nch: U32, +last: U32, +lv: U32,
   b: Bool) -> Node1:
   match b:
     case False{}:
       GDown{}
     case True{}:
-      kind1.full(k, U32.is_eq(n, U32.shln(1, U32.to_nat(k))) &&
-        U32.is_le(k, lv) && full((c + n : U32), nch, last))
+      kind1.whole(k, lv, U32.is_eq(n, U32.shln(1, U32.to_nat(k))) &&
+        full((c + n : U32), nch, last))
 
 # The kind of a node of depth k >= 1 of the GPU tree: a full subtree of
-# 4, 16 or 64 chunks, no deeper than the leaf level lv, is one lane's leaf.
+# 4, 16 or 64 chunks, no deeper than the leaf level lv, is one lane's leaf;
+# at leaf level 6 a bigger whole subtree goes to strided lanes instead, as
+# many as its 64-chunk leaves would take.
 def kind1(+k: U32, +n: U32, +c: U32, +nch: U32, +last: U32, +lv: U32) -> Node1:
   kind1.big(k, n, c, nch, last, lv,
     U32.is_gt(n, U32.shln(1, U32.to_nat((k - 1 : U32)))))
@@ -430,7 +514,8 @@ def level(+k: U32) -> U32:
   +l = U32.min(U32.max(k, 14), 20)
   (((l - 14 : U32) >> 1n : U32) << 1n : U32)
 
-# The GPU tree: forks to full 64-, 16- or 4-chunk subtrees, one lane each.
+# The GPU tree: forks to full 64-, 16- or 4-chunk subtrees, one lane each,
+# and at leaf level 6 hands bigger whole subtrees to strided lanes.
 def treeg(~dup: Array<U32> -> Array<U32> & Array<U32>,
   +k: Nat, +ku: U32, d: Node1, aa: Array<U32> & Array<U32>, +c: U32,
   +n: U32, +cb: U32, +nch: U32, +last: U32, +lv: U32, +rf: U32) -> CV:
@@ -442,6 +527,11 @@ def treeg(~dup: Array<U32> -> Array<U32> & Array<U32>,
     case 1n+p GDown{}:
       +kp = (ku - 1 : U32)
       treeg(~dup, p, kp, kind1(kp, n, c, nch, last, lv), aa, c, n, cb, nch, last, lv, rf)
+    case 1n+p GQuad{}:
+      (a1, a2) = aa
+      _ = a2
+      +q = U32.to_nat((ku - 6 : U32))
+      fold4(qtree(~dup, q, dup(a1), c, (cb + c : U32), U32.shln(16, q)), rf)
     case 1n+p G64{}:
       (a1, a2) = aa
       _ = a2
