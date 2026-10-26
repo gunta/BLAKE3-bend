@@ -183,9 +183,10 @@ fn hash_path(args: &Args, path: &Path) -> anyhow::Result<blake3::OutputReader> {
         if args.keyed() {
             bail!("Cannot open `-` in keyed mode");
         }
-        hasher.update_reader(io::stdin().lock())?;
+        // (turboblake: big blocks, read while the one before hashes)
+        fast::update_stdin(&mut hasher)?;
     } else if args.no_mmap() {
-        hasher.update_reader(File::open(path)?)?;
+        fast::update_file(&mut hasher, File::open(path)?)?;
     } else {
         // The fast path: Try to mmap the file and hash it with multiple threads.
         // (turboblake: on one thread if it is small)

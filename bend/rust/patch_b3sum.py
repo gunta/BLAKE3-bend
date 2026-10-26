@@ -75,6 +75,11 @@ PATCHES = {
          '    fast::pool(args.num_threads(), || {\n'),
         ('        std::process::exit(if files_failed > 0 { 1 } else { 0 });\n    })\n}\n',
          '        std::process::exit(if files_failed > 0 { 1 } else { 0 });\n    })?\n}\n'),
+        ('        hasher.update_reader(io::stdin().lock())?;\n',
+         '        // (turboblake: big blocks, read while the one before hashes)\n'
+         '        fast::update_stdin(&mut hasher)?;\n'),
+        ('        hasher.update_reader(File::open(path)?)?;\n',
+         '        fast::update_file(&mut hasher, File::open(path)?)?;\n'),
         ('        hasher.update_mmap_rayon(path)?;\n',
          '        // (turboblake: on one thread if it is small)\n'
          '        fast::update_path(&mut hasher, path)?;\n'),

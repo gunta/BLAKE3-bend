@@ -21,9 +21,14 @@
 //! more than one big one, or a big one mostly on disk.
 
 use super::{Args, FilepathString, filepath_to_string};
-use std::io::{self, Write};
+use std::fs::File;
+use std::io::{self, Read, Write};
+#[cfg(unix)]
+use std::os::unix::fs::FileExt;
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
+#[cfg(unix)]
+use std::sync::mpsc;
 
 /// Files a batch: bounds the memory of files read into the heap, and keeps
 /// lines coming for a long list.
@@ -68,6 +73,168 @@ pub(crate) fn update_path(hasher: &mut blake3::Hasher, path: &Path) -> io::Resul
         _ => {
             RAYON.store(true, Ordering::Relaxed);
             hasher.update_mmap_rayon(path)?;
+        }
+    }
+    Ok(())
+}
+
+#[cfg(unix)]
+#[cfg(unix)]
+/// Blocks of a read input: a power of two, so each is a whole subtree at
+/// its offset, and `update_rayon` spreads it over every core.
+const BLOCK: usize = 32 << 20;
+/// Threads reading one block of a regular file at once (`read_at`): one
+/// pread copies ~20 GB/s out of the page cache, about half what the cores
+/// hash.
+const READERS: usize = 4;
+
+#[cfg(unix)]
+/// Where read input comes from: a regular file (positional reads from an
+/// offset, several at once) or anything else (in order).
+pub(crate) enum Source<'a> {
+    At(&'a File, u64),
+    Seq(&'a mut (dyn Read + Send)),
+}
+
+#[cfg(unix)]
+/// Upstream's `update_reader`, which reads 64 KiB at a time and hashes them
+/// on one thread (~2 GB/s here): this reads `BLOCK`s on a thread of its
+/// own while the block before hashes on every core. A regular file's block
+/// takes `READERS` positional reads at once; either way it reads up to the
+/// end, as upstream does, and maps nothing (--no-mmap, stdin).
+pub(crate) fn update_read(hasher: &mut blake3::Hasher, mut src: Source) -> io::Result<u64> {
+    let mut first = vec![0u8; BLOCK];
+    let n = fill(&mut src, &mut first)?;
+    if n < BLOCK {
+        if (n as u64) < SERIAL_COLD {
+            hasher.update(&first[..n]);
+        } else {
+            RAYON.store(true, Ordering::Relaxed);
+            hasher.update_rayon(&first[..n]);
+        }
+        return Ok(n as u64);
+    }
+    RAYON.store(true, Ordering::Relaxed);
+    let (full_tx, full_rx) = mpsc::sync_channel::<(Vec<u8>, usize)>(1);
+    let (free_tx, free_rx) = mpsc::sync_channel::<Vec<u8>>(2);
+    free_tx.send(vec![0u8; BLOCK]).ok();
+    std::thread::scope(|s| {
+        let reader = s.spawn(move || -> io::Result<()> {
+            while let Ok(mut buf) = free_rx.recv() {
+                let n = fill(&mut src, &mut buf)?;
+                if n == 0 || full_tx.send((buf, n)).is_err() || n < BLOCK {
+                    break;
+                }
+            }
+            Ok(())
+        });
+        let mut total = n as u64;
+        hasher.update_rayon(&first);
+        free_tx.send(first).ok();
+        // every block the reader sent, to the last: it may be done reading
+        // (and the buffer not wanted back) before this one hashes
+        for (buf, n) in full_rx {
+            hasher.update_rayon(&buf[..n]);
+            total += n as u64;
+            free_tx.send(buf).ok();
+        }
+        drop(free_tx);
+        reader.join().expect("turboblake: reader panicked")?;
+        Ok(total)
+    })
+}
+
+#[cfg(unix)]
+/// Fills buf up to its end or the input's, and says how far.
+fn fill(src: &mut Source, buf: &mut [u8]) -> io::Result<usize> {
+    match src {
+        Source::Seq(r) => read_full(|b, _| r.read(b), buf),
+        Source::At(f, off) => {
+            let (file, at): (&File, u64) = (f, *off);
+            let per = buf.len().div_ceil(READERS);
+            let got: Vec<io::Result<usize>> = std::thread::scope(|s| {
+                let parts: Vec<_> = buf
+                    .chunks_mut(per)
+                    .enumerate()
+                    .map(|(i, part)| s.spawn(move || read_full(|b, k| file.read_at(b, at + (i * per + k) as u64), part)))
+                    .collect();
+                parts.into_iter().map(|h| h.join().expect("turboblake: reader panicked")).collect()
+            });
+            // the input ends where the first part came up short
+            let mut n = 0;
+            for (i, g) in got.into_iter().enumerate() {
+                let g = g?;
+                n += g;
+                if g < per.min(buf.len() - i * per) {
+                    break;
+                }
+            }
+            *off += n as u64;
+            Ok(n)
+        }
+    }
+}
+
+#[cfg(unix)]
+/// Reads into buf until it is full or the input ends; retries interrupts.
+/// read gets the rest of buf and how much of it is already read.
+fn read_full(mut read: impl FnMut(&mut [u8], usize) -> io::Result<usize>, buf: &mut [u8]) -> io::Result<usize> {
+    let mut n = 0;
+    while n < buf.len() {
+        match read(&mut buf[n..], n) {
+            Ok(0) => break,
+            Ok(k) => n += k,
+            Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
+            Err(e) => return Err(e),
+        }
+    }
+    Ok(n)
+}
+
+/// A file opened for --no-mmap: read as `update_read` reads, from its start.
+#[cfg(not(unix))]
+pub(crate) fn update_file(hasher: &mut blake3::Hasher, file: File) -> io::Result<()> {
+    hasher.update_reader(file).map(|_| ())
+}
+
+/// A file opened for --no-mmap: read as `update_read` reads, from its start.
+#[cfg(unix)]
+pub(crate) fn update_file(hasher: &mut blake3::Hasher, file: File) -> io::Result<()> {
+    if file.metadata()?.is_file() {
+        update_read(hasher, Source::At(&file, 0))?;
+    } else {
+        let mut file = file;
+        update_read(hasher, Source::Seq(&mut file))?;
+    }
+    Ok(())
+}
+
+/// Standard input, read as `update_read` reads: from where its offset is
+/// to the end, and the offset left at the end, as reading it leaves it.
+/// Read through fd 0 itself: nothing has read stdin's buffer before this.
+#[cfg(not(unix))]
+pub(crate) fn update_stdin(hasher: &mut blake3::Hasher) -> io::Result<()> {
+    hasher.update_reader(io::stdin().lock()).map(|_| ())
+}
+
+/// Standard input, read as `update_read` reads: from where its offset is
+/// to the end, and the offset left at the end, as reading it leaves it.
+/// Read through fd 0 itself: nothing has read stdin's buffer before this.
+#[cfg(unix)]
+pub(crate) fn update_stdin(hasher: &mut blake3::Hasher) -> io::Result<()> {
+    use std::io::Seek;
+    use std::os::fd::FromRawFd;
+    let _lock = io::stdin().lock();
+    // SAFETY: fd 0 stays open for the process; ManuallyDrop never closes it.
+    let file = std::mem::ManuallyDrop::new(unsafe { File::from_raw_fd(0) });
+    let mut f: &File = &file;
+    match (file.metadata(), f.stream_position()) {
+        (Ok(m), Ok(at)) if m.is_file() => {
+            let n = update_read(hasher, Source::At(&file, at))?;
+            f.seek(io::SeekFrom::Start(at + n))?;
+        }
+        _ => {
+            update_read(hasher, Source::Seq(&mut f))?;
         }
     }
     Ok(())
