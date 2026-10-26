@@ -213,7 +213,7 @@ def versus(results):
         "bend_cpu": {"label": "turboblake, CPU", "kind": "bend", "description": "Bend's 8-lane tree on every core"},
         "bend_gpu": {"label": "turboblake, Bend on the GPU", "kind": "bend", "description": "Bend's GPU path (hash1!)"},
         "bend_native": {"label": "turboblake, native GPU kernel", "kind": "bend",
-                        "description": "the hand-written CUDA or Metal kernel in bend/ref (ADR 0013)"},
+                        "description": "the hand-written CUDA or Metal kernel in bend/ref"},
     }
     rows, machines = [], []
 

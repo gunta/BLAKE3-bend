@@ -5,7 +5,7 @@ import Engine from '../components/Engine.astro';
 import Proofs from '../components/Proofs.astro';
 import BrandMark from '../components/BrandMark.astro';
 import Icon from '../components/Icon.astro';
-import { CircleCheck, Cpu, FileStack, FileText, Flag, FolderOpen, Gauge, Gpu, HardDrive, Laptop, MemoryStick, Monitor, ShieldCheck, Timer } from 'lucide-static';
+import { CircleCheck, Cpu, FileStack, Flag, FolderOpen, Gauge, Gpu, HardDrive, Laptop, MemoryStick, Monitor, ShieldCheck, Timer } from 'lucide-static';
 import type { MarkName } from '../lib/brands';
 import SiteFooter from '../components/SiteFooter.astro';
 import Section from '../components/Section.astro';
@@ -14,7 +14,8 @@ import DataTable from '../components/DataTable.astro';
 import Scorecard from '../components/Scorecard.astro';
 import Note from '../components/Note.astro';
 import Versus from '../components/Versus.astro';
-import { adr, ADR_INDEX_URL } from '../lib/adr';
+import { story } from '../lib/news';
+import NewsTag from '../components/NewsTag.astro';
 import { lawCount } from '../lib/proofs';
 import { fmtList, fmtRange } from '../lib/format';
 import { TIE_TEXT, tableView, fmtSpeedup } from '../lib/model';
@@ -195,7 +196,7 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
             {versus.input} already in memory, on the fastest GPU measured ({versus.lead.title}, {versus.lead.where}) and on this {machineName}. SHA-256 is
             what most checksum files use; it chains each block to the one before, so one input runs on one core, here with the CPU's own SHA instructions.
             The official BLAKE3 runs on one core or, through rayon, on every core. turboblake adds the GPU twice: Bend's own GPU path, and the hand-written
-            native kernel that the command line and the library take next (<a href={adr('0013').url}>ADR 0013</a>).
+            native kernel that the command line and the library take next (<a href={story('0013')?.href}>the story</a>).
           </p>
           {oneCore.length > 0 && (
             <p>
@@ -322,30 +323,28 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
 
   <Engine />
 
-  <Section id="techniques" kicker="Under the hood" title="How it got fast, one decision record each">
+  <Section id="techniques" kicker="Under the hood" title="How it got fast, step by step">
     <Fragment slot="lede">
       <p>
-        Each step is written up as an architecture decision record: what the emitted C looked like, what was tried, what was measured, and what was
-        rejected. <a href={ADR_INDEX_URL}>All ADRs</a>.
+        Each step is a story in the <a href={withBase('changelog/')}>changelog</a>, with a full write-up of what the emitted C looked like, what was tried,
+        what was measured, and what was rejected.
       </p>
     </Fragment>
     <ol class="techniques" role="list">
       {
         results.techniques.map((t, i) => {
-          const record = adr(t.adr);
+          const s = story(t.adr);
           return (
             <li class="card technique" data-reveal style={`--i: ${i % 3}`}>
-              <p class="adr-meta">
-                <span class="adr-n">ADR {t.adr}</span>
-                {record.status && <span>{record.status}</span>}
-                {record.date && <time datetime={record.date}>{record.date}</time>}
+              <p class="story-meta">
+                <NewsTag tag={s?.tag} />
+                {s?.date && <time datetime={s.date}>{s.day}</time>}
               </p>
-              <h3>{t.title}</h3>
+              <h3>{s?.headline ?? t.title}</h3>
               <p class="technique-summary">{t.summary}</p>
-              <a class="adr-link" href={record.url}>
-                <Icon svg={FileText} />
-                Read ADR {t.adr}
-                <span class="sr-only">: {record.title ?? t.title}</span>
+              <a class="story-link" href={s?.href ?? withBase('changelog/')}>
+                Read the story
+                <span class="sr-only">: {s?.headline ?? t.title}</span>
                 <span class="arrow" aria-hidden="true">→</span>
               </a>
             </li>
@@ -600,7 +599,7 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
     font-size: 0.9375rem;
   }
 
-  /* Techniques: one card per decision record. */
+  /* Techniques: one card per step, linked to its story. */
   .techniques {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
@@ -625,7 +624,7 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
     border-color: var(--line-strong);
   }
 
-  .adr-meta {
+  .story-meta {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
@@ -638,14 +637,6 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
     color: var(--ink-3);
   }
 
-  .adr-n {
-    padding: 0.15rem 0.45rem;
-    border: 1px solid var(--line-strong);
-    border-radius: 999px;
-    color: var(--ink);
-    font-weight: 500;
-    font-variant-numeric: tabular-nums;
-  }
 
   .technique-summary {
     color: var(--ink-2);
@@ -653,7 +644,7 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
     flex: 1;
   }
 
-  .adr-link {
+  .story-link {
     align-self: flex-start;
     gap: 0.45rem;
     display: inline-flex;
@@ -667,7 +658,7 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
     text-decoration: none;
   }
 
-  .adr-link:hover {
+  .story-link:hover {
     text-decoration: underline;
   }
 
@@ -676,7 +667,7 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
     transition: transform var(--t-fast) var(--ease-out);
   }
 
-  .adr-link:hover .arrow {
+  .story-link:hover .arrow {
     transform: translateX(4px);
   }
 

@@ -1,0 +1,492 @@
+---
+/**
+ * What's new: every step of turboblake as a news story, newest first, from
+ * src/lib/news.ts. A topic filter on top, each story's own link, and the full
+ * engineering write-up one click away.
+ */
+import { ArrowUpRight, Check, Link2, Rss } from 'lucide-static';
+import Base from '../layouts/Base.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import Icon from '../components/Icon.astro';
+import BrandMark from '../components/BrandMark.astro';
+import InstallCommand from '../components/InstallCommand.astro';
+import NewsTag from '../components/NewsTag.astro';
+import { stories, type Story, type Tag } from '../lib/news';
+import { REPO_URL, withBase } from '../lib/site';
+
+const days: { day: string; date: string; stories: Story[] }[] = [];
+for (const s of stories) {
+  const last = days.at(-1);
+  if (last?.day === s.day) last.stories.push(s);
+  else days.push({ day: s.day, date: s.date.slice(0, 10), stories: [s] });
+}
+
+const tags = [...new Set(stories.map((s) => s.tag).filter((t): t is Tag => !!t))].map((tag) => ({
+  tag,
+  count: stories.filter((s) => s.tag === tag).length,
+}));
+
+const newest = stories[0]?.slug;
+---
+
+<Base title="What's new" path="changelog/" description="The turboblake changelog: every speed-up, new platform and proof, newest first.">
+  <SiteHeader slot="header" />
+
+  <section class="head" aria-labelledby="changelog-title">
+    <div class="wrap">
+      <p class="kicker" data-reveal>Changelog</p>
+      <h1 id="changelog-title" class="display" data-reveal style="--i: 1">What's new in <span class="glow">turboblake.</span></h1>
+      <p class="lead" data-reveal style="--i: 2">
+        Every speed-up, new platform and proof, as it lands. Newest first, each with the full engineering write-up one click away.
+      </p>
+      <p class="actions" data-reveal style="--i: 3">
+        <a class="button" href={withBase('changelog/rss.xml')}><span><Icon svg={Rss} /> RSS feed</span></a>
+        <a class="button" href={REPO_URL}><span><BrandMark name="github" /> Watch on GitHub</span></a>
+      </p>
+    </div>
+  </section>
+
+  <section class="feed" aria-label="Updates" data-feed>
+    <div class="wrap">
+      <div class="filters" role="group" aria-label="Show updates about" data-reveal>
+        <button type="button" aria-pressed="true" data-filter="">All <span>{stories.length}</span></button>
+        {
+          tags.map((t) => (
+            <button type="button" aria-pressed="false" data-filter={t.tag}>
+              {t.tag} <span>{t.count}</span>
+            </button>
+          ))
+        }
+      </div>
+
+      {
+        days.map((d) => (
+          <section class="day" aria-label={d.day} data-day>
+            <h2 class="day-label">
+              <time datetime={d.date}>{d.day}</time>
+              <span>
+                {d.stories.length} update{d.stories.length === 1 ? '' : 's'}
+              </span>
+            </h2>
+            <ol class="entries" role="list">
+              {d.stories.map((s) => (
+                <li data-tag={s.tag ?? ''}>
+                  <article id={s.slug} class="entry tile" aria-labelledby={`${s.slug}-title`}>
+                    <header class="meta">
+                      {s.slug === newest && <span class="new">New</span>}
+                      <NewsTag tag={s.tag} />
+                    </header>
+                    <h3 id={`${s.slug}-title`}>
+                      <a href={`#${s.slug}`}>{s.headline}</a>
+                    </h3>
+                    {s.dek && <p class="dek">{s.dek}</p>}
+                    {s.stat && (
+                      <p class="stat">
+                        <span class="mega glow">{s.stat.value}</span>
+                        <span class="stat-label">{s.stat.label}</span>
+                      </p>
+                    )}
+                    {s.points.length > 0 && (
+                      <ul class="points" role="list">
+                        {s.points.map((p) => (
+                          <li>
+                            <Icon svg={Check} />
+                            <span>{p}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    <footer class="foot">
+                      <a class="more" href={s.writeUp}>
+                        Read the full write-up <Icon svg={ArrowUpRight} />
+                      </a>
+                      <button type="button" class="copy" data-copy={s.slug}>
+                        <Icon svg={Link2} />
+                        <span data-copy-label>Copy link</span>
+                      </button>
+                    </footer>
+                  </article>
+                </li>
+              ))}
+            </ol>
+          </section>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="get" aria-labelledby="get-title">
+    <div class="wrap">
+      <h2 id="get-title" data-reveal>Get every update in one line.</h2>
+      <div class="box" data-reveal style="--i: 1">
+        <InstallCommand class="big" />
+      </div>
+    </div>
+  </section>
+
+  <SiteFooter slot="footer" />
+</Base>
+
+<script>
+  const feed = document.querySelector<HTMLElement>('[data-feed]');
+  if (feed) {
+    const buttons = [...feed.querySelectorAll<HTMLButtonElement>('[data-filter]')];
+    const items = [...feed.querySelectorAll<HTMLElement>('li[data-tag]')];
+    const groups = [...feed.querySelectorAll<HTMLElement>('[data-day]')];
+    for (const button of buttons) {
+      button.addEventListener('click', () => {
+        const tag = button.dataset.filter ?? '';
+        for (const b of buttons) b.setAttribute('aria-pressed', String(b === button));
+        for (const li of items) li.hidden = tag !== '' && li.dataset.tag !== tag;
+        for (const g of groups) g.hidden = !g.querySelector('li[data-tag]:not([hidden])');
+      });
+    }
+
+    for (const button of feed.querySelectorAll<HTMLButtonElement>('[data-copy]')) {
+      const label = button.querySelector('[data-copy-label]');
+      button.addEventListener('click', async () => {
+        const url = new URL(`#${button.dataset.copy}`, location.href).href;
+        try {
+          await navigator.clipboard.writeText(url);
+          if (label) label.textContent = 'Copied';
+        } catch {
+          location.hash = button.dataset.copy ?? '';
+        }
+        setTimeout(() => label && (label.textContent = 'Copy link'), 1600);
+      });
+    }
+  }
+</script>
+
+<style>
+  .head {
+    padding-block: clamp(7rem, 5rem + 6vw, 10rem) clamp(2.5rem, 2rem + 2vw, 4rem);
+  }
+
+  .head .wrap {
+    display: grid;
+    gap: 1.25rem;
+    justify-items: start;
+  }
+
+  h1 {
+    font-size: clamp(2.75rem, 1.5rem + 5vw, 6rem);
+    max-width: 14ch;
+  }
+
+  .lead {
+    max-width: 40rem;
+    color: var(--ink-2);
+    font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .feed {
+    padding-bottom: clamp(4rem, 3rem + 4vw, 7rem);
+  }
+
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: clamp(2rem, 1.5rem + 2vw, 3rem);
+  }
+
+  .filters button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.45rem 0.9rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink-2);
+    font: inherit;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition:
+      color var(--t-med) var(--ease-out),
+      border-color var(--t-med) var(--ease-out),
+      background var(--t-med) var(--ease-out);
+  }
+
+  .filters button span {
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .filters button:hover {
+    color: var(--ink);
+    border-color: rgb(255 255 255 / 0.28);
+  }
+
+  .filters button[aria-pressed='true'] {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--void);
+  }
+
+  .filters button[aria-pressed='true'] span {
+    color: rgb(6 6 8 / 0.6);
+  }
+
+  /* A day: its date beside a timeline of entries. */
+  .day {
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  .day[hidden] {
+    display: none;
+  }
+
+  .day + .day {
+    margin-top: 3rem;
+  }
+
+  .day-label {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 0.75rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .day-label span {
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+
+  @media (min-width: 64rem) {
+    .day {
+      grid-template-columns: 12rem minmax(0, 1fr);
+      gap: 2.5rem;
+    }
+
+    .day-label {
+      position: sticky;
+      top: calc(var(--header-h) + 1.5rem);
+      align-self: start;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+  }
+
+  .entries {
+    position: relative;
+    display: grid;
+    gap: 1rem;
+    margin: 0;
+    padding: 0 0 0 1.75rem;
+    list-style: none;
+  }
+
+  /* The timeline: a line down the left, a dot per entry. */
+  .entries::before {
+    content: '';
+    position: absolute;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    left: 0.35rem;
+    width: 1px;
+    background: linear-gradient(var(--line-strong), var(--line) 85%, transparent);
+  }
+
+  .entries > li {
+    position: relative;
+  }
+
+  .entries > li::before {
+    content: '';
+    position: absolute;
+    top: 1.85rem;
+    left: calc(-1.75rem + 0.35rem - 4px);
+    width: 9px;
+    height: 9px;
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+    background: var(--void);
+  }
+
+  .entries > li:first-child::before {
+    border-color: var(--volt);
+    background: var(--volt);
+    box-shadow: 0 0 0 4px rgb(212 255 58 / 0.15);
+  }
+
+  .entry {
+    gap: 0.9rem;
+    scroll-margin-top: calc(var(--header-h) + 1.5rem);
+  }
+
+  .entry:target {
+    border-color: rgb(212 255 58 / 0.45);
+    box-shadow: 0 0 0 4px rgb(212 255 58 / 0.08);
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .new {
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    background: var(--volt);
+    color: var(--volt-ink);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .entry h3 {
+    font-size: clamp(1.375rem, 1.1rem + 1vw, 1.875rem);
+    font-weight: 650;
+    letter-spacing: -0.04em;
+    line-height: 1.12;
+    text-wrap: balance;
+  }
+
+  .entry h3 a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .entry h3 a:hover {
+    text-decoration: underline;
+    text-decoration-color: var(--line-strong);
+    text-underline-offset: 0.18em;
+  }
+
+  .dek {
+    max-width: 44rem;
+    color: var(--ink-2);
+    font-size: 1rem;
+    line-height: 1.55;
+  }
+
+  .stat {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 0.9rem;
+    padding-block: 0.25rem;
+  }
+
+  .stat .mega {
+    font-size: clamp(2.25rem, 1.6rem + 2.4vw, 3.5rem);
+  }
+
+  .stat-label {
+    max-width: 22rem;
+    color: var(--ink-3);
+    font-size: 0.875rem;
+  }
+
+  .points {
+    display: grid;
+    gap: 0.45rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .points li {
+    display: flex;
+    gap: 0.6rem;
+    color: var(--ink-2);
+    font-size: 0.9375rem;
+  }
+
+  .points :global(svg) {
+    margin-top: 0.2em;
+    color: var(--volt);
+  }
+
+  .foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 0.35rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .more {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--ink);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .more:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.6rem;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--ink-3);
+    font: inherit;
+    font-size: 0.8125rem;
+    cursor: pointer;
+  }
+
+  .copy:hover {
+    background: var(--surface-2);
+    color: var(--ink);
+  }
+
+  .get {
+    padding-block: clamp(4rem, 3rem + 4vw, 7rem);
+    border-top: 1px solid var(--line);
+    text-align: center;
+  }
+
+  .get .wrap {
+    display: grid;
+    justify-items: center;
+    gap: 1.5rem;
+  }
+
+  .get h2 {
+    font-size: clamp(2rem, 1.4rem + 2.4vw, 3.25rem);
+    letter-spacing: -0.05em;
+  }
+
+  .get .box {
+    width: min(100%, 40rem);
+  }
+
+  .get .box :global(.install) {
+    justify-items: center;
+  }
+</style>

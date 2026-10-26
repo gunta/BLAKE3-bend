@@ -15,7 +15,7 @@ import { tableView, gbPerSecond, parseBytes, splitInput } from '../lib/model';
 import { fmtRate } from '../lib/format';
 import { gpuMachines, gpuShares } from '../lib/more';
 import { lawCount } from '../lib/proofs';
-import { adr } from '../lib/adr';
+import { story } from '../lib/news';
 import { blobUrl, treeUrl } from '../lib/site';
 
 const links = [
@@ -36,7 +36,7 @@ const peak = gpuMachines
   })
   .sort((a, b) => b.rate - a.rate)[0]!;
 
-const refs = [adr('0006'), adr('0011')];
+const refs = [story('0006'), story('0011')].filter((s) => s !== undefined);
 ---
 
 <Base title="GPU: Bend against native kernels" path="gpu/" description="turboblake's GPU path, BLAKE3 written once in Bend2, against hand-written Metal and CUDA kernels on an Apple M5 Pro, an NVIDIA B200 and an L4.">
@@ -135,12 +135,12 @@ const refs = [adr('0006'), adr('0011')];
       <li class="card">
         <h3>Where the gap is</h3>
         <p>
-          A native kernel picks its memory layout and how many chunks a thread hashes; Bend's runtime schedules a tree of tasks. The decision records measure
+          A native kernel picks its memory layout and how many chunks a thread hashes; Bend's runtime schedules a tree of tasks. Two write-ups measure
           both:{' '}
           {refs.map((r, i) => (
             <>
-              {i > 0 && ', '}
-              <a href={r.url}>ADR {r.number}</a>
+              {i > 0 && ' and '}
+              <a href={r.writeUp}>{r.headline}</a>
             </>
           ))}.
         </p>

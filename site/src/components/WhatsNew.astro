@@ -1,0 +1,235 @@
+---
+/**
+ * The home page's latest news: the three newest changelog stories, the newest
+ * one large. GPU numbers stay in the Versus section, so a GPU story's stat is
+ * left for the changelog page.
+ */
+import { ArrowRight, Rss } from 'lucide-static';
+import Icon from './Icon.astro';
+import NewsTag from './NewsTag.astro';
+import { stories } from '../lib/news';
+import { withBase } from '../lib/site';
+
+const [lead, ...rest] = stories.slice(0, 3);
+const leadStat = lead?.tag !== 'GPU' ? lead?.stat : undefined;
+---
+
+{
+  lead && (
+    <section id="news" class="home-section news" aria-labelledby="news-title">
+      <div class="wrap">
+        <header class="home-head">
+          <p class="kicker" data-reveal>
+            What's new
+          </p>
+          <h2 id="news-title" data-reveal style="--i: 1">
+            Faster with <span class="glow">every update.</span>
+          </h2>
+          <p data-reveal style="--i: 2">
+            turboblake is built in the open, and every change is measured before it ships. The latest from the changelog:
+          </p>
+        </header>
+
+        <div class="bento grid">
+          <a class="tile lead" href={lead.href} data-reveal>
+            <span class="meta">
+              <span class="new">New</span>
+              <NewsTag tag={lead.tag} />
+              <time datetime={lead.date}>{lead.day}</time>
+            </span>
+            <span class="headline">{lead.headline}</span>
+            {lead.dek && <span class="tile-body">{lead.dek}</span>}
+            {leadStat && (
+              <span class="stat">
+                <span class="mega glow">{leadStat.value}</span>
+                <span class="stat-label">{leadStat.label}</span>
+              </span>
+            )}
+            <span class="read">
+              Read the story <Icon svg={ArrowRight} />
+            </span>
+          </a>
+
+          {rest.map((s, i) => (
+            <a class:list={['tile', 'side', `side-${i}`]} href={s.href} data-reveal style={`--i: ${i + 1}`}>
+              <span class="meta">
+                <NewsTag tag={s.tag} />
+                <time datetime={s.date}>{s.day}</time>
+              </span>
+              <span class="headline small">{s.headline}</span>
+              <span class="read">
+                Read <Icon svg={ArrowRight} />
+              </span>
+            </a>
+          ))}
+        </div>
+
+        <p class="all" data-reveal>
+          <a class="button" href={withBase('changelog/')}>
+            <span>
+              All {stories.length} updates <Icon svg={ArrowRight} />
+            </span>
+          </a>
+          <a class="rss" href={withBase('changelog/rss.xml')}>
+            <Icon svg={Rss} /> RSS
+          </a>
+        </p>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .grid {
+    grid-template-areas:
+      'lead lead b b'
+      'lead lead c c';
+  }
+
+  .lead {
+    grid-area: lead;
+  }
+
+  .side-0 {
+    grid-area: b;
+  }
+
+  .side-1 {
+    grid-area: c;
+  }
+
+  @media (max-width: 61.99rem) {
+    .grid {
+      grid-template-areas:
+        'lead lead'
+        'b c';
+    }
+  }
+
+  @media (max-width: 39.99rem) {
+    .grid {
+      grid-template-areas: none;
+    }
+
+    .grid > * {
+      grid-area: auto;
+    }
+  }
+
+  .tile {
+    color: inherit;
+    text-decoration: none;
+    transition:
+      transform var(--t-med) var(--ease-out),
+      border-color var(--t-med) var(--ease-out);
+  }
+
+  .tile:hover {
+    transform: translateY(-3px);
+    border-color: var(--line-strong);
+  }
+
+  .lead {
+    gap: 1rem;
+    padding: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+    background:
+      radial-gradient(90% 70% at 100% 0%, rgb(212 255 58 / 0.07), transparent 60%),
+      radial-gradient(120% 90% at 0% 100%, rgb(70 227 255 / 0.05), transparent 60%),
+      var(--surface);
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.65rem;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+  }
+
+  .new {
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    background: var(--volt);
+    color: var(--volt-ink);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .headline {
+    font-size: clamp(1.75rem, 1.2rem + 2vw, 2.75rem);
+    font-weight: 650;
+    letter-spacing: -0.05em;
+    line-height: 1.04;
+    text-wrap: balance;
+  }
+
+  .headline.small {
+    flex: 1;
+    font-size: clamp(1.25rem, 1.05rem + 0.8vw, 1.5rem);
+    letter-spacing: -0.035em;
+    line-height: 1.15;
+  }
+
+  .lead .tile-body {
+    max-width: 36rem;
+  }
+
+  .stat {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 0.9rem;
+    margin-top: auto;
+  }
+
+  .stat .mega {
+    font-size: clamp(3rem, 2rem + 4vw, 5.5rem);
+  }
+
+  .stat-label {
+    color: var(--ink-3);
+    font-size: 0.9375rem;
+  }
+
+  .read {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--ink);
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .read :global(svg) {
+    transition: transform var(--t-med) var(--ease-out);
+  }
+
+  .tile:hover .read :global(svg) {
+    transform: translateX(3px);
+  }
+
+  .all {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+  }
+
+  .rss {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--ink-3);
+    font-size: 0.875rem;
+    text-decoration: none;
+  }
+
+  .rss:hover {
+    color: var(--ink);
+  }
+</style>
