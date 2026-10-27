@@ -20,7 +20,7 @@ interface Props {
 const { bare = false } = Astro.props;
 const lead = versus?.lead;
 const input = versus?.input ?? '';
-const kernels = story('0013');
+const kernels = story('0017');
 ---
 
 {
@@ -94,8 +94,8 @@ const kernels = story('0013');
               {versus.machines.some((m) => m.gpuMemory) && <> On the {versus.machines.find((m) => m.gpuMemory)?.title} the GPU reads it from its own memory.</>}{' '}
             </>
           )}
-          The native kernels are hand-written CUDA and Metal in the repository; the command line and the library run Bend's tree on the CPU today and take
-          the GPU <a href={kernels?.href}>next</a>.{' '}
+          The native kernels are hand-written CUDA and Metal in the repository, and the library, the crate and the bindings <a href={kernels?.href}>run them</a>;
+          the command line stays on the CPU, where a one-shot run finishes first.{' '}
           {bare ? (
             <>
               Each GPU at every size is on <a href={withBase('gpu/')}>the GPU page</a>.

@@ -196,7 +196,7 @@ const reproduce: { title: string; icon: StepIcon; body: string; code: string }[]
             {versus.input} already in memory, on the fastest GPU measured ({versus.lead.title}, {versus.lead.where}) and on this {machineName}. SHA-256 is
             what most checksum files use; it chains each block to the one before, so one input runs on one core, here with the CPU's own SHA instructions.
             The official BLAKE3 runs on one core or, through rayon, on every core. turboblake adds the GPU twice: Bend's own GPU path, and the hand-written
-            native kernel that the command line and the library take next (<a href={story('0013')?.href}>the story</a>).
+            native kernel that the library, the crate and the bindings run (<a href={story('0017')?.href}>the story</a>); the command line stays on the CPU.
           </p>
           {oneCore.length > 0 && (
             <p>
