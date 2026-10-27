@@ -6,6 +6,7 @@
 import { results } from './results';
 import { gpuMachines } from './more';
 import { withBase } from './site';
+import { gpuApiOf } from './stack';
 import { fmtList, fmtMeasured, fmtRange, fmtRate } from './format';
 import {
   buildTable,
@@ -29,23 +30,26 @@ export { results };
 
 // ---------------------------------------------------------------- tables
 
+/** Every table here was measured on the one machine results.json describes. */
+const onMachine = { gpu: gpuApiOf(Object.values(results.machine).join(' ')) };
+
 export const inMemory: Table = buildTable(results.in_memory, {
   rust: { label: 'Rust blake3', description: 'the official blake3 crate, NEON + rayon' },
   bend_cpu: { label: 'Bend CPU', description: 'Bend on the CPU cores (8-lane compress8)' },
   bend_gpu: { label: 'Bend GPU', description: 'Bend on the GPU (hash1!)' },
-});
+}, onMachine);
 
 export const cli: Table = buildTable(results.cli, {
   b3sum: { label: 'b3sum', description: 'the official b3sum CLI' },
   bend: { label: 'turboblake', description: 'its Bend engine and loader, measured as bend/b3sum.bend' },
-});
+}, onMachine);
 
 /** Real model weights, one shot: the case where most of the file is on disk. */
 export const models: Table | undefined = results.models
   ? buildTable(results.models, {
       b3sum: { label: 'b3sum', description: 'the official b3sum CLI' },
       bend: { label: 'turboblake', description: 'its Bend engine and loader, streaming what is not cached' },
-    })
+    }, onMachine)
   : undefined;
 
 export const daemon: Table | undefined = results.daemon
@@ -55,7 +59,7 @@ export const daemon: Table | undefined = results.daemon
       bend: { label: 'Bend', description: 'Bend, in a long-running process' },
       bend_cpu: { label: 'Bend CPU', description: 'Bend on the CPU cores, in a long-running process' },
       bend_gpu: { label: 'Bend GPU', description: 'Bend on the GPU, heap set up once' },
-    })
+    }, onMachine)
   : undefined;
 
 /** True while the iroh note says the Bend side computes the root hash only. */
@@ -69,7 +73,7 @@ export const iroh: Table | undefined = results.iroh
       bend: irohHashOnly
         ? { label: 'Bend, hash only', description: 'root hash only, no outboard yet' }
         : { label: 'Bend, hash + outboard', description: 'the same hash and bao outboard, in a long-running process' },
-    })
+    }, onMachine)
   : undefined;
 
 // ---------------------------------------------------------------- charts

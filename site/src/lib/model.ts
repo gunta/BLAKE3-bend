@@ -8,6 +8,7 @@
  */
 import type { RawTable } from './results';
 import { fmtMeasured, fmtRate, fmtRatio, fmtX, slug } from './format';
+import { stackOf, type GpuApi, type Stack } from './stack';
 
 /** Within this band either way (5%), a result is called a tie. */
 export const TIE_BAND = 0.05;
@@ -35,6 +36,8 @@ export interface Series {
   description: string | undefined;
   isBend: boolean;
   tone: Tone;
+  /** Written in, CPU or GPU, and the GPU API: the icons beside its name. */
+  stack: Stack;
 }
 
 export interface Row {
@@ -73,7 +76,8 @@ function humanize(key: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-export function buildTable(raw: RawTable, meta: Readonly<Record<string, SeriesMeta>> = {}): Table {
+/** `gpu`: the API of the machine the table was measured on, for series that run on its GPU. */
+export function buildTable(raw: RawTable, meta: Readonly<Record<string, SeriesMeta>> = {}, opts: { gpu?: GpuApi | undefined } = {}): Table {
   const first = raw.rows[0];
   if (!first) throw new Error('results.json: a table has no rows');
   const labelKey = Object.keys(first).find((k) => typeof first[k] === 'string');
@@ -102,7 +106,8 @@ export function buildTable(raw: RawTable, meta: Readonly<Record<string, SeriesMe
       tone = baseTones[Math.min(baseCount++, baseTones.length - 1)] ?? 'base-1';
     }
     const m = meta[key];
-    return { key, label: m?.label ?? humanize(key), description: m?.description, isBend, tone };
+    const label = m?.label ?? humanize(key);
+    return { key, label, description: m?.description, isBend, tone, stack: stackOf({ key, label, description: m?.description }, opts.gpu) };
   });
 
   const bend = series.filter((s) => s.isBend);
@@ -391,7 +396,8 @@ export interface TableCell {
 
 export interface TableView {
   caption: string;
-  head: string[];
+  /** A measurement column carries its series' stack, for the icons in its header. */
+  head: { text: string; stack?: Stack }[];
   rows: { header: string; cells: TableCell[] }[];
 }
 
@@ -402,9 +408,9 @@ export interface TableView {
 export function tableView(table: Table, caption: string, opts: { throughput?: boolean } = {}): TableView {
   const pairs = table.bend.flatMap((b) => table.baselines.map((base) => ({ b, base })));
   const head = [
-    table.rowHeader,
-    ...table.series.map((s) => `${s.label} (${table.valueUnit})`),
-    ...pairs.map(({ b, base }) => `${b.label} vs ${base.label}`),
+    { text: table.rowHeader },
+    ...table.series.map((s) => ({ text: `${s.label} (${table.valueUnit})`, stack: s.stack })),
+    ...pairs.map(({ b, base }) => ({ text: `${b.label} vs ${base.label}` })),
   ];
   const rows = table.rows.map((row) => {
     const bytes = opts.throughput ? parseBytes(splitInput(row.label).size) : undefined;

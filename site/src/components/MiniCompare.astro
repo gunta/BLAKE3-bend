@@ -2,8 +2,7 @@
 /** Two bars, baseline vs Bend, for a headline figure. Times: shorter is faster. */
 import type { Comparison } from '../lib/model';
 import { fmtMeasured } from '../lib/format';
-import { seriesMark } from '../lib/brands';
-import BrandMark from './BrandMark.astro';
+import Stack from './Stack.astro';
 
 interface Props {
   comparison: Comparison;
@@ -23,7 +22,7 @@ const rows = [
     rows.map((r) => (
       <div class:list={['row', { bend: r.series.isBend }]}>
         <dt>
-          {seriesMark(r.series.key) && <BrandMark name={seriesMark(r.series.key)!} class="series-mark" />}
+          <Stack stack={r.series.stack} class="series-mark" />
           {r.series.label}
         </dt>
         <dd>
@@ -65,7 +64,6 @@ const rows = [
   }
 
   dt :global(.series-mark) {
-    margin-right: 0.3rem;
     color: var(--ink-3);
   }
 

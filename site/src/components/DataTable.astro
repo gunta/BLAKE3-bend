@@ -2,6 +2,7 @@
 /** The table twin of a chart: every value and every speedup, behind a native disclosure. */
 import type { TableView } from '../lib/model';
 import { VERDICT } from '../lib/model';
+import Stack from './Stack.astro';
 
 interface Props {
   view: TableView;
@@ -22,7 +23,12 @@ const { view, id, open = false } = Astro.props;
       <caption id={`${id}-caption`}>{view.caption}</caption>
       <thead>
         <tr>
-          {view.head.map((h, i) => <th scope="col" class:list={{ num: i > 0 }}>{h}</th>)}
+          {view.head.map((h, i) => (
+            <th scope="col" class:list={{ num: i > 0 }}>
+              {h.stack && <Stack stack={h.stack} class="head-stack" />}
+              {h.text}
+            </th>
+          ))}
         </tr>
       </thead>
       <tbody>
@@ -113,6 +119,10 @@ const { view, id, open = false } = Astro.props;
     font-size: 0.8125rem;
     white-space: nowrap;
     vertical-align: bottom;
+  }
+
+  thead :global(.head-stack) {
+    color: var(--ink-3);
   }
 
   tbody th {

@@ -10,6 +10,7 @@ import { z } from 'astro/zod';
 import { results } from './results';
 import { fmtMeasured, fmtRate } from './format';
 import { buildTable, gbPerSecond, parseBytes, type Table } from './model';
+import { gpuApiOf, stackOf, type Stack } from './stack';
 
 const kind = z.enum(['bend', 'blake3', 'other']);
 
@@ -53,6 +54,8 @@ export interface VersusBar {
   share: number;
   /** The fastest of the machine's sides. */
   best: boolean;
+  /** Written in, CPU or GPU, and the GPU API, on this machine. */
+  stack: Stack;
 }
 
 export interface VersusMachine {
@@ -117,6 +120,7 @@ function machineOf(row: Record<string, string | number | null>, i: number): Vers
       timesSha: sha / s.ms,
       share: s.rate / top,
       best: s.rate === top,
+      stack: stackOf({ key: s.key, label: raw.series[s.key]!.label, description: `${raw.series[s.key]!.description ?? ''} ${detail(s.key, m)}` }, gpuApiOf(m.api)),
     }),
   );
   const fastest = bars.find((b) => b.best);

@@ -8,8 +8,9 @@
 import type { Chart } from '../lib/model';
 import { TIE_TEXT, VERDICT, fmtSpeedup } from '../lib/model';
 import { fmtTick } from '../lib/format';
-import { seriesMark } from '../lib/brands';
-import BrandMark from './BrandMark.astro';
+import { stackEm } from '../lib/stack';
+import { textEm } from '../lib/outline';
+import Stack from './Stack.astro';
 
 interface Props {
   chart: Chart;
@@ -19,14 +20,17 @@ interface Props {
 
 const { chart, caption } = Astro.props;
 const intervals = Math.max(1, chart.axis.ticks.length - 1);
-const nameChars = Math.max(...chart.series.map((s) => s.label.length));
+/** The widest bar name in em, its icons and its weight (Bend rows are bold) included. */
+const nameEm = Math.max(
+  ...(await Promise.all(chart.series.map(async (s) => (await textEm(s.label, { wght: s.isBend ? 600 : 400 })) + stackEm(s.stack)))),
+);
 const hasComparisons = chart.groups.some((g) => g.bars.some((b) => b.comparison));
 const titleId = `${chart.id}-title`;
 const scaleId = `${chart.id}-scale`;
 const betterWord = chart.better === 'lower' ? 'shorter bars are faster' : 'longer bars are faster';
 ---
 
-<figure class="chart" data-reveal aria-labelledby={chart.title ? titleId : scaleId} style={`--name-w: calc(${nameChars}ch + 2.4rem); --n: ${intervals};`}>
+<figure class="chart" data-reveal aria-labelledby={chart.title ? titleId : scaleId} style={`--name-w: calc(${(nameEm + 0.75).toFixed(2)}em + 0.75rem); --n: ${intervals};`}>
   <div class="chart-inner">
   <div class="chart-head">
     {chart.title && <h3 class="chart-title" id={titleId}>{chart.title}</h3>}
@@ -38,9 +42,9 @@ const betterWord = chart.better === 'lower' ? 'shorter bars are faster' : 'longe
   <ul class="legend" role="list" aria-label="Series">
     {
       chart.series.map((s) => (
-        <li data-series={s.key}>
+        <li data-series={s.key} data-bend={s.isBend || undefined}>
           <span class={`swatch tone-${s.tone}`} aria-hidden="true" />
-          {seriesMark(s.key) && <BrandMark name={seriesMark(s.key)!} class="series-mark" />}
+          <Stack stack={s.stack} class="series-mark" />
           <span class="legend-name">{s.label}</span>
           {s.description && <span class="legend-desc">{s.description}</span>}
         </li>
@@ -61,7 +65,7 @@ const betterWord = chart.better === 'lower' ? 'shorter bars are faster' : 'longe
                 return (
                   <li class:list={['bar-row', { bend: b.series.isBend }]} data-series={b.series.key}>
                     <span class="bar-name">
-                      {seriesMark(b.series.key) && <BrandMark name={seriesMark(b.series.key)!} class="series-mark" />}
+                      <Stack stack={b.series.stack} class="series-mark" />
                       {b.series.label}
                     </span>
                     <span class="track" aria-hidden="true">
@@ -173,12 +177,11 @@ const betterWord = chart.better === 'lower' ? 'shorter bars are faster' : 'longe
   }
 
   .chart :global(.series-mark) {
-    margin-right: 0.35rem;
     color: var(--ink-3);
   }
 
   .bar-row.bend :global(.series-mark),
-  .legend :global(.merge) {
+  .legend [data-bend] :global(.series-mark) {
     color: var(--volt);
   }
 
@@ -245,12 +248,11 @@ const betterWord = chart.better === 'lower' ? 'shorter bars are faster' : 'longe
     row-gap: 0.15rem;
   }
 
+  /* Narrow, a long name wraps under its icons rather than losing its end. */
   .bar-name {
     grid-area: name;
     color: var(--ink-2);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow-wrap: anywhere;
   }
 
   .bar-row.bend .bar-name {
@@ -456,6 +458,9 @@ const betterWord = chart.better === 'lower' ? 'shorter bars are faster' : 'longe
 
     .bar-name {
       padding-right: 0.75rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .bar-value {

@@ -8,6 +8,7 @@
 import { BookOpen, FolderTree, HardDriveDownload, ShieldCheck, Terminal } from 'lucide-static';
 import BrandMark from './BrandMark.astro';
 import Icon from './Icon.astro';
+import Stack from './Stack.astro';
 import { folders, laws, machine, model, universalLaws } from '../lib/home';
 import { withBase } from '../lib/site';
 
@@ -41,7 +42,7 @@ const cells = Array.from({ length: 96 }, (_, i) => ((i * 37) % 23) / 23);
             <div class="lanes" aria-hidden="true">
               <div class="lane is-bend finished" style="--p: 1">
                 <span class="who">
-                  <BrandMark name="merge" /> turboblake
+                  <Stack stack={model.bendStack} /> turboblake
                 </span>
                 <span class="track">
                   <span class="fill" />
@@ -52,7 +53,7 @@ const cells = Array.from({ length: 96 }, (_, i) => ((i * 37) % 23) / 23);
               </div>
               <div class="lane is-base" style={`--p: ${(model.bend / model.baseline).toFixed(4)}`}>
                 <span class="who">
-                  <BrandMark name="b3" /> {model.baselineLabel}
+                  <Stack stack={model.baselineStack} /> {model.baselineLabel}
                 </span>
                 <span class="track">
                   <span class="fill" />
@@ -303,7 +304,12 @@ const cells = Array.from({ length: 96 }, (_, i) => ((i * 37) % 23) / 23);
     font-weight: 600;
   }
 
-  .is-bend .who :global(.brandmark) {
+  .who :global(.stack) {
+    margin-right: 0;
+    color: var(--ink-3);
+  }
+
+  .is-bend .who :global(.stack) {
     color: var(--volt);
   }
 

@@ -116,9 +116,20 @@ respects `prefers-reduced-motion`.
 ## Other projects' marks
 
 Official marks name the projects the page talks about: BLAKE3, Bend, Rust, C,
-iroh, DeepSeek, Hugging Face, NVIDIA, vgpu, WebGPU, Astro, GitHub. Sources are
-in `src/lib/brands.ts`. They stay their owners' trademarks; mono by default.
-Apple's logo is not used. UI icons are Lucide.
+Go, JavaScript, WebAssembly, iroh, DeepSeek, Hugging Face, NVIDIA, Apple, vgpu,
+WebGPU, Astro, GitHub. Sources are in `src/lib/brands.ts`. They stay their
+owners' trademarks; mono by default. Apple's mark names Apple silicon and its
+GPU API, Metal, which has no mark of its own; NVIDIA's does the same for CUDA.
+UI icons are Lucide.
+
+Every measured implementation, in every chart, table and comparison, carries
+its stack before its name (`src/lib/stack.ts`, `Stack.astro`): what it is
+written in, the CPU or the GPU, then the GPU API. So "Bend · GPU · Metal",
+"Rust · CPU", "NVIDIA · GPU" for a hand-written CUDA kernel. Bend shows as its
+wordmark and purple cursor in text, since its logo tile is unreadable at 1em.
+The stack is read from each series' label and description in `results.json`
+and the machine it ran on, so a new series needs no code; the tooltip says it
+in words.
 
 ## Assets
 

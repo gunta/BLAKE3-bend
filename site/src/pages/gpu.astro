@@ -11,18 +11,26 @@ import Section from '../components/Section.astro';
 import BarChart from '../components/BarChart.astro';
 import DataTable from '../components/DataTable.astro';
 import Note from '../components/Note.astro';
+import BrandMark from '../components/BrandMark.astro';
 import { tableView, gbPerSecond, parseBytes, splitInput } from '../lib/model';
 import { fmtRate } from '../lib/format';
 import { gpuMachines, gpuShares } from '../lib/more';
 import { lawCount } from '../lib/proofs';
 import { story } from '../lib/news';
 import { blobUrl, treeUrl } from '../lib/site';
+import { VENDOR_MARK, gpuApiOf } from '../lib/stack';
 
 const links = [
   { href: '#summary', label: 'Summary' },
   ...gpuMachines.map((m) => ({ href: `#${m.id}`, label: m.title.replace(/^NVIDIA /, '') })),
   { href: '#why', label: 'Why Bend' },
 ];
+
+/** The GPU's maker, from the machine's name: NVIDIA's mark or Apple's. */
+const vendor = (title: string) => {
+  const api = gpuApiOf(title);
+  return api && VENDOR_MARK[api];
+};
 
 const pct = (x: number | undefined) => (x === undefined ? 'n/a' : `${Math.round(x * 100)}%`);
 
@@ -71,7 +79,7 @@ const refs = [story('0006'), story('0011')].filter((s) => s !== undefined);
               <span class="share-n num">{pct(s.share)}</span>
               <span class="share-of">of native speed</span>
               <span class="share-where">
-                {s.title}, {s.input}
+                {vendor(s.title) && <BrandMark name={vendor(s.title)!} />} {s.title}, {s.input}
               </span>
             </li>
           ))
@@ -82,7 +90,7 @@ const refs = [story('0006'), story('0011')].filter((s) => s !== undefined);
 
   {
     gpuMachines.map((m, i) => (
-      <Section id={m.id} kicker={m.machine} title={`${m.title}: Bend against native`} tone={i % 2 === 0 ? 'alt' : 'plain'}>
+      <Section id={m.id} kicker={m.machine} mark={vendor(m.title)} title={`${m.title}: Bend against native`} tone={i % 2 === 0 ? 'alt' : 'plain'}>
         <Fragment slot="lede">
           <p>
             GB/s from the input size and the measured time, so longer bars are faster. The speedup on each Bend bar is against the fastest native kernel on that

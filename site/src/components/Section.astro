@@ -1,12 +1,17 @@
 ---
+import BrandMark from './BrandMark.astro';
+import type { MarkName } from '../lib/brands';
+
 interface Props {
   id: string;
   title: string;
   kicker?: string;
+  /** A mark before the kicker, such as the vendor of the machine a section measured. */
+  mark?: MarkName | undefined;
   tone?: 'plain' | 'alt';
 }
 
-const { id, title, kicker, tone = 'plain' } = Astro.props;
+const { id, title, kicker, mark, tone = 'plain' } = Astro.props;
 ---
 
 <section id={id} class:list={['section', `tone-${tone}`]} aria-labelledby={`${id}-title`}>
@@ -14,6 +19,7 @@ const { id, title, kicker, tone = 'plain' } = Astro.props;
     <header class="section-head">
       {kicker && (
         <p class="kicker" data-reveal>
+          {mark && <BrandMark name={mark} class="kicker-mark" />}
           {kicker}
         </p>
       )}
@@ -27,6 +33,10 @@ const { id, title, kicker, tone = 'plain' } = Astro.props;
 </section>
 
 <style>
+  .section-head :global(.kicker-mark) {
+    margin-right: 0.5em;
+  }
+
   .section {
     position: relative;
     padding-block: clamp(4rem, 2.5rem + 4vw, 6.5rem);

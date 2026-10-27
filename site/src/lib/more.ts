@@ -7,6 +7,7 @@
 import { z } from 'astro/zod';
 import { results } from './results';
 import { buildTable, throughputCharts, timeChart, type Chart, type Table } from './model';
+import { gpuApiOf } from './stack';
 
 const kind = z.enum(['bend', 'blake3', 'other']);
 
@@ -50,7 +51,7 @@ function pick(raw: RawMore, keys: readonly string[]): Table {
       return s ? [[k, s.description === undefined ? { label: s.label } : { label: s.label, description: s.description }] as const] : [];
     }),
   );
-  return buildTable({ unit: raw.unit, note: raw.note, rows }, meta);
+  return buildTable({ unit: raw.unit, note: raw.note, rows }, meta, { gpu: gpuApiOf(`${raw.title} ${raw.machine}`) });
 }
 
 /** Speedups against the BLAKE3 alternatives only; other hashes are shown for scale. */

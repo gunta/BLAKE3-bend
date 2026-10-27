@@ -1,7 +1,7 @@
 /**
  * Text as SVG outlines in the brand's own fonts, for images rendered at build
  * time (the Open Graph card): librsvg cannot load web fonts, so the glyphs are
- * drawn as paths instead. The fonts are the same variable WOFF2 files the page
+ * drawn as paths instead. Also the width of a label, for sizing a column to it. The fonts are the same variable WOFF2 files the page
  * serves (Geist, Geist Mono), decompressed and instanced at the requested weight.
  */
 import { readFileSync } from 'node:fs';
@@ -40,6 +40,12 @@ export interface OutlineOptions {
   wght?: number;
   /** Extra space between letters, in em. */
   tracking?: number;
+}
+
+/** The advance width of `text` in em: how wide it sets at any font size. */
+export async function textEm(text: string, opts: { face?: Face; wght?: number } = {}): Promise<number> {
+  const font = await load(opts.face ?? 'sans', opts.wght ?? 400);
+  return font.layout(text).advanceWidth / font.unitsPerEm;
 }
 
 /** Outlines of `text` with its baseline at the origin; `width` is the advance in px. */

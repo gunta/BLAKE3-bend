@@ -1,12 +1,19 @@
 ---
 /**
  * Every official mark once, as <symbol>s; BrandMark.astro draws them with <use>,
- * so a mark that appears thirty times on the page is sent once. Base.astro
- * renders this at the top of <body>.
+ * so a mark that appears thirty times on the page is sent once. The same for the
+ * Lucide icons in every stack (Stack.astro: the CPU and the GPU, `#ui-cpu`,
+ * `#ui-gpu`), which a page can show hundreds of times. Base.astro renders this
+ * at the top of <body>.
  */
+import { Cpu, Gpu } from 'lucide-static';
 import { MARKS, type Mark } from '../lib/brands';
 
 const marks = Object.entries(MARKS) as [string, Mark][];
+const ui = Object.entries({ cpu: Cpu, gpu: Gpu }).map(([name, svg]) => ({
+  name,
+  inner: svg.replace(/^[\s\S]*?<svg[^>]*>/, '').replace(/<\/svg>\s*$/, ''),
+}));
 ---
 
 <svg class="brand-sprite" aria-hidden="true" focusable="false">
@@ -18,6 +25,20 @@ const marks = Object.entries(MARKS) as [string, Mark][];
           {mark.circles?.map((c) => <circle cx={c.cx} cy={c.cy} r={c.r} />)}
         </g>
       </symbol>
+    ))
+  }
+  {
+    ui.map((u) => (
+      <symbol
+        id={`ui-${u.name}`}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.75"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        set:html={u.inner}
+      />
     ))
   }
 </svg>

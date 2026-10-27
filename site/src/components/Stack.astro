@@ -1,0 +1,101 @@
+---
+/**
+ * What a measured implementation is made of (src/lib/stack.ts), as icons before
+ * its name: the language it is written in, the CPU or the GPU, then the GPU API.
+ * Metal shows as Apple's mark and CUDA as NVIDIA's, the GPUs they drive. Bend
+ * shows as its logo drawn in text, the word and its purple cursor, since the
+ * logo's tile (src/assets/brands/bend.png) is unreadable at this size. The same
+ * in words is its tooltip and what screen readers hear.
+ */
+import BrandMark from './BrandMark.astro';
+import type { MarkName } from '../lib/brands';
+import { VENDOR_MARK, stackParts, stackText, type Part, type Stack } from '../lib/stack';
+
+interface Props {
+  stack: Stack;
+  class?: string;
+}
+
+const { stack, class: className } = Astro.props;
+const parts = stackParts(stack);
+const text = stackText(stack);
+
+const MARK: Partial<Record<Part, MarkName>> = {
+  rust: 'rust',
+  c: 'c',
+  go: 'go',
+  javascript: 'javascript',
+  webassembly: 'webassembly',
+  ...VENDOR_MARK,
+};
+---
+
+{
+  parts.length > 0 && (
+    <span class:list={['stack', className]} role="img" aria-label={text} title={text}>
+      {parts.map((p) => {
+        const mark = MARK[p];
+        if (p === 'bend')
+          return (
+            <span class="part part-bend">
+              Bend<span class="cursor" />
+            </span>
+          );
+        if (mark) return <BrandMark name={mark} class={`part part-${p}`} />;
+        // The CPU and the GPU: Lucide icons, sent once in BrandSprite.astro.
+        return (
+          <svg class={`part part-${p}`} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <use href={`#ui-${p}`} />
+          </svg>
+        );
+      })}
+    </span>
+  )
+}
+
+<style>
+  .stack {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 0.3em;
+    margin-right: 0.45em;
+    vertical-align: -0.05em;
+    line-height: 1;
+  }
+
+  .stack :global(.part) {
+    width: 1.05em;
+    height: 1.05em;
+    vertical-align: 0;
+  }
+
+  /* Bend's logo: the word, then a block cursor in its purple (#8b83b5 in the logo). */
+  .stack .part-bend {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.1em;
+    width: auto;
+    height: auto;
+    font-size: 0.8em;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+  }
+
+  .cursor {
+    width: 0.38em;
+    height: 0.95em;
+    background: #8b83b5;
+  }
+
+  /* Where it runs reads as a second word: a hair more space before the CPU or GPU. */
+  .stack :global(.part-cpu),
+  .stack :global(.part-gpu) {
+    margin-left: 0.1em;
+  }
+
+  .stack :global(.part-gpu + .part-cpu),
+  .stack :global(.part-cpu + .part-gpu) {
+    margin-left: 0;
+  }
+</style>

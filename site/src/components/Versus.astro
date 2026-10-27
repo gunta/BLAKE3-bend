@@ -5,9 +5,8 @@
  * a section; the benchmarks page passes `bare` and gives it its own heading.
  * Numbers come from src/lib/versus.ts.
  */
-import { Laptop } from 'lucide-static';
 import BrandMark from './BrandMark.astro';
-import Icon from './Icon.astro';
+import Stack from './Stack.astro';
 import { fmtTimes, versus } from '../lib/versus';
 import { story } from '../lib/news';
 import { withBase } from '../lib/site';
@@ -47,7 +46,7 @@ const kernels = story('0017');
             <article class:list={['tile', 'machine', `m-${m.id}`]} data-reveal style={`--i: ${i}`}>
               <div class="m-head">
                 <p class="tile-kicker">
-                  {m.api === 'CUDA' ? <BrandMark name="nvidia" tone="brand" /> : <Icon svg={Laptop} />} {m.title} · {m.api}
+                  <BrandMark name={m.api === 'CUDA' ? 'nvidia' : 'apple'} tone={m.api === 'CUDA' ? 'brand' : 'mono'} /> {m.title} · {m.api}
                 </p>
                 <p class="m-where">{m.where}</p>
               </div>
@@ -68,7 +67,7 @@ const kernels = story('0017');
                   <li class:list={['bar', `k-${b.kind}`, `s-${b.key}`, { best: b.best }]} style={`--p: ${b.share.toFixed(5)}; --j: ${j}`}>
                     <span class="label">
                       <span class="name">
-                        {b.kind === 'bend' && <BrandMark name="merge" />}
+                        <Stack stack={b.stack} />
                         {b.label}
                       </span>
                       <span class="detail">{b.detail}</span>
@@ -215,14 +214,17 @@ const kernels = story('0017');
     font-weight: 550;
   }
 
-  .name :global(.brandmark) {
-    width: 1rem;
-    height: 1rem;
-    color: var(--volt);
+  .name :global(.stack) {
+    margin-right: 0;
+    color: var(--ink-3);
   }
 
   .k-bend .name {
     color: var(--ink);
+  }
+
+  .k-bend .name :global(.stack) {
+    color: var(--volt);
   }
 
   .detail {

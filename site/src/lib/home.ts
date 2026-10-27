@@ -25,6 +25,8 @@ export const model = (() => {
     bend: c.bendValue,
     baseline: c.baselineValue,
     baselineLabel: c.baseline.label,
+    bendStack: c.bend.stack,
+    baselineStack: c.baseline.stack,
   };
 })();
 
