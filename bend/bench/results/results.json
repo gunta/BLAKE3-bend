@@ -485,7 +485,7 @@
     {
       "adr": "0019",
       "title": "The keyed loop starts from constants",
-      "summary": "The keyed chunk loop started its CVs at the key, values known only at run time, and clang left it scalar (2.2x slower per core). It now starts at zeros and xors the key in as a delta on the first block, so it vectorizes like the default loop: keyed 1 GiB on every core 70-75 -> 34-36 ms, 256 MiB on one core 194 -> 105-119 ms. Proven, as ADR 0015's keyed tree.",
+      "summary": "The keyed chunk loop started its CVs at the key, values known only at run time, and clang left it scalar (2.2x slower per core). It now starts at zeros and xors the key in as a delta on the first block, so it vectorizes like the default loop: keyed 1 GiB on every core 70-75 -> 34-36 ms, 256 MiB on one core 194 -> 105-119 ms. Still proven equal to BLAKE3's keyed tree.",
       "date": "2026-10-27T06:30:00+09:00",
       "tag": "Speed",
       "headline": "Keyed hashing and key derivation, twice as fast",

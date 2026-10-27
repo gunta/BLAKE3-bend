@@ -51,7 +51,9 @@ beside it.
 Every ADR is told as news, newest first: a headline, a two-sentence standfirst
 for someone who uses turboblake, one stat, and up to three points. Readers never
 see ADR numbers or the words "decision record"; the full write-up is a link at
-the foot of each story. The words live beside the technical summary in
+the foot of each story. That holds for every page, `summary` and `note` included:
+`pnpm build` ends with `scripts/check-copy.ts`, which fails on either in the
+built text. The words live beside the technical summary in
 `results.json` `techniques` (`headline`, `dek`, `stat`, `points`, `tag`, `date`),
 so the numbers keep one source. An ADR without them still appears, under its
 own title. Headlines say what changed for the reader ("Files past 4 TiB"), not

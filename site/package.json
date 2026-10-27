@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "astro dev",
     "check": "astro check",
-    "build": "node scripts/check-blake3.ts && astro check && astro build",
+    "build": "node scripts/check-blake3.ts && astro check && astro build && node scripts/check-copy.ts",
     "preview": "astro preview",
     "astro": "astro",
     "test": "node scripts/check-blake3.ts"
