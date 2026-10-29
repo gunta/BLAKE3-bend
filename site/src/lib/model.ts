@@ -426,7 +426,7 @@ export function tableView(table: Table, caption: string, opts: { throughput?: bo
     const ratios: TableCell[] = pairs.map(({ b, base }) => {
       const c = compare(row, b, base);
       if (!c) return { text: 'n/a', sub: undefined, verdict: undefined };
-      return { text: fmtSpeedup(c), sub: VERDICT[c.verdict].word, verdict: c.verdict };
+      return { text: fmtSpeedup(c), sub: c.verdict === 'slower' ? 'as fast' : VERDICT[c.verdict].word, verdict: c.verdict };
     });
     return { header: row.label, cells: [...values, ...ratios] };
   });

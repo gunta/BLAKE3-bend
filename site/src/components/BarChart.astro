@@ -80,9 +80,9 @@ const betterWord = chart.better === 'lower' ? 'shorter bars are faster' : 'longe
                             {VERDICT[c.verdict].icon}
                           </span>
                           <span class="chip-ratio">{fmtSpeedup(c)}</span>
-                          <span class="chip-word">{VERDICT[c.verdict].word}</span>
+                          <span class="chip-word">{c.verdict === 'slower' ? 'as fast' : VERDICT[c.verdict].word}</span>
                           <span class="sr-only">
-                            {c.verdict === 'tie' ? ' with ' : ' than '}
+                            {c.verdict === 'tie' ? ' with ' : c.verdict === 'slower' ? ' as ' : ' than '}
                             {c.baseline.label}
                           </span>
                         </span>
@@ -169,11 +169,14 @@ const betterWord = chart.better === 'lower' ? 'shorter bars are faster' : 'longe
 
   .legend li {
     display: block;
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
   }
 
   .legend-name {
     font-weight: 600;
-    white-space: nowrap;
+    white-space: normal;
   }
 
   .chart :global(.series-mark) {

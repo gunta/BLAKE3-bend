@@ -13,19 +13,20 @@ interface Props {
 }
 
 const { class: className } = Astro.props;
+const id = `install-${crypto.randomUUID()}`;
 ---
 
 <div class:list={['install', className]} data-install>
   <div class="tabs" role="tablist" aria-label="Install with">
     {
       INSTALLS.map((i, n) => (
-        <button type="button" role="tab" class="tab" data-channel={i.id} aria-selected={n === 0 ? 'true' : 'false'}>
+        <button type="button" role="tab" class="tab" id={`${id}-${i.id}`} aria-controls={`${id}-panel`} tabindex={n === 0 ? 0 : -1} data-channel={i.id} aria-selected={n === 0 ? 'true' : 'false'}>
           {i.label}
         </button>
       ))
     }
   </div>
-  <div class="line">
+  <div class="line" role="tabpanel" id={`${id}-panel`} aria-labelledby={`${id}-${INSTALLS[0].id}`}>
     <code>
       <span class="prompt" aria-hidden="true">$</span>{' '}
       {
@@ -41,6 +42,7 @@ const { class: className } = Astro.props;
       <span class="copy-label" data-label>Copy</span><span class="sr-only"> the install command</span>
     </button>
   </div>
+  <p class="sr-only" role="status" data-install-status></p>
 </div>
 
 <script>
@@ -50,7 +52,10 @@ const { class: className } = Astro.props;
   function select(channel: string, remember: boolean): void {
     for (const root of roots) {
       for (const tab of root.querySelectorAll<HTMLElement>('[data-channel]')) {
-        tab.setAttribute('aria-selected', String(tab.dataset.channel === channel));
+        const active = tab.dataset.channel === channel;
+        tab.setAttribute('aria-selected', String(active));
+        tab.tabIndex = active ? 0 : -1;
+        if (active) root.querySelector('[role="tabpanel"]')?.setAttribute('aria-labelledby', tab.id);
       }
       for (const cmd of root.querySelectorAll<HTMLElement>('[data-command]')) {
         cmd.hidden = cmd.dataset.command !== channel;
@@ -67,12 +72,25 @@ const { class: className } = Astro.props;
 
   try {
     const saved = localStorage.getItem(KEY);
-    if (saved && document.querySelector(`[data-channel="${saved}"]`)) select(saved, false);
+    if (saved && roots.some((root) => [...root.querySelectorAll<HTMLElement>('[data-channel]')].some((tab) => tab.dataset.channel === saved))) select(saved, false);
   } catch {
     // No storage: keep the default channel.
   }
 
   for (const root of roots) {
+    root.addEventListener('keydown', (event) => {
+      const tab = (event.target as Element).closest<HTMLElement>('[data-channel]');
+      if (!tab || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+      event.preventDefault();
+      const tabs = [...root.querySelectorAll<HTMLElement>('[data-channel]')];
+      const index = tabs.indexOf(tab);
+      const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+      const target = tabs[next];
+      if (target?.dataset.channel) {
+        select(target.dataset.channel, true);
+        target.focus();
+      }
+    });
     root.addEventListener('click', async (e) => {
       const target = e.target as Element;
       const tab = target.closest<HTMLElement>('[data-channel]');
@@ -83,13 +101,16 @@ const { class: className } = Astro.props;
       const copy = target.closest<HTMLButtonElement>('[data-install-copy]');
       if (!copy) return;
       const label = copy.querySelector<HTMLElement>('[data-label]');
+      const status = root.querySelector<HTMLElement>('[data-install-status]');
       const text = root.querySelector<HTMLElement>('[data-command]:not([hidden])')?.textContent?.trim() ?? '';
       try {
         await navigator.clipboard.writeText(text);
         if (label) label.textContent = 'Copied';
+        if (status) status.textContent = 'Install command copied to clipboard.';
         copy.classList.add('done');
       } catch {
         if (label) label.textContent = 'Select it';
+        if (status) status.textContent = 'Clipboard unavailable. Select and copy the command manually.';
       }
       setTimeout(() => {
         if (label) label.textContent = 'Copy';
@@ -206,6 +227,8 @@ const { class: className } = Astro.props;
   @media (max-width: 30rem) {
     code {
       font-size: 0.8125rem;
+      white-space: normal;
+      overflow-wrap: anywhere;
     }
     .line {
       padding-left: 0.75rem;

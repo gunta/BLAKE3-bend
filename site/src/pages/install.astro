@@ -1,8 +1,8 @@
 ---
 /**
  * Install and swap: the command, then each language's package with the line
- * that replaces the BLAKE3 package it stands in for. Every package keeps its
- * predecessor's API, so the swap is the install line and, at most, an import.
+ * that replaces the BLAKE3 package it stands in for. The native bindings retain their supported predecessor APIs; the browser build
+ * exposes a portable hashing API.
  */
 import Base from '../layouts/Base.astro';
 import SiteHeader from '../components/SiteHeader.astro';
@@ -75,7 +75,7 @@ const packages: Package[] = [
     where: 'from the repository until it is on PyPI',
     steps: [
       { label: 'shell', shell: true, code: 'pip uninstall blake3\npip install "turboblake @ git+https://github.com/gunta/turboblake#subdirectory=bend/python"' },
-      { label: 'your code, unchanged', code: 'from blake3 import blake3\n\nblake3(data).hexdigest()\nblake3(key=key).update_mmap("big.iso").digest(length=64)' },
+      { label: 'your code, unchanged', code: 'from blake3 import blake3\n\nblake3(data).hexdigest()\nh = blake3(key=key)\nh.update_mmap("big.iso")\nh.digest(length=64)' },
     ],
     notes: [
       'It installs the same blake3 module, so remove the PyPI one first. max_threads is accepted and ignored: big updates go to the engine on every core.',
@@ -109,10 +109,10 @@ const packages: Package[] = [
     replaces: ['@noble/hashes/blake3', 'hash-wasm'],
     where: 'the same package',
     steps: [
-      { label: 'your code', code: 'import { blake3 } from "turboblake"; // bundlers pick turboblake/js for browsers and workers\nimport { blake3 } from "turboblake/js"; // or ask for it anywhere' },
+      { label: 'your code', code: 'import { blake3 } from "turboblake"; // bundlers pick turboblake/js for browsers and workers\n// Or import { blake3 } from "turboblake/js"; to select the JS build explicitly' },
     ],
     notes: [
-      'BLAKE3 as written in Bend, emitted to JavaScript by Bend2’s own JS target: no native code, no WebAssembly, every mode. It is the slow path, for where the native addon cannot go.',
+      'BLAKE3 as written in Bend, emitted to JavaScript by Bend2’s own JS target: no native code, no WebAssembly, every mode. It exposes the noble-style API; hash-wasm users need to adapt their calls. It is the portable fallback for environments where the native addon cannot run.',
     ],
     readme: 'bend/node/README.md',
   },
@@ -165,7 +165,7 @@ const html = (s: Step) =>
       <div class="prose lede">
         <p>
           The <code>turboblake</code> command is the official <code>b3sum</code> with the Bend engine: the same flags, output and messages. Each library keeps the
-          API of the BLAKE3 package it replaces, so swapping is the install line and, at most, an import. How each one compares:{' '}
+          supported API of the BLAKE3 package it replaces. The browser build exposes the noble-style API; other APIs may need changes. How each one compares:{' '}
           <a href={withBase('languages/')}>languages</a>.
         </p>
       </div>
@@ -175,7 +175,7 @@ const html = (s: Step) =>
         <ul class="channels" role="list">
           <li>
             <code>cargo binstall turboblake</code>
-            <span>The prebuilt binaries, through cargo.</span>
+            <span>The prebuilt binaries, through cargo (requires cargo-binstall).</span>
           </li>
           <li>
             <code>cargo install turboblake --features replace</code>
@@ -183,7 +183,7 @@ const html = (s: Step) =>
           </li>
           <li>
             <a href={RELEASES_URL}>GitHub Releases</a>
-            <span>Archives for macOS and Linux, arm64 and x86-64, with SHA256SUMS.</span>
+            <span>Archives for macOS and Linux, arm64 and x86-64, with SHA256SUMS. Prebuilt x86-64 binaries require AVX2; build from source for older CPUs.</span>
           </li>
         </ul>
       </div>
@@ -229,12 +229,16 @@ const html = (s: Step) =>
 
   <Section id="controls" kicker="Every package" title="Controls">
     <Fragment slot="lede">
-      <p>The libraries and the command read the same environment variables, so any of them can be checked against upstream without a rebuild.</p>
+      <p>The native libraries and command read these environment variables. The JavaScript-only browser build does not read environment variables.</p>
     </Fragment>
     <dl class="env">
       <div>
         <dt><code>TURBOBLAKE=0</code></dt>
-        <dd>Turns the engine off: upstream’s code, one thread.</dd>
+        <dd>Disables the Bend CPU engine. The caller’s upstream configuration determines threading.</dd>
+      </div>
+      <div>
+        <dt><code>TURBOBLAKE_GPU=0</code></dt>
+        <dd>Disables the native Metal and CUDA backend in GPU-enabled library builds.</dd>
       </div>
       <div>
         <dt><code>TURBOBLAKE_THREADS=&lt;n&gt;</code></dt>

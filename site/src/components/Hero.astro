@@ -29,8 +29,7 @@ const seedDigest = blake3Hex(SEED);
     </h1>
 
     <p class="lead" data-reveal style="--i: 2">
-      turboblake fingerprints files of any size with BLAKE3, the modern replacement for SHA‑256, on every core you have. Use it anywhere you use{' '}
-      <code>sha256sum</code>.
+      turboblake creates and verifies BLAKE3 checksums, using every CPU core for big files and batches. The same flags and output as <code>b3sum</code>, with a faster engine.
     </p>
 
     <div class="cta" data-reveal style="--i: 3">
@@ -114,6 +113,7 @@ const seedDigest = blake3Hex(SEED);
     const hex = out.dataset.value ?? out.textContent ?? '';
     try {
       await navigator.clipboard.writeText(hex);
+      if (live) live.textContent = 'Fingerprint copied to clipboard.';
       if (tip) {
         tip.textContent = 'Copied';
         tip.classList.add('on');
@@ -123,7 +123,8 @@ const seedDigest = blake3Hex(SEED);
         }, 1600);
       }
     } catch {
-      // Clipboard can be blocked; the digest is still selectable text.
+      if (tip) tip.textContent = 'Select the fingerprint to copy';
+      if (live) live.textContent = 'Clipboard unavailable. Select the fingerprint and copy it manually.';
     }
   });
 </script>
@@ -308,5 +309,12 @@ const seedDigest = blake3Hex(SEED);
       align-items: end;
       padding-top: calc(var(--header-h) + 28svh);
     }
+  }
+
+  @media (max-width: 30rem) {
+    .hero { padding-top: calc(var(--header-h) + 14svh); }
+    .content { gap: 1.25rem; }
+    h1 { font-size: clamp(2.35rem, 10vw, 3rem); }
+    .lead { font-size: 1rem; }
   }
 </style>

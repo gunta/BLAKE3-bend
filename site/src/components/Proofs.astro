@@ -50,7 +50,7 @@ const limits = [
   'The code passes Array.fork, which is @unsafe in Base; the laws pass Array.clone. share.fork proves the laws’ copy is Array.fork’s own body, (a, a); that the runtime may share one buffer for it is trusted.',
   'The compression function itself is pinned by the official vectors and the message-schedule law. There is no second description of BLAKE3’s compression in Bend to prove it against.',
   'A big file’s parts: the loader cuts a file into 1 GiB parts and reads them. The streaming law holds for whatever CVs the reads answer; that read k answers part k’s hash is the loader’s side.',
-  'Outside Bend: the C that moves bytes (effs/load.c, effs/emit.c, the library’s hook), the native Metal and CUDA kernels, the CPU + GPU split (bench code), and Bend’s compiler, runtime and checker.',
+  'Outside Bend: the C that moves bytes (effs/load.c, effs/emit.c, the library’s hook), the native Metal and CUDA kernels, the library’s CPU + GPU split, and Bend’s compiler, runtime and checker.',
 ];
 ---
 
@@ -58,9 +58,8 @@ const limits = [
   <Fragment slot="lede">
     <p>
       Bend’s type checker is also a prover. A <code>law</code> in <a href={LAWS_URL}>LAWS.bend</a> states a claim; a def of the same name in{' '}
-      <a href={PROOF_URL}>PROOF.bend</a> proves it; <code>bend PROOF.bend</code> prints <strong>ALL PROOFS CHECK</strong> only when every law holds. The Rust
-      compiler checks types and lifetimes, but a claim like “lane 3 equals the scalar compression for every input” is not something Rust can state, let alone
-      check. The official crate’s evidence is tests, on inputs someone picked.
+      <a href={PROOF_URL}>PROOF.bend</a> proves it; <code>bend PROOF.bend</code> prints <strong>ALL PROOFS CHECK</strong> only when every law holds. These laws establish specific properties of the Bend code, such as equivalence between SIMD lanes and scalar compression.
+      The official implementation supplies the reference outputs used in our tests. The proofs do not cover the entire application or the native GPU kernels; their scope and trusted components are listed below.
     </p>
   </Fragment>
 

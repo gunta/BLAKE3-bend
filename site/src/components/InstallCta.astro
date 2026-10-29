@@ -32,9 +32,10 @@ import { CLI_VERSION, RELEASES_URL, REPO_URL, withBase } from '../lib/site';
     </div>
 
     <div class="switch" data-reveal style="--i: 4">
-      <p class="switch-title">Coming from sha256sum?</p>
-      <pre class="diff"><code><span class="before"><span class="m">-</span> sha256sum -c SHA256SUMS</span>
-<span class="after"><span class="m">+</span> turboblake --check B3SUMS</span></code></pre>
+      <p class="switch-title">Create checksums, then verify them</p>
+      <pre class="diff"><code>turboblake FILE... &gt; B3SUMS
+<span class="after">turboblake --check B3SUMS</span></code></pre>
+      <p class="fine">BLAKE3 checksums only. Keep using <code>sha256sum -c</code> for SHA-256 checksum files.</p>
     </div>
 
     <p class="actions" data-reveal style="--i: 5">
@@ -150,29 +151,7 @@ import { CLI_VERSION, RELEASES_URL, REPO_URL, withBase } from '../lib/site';
     line-height: 1.8;
   }
 
-  .before {
-    color: var(--ink-3);
-    text-decoration: line-through;
-    text-decoration-color: rgb(255 93 93 / 0.6);
-  }
-
-  .before .m {
-    color: #ff5d5d;
-  }
-
-  .after {
-    color: var(--ink);
-  }
-
-  .after .m {
-    color: var(--volt);
-  }
-
-  .m {
-    display: inline-block;
-    width: 1.25rem;
-    text-decoration: none;
-  }
+  .after { color: var(--ink); }
 
   .actions {
     display: flex;

@@ -8,15 +8,16 @@ interface Props {
   view: TableView;
   id: string;
   open?: boolean;
+  hint?: string;
 }
 
-const { view, id, open = false } = Astro.props;
+const { view, id, open = false, hint = 'every measurement and speedup' } = Astro.props;
 ---
 
 <details class="data" open={open}>
   <summary>
     <span class="summary-label">Data table</span>
-    <span class="summary-hint">every measurement and speedup</span>
+    <span class="summary-hint">{hint}</span>
   </summary>
   <div class="scroll" role="region" aria-labelledby={`${id}-caption`} tabindex="0">
     <table>

@@ -79,7 +79,7 @@ const builtWith = [
 
   <div class="wrap bottom">
     <p class="fine">
-      Every number on this page is read from
+      Project benchmark results are read from
       <a href={blobUrl('bend/bench/results/results.json')}><code>results.json</code></a>
       when the site builds{
         commit && (
@@ -88,7 +88,7 @@ const builtWith = [
             (commit <a href={`${REPO_URL}/commit/${commit}`}><code>{commit.slice(0, 7)}</code></a>)
           </>
         )
-      }. A result within {TIE_TEXT} either way is called a tie.
+      }. BLAKE3’s historical comparison is linked to its original source. A result within {TIE_TEXT} either way is called a tie.
     </p>
     <ul class="built" role="list" aria-label="Built with">
       {

@@ -30,7 +30,7 @@ const uses = [
       <h2 id="checksum-title" data-reveal style="--i: 1">A fingerprint for <span class="glow">any file.</span></h2>
       <p data-reveal style="--i: 2">
         A hash function turns any data, a sentence or a 100 GB model, into a short fingerprint. Same data, same fingerprint, every time. Change one
-        byte and it changes completely. BLAKE3 is the modern one, and turboblake computes it faster than anything else on your machine.
+        byte and it changes completely. turboblake computes BLAKE3 checksums in parallel so you can check downloads, compare files and identify content.
       </p>
       <ul class="uses" role="list" data-reveal style="--i: 3">
         {
@@ -49,17 +49,17 @@ const uses = [
       <p class="tile-kicker">Try it: edit either line</p>
       <label class="row">
         <span class="sr-only">Input A</span>
-        <input value={A} data-av-in="a" spellcheck="false" autocomplete="off" />
+        <input value={A} data-av-in="a" aria-label="Input A" spellcheck="false" autocomplete="off" />
         <output class="hex" data-av-out="a">{da}</output>
       </label>
       <label class="row">
         <span class="sr-only">Input B</span>
-        <input value={B} data-av-in="b" spellcheck="false" autocomplete="off" />
+        <input value={B} data-av-in="b" aria-label="Input B" spellcheck="false" autocomplete="off" />
         <output class="hex b" data-av-out="b">{db}</output>
       </label>
       <div class="meter">
         <p class="count mega"><span data-av-count>{differ}</span><span class="of">/64</span></p>
-        <p class="tile-body">characters changed, from one character of input. That is why a fingerprint can stand in for the whole file.</p>
+        <p class="tile-body">of the 64 hexadecimal characters differ between these fingerprints. Edit the inputs to compare them.</p>
       </div>
     </div>
   </div>

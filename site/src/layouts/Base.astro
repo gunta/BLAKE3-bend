@@ -34,7 +34,6 @@ const ogAlt = 'turboblake: checksum anything at the speed of your SSD. BLAKE3, t
     <link rel="icon" type="image/svg+xml" href={withBase('favicon.svg')} />
     <link rel="apple-touch-icon" href={withBase('apple-touch-icon.png')} />
     <link rel="alternate" type="application/rss+xml" title={`${SITE_NAME}: what's new`} href={withBase('changelog/rss.xml')} />
-    <script is:inline>document.documentElement.classList.add('js');</script>
     <meta name="generator" content={Astro.generator} />
 
     <meta property="og:type" content="website" />
@@ -80,6 +79,9 @@ const ogAlt = 'turboblake: checksum anything at the speed of your SSD. BLAKE3, t
         if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add('in');
         else io.observe(el);
       }
+      // Hide off-screen content only after its reveal observer is ready.
+      // If this bundle fails to load, the complete page remains readable.
+      document.documentElement.classList.add('js');
 
       // Cards and bento tiles catch the light under the pointer (they read --mx/--my).
       document.addEventListener(

@@ -98,10 +98,9 @@ const curve = (a: { x: number; y: number }, b: { x: number; y: number }) => {
           </li>
         </ul>
         <p class="pick prose" data-reveal style="--i: 3">
-          turboblake's engine is that Bend2 program: every compression runs in Bend, and the C it compiles to only moves bytes in and out. Bend's own
-          checker proves {lawCount} laws about it, {universalCount} of them for every input or every size (<a href="#proofs">the proofs</a>). The goal is
-          the fastest BLAKE3 on each machine, so the engine is chosen per target: Bend2 today, and a native kernel can take over any target where it
-          measures faster.
+          The CPU engine’s compression and tree traversal are written in Bend2 and compiled to C. Bend’s checker proves {lawCount} laws about the Bend implementation,
+          {universalCount} of them for every input or every size (<a href="#proofs">the proofs and their limits</a>). The libraries also run native Metal and CUDA kernels;
+          small inputs and unsupported cases use the upstream implementation. The native kernels and C integration are tested separately and are outside those proofs.
         </p>
         <p class="marks" data-reveal style="--i: 4">
           <span><BrandMark name="bend" /> Bend2 engine</span>

@@ -1,21 +1,22 @@
 # turboblake
 
-**BLAKE3, written in [Bend2](https://bend-lang.com), raced against the official
-implementation and faster where it counts.** This repository is a fork of
-[BLAKE3-team/BLAKE3](https://github.com/BLAKE3-team/BLAKE3) that adds
-[`bend/`](bend/): a complete BLAKE3 in the Bend2 language, a `b3sum` that prints
-exactly what the official one prints, the official C and Rust libraries with a
-Bend engine inside, drop-ins for Python, Node, Bun, Deno, browsers and Go,
-iroh-compatible bao outboards, a GPU path, and the benchmarks that keep all of
-it honest.
+**BLAKE3 checksums, with a parallel [Bend2](https://bend-lang.com) engine.**
+`turboblake` is a drop-in replacement for `b3sum`: the same flags, output and
+BLAKE3 digests, with faster paths for batches of files and large inputs.
+
+This fork of [BLAKE3-team/BLAKE3](https://github.com/BLAKE3-team/BLAKE3) adds
+[`bend/`](bend/): the Bend implementation, C and Rust libraries, bindings for
+Python, JavaScript and Go, iroh-compatible bao outboards, and native Metal
+and CUDA kernels for GPU memory. The command line uses the CPU. The tables
+below show wins, ties and slower cases against the official implementation.
 
 Site with every chart: **[gunta.github.io/turboblake](https://gunta.github.io/turboblake/)**
 
-| on an Apple M5 Pro (6 Super + 12 Performance cores, 20-core GPU) | official BLAKE3 1.8.7 | BLAKE3 in Bend2 |
+| on an Apple M5 Pro (6 Super + 12 Performance cores, 20-core GPU) | official BLAKE3 1.8.7 | turboblake |
 |---|---|---|
 | `b3sum` a 101.5 GB DeepSeek-V4.1 shard (bigger than RAM) | 211 s (526 s first run) | **7.65 s** (27.6x, ~13 GB/s off the SSD) |
-| hash 1 GiB in memory, GPU | (no GPU path) | **9.4 ms (~114 GB/s)**, 2.9x the fastest CPU path |
-| hash 1 GiB in memory, CPU and GPU at once | (no GPU path) | **8.0 ms** (13/16 on the GPU), 1.06-1.12x the GPU alone |
+| hash 1 GiB already in GPU memory, native Metal | (no GPU path) | **5.85 ms (~184 GB/s)** |
+| hash 1 GiB in shared memory, CPU + native Metal | (no GPU path) | **5.25 ms (~205 GB/s)**; GPU alone on the same memory: 5.68 ms |
 | hash 1 GiB in memory, all CPU cores | 27.8 ms (NEON + rayon) | 26.9 ms |
 | hash 1 GiB, one CPU core | 448 ms (NEON) | **377 ms** (1.2x) |
 | `b3sum` 2,000 x 64 KiB files | 275 ms | **25.7 ms** (10.7x) |
@@ -24,8 +25,10 @@ Site with every chart: **[gunta.github.io/turboblake](https://gunta.github.io/tu
 | iroh-blobs ingest of 1 GiB (hash + bao outboard) | 837 ms (iroh-blobs) | **51.7 ms** (16x) |
 | re-hash 1 GiB in a long-running process | 43.6 ms (rayon) | **29.4 ms** on the GPU (1.48x) |
 
-Every number is a median of interleaved runs on identical bytes with identical
-digests; the full tables, the ties and the losses are below and on the site.
+These are medians from separate benchmark suites on the same machine, with
+matching BLAKE3 digests within each comparison. GPU results exclude initial
+setup and use GPU-accessible memory; they are not file-to-checksum timings.
+The full tables, methods, ties and losses are below and on the site.
 
 ## Install
 
@@ -57,11 +60,18 @@ turboblake --check B3SUMS    # verify them, like sha256sum -c
 
 `cargo install turboblake --features replace` also installs it as `b3sum`.
 
+**BLAKE3 and SHA-256 checksums are different.** `turboblake --check` reads
+BLAKE3 checksum files created by `b3sum` or `turboblake`. Keep using
+`sha256sum -c SHA256SUMS` for existing SHA-256 manifests.
+
+The prebuilt x86-64 binaries target x86-64-v3 (AVX2). Build from source for
+an older CPU.
+
 ### Libraries
 
-The same engine, behind the API of each language's BLAKE3 package: the
-official C library (and the Rust crate) with one hook, so big inputs are
-hashed by Bend on every core and everything else is upstream's code
+The C and Rust libraries keep the upstream BLAKE3 API, with hooks for the
+Bend CPU engine and native GPU backends. Bindings expose these libraries
+to other languages
 ([ADR 0012](adr/0012-the-engine-as-a-library-and-every-binding.md)).
 
 | language | replaces | swap in |
@@ -69,14 +79,18 @@ hashed by Bend on every core and everything else is upstream's code
 | Rust | `blake3` | `cargo add turboblake --git https://github.com/gunta/turboblake` (on crates.io from its next release; 1.8.7 there is the command line alone); the library is named `blake3` ([README](bend/rust/README.md)) |
 | C | the official `libblake3` | `bend/lib/build.sh`, then link `-lturboblake` (or `-lblake3`, the same library) ([README](bend/lib/README.md)) |
 | Python | `blake3` on PyPI | `pip install "turboblake @ git+https://github.com/gunta/turboblake#subdirectory=bend/python"` ([README](bend/python/README.md)) |
-| Node, Bun, Deno | `@noble/hashes/blake3`, `blake3`, `@napi-rs/blake-hash` | `npm install` in [`bend/node`](bend/node/README.md), then `npm install <path>` |
-| browsers, workers | `@noble/hashes/blake3`, `hash-wasm` | `turboblake/js`: Bend's BLAKE3, emitted to JavaScript by Bend2 |
+| Node, Bun, Deno | `@noble/hashes/blake3`, `blake3`, `@napi-rs/blake-hash` | In a clone: `(cd bend/node && npm install)`, then in your app: `npm install /path/to/turboblake/bend/node` ([README](bend/node/README.md)) |
+| browsers, workers | `@noble/hashes/blake3`, `hash-wasm` | Install the JavaScript package above, then import `turboblake/js`; compatible hashing output, not every package's API |
 | Go | `lukechampine.com/blake3`, `github.com/zeebo/blake3` | `go get github.com/gunta/turboblake/bend/go` ([README](bend/go/README.md)) |
 
 Your code keeps its imports (`use blake3`, `from blake3 import blake3`) or
-changes one line (JavaScript, Go). The Python and JavaScript packages are
+changes one import (JavaScript, Go); some alternative packages also require
+API changes. Remove the existing Python `blake3` package before installing
+this binding, since both provide the same module. The Python and JavaScript packages are
 `turboblake` on PyPI and npm once published; until then they install from
-this repository. `TURBOBLAKE=0` turns the engine off in any of them.
+this repository. `TURBOBLAKE=0` disables the native CPU engine;
+`TURBOBLAKE_GPU=0` disables the native GPU backend. The browser build is
+JavaScript only and does not read these environment variables.
 
 ## What is in here
 
@@ -98,8 +112,12 @@ this repository. `TURBOBLAKE=0` turns the engine off in any of them.
 
 ## How it is fast
 
-The rule: **every BLAKE3 compression runs in Bend**; C appears only in the
-effects that move bytes in and out.
+The parallel CPU engine implements BLAKE3 compression and tree traversal in
+Bend2, compiled to C. The libraries keep upstream code for small inputs and
+fallbacks, and use hand-written Metal or CUDA kernels for GPU-accessible
+memory. The Bend proofs cover the Bend implementation, not the native GPU
+kernels, integration code or compiler/runtime; those paths are checked
+against reference outputs.
 
 - **8 lanes in registers** ([ADR 0002](adr/0002-eight-lane-compress-and-slp.md)).
   Bend has no vector types, so `compress8` hashes eight chunks per call in a
@@ -109,8 +127,11 @@ effects that move bytes in and out.
 - **The BLAKE3 tree is a fork tree** ([ADR 0001](adr/0001-bend2-blake3-baseline.md)).
   Each node's halves are a Bend parallel let; `Array.fork` hands the input down
   in O(1); 32-chunk leaves keep tasks coarse.
-- **Flat GPU leaves** ([ADR 0005](adr/0005-gpu-flat-leaves.md)). `hash1!` forks
-  to fork-free 4/16/64-chunk leaves sized to the GPU's 16,384 lanes.
+- **GPU paths** ([ADR 0005](adr/0005-gpu-flat-leaves.md),
+  [0017](adr/0017-the-gpu-backend.md)). Bend’s `hash1!` uses flat
+  4/16/64-chunk leaves. The libraries now also load native Metal and CUDA
+  kernels for GPU buffers and can split GPU-accessible host memory between
+  the CPU engine and GPU. Ordinary CLI file hashing stays on the CPU.
 - **I/O that gets out of the way** ([ADR 0003](adr/0003-b3sum-io-path.md)).
   One parallel pass opens and reads every file; big files are mapped read-only
   into a zone of their own (the array *is* the page cache); one `write` prints
@@ -138,7 +159,8 @@ effects that move bytes in and out.
 Apple M5 Pro, macOS, Bend2 2.0.39, official BLAKE3 1.8.7 (`b3sum`, and the
 `blake3` crate with NEON + rayon).
 
-**In memory**, warm, same data and digest:
+**Bend engine in memory**, warm, same data and digest. The GPU column is
+Bend’s GPU implementation, not the newer native Metal backend:
 
 | input | Rust blake3 | Bend CPU | Bend GPU |
 |---|---|---|---|
@@ -161,9 +183,13 @@ Apple M5 Pro, macOS, Bend2 2.0.39, official BLAKE3 1.8.7 (`b3sum`, and the
 | Go | **40.5 ms** | lukechampine 99.6 ms (every core), zeebo 1144 ms |
 | Go, Linux x86-64 (Modal) | **23.9 ms** | lukechampine 57.4 ms, zeebo 392 ms |
 
-On the Mac the libraries copy big inputs into Bend's heap (macOS keeps big
-allocations where the heap cannot reach), so the official crate on every core
-wins from 16 MiB up; on Linux the engine reads the caller's memory in place.
+These library measurements predate the macOS address-window reservation in
+[ADR 0016](adr/0016-turboblake-never-slower-than-b3sum.md): they copied large inputs
+into Bend's heap, and the official crate on every core won from 16 MiB up.
+The current library reserves an address window at load time so subsequent
+allocations can be read in place; inputs outside it still need a copy. Linux
+also reads input directly when it lies in the engine’s window. These tables
+have not been rerun for the new macOS path.
 
 **One-shot `b3sum FILE...`**, process start included, output byte-identical:
 
@@ -220,17 +246,29 @@ and [ADR 0004](adr/0004-big-files-and-the-gpu.md).
 sandbox grants no bigger one, [`bend/bench/modal_gpu.py`](bend/bench/modal_gpu.py)):
 on a B200, Bend hashes 1 GiB in 3.2 ms and 2 GiB in 4.8 ms (444 GB/s), against
 0.68 and 1.28 ms for a hand-written CUDA kernel and 13.9 and 24.2 ms for the
-Rust crate on the host's 16 cores. Native kernels are faster on every GPU;
-Bend's single source is fast enough to outrun any SSD or network link, and is
-the one with the proofs. The site's GPU page has the M5 Pro, B200 and L4.
+Rust crate on the host's 16 cores. Native kernels are faster on every GPU
+measured in this suite; Bend’s throughput exceeds the SSD and network rates
+used in these comparisons, and it is
+the path covered by the Bend proofs. The libraries also ship the tested
+native kernels: 1 GiB already in GPU memory takes 0.686 ms on the B200 and
+5.85 ms on the M5 Pro in the newer library suite. These exclude setup and
+host-to-device transfers. See [the GPU backend write-up](adr/0017-the-gpu-backend.md)
+and [the GPU page](https://gunta.github.io/turboblake/gpu/) for the separate
+suites and their memory conditions.
 
 ## Reproduce
 
-```bash
-bend/build.sh bend/b3sum.bend bend/build/b3sum
-```
+From a clone, build the current command line without the Bend toolchain:
 
 ```bash
+cargo build --release --manifest-path bend/crate/Cargo.toml
+bend/crate/target/release/turboblake --help
+```
+
+To rebuild the Bend implementation and rerun the reference comparisons:
+
+```bash
+bend/build.sh bend/b3sum.bend bend/build/b3sum
 scripts/refresh.sh
 ```
 

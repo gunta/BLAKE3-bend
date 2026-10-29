@@ -54,8 +54,7 @@ const startClasses = otherHashes.filter((h) => DEFAULT_ON.has(h.key)).map((h) =>
           </p>
           <p>
             Where it loses: against the official Rust crate on every core (<code>update_rayon</code>, and blake3-py's <code>max_threads=AUTO</code>, which is
-            that crate) from 16 MiB up on the Mac. macOS keeps big allocations where Bend's heap cannot reach, so the libraries copy each span into the heap
-            before hashing it; on Linux the engine reads the caller's memory in place.
+            that crate) from 16 MiB up in these Mac measurements. Those runs copied large buffers into Bend’s heap. The current macOS library reserves an address window at load time so later allocations can be read in place; buffers outside that window still need a copy. On Linux the engine also reads buffers in its address window directly. These tables have not been remeasured for that change.
           </p>
         </div>
         <ul class="summary" role="list">

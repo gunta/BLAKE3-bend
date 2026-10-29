@@ -14,14 +14,15 @@ import Note from '../components/Note.astro';
 import BrandMark from '../components/BrandMark.astro';
 import { tableView, gbPerSecond, parseBytes, splitInput } from '../lib/model';
 import { fmtRate } from '../lib/format';
-import { gpuMachines, gpuShares } from '../lib/more';
+import { gpuLibrary, gpuMachines, gpuShares } from '../lib/more';
 import { lawCount } from '../lib/proofs';
 import { story } from '../lib/news';
-import { blobUrl, treeUrl } from '../lib/site';
+import { blobUrl, treeUrl, withBase } from '../lib/site';
 import { VENDOR_MARK, gpuApiOf } from '../lib/stack';
 
 const links = [
   { href: '#summary', label: 'Summary' },
+  ...(gpuLibrary.length ? [{ href: '#library', label: 'Native library' }] : []),
   ...gpuMachines.map((m) => ({ href: `#${m.id}`, label: m.title.replace(/^NVIDIA /, '') })),
   { href: '#why', label: 'Why Bend' },
 ];
@@ -47,7 +48,7 @@ const peak = gpuMachines
 const refs = [story('0006'), story('0011')].filter((s) => s !== undefined);
 ---
 
-<Base title="GPU: Bend against native kernels" path="gpu/" description="turboblake's GPU path, BLAKE3 written once in Bend2, against hand-written Metal and CUDA kernels on an Apple M5 Pro, an NVIDIA B200 and an L4.">
+<Base title="GPU: native library and Bend benchmarks" path="gpu/" description="Native Metal and CUDA library benchmarks, plus Bend2 compared with hand-written GPU kernels on an Apple M5 Pro, an NVIDIA B200 and an L4.">
   <SiteHeader slot="header" links={links} />
 
   <section class="intro" id="summary" aria-labelledby="summary-title">
@@ -56,7 +57,11 @@ const refs = [story('0006'), story('0011')].filter((s) => s !== undefined);
       <h1 id="summary-title">Bend on the GPU, next to hand-written kernels</h1>
       <div class="prose lede">
         <p>
-          turboblake's GPU path is BLAKE3 written once in Bend2 and compiled by Bend for Metal and for CUDA. Here it runs on the same bytes as hand-written
+          The libraries ship native Metal and CUDA kernels for GPU buffers and can split suitable host memory between the GPU and the Bend CPU engine.
+          <a href={withBase('install/')}>Install the libraries</a> to use these APIs. The command line stays on the CPU.
+        </p>
+        <p>
+          This page also compares BLAKE3 written in Bend2 and compiled for Metal and CUDA. It runs on the same bytes as hand-written
           Metal and CUDA kernels (<a href={treeUrl('bend/ref')}><code>bend/ref</code></a>), which give the same digest. The hand-written kernels are faster.
           On the biggest input Bend reaches{' '}
           {gpuShares.map((s, i) => (
@@ -67,7 +72,7 @@ const refs = [story('0006'), story('0011')].filter((s) => s !== undefined);
           ))}.
         </p>
         <p>
-          It is still fast enough for any job that has to read its input first: <strong>{fmtRate(peak.rate)} GB/s</strong> on the {peak.title} for
+          Bend reaches <strong>{fmtRate(peak.rate)} GB/s</strong> on the {peak.title} for
           {' '}{peak.input}, more than an NVMe SSD or a 100-gigabit link can deliver. And it is the same source as the CPU engine, with {lawCount} laws about it
           checked by Bend's proof kernel.
         </p>
@@ -87,6 +92,25 @@ const refs = [story('0006'), story('0011')].filter((s) => s !== undefined);
       </ul>
     </div>
   </section>
+
+  {gpuLibrary.length > 0 && (
+    <Section id="library" kicker="Shipped GPU backend" title="Native kernels, through the library API">
+      <Fragment slot="lede">
+        <p>
+          These are separate measurements from the Bend runtime comparisons below. GPU memory is already allocated and populated;
+          initialization is excluded. The CPU + GPU column uses GPU-accessible host memory. On NVIDIA that includes copying the GPU’s share over PCIe,
+          so it is not comparable to hashing data already in device memory. All columns produce the same BLAKE3 digest.
+        </p>
+      </Fragment>
+      {gpuLibrary.map((m) => (
+        <div>
+          <h3>{m.machine}</h3>
+          <Note text={m.note} />
+          <DataTable id={m.id} open hint="every measured time and throughput" view={tableView(m.table, `${m.title}: native library timings in ${m.table.unit}, with GB/s below each time.`, { throughput: true })} />
+        </div>
+      ))}
+    </Section>
+  )}
 
   {
     gpuMachines.map((m, i) => (
@@ -122,7 +146,7 @@ const refs = [story('0006'), story('0011')].filter((s) => s !== undefined);
 
   <Section id="why" kicker="Why Bend" title="Not the fastest way, and good enough">
     <Fragment slot="lede">
-      <p>A hand-written kernel is the upper bound. Bend trades some of it for things a kernel per platform cannot give:</p>
+      <p>The hand-written kernels are faster in these measurements. The Bend implementation offers a different tradeoff:</p>
     </Fragment>
     <ul class="reasons" role="list">
       <li class="card">

@@ -101,7 +101,7 @@ const edges = rows.slice(1).flatMap((row, k) =>
             ))
           }
         </ul>
-        <p class="tile-body">And unlike SHA‑256, safe from length-extension attacks, so it works as a MAC on its own.</p>
+        <p class="tile-body">BLAKE3 includes a keyed mode for message authentication. Use <code>--keyed</code> with a secret key; an ordinary checksum does not authenticate a file.</p>
       </article>
 
       <article class="tile t-tree" data-reveal style="--i: 2">

@@ -23,6 +23,7 @@ const table = z.object({
 const schema = z.looseObject({
   gpu_metal: table,
   gpu_nvidia: z.array(table).default([]),
+  gpu_library: z.object({ title: z.string(), tables: z.array(table) }).optional(),
   deepseek_linux: table.optional(),
   languages: z.record(z.string(), table).default({}),
 });
@@ -110,6 +111,35 @@ export const gpuMachines: GpuMachine[] = [
   gpuMachine(more.gpu_metal, 'metal'),
   ...more.gpu_nvidia.map((t) => gpuMachine(t, t.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'))),
 ];
+
+/** The shipped native backend, measured through the library API rather than Bend's GPU runtime. */
+export const gpuLibrary = (more.gpu_library?.tables ?? []).map((raw, i) => {
+  // The generic model expects a CPU baseline and bend-prefixed comparison keys.
+  // Keep the measured values and labels; this table displays times, not speedups.
+  const keyOf = (key: string) => key === 'cpu' ? key : `bend_${key}`;
+  const mapped = {
+    ...raw,
+    rows: raw.rows.map((row) => Object.fromEntries(Object.entries(row).map(([key, value]) => [key === 'input' ? key : keyOf(key), value]))),
+    series: Object.fromEntries(Object.entries(raw.series).map(([key, value]) => [keyOf(key), value])),
+  };
+  const table = pick(mapped, Object.keys(mapped.series));
+  const api = gpuApiOf(`${raw.title} ${raw.machine}`);
+  table.series = table.series.map((s) => ({
+    ...s,
+    stack: s.key === 'cpu'
+      ? { engine: 'bend', cpu: true, gpu: false, api: undefined }
+      : s.key === 'bend_split'
+        ? { engine: undefined, cpu: true, gpu: true, api }
+        : { engine: api, cpu: false, gpu: true, api: undefined },
+  }));
+  return {
+    id: `gpu-library-${i}`,
+    title: raw.title,
+    machine: raw.machine,
+    note: raw.note,
+    table: { ...table, bend: [], baselines: [] },
+  };
+});
 
 /** Native time ÷ Bend time on each GPU's biggest row: how much of native speed Bend reaches. */
 export const gpuShares = gpuMachines.map((m) => {
