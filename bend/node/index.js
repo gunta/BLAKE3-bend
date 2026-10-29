@@ -5,16 +5,15 @@
 // not be built here) the same faces run on Bend's own JavaScript (js/).
 import { createRequire } from "node:module";
 import { faces } from "./api.js";
+import { candidates } from "./prebuilt.mjs";
 
-// The addon built here (build.mjs) first, then the prebuilt one npm fetched
-// for this platform (prebuilt.mjs). TURBOBLAKE_JS=1 picks the JavaScript
-// engine even with an addon there.
+// An addon built here (build.mjs) first, then the one prebuilt for this
+// platform (prebuilds/, prebuilt.mjs). TURBOBLAKE_JS=1 picks the
+// JavaScript engine even with an addon there.
 let native = null;
 if (globalThis.process?.env?.TURBOBLAKE_JS !== "1") {
   const require = createRequire(import.meta.url);
-  const { platform, arch } = globalThis.process;
-  for (const id of ["./build/turboblake.node",
-    `@turboblake/${platform}-${arch}${platform === "linux" ? "-gnu" : ""}`]) {
+  for (const id of ["./build/turboblake.node", ...candidates().map((p) => `./prebuilds/${p}/turboblake.node`)]) {
     try {
       native = require(id);
       break;

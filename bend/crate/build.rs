@@ -314,6 +314,11 @@ fn build_bend_engine() {
     if env::var_os("CARGO_FEATURE_STD").is_none() || env::var_os("CARGO_FEATURE_PURE").is_some() {
         return;
     }
+    // The engine is POSIX C (threads, mmap): no engine on Windows yet, where
+    // the crate is the official blake3 (ADR 0020).
+    if env::var("CARGO_CFG_TARGET_FAMILY").unwrap_or_default() != "unix" {
+        return;
+    }
     let cc = env::var("CC").unwrap_or_else(|_| "clang".into());
     let version = std::process::Command::new(&cc)
         .arg("--version")

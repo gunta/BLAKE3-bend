@@ -14,3 +14,4 @@ target
 /bend/build/
 /bend/**/build/
 .DS_Store
+!/bend/crate/Cargo.lock

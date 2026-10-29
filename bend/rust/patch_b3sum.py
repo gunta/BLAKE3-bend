@@ -111,6 +111,12 @@ PATCHES = {
          'pkg-url = "{ repo }/releases/download/turboblake-v{ version }/turboblake-{ version }-{ target }.tar.gz"\n'
          'bin-dir = "turboblake-{ version }-{ target }/{ bin }{ binary-ext }"\n'
          'pkg-fmt = "tgz"\n\n'
+         '[package.metadata.binstall.overrides.x86_64-pc-windows-msvc]\n'
+         'pkg-url = "{ repo }/releases/download/turboblake-v{ version }/turboblake-{ version }-{ target }.zip"\n'
+         'pkg-fmt = "zip"\n\n'
+         '[package.metadata.binstall.overrides.aarch64-pc-windows-msvc]\n'
+         'pkg-url = "{ repo }/releases/download/turboblake-v{ version }/turboblake-{ version }-{ target }.zip"\n'
+         'pkg-fmt = "zip"\n\n'
          '[dev-dependencies]\n'
          'duct = "1.0.0"\n'),
     ],

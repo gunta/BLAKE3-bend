@@ -23,9 +23,14 @@ fi
 python3 "$here/patch.py" embed "$out"
 # The rest of the C library, beside it: the official sources with the hook,
 # and the glue. Every binding builds from this one directory.
+# (the Windows assembly too, for the engine-less Windows builds, ADR 0020)
 for f in blake3.c blake3.h blake3_impl.h blake3_dispatch.c blake3_portable.c blake3_neon.c \
          blake3_sse2_x86-64_unix.S blake3_sse41_x86-64_unix.S \
-         blake3_avx2_x86-64_unix.S blake3_avx512_x86-64_unix.S; do
+         blake3_avx2_x86-64_unix.S blake3_avx512_x86-64_unix.S \
+         blake3_sse2_x86-64_windows_gnu.S blake3_sse41_x86-64_windows_gnu.S \
+         blake3_avx2_x86-64_windows_gnu.S blake3_avx512_x86-64_windows_gnu.S \
+         blake3_sse2_x86-64_windows_msvc.asm blake3_sse41_x86-64_windows_msvc.asm \
+         blake3_avx2_x86-64_windows_msvc.asm blake3_avx512_x86-64_windows_msvc.asm; do
   cp "$root/c/$f" "$here/csrc/$f"
 done
 cp "$here/turboblake.c" "$here/turboblake.h" "$here/turboblake_gpu.c" "$here/turboblake_gpu.h" \

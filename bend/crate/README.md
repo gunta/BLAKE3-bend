@@ -20,10 +20,14 @@ brew install gunta/tap/turboblake
 cargo install turboblake
 ```
 
-Homebrew installs a prebuilt binary (macOS and Linux, arm64 and x86-64);
-`cargo install` builds from source, tuned for your CPU, and needs clang
-(Apple's, or LLVM 19+). `cargo binstall turboblake` fetches the prebuilt
-binaries through cargo.
+Homebrew installs a prebuilt binary (macOS and Linux, arm64 and x86-64).
+`cargo binstall turboblake` fetches the prebuilt binaries through cargo, or
+download one from the [releases](https://github.com/gunta/turboblake/releases):
+macOS, Linux (glibc 2.28+, or static musl) and Windows, arm64 and x86-64.
+The x86-64 binaries take AVX2 where the CPU has it and run on any x86-64
+CPU. `cargo install` builds from source, tuned for your CPU, and needs clang
+(Apple's, or LLVM 19+). On Windows there is no engine yet: turboblake is the
+official b3sum there.
 
 ```bash
 turboblake FILE...           # one "<hash>  <name>" line per file, as b3sum prints

@@ -7,6 +7,7 @@ Each patch must apply exactly once, so an upstream change that moves an
 anchor stops the generator instead of producing a crate without its hook.
 """
 import pathlib
+import re
 import sys
 
 HOOK = """    debug_assert!(input.len() > CHUNK_LEN);
@@ -28,6 +29,11 @@ fn build_bend_engine() {
     println!("cargo::rerun-if-env-changed=TURBOBLAKE_TARGET_CPU");
     println!("cargo::rerun-if-env-changed=TURBOBLAKE_NO_GPU");
     if env::var_os("CARGO_FEATURE_STD").is_none() || env::var_os("CARGO_FEATURE_PURE").is_some() {
+        return;
+    }
+    // The engine is POSIX C (threads, mmap): no engine on Windows yet, where
+    // the crate is the official blake3 (ADR 0020).
+    if env::var("CARGO_CFG_TARGET_FAMILY").unwrap_or_default() != "unix" {
         return;
     }
     let cc = env::var("CC").unwrap_or_else(|_| "clang".into());
@@ -140,6 +146,16 @@ PATCHES = {
 def main():
     crate = pathlib.Path(sys.argv[1])
     name = sys.argv[2] if len(sys.argv) > 2 else "turboblake"
+    # turboblake's own version (bend/VERSION, every package's), not upstream's;
+    # a [patch] copy named blake3 keeps upstream's, which its dependents ask for
+    if name != "blake3":
+        version = (pathlib.Path(__file__).resolve().parent.parent / "VERSION").read_text().strip()
+        toml = crate / "Cargo.toml"
+        s = toml.read_text()
+        s, n = re.subn(r'^version = "[^"]*"$', f'version = "{version}"', s, count=1, flags=re.M)
+        if n != 1:
+            sys.exit(f"patch_crate.py: {toml}: no version line")
+        toml.write_text(s)
     for rel, pairs in PATCHES.items():
         path = crate / rel
         s = path.read_text()

@@ -1,0 +1,45 @@
+name: workflows lint
+
+# The workflows that build and publish turboblake hold its registry
+# credentials: zizmor audits them for known weaknesses (unpinned actions,
+# template injection, excessive permissions, cache poisoning), actionlint
+# for mistakes.
+
+on:
+  pull_request:
+    paths: [".github/**"]
+  push:
+    branches: [master]
+    paths: [".github/**"]
+
+permissions: {}
+
+jobs:
+  zizmor:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: zizmorcore/zizmor-action@53290badfa369cb0bf7ad16342cb62c2fa47ac7b  # v0.8.0
+        with:
+          advanced-security: false
+          inputs: |
+            .github/workflows/turboblake-build.yml
+            .github/workflows/turboblake-release.yml
+            .github/workflows/workflows-lint.yml
+
+  actionlint:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - name: actionlint
+        run: |
+          bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/v1.7.12/scripts/download-actionlint.bash) 1.7.12
+          ./actionlint -color .github/workflows/turboblake-build.yml .github/workflows/turboblake-release.yml .github/workflows/workflows-lint.yml

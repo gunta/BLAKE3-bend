@@ -18,12 +18,15 @@ runs.
 npm install turboblake
 ```
 
-The native addon comes prebuilt for macOS and Linux (glibc) on arm64 and
-x64: npm, Bun, pnpm and Deno fetch the one `@turboblake/<platform>` package
-that matches, so nothing compiles and no install script has to run.
-Anywhere else, installing builds the addon with clang; without a compiler
-turboblake runs on Bend's JavaScript. `TURBOBLAKE_BUILD=1 npm rebuild
-turboblake` builds it here anyway, tuned for this CPU.
+The package carries its native addon prebuilt for macOS (arm64, x64), Linux
+(glibc and musl, arm64 and x64) and Windows (x64, arm64), and loads the one
+for the machine it runs on: nothing compiles, and there is no install
+script. The x64 addons take AVX2 where the CPU has it and run on any x64
+CPU. On Windows the addon is the official BLAKE3 C (no engine there yet),
+and it finds Node-API in whatever runs it, so one addon serves Node, Bun,
+Deno and Electron. On any other platform turboblake runs on Bend's
+JavaScript; `node build.mjs` inside the installed package builds an addon
+for it (clang), and there it also tunes one for your CPU.
 
 It is a drop-in for the two APIs JavaScript code uses for BLAKE3:
 

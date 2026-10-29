@@ -27,13 +27,15 @@ lukechampine.com/blake3 v1.4.1 returns wrong bytes after `OutputReader.Seek`
 to an offset that is not a multiple of 1024; this package returns BLAKE3's
 (the official crate agrees).
 
-Needs cgo, on macOS or Linux. The engine is linked prebuilt
-(`engine_<os>_<arch>.syso`: clang with the vectorizer flags cgo will not
-pass), for the platforms that have one checked in: darwin/arm64 (Apple M1
-and later) and darwin/amd64 (`gen.sh` on a Mac), linux/amd64 (x86-64-v3,
-AVX2) and linux/arm64 (`bend/bench/modal_linux.py --steps go`). Elsewhere
-cgo compiles the engine at plain flags (`c_engine.c`), slower and still on
-every core.
+Needs cgo. The engine is linked prebuilt (`engine_<os>_<arch>.syso`: clang
+with the vectorizer flags cgo will not pass), for the platforms that have
+one checked in: darwin/arm64 (Apple M1 and later), darwin/amd64, linux/amd64
+(x86-64-v3: AVX2 where the CPU has it; an older CPU leaves the hashing to
+the official C) and linux/arm64 (any ARMv8), all from `DOCKER=1 gen.sh` on a
+Mac. Other Unix systems compile the engine through cgo at plain flags
+(`c_engine.c`), slower and still on every core. On Windows (cgo with MinGW)
+the package is the official BLAKE3 C alone, with its SIMD: no engine there
+yet.
 
 On an Apple M5 Pro, `Sum256` of 1 GiB in memory: 41 ms, against 100 ms
 (lukechampine.com/blake3), 1144 ms (github.com/zeebo/blake3) and 404 ms

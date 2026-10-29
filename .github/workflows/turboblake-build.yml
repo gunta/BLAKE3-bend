@@ -1,0 +1,439 @@
+name: turboblake build
+
+# Builds and tests every package turboblake publishes, on every platform it
+# publishes for, without publishing anything. Pull requests and master run
+# it; turboblake-release.yml calls it first and publishes exactly what it
+# built. The steps are scripts in scripts/release/, so a local run is the
+# same build. Artifacts:
+#
+#   cli-<target>       turboblake-<v>-<target>.tar.gz / .zip   the command line (GitHub release, Homebrew, binstall)
+#   lib-<target>       libturboblake-<v>-<target>.tar.gz       the C library (GitHub release, Homebrew)
+#   npm                turboblake-<v>.tgz                      npm, with a prebuilt addon for 8 platforms
+#   sdist, wheels-*    turboblake-<v>.tar.gz, *.whl            PyPI
+#   crate              turboblake-<v>.crate                    crates.io
+#
+# Linux builds run in manylinux_2_28 (glibc 2.28) or Alpine (musl)
+# containers. Every engine is built for its platform's baseline CPU and
+# checks the CPU before it runs (ADR 0020); check-old-cpu.sh proves an
+# x86-64 binary still runs on a CPU without AVX.
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  pull_request:
+    paths: &paths
+      - "bend/**"
+      - "scripts/release/**"
+      - ".github/workflows/turboblake-*.yml"
+  push:
+    branches: [master]
+    paths: *paths
+
+permissions: {}
+
+concurrency:
+  group: turboblake-build-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  CARGO_TERM_COLOR: always
+  PYTHONUTF8: "1"
+
+jobs:
+  version:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Every package carries bend/VERSION (and the tag, on a release)
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if [ "$REF_TYPE" = tag ]; then
+            python3 scripts/release/version.py check "$REF_NAME"
+          else
+            python3 scripts/release/version.py check
+          fi
+      - name: The generated crate matches its sources
+        run: |
+          bend/rust/gen.sh
+          git diff --exit-code bend/crate || { echo "::error::bend/crate is stale: run bend/rust/gen.sh"; exit 1; }
+
+  cli:
+    name: cli ${{ matrix.target }}
+    needs: version
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: macos-15, target: aarch64-apple-darwin }
+          - { os: macos-15-intel, target: x86_64-apple-darwin }
+          - { os: ubuntu-24.04, target: x86_64-unknown-linux-gnu, image: quay.io/pypa/manylinux_2_28_x86_64 }
+          - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu, image: quay.io/pypa/manylinux_2_28_aarch64 }
+          - { os: ubuntu-24.04, target: x86_64-unknown-linux-musl, image: "alpine:3.22" }
+          - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-musl, image: "alpine:3.22" }
+          - { os: windows-2025, target: x86_64-pc-windows-msvc }
+          - { os: windows-11-arm, target: aarch64-pc-windows-msvc }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build and check (in a container)
+        if: matrix.image
+        env:
+          IMAGE: ${{ matrix.image }}
+          TARGET: ${{ matrix.target }}
+        run: |
+          docker run --rm -v "$PWD:/w" -w /w -e TARGET "$IMAGE" sh -euc '
+            scripts/release/setup-linux.sh cli
+            scripts/release/build-cli.sh "$TARGET" dist'
+      - name: Build and check
+        if: ${{ !matrix.image }}
+        shell: bash
+        env:
+          TARGET: ${{ matrix.target }}
+          PYTHON: ${{ runner.os == 'Windows' && 'python' || 'python3' }}
+          MACOSX_DEPLOYMENT_TARGET: "11.0"
+        run: |
+          if ! command -v rustup >/dev/null; then
+            curl --proto '=https' --tlsv1.2 -sSf -o rustup-init.exe \
+              "https://static.rust-lang.org/rustup/dist/$TARGET/rustup-init.exe"
+            ./rustup-init.exe -y -q --profile minimal && rm rustup-init.exe
+            export PATH="$HOME/.cargo/bin:$PATH"
+          fi
+          rustup update stable --no-self-update && rustup default stable
+          scripts/release/build-cli.sh "$TARGET" dist
+      - name: Runs on a CPU without AVX2 or AVX
+        if: startsWith(matrix.target, 'x86_64-unknown-linux')
+        env:
+          TARGET: ${{ matrix.target }}
+        run: |
+          sudo apt-get -qq update && sudo apt-get -qq install -y qemu-user >/dev/null
+          scripts/release/check-old-cpu.sh "bend/crate/target/$TARGET/release/turboblake"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: cli-${{ matrix.target }}
+          path: dist/turboblake-*
+          if-no-files-found: error
+
+  lib:
+    name: lib ${{ matrix.target }}
+    needs: version
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: macos-15, target: aarch64-apple-darwin }
+          - { os: macos-15-intel, target: x86_64-apple-darwin }
+          - { os: ubuntu-24.04, target: x86_64-unknown-linux-gnu, image: quay.io/pypa/manylinux_2_28_x86_64 }
+          - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu, image: quay.io/pypa/manylinux_2_28_aarch64 }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build (in a container)
+        if: matrix.image
+        env:
+          IMAGE: ${{ matrix.image }}
+          TARGET: ${{ matrix.target }}
+        run: |
+          docker run --rm -v "$PWD:/w" -w /w -e TARGET "$IMAGE" sh -euc '
+            scripts/release/setup-linux.sh lib
+            scripts/release/build-lib.sh "$TARGET" dist'
+      - name: Build
+        if: ${{ !matrix.image }}
+        env:
+          TARGET: ${{ matrix.target }}
+        run: scripts/release/build-lib.sh "$TARGET" dist
+      - name: Test against the official vectors and b3sum
+        env:
+          TARGET: ${{ matrix.target }}
+        run: |
+          cargo build --release --locked --manifest-path b3sum/Cargo.toml -q
+          B3SUM=b3sum/target/release/b3sum python3 bend/lib/test.py --cli "dist/blake3-$TARGET"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: lib-${{ matrix.target }}
+          path: dist/libturboblake-*
+          if-no-files-found: error
+
+  npm-addon:
+    name: npm ${{ matrix.platform }}
+    needs: version
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: macos-15, platform: darwin-arm64 }
+          - { os: macos-15-intel, platform: darwin-x64 }
+          - { os: ubuntu-24.04, platform: linux-x64-gnu, image: quay.io/pypa/manylinux_2_28_x86_64 }
+          - { os: ubuntu-24.04-arm, platform: linux-arm64-gnu, image: quay.io/pypa/manylinux_2_28_aarch64 }
+          - { os: ubuntu-24.04, platform: linux-x64-musl, image: "alpine:3.22" }
+          - { os: ubuntu-24.04-arm, platform: linux-arm64-musl, image: "alpine:3.22" }
+          - { os: windows-2025, platform: win32-x64 }
+          - { os: windows-11-arm, platform: win32-arm64 }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build and test (in a container)
+        if: matrix.image
+        env:
+          IMAGE: ${{ matrix.image }}
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          docker run --rm -v "$PWD:/w" -w /w -e PLATFORM "$IMAGE" sh -euc '
+            scripts/release/setup-linux.sh npm
+            scripts/release/build-npm.sh "$PLATFORM" dist'
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        if: ${{ !matrix.image }}
+        with:
+          package-manager-cache: false
+          node-version: 24
+      - name: Build and test
+        if: ${{ !matrix.image }}
+        shell: bash
+        env:
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          if ! command -v clang >/dev/null; then
+            choco install llvm -y --no-progress >/dev/null
+            export PATH="/c/Program Files/LLVM/bin:$PATH"
+          fi
+          scripts/release/build-npm.sh "$PLATFORM" dist
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: npm-${{ matrix.platform }}
+          path: dist/prebuilds/
+          if-no-files-found: error
+
+  npm:
+    needs: npm-addon
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        with:
+          package-manager-cache: false
+          node-version: 24
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
+        with:
+          pattern: npm-*
+          path: bend/node/prebuilds
+          merge-multiple: true
+      - name: Pack, with every platform's addon
+        run: |
+          cd bend/node
+          want=$(node --input-type=module -e "import { platforms } from './prebuilt.mjs'; console.log(Object.keys(platforms).sort().join(' '))")
+          have=$(find prebuilds -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | sort | tr '\n' ' ' | sed 's/ $//')
+          [ "$have" = "$want" ] || { echo "::error::prebuilds: have '$have', want '$want'"; exit 1; }
+          mkdir -p ../../dist
+          npm pack --pack-destination ../../dist
+          tar tzf ../../dist/turboblake-*.tgz | grep prebuilds/
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: npm
+          path: dist/turboblake-*.tgz
+          if-no-files-found: error
+
+  # The packed package, installed as a user installs it, on each platform
+  npm-smoke:
+    name: npm smoke ${{ matrix.os }}${{ matrix.image && ' (alpine)' || '' }}
+    needs: npm
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: macos-15 }
+          - { os: macos-15-intel }
+          - { os: ubuntu-24.04 }
+          - { os: ubuntu-24.04-arm }
+          - { os: ubuntu-24.04, image: "node:24-alpine" }
+          - { os: windows-2025 }
+          - { os: windows-11-arm }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
+        with:
+          name: npm
+          path: dist
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        if: ${{ !matrix.image }}
+        with:
+          package-manager-cache: false
+          node-version: 24
+      - name: Install and run
+        if: ${{ !matrix.image }}
+        shell: bash
+        run: scripts/release/smoke-npm.sh dist/turboblake-*.tgz
+      - name: Install and run (in a container)
+        if: matrix.image
+        env:
+          IMAGE: ${{ matrix.image }}
+        run: docker run --rm -v "$PWD:/w" -w /w "$IMAGE" sh -c 'scripts/release/smoke-npm.sh dist/turboblake-*.tgz'
+
+  sdist:
+    needs: version
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - run: pipx run build==1.3.0 --sdist bend/python --outdir dist
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  # Wheels from the sdist, so the sdist is known to build: the engine's
+  # settings are bend/python/pyproject.toml's [tool.cibuildwheel]
+  wheels:
+    name: wheels ${{ matrix.os }}
+    needs: sdist
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-15, macos-15-intel]
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
+        with:
+          name: sdist
+          path: sdist
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: "3.13"
+      - name: Build and test
+        shell: bash
+        run: pipx run cibuildwheel==4.3.5 sdist/*.tar.gz --output-dir wheelhouse
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: wheels-${{ matrix.os }}
+          path: wheelhouse/*.whl
+          if-no-files-found: error
+
+  # Windows: no engine yet, so turboblake's wheel installs the official
+  # blake3 there (bend/python/setup.py): one small wheel per architecture
+  wheels-windows:
+    needs: sdist
+    runs-on: windows-2025
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
+        with:
+          name: sdist
+          path: sdist
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: "3.13"
+      - name: Build
+        shell: bash
+        run: |
+          python -m pip install -q build==1.3.0
+          for plat in win_amd64 win_arm64 win32; do
+            TURBOBLAKE_WHEEL_PLAT=$plat python -m build --wheel --outdir wheelhouse sdist/*.tar.gz
+          done
+          ls wheelhouse
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: wheels-windows
+          path: wheelhouse/*.whl
+          if-no-files-found: error
+
+  wheels-windows-smoke:
+    name: wheels smoke ${{ matrix.os }}
+    needs: wheels-windows
+    runs-on: ${{ matrix.os }}
+    permissions: {}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2025, windows-11-arm]
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
+        with:
+          name: wheels-windows
+          path: wheelhouse
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: "3.13"
+      - name: pip install turboblake, then import blake3
+        shell: bash
+        run: |
+          python -m pip install -q --find-links wheelhouse turboblake
+          python -c "import blake3; assert blake3.blake3(b'abc').hexdigest() == '6437b3ac38465133ffb63b75273a8db548c558465d79db03fd359c6cd5bd9d85'; print(blake3.__file__)"
+
+  crate:
+    needs: version
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - name: cargo package, and publish --dry-run
+        working-directory: bend/crate
+        run: |
+          rustup update stable --no-self-update && rustup default stable
+          cargo publish --dry-run --locked
+          cargo package --locked --no-verify
+          mkdir -p ../../dist && cp target/package/turboblake-*.crate ../../dist/
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: crate
+          path: dist/*.crate
+          if-no-files-found: error
+
+  go:
+    name: go ${{ matrix.os }}
+    needs: version
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-15, macos-15-intel, windows-2025]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e  # v7.0.0
+        with:
+          go-version-file: bend/go/go.mod
+          cache: false
+      - name: go test (cgo)
+        working-directory: bend/go
+        shell: bash
+        env:
+          CGO_ENABLED: "1"
+        run: go test -count=1 ./...

@@ -1,77 +1,69 @@
-// The prebuilt addons on npm: one small package per platform
-// (@turboblake/darwin-arm64, ...), each holding a turboblake.node built for
-// that platform's baseline CPU, as the release binaries are. turboblake
-// lists them as optionalDependencies, so npm, Bun, pnpm and Deno fetch only
-// the one that matches; with none, `npm install` builds the addon here
-// (build.mjs) and, failing that, turboblake runs on Bend's JavaScript.
+// The prebuilt addons: the turboblake package carries one turboblake.node
+// for each platform below, in prebuilds/<platform>/, each built for that
+// platform's baseline CPU as the release binaries are (the engine checks the
+// CPU before it runs, and an older one hashes as upstream does). index.js
+// loads the one for this machine; with none, turboblake runs on Bend's
+// JavaScript, and `node build.mjs` in the package builds an addon here.
 //
-//   node prebuilt.mjs name              the package for this machine
-//   node prebuilt.mjs pack OUT          build/turboblake.node into OUT/<name>/
-//   node prebuilt.mjs installed         exit 0 if this machine's package is there
-import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { createRequire } from "node:module";
+//   node prebuilt.mjs name        this machine's platform (darwin-arm64, linux-x64-musl, ...)
+//   node prebuilt.mjs pack DIR    build/turboblake.node into DIR/prebuilds/<platform>/
+import { cpSync, existsSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 
-// The platforms with a prebuilt addon, and the CPU each is built for
-// (.github/workflows/turboblake-release.yml passes it as TURBOBLAKE_TARGET_CPU).
+// Each platform with a prebuilt addon, and the CPU its engine is built for
+// (.github/workflows/turboblake-build.yml passes it as TURBOBLAKE_TARGET_CPU).
+// Windows has no engine yet: its addon is the official C alone (ADR 0020).
 export const platforms = {
-  "darwin-arm64": { os: "darwin", cpu: "arm64", flags: "-mcpu=apple-m1" },
-  "darwin-x64": { os: "darwin", cpu: "x64", flags: "-march=x86-64-v3" },
-  "linux-x64-gnu": { os: "linux", cpu: "x64", libc: "glibc", flags: "-march=x86-64-v3" },
-  "linux-arm64-gnu": { os: "linux", cpu: "arm64", libc: "glibc", flags: "-mcpu=generic" },
+  "darwin-arm64": "-mcpu=apple-m1",
+  "darwin-x64": "-march=x86-64-v3",
+  "linux-x64-gnu": "-march=x86-64-v3",
+  "linux-arm64-gnu": "-mcpu=generic",
+  "linux-x64-musl": "-march=x86-64-v3",
+  "linux-arm64-musl": "-mcpu=generic",
+  "win32-x64": "",
+  "win32-arm64": "",
 };
 
-export function packageName() {
-  const p = `${process.platform}-${process.arch}`;
-  return `@turboblake/${process.platform === "linux" ? `${p}-gnu` : p}`;
+// musl or glibc: a glibc process reports the glibc it runs on.
+function libc() {
+  try {
+    return globalThis.process.report.getReport().header.glibcVersionRuntime ? "gnu" : "musl";
+  } catch {
+    return "gnu";
+  }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+export function platform() {
+  const { platform: os, arch } = globalThis.process;
+  return os === "linux" ? `${os}-${arch}-${libc()}` : `${os}-${arch}`;
+}
+
+// The addons to try on this machine, best first: on Linux the other libc's
+// too, should a runtime report its libc wrongly (the wrong one fails to load).
+export function candidates() {
+  const p = platform();
+  if (!p.startsWith("linux-")) return [p];
+  return [p, p.endsWith("-gnu") ? p.replace(/-gnu$/, "-musl") : p.replace(/-musl$/, "-gnu")];
+}
+
+if (import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.endsWith("prebuilt.mjs")) {
   const [cmd, out] = process.argv.slice(2);
   if (cmd === "name") {
-    console.log(packageName());
-  } else if (cmd === "installed") {
-    try {
-      createRequire(import.meta.url).resolve(packageName());
-    } catch {
-      process.exit(1);
-    }
+    console.log(platform());
   } else if (cmd === "pack" && out) {
-    const main = JSON.parse(readFileSync(join(here, "package.json"), "utf8"));
-    const name = packageName();
-    const p = platforms[name.slice("@turboblake/".length)];
-    if (!p) throw new Error(`turboblake: no prebuilt package for ${name}`);
+    const p = platform();
+    if (!(p in platforms)) throw new Error(`turboblake: no prebuilt addon for ${p}`);
     const addon = join(here, "build", "turboblake.node");
     if (!existsSync(addon)) throw new Error("turboblake: build/turboblake.node is missing (node build.mjs)");
-    const dir = join(out, name.slice(1).replace("/", "-"));
+    const dir = join(out, "prebuilds", p);
     mkdirSync(dir, { recursive: true });
     cpSync(addon, join(dir, "turboblake.node"));
-    for (const f of ["LICENSE_A2", "LICENSE_A2LLVM", "LICENSE_CC0"]) {
-      cpSync(join(here, "..", "..", f), join(dir, f));
-    }
-    writeFileSync(join(dir, "README.md"),
-      `# ${name}\n\nThe prebuilt native addon of [turboblake](https://www.npmjs.com/package/turboblake) for ${p.os} ${p.cpu}` +
-      `${p.libc ? ` (${p.libc})` : ""}, built for \`${p.flags}\`. Install \`turboblake\`, not this package.\n`);
-    writeFileSync(join(dir, "package.json"), JSON.stringify({
-      name,
-      version: main.version,
-      description: `turboblake's native addon for ${p.os} ${p.cpu}${p.libc ? ` (${p.libc})` : ""}`,
-      main: "turboblake.node",
-      files: ["turboblake.node", "LICENSE_*"],
-      os: [p.os],
-      cpu: [p.cpu],
-      ...(p.libc ? { libc: [p.libc] } : {}),
-      engines: main.engines,
-      homepage: main.homepage,
-      repository: main.repository,
-      license: main.license,
-    }, null, 2) + "\n");
-    console.log(dir);
+    console.log(join(dir, "turboblake.node"));
   } else {
-    console.error("usage: node prebuilt.mjs name | installed | pack OUT");
+    console.error("usage: node prebuilt.mjs name | pack DIR");
     process.exit(2);
   }
 }

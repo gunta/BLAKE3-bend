@@ -9,12 +9,37 @@ extended output. Programs written against `blake3.h` relink and run
 unchanged; same symbols, same `blake3_hasher` layout.
 
 ```bash
-bend/lib/build.sh
+brew install gunta/tap/libturboblake
 ```
 
-builds `bend/lib/build/lib/libblake3.a` and `libblake3.{dylib,so}`, with
-`include/blake3.h`, and `bin/blake3` (a test CLI). To use it in place of
-the official library, point your build at those:
+or a `libturboblake` archive from the
+[releases](https://github.com/gunta/turboblake/releases) (macOS and Linux,
+arm64 and x86-64), or from source with CMake:
+
+```bash
+cmake -S bend/lib -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build && cmake --install build --prefix /usr/local
+```
+
+Each installs `include/turboblake/blake3.h` (upstream's header) and
+`turboblake.h`, `libturboblake` (static and shared), a pkg-config file and
+a CMake package, so a program keeps `#include "blake3.h"` and links one of:
+
+```bash
+cc app.c $(pkg-config --cflags --libs libturboblake) -o app
+```
+
+```cmake
+find_package(turboblake REQUIRED)
+target_link_libraries(app turboblake::turboblake)
+```
+
+The engine needs clang on a POSIX system; elsewhere (Windows, gcc) CMake
+builds the official C alone. `-DTURBOBLAKE_TARGET_CPU=native` tunes the
+engine for this machine instead of each platform's release baseline.
+`bend/lib/build.sh` is the quick build for working on it here: `build/`
+gets `libblake3.a` and `libblake3.{dylib,so}` (also as `libturboblake`),
+`include/blake3.h`, and `bin/blake3` (a test CLI):
 
 ```bash
 cc -I bend/lib/build/include app.c bend/lib/build/lib/libblake3.a -lpthread -o app

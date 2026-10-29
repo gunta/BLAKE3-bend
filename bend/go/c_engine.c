@@ -1,4 +1,4 @@
-//go:build cgo && !(darwin && amd64) && !(darwin && arm64) && !(linux && amd64) && !(linux && arm64)
+//go:build cgo && !windows && !(darwin && amd64) && !(darwin && arm64) && !(linux && amd64) && !(linux && arm64)
 
 // The engine for a platform with no prebuilt engine_<os>_<arch>.syso:
 // compiled by cgo, which will not pass the vectorizer's -mllvm flags, so

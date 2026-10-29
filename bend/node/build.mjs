@@ -1,8 +1,11 @@
 // Builds build/turboblake.node: src/addon.c over libturboblake (the C in
 // ./csrc, or ../lib/csrc in the repository), with clang. The engine gets
-// bend/build.sh's vectorizer flags. Run by `npm install` (with --optional:
-// a failure is a warning, and turboblake runs on Bend's JavaScript instead);
-// needs clang and the Node-API headers (Node's own, or node-api-headers).
+// bend/build.sh's vectorizer flags. The package carries this addon prebuilt
+// for every platform it lists (prebuilt.mjs); on another one, or for an
+// addon tuned for this CPU, run `node build.mjs` in it. Needs clang and the
+// Node-API headers (Node's own, or node-api-headers). On Windows the addon is
+// the official C alone, linked to nothing: src/napi_win.h finds Node-API in
+// the host process, so one addon serves Node, Bun, Deno and Electron.
 // TURBOBLAKE_PORTABLE=1 builds for the baseline CPU instead of this one, and
 // TURBOBLAKE_TARGET_CPU (e.g. "-march=x86-64-v3") for a chosen one, as the
 // prebuilt packages are (prebuilt.mjs);
@@ -17,15 +20,6 @@ import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const optional = process.argv.includes("--optional");
-
-// On install, a prebuilt addon (prebuilt.mjs) that npm fetched for this
-// platform wins; TURBOBLAKE_BUILD=1 builds here anyway, tuned for this CPU.
-if (optional && !process.env.TURBOBLAKE_BUILD) {
-  try {
-    createRequire(import.meta.url).resolve((await import("./prebuilt.mjs")).packageName());
-    process.exit(0);
-  } catch {}
-}
 // in the repository, always the current C; in a package, the copy it ships
 let csrc = join(here, "csrc");
 if (existsSync(join(here, "..", "lib", "csrc", "engine.c"))) {
@@ -61,26 +55,45 @@ const run = (args) => {
   }
 };
 
+const win = platform() === "win32";
 const objs = [];
 const compile = (src, flags) => {
   const obj = join(out, basename(src) + ".o");
-  run([...flags, "-fPIC", "-c", src, "-o", obj]);
+  run([...flags, ...(win ? [] : ["-fPIC"]), "-c", src, "-o", obj]);
   objs.push(obj);
 };
-compile(join(csrc, "engine.c"), ["-x", "c", "-std=c11", "-O3", ...cpu, "-w", "-DBEND_EMBED",
-  "-Dmain=b3e_bend_main", ...slp]);
-const gpu = !process.env.TURBOBLAKE_NO_GPU;
-const c = ["-O3", "-std=c11", ...cpu, "-DTURBOBLAKE", ...(gpu ? ["-DTURBOBLAKE_GPU"] : []), `-I${csrc}`];
-const glue = gpu ? ["turboblake.c", "turboblake_gpu.c"] : ["turboblake.c"];
-for (const f of ["blake3.c", "blake3_dispatch.c", "blake3_portable.c", ...glue]) {
-  compile(join(csrc, f), [...c, ...(x86 ? [] : ["-DBLAKE3_USE_NEON=1"])]);
-}
-if (x86) {
-  for (const s of ["sse2", "sse41", "avx2", "avx512"]) compile(join(csrc, `blake3_${s}_x86-64_unix.S`), []);
+const neon = x86 ? [] : ["-DBLAKE3_USE_NEON=1"];
+if (win) {
+  // the official C alone, with the CRT linked in: nothing to install beside
+  // it. The target is named: an x64 clang on an arm64 runner still builds arm64.
+  const target = `--target=${x86 ? "x86_64" : "aarch64"}-pc-windows-msvc`;
+  const c = [target, "-O3", "-std=c11", "-D_CRT_SECURE_NO_WARNINGS", `-I${csrc}`];
+  for (const f of ["blake3.c", "blake3_dispatch.c", "blake3_portable.c"]) compile(join(csrc, f), [...c, ...neon]);
+  if (x86) {
+    for (const s of ["sse2", "sse41", "avx2", "avx512"]) compile(join(csrc, `blake3_${s}_x86-64_windows_gnu.S`), [target]);
+  } else {
+    compile(join(csrc, "blake3_neon.c"), [...c, ...neon]);
+  }
+  compile(join(here, "src", "addon.c"), [...c, `-I${nodeApiInclude()}`, "-DNODE_GYP_MODULE_NAME=turboblake"]);
+  run([target, "-shared", "-fuse-ld=lld", "-fms-runtime-lib=static", ...objs, "-o", join(out, "turboblake.node")]);
 } else {
-  compile(join(csrc, "blake3_neon.c"), [...c, "-DBLAKE3_USE_NEON=1"]);
+  compile(join(csrc, "engine.c"), ["-x", "c", "-std=c11", "-O3", ...cpu, "-w", "-DBEND_EMBED",
+    "-Dmain=b3e_bend_main", ...slp]);
+  const gpu = !process.env.TURBOBLAKE_NO_GPU;
+  // only the engine gets the CPU flags: the official C picks its SIMD at run
+  // time, and the engine checks the CPU before it runs (ADR 0020)
+  const c = ["-O3", "-std=c11", "-DTURBOBLAKE", ...(gpu ? ["-DTURBOBLAKE_GPU"] : []), `-I${csrc}`];
+  const glue = gpu ? ["turboblake.c", "turboblake_gpu.c"] : ["turboblake.c"];
+  for (const f of ["blake3.c", "blake3_dispatch.c", "blake3_portable.c", ...glue]) {
+    compile(join(csrc, f), [...c, ...neon]);
+  }
+  if (x86) {
+    for (const s of ["sse2", "sse41", "avx2", "avx512"]) compile(join(csrc, `blake3_${s}_x86-64_unix.S`), []);
+  } else {
+    compile(join(csrc, "blake3_neon.c"), [...c, ...neon]);
+  }
+  compile(join(here, "src", "addon.c"), [...c, `-I${nodeApiInclude()}`, "-DNODE_GYP_MODULE_NAME=turboblake"]);
+  const link = platform() === "darwin" ? ["-bundle", "-undefined", "dynamic_lookup"] : ["-shared"];
+  const dl = gpu && platform() === "linux" ? ["-ldl"] : [];
+  run([...link, ...objs, "-lpthread", "-lm", ...dl, "-o", join(out, "turboblake.node")]);
 }
-compile(join(here, "src", "addon.c"), [...c, `-I${nodeApiInclude()}`, "-DNODE_GYP_MODULE_NAME=turboblake"]);
-const link = platform() === "darwin" ? ["-bundle", "-undefined", "dynamic_lookup"] : ["-shared"];
-const dl = gpu && platform() === "linux" ? ["-ldl"] : [];
-run([...link, ...objs, "-lpthread", "-lm", ...dl, "-o", join(out, "turboblake.node")]);

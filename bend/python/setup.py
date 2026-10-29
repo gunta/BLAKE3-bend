@@ -8,6 +8,12 @@ clang the module builds on the official C alone, and says so.
 With the engine comes the GPU backend (turboblake_gpu.c, ADR 0017), which
 loads Metal or CUDA at run time and links nothing.
 
+Where the engine cannot build (Windows, or no clang) turboblake's module
+would be the official C on one core, slower than the blake3 package, which
+hashes on every core with max_threads: there turboblake installs no module
+of its own and depends on blake3 instead, so `import blake3` is never
+slower than upstream (ADR 0016, 0020).
+
 Environment: TURBOBLAKE_PORTABLE=1 builds for the baseline CPU instead of
 this one, TURBOBLAKE_TARGET_CPU (e.g. "-march=x86-64-v3") for a chosen one,
 as the wheels on PyPI are; TURBOBLAKE_NO_ENGINE=1 leaves the engine out, TURBOBLAKE_NO_GPU=1
@@ -21,6 +27,7 @@ import sys
 from pathlib import Path
 
 import setuptools
+from setuptools.command.bdist_wheel import bdist_wheel
 from setuptools.command.build_ext import build_ext
 
 HERE = Path(__file__).resolve().parent
@@ -53,6 +60,26 @@ def find_clang():
         if "clang" in out:
             return cc
     return None
+
+
+# No engine here: blake3 instead (the docstring). TURBOBLAKE_NO_ENGINE=1 asks
+# for turboblake's module without the engine, so it builds one.
+DELEGATE = WINDOWS or (not os.environ.get("TURBOBLAKE_NO_ENGINE") and find_clang() is None)
+
+
+class BdistWheel(bdist_wheel):
+    def get_tag(self):
+        python, abi, plat = super().get_tag()
+        # the wheel that installs blake3 holds no code: one for every Python,
+        # and TURBOBLAKE_WHEEL_PLAT names its platform (win32, win_arm64, ...)
+        if DELEGATE:
+            return ("py3", "none", os.environ.get("TURBOBLAKE_WHEEL_PLAT") or plat)
+        return (python, abi, plat)
+
+
+class Distribution(setuptools.Distribution):
+    def has_ext_modules(self):
+        return True  # a platform wheel, even the one that only installs blake3
 
 
 class BuildExt(build_ext):
@@ -92,8 +119,14 @@ class BuildExt(build_ext):
         super().build_extension(ext)
 
 
+if DELEGATE:
+    print("turboblake: no Bend engine here (Windows, or no clang): installing blake3 instead")
+
 setuptools.setup(
-    ext_modules=[
+    distclass=Distribution,
+    packages=[] if DELEGATE else ["blake3"],
+    install_requires=["blake3"] if DELEGATE else [],
+    ext_modules=[] if DELEGATE else [
         setuptools.Extension(
             "blake3._blake3",
             sources=["blake3module.c", "csrc/blake3.c", "csrc/blake3_dispatch.c",
@@ -103,9 +136,9 @@ setuptools.setup(
                 ("SETUP_PY_VERSION", f'"{VERSION}"'),
                 ("SETUP_PY_DESCRIPTION", '"BLAKE3 on libturboblake"'),
             ],
-            extra_compile_args=[] if WINDOWS else ["-O3", "-std=c11"],
-            libraries=[] if WINDOWS else ["pthread", "m"],
+            extra_compile_args=["-O3", "-std=c11"],
+            libraries=["pthread", "m"],
         )
     ],
-    cmdclass={"build_ext": BuildExt},
+    cmdclass={"build_ext": BuildExt, "bdist_wheel": BdistWheel},
 )

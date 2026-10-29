@@ -16,6 +16,7 @@ root=$(cd "$here/../.." && pwd)
 out="${1:-$root/bend/crate}"
 name="${TURBOBLAKE_NAME:-turboblake}"
 [ -s "$root/bend/lib/csrc/engine.c" ] || "$root/bend/lib/gen.sh"
+lock=$(cat "$out/Cargo.lock" 2>/dev/null || true)
 rm -rf "$out"
 mkdir -p "$out/src" "$out/c" "$out/csrc" "$out/reference_impl"
 cp "$root/Cargo.toml" "$root/build.rs" "$root/LICENSE_A2" "$root/LICENSE_A2LLVM" "$root/LICENSE_CC0" "$out/"
@@ -32,7 +33,10 @@ for f in turboblake_gpu.c turboblake_gpu.h turboblake_kernels.h b3core.h; do
   cp "$root/bend/lib/csrc/$f" "$out/csrc/$f"
 done
 cp "$here/README.md" "$out/README.md"
-printf 'target/\nCargo.lock\n' > "$out/.gitignore"
+# Cargo.lock is kept (through the rm above): the release binaries build
+# --locked, and `cargo install --locked` takes the same dependencies
+printf 'target/\n' > "$out/.gitignore"
+[ -n "$lock" ] && printf '%s\n' "$lock" > "$out/Cargo.lock"
 python3 "$here/patch_crate.py" "$out" "$name"
 version=$(sed -n 's/^version = "\(.*\)"/\1/p' "$out/Cargo.toml" | head -1)
 

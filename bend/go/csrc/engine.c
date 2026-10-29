@@ -1,3 +1,8 @@
+#if defined(BEND_EMBED)
+#define B3E_CTOR  // run by b3e_ctors (patch.py)
+#else
+#define B3E_CTOR __attribute__((constructor))
+#endif
 
 // Imports
 // =======
@@ -72207,7 +72212,7 @@ Term io_thread_count_run(Env e, Term* f, IoWork* w) {
   return (Term)pool_size;
 }
 
-static void __attribute__((constructor)) io_thread_count_use(void) {
+static void B3E_CTOR io_thread_count_use(void) {
   io_eff(CID_IO_thread_count, io_thread_count_run);
 }
 // Eng.next / Eng.done
@@ -72238,6 +72243,118 @@ static void __attribute__((constructor)) io_thread_count_use(void) {
 #define B3E_SPANS 64  // spans a job, read in place
 #define B3E_RESV (16ull << 30)  // the heap's room on macOS (b3e_reserve)
 #define B3E_STAGE 2   // spans a job, copied
+
+// The CPU
+// -------
+//
+// A prebuilt engine is compiled for its platform's baseline (ADR 0020), on
+// x86-64 the x86-64-v3 of the release binaries: a CPU without AVX2 would
+// fault in it. So no code compiled for that baseline runs until
+// b3e_cpu_ok says this CPU has every feature the compiler was told to
+// assume. The entry points below are compiled for plain x86-64 (B3E_BASE)
+// and ask first; the runtime's constructors run from b3e_boot, after the
+// check, not at load (patch.py embed). On an older CPU the library loads,
+// the engine never starts, and every input is hashed as upstream does.
+#if defined(__x86_64__)
+#define B3E_BASE __attribute__((target("arch=x86-64")))
+#include <cpuid.h>
+
+static B3E_BASE int b3e_cpu_check(void) {
+  unsigned a, b, c, d, c1 = 0, b7 = 0, c81 = 0;
+  if (!__get_cpuid(1, &a, &b, &c1, &d)) {
+    return 0;
+  }
+  if (__get_cpuid_max(0, NULL) >= 7) {
+    __cpuid_count(7, 0, a, b7, c, d);
+  }
+  if (__get_cpuid_max(0x80000000, NULL) >= 0x80000001) {
+    __cpuid(0x80000001, a, b, c81, d);
+  }
+  unsigned long long xcr0 = 0;
+  if (c1 & (1u << 27)) {  // OSXSAVE: the OS saves the vector registers
+    unsigned lo, hi;
+    __asm__ volatile("xgetbv" : "=a"(lo), "=d"(hi) : "c"(0));
+    xcr0 = ((unsigned long long)hi << 32) | lo;
+  }
+  int ok = 1;
+#if defined(__SSE3__)
+  ok &= (c1 >> 0) & 1;
+#endif
+#if defined(__SSSE3__)
+  ok &= (c1 >> 9) & 1;
+#endif
+#if defined(__SSE4_1__)
+  ok &= (c1 >> 19) & 1;
+#endif
+#if defined(__SSE4_2__)
+  ok &= (c1 >> 20) & 1;
+#endif
+#if defined(__POPCNT__)
+  ok &= (c1 >> 23) & 1;
+#endif
+#if defined(__AVX__)
+  ok &= (c1 >> 28) & 1 && (xcr0 & 6) == 6;
+#endif
+#if defined(__FMA__)
+  ok &= (c1 >> 12) & 1;
+#endif
+#if defined(__MOVBE__)
+  ok &= (c1 >> 22) & 1;
+#endif
+#if defined(__F16C__)
+  ok &= (c1 >> 29) & 1;
+#endif
+#if defined(__AVX2__)
+  ok &= (b7 >> 5) & 1;
+#endif
+#if defined(__BMI__)
+  ok &= (b7 >> 3) & 1;
+#endif
+#if defined(__BMI2__)
+  ok &= (b7 >> 8) & 1;
+#endif
+#if defined(__LZCNT__)
+  ok &= (c81 >> 5) & 1;
+#endif
+#if defined(__AVX512F__)
+  ok &= (b7 >> 16) & 1;
+#if !defined(__APPLE__)
+  // macOS turns the AVX-512 state on at a thread's first use, so XCR0 may
+  // not show it yet; cpuid's word is the one that counts there
+  ok &= (xcr0 & 0xe6) == 0xe6;
+#endif
+#endif
+#if defined(__AVX512DQ__)
+  ok &= (b7 >> 17) & 1;
+#endif
+#if defined(__AVX512CD__)
+  ok &= (b7 >> 28) & 1;
+#endif
+#if defined(__AVX512BW__)
+  ok &= (b7 >> 30) & 1;
+#endif
+#if defined(__AVX512VL__)
+  ok &= (b7 >> 31) & 1;
+#endif
+  return ok;
+}
+#else
+#define B3E_BASE
+static int b3e_cpu_check(void) {
+  return 1;
+}
+#endif
+
+// 1 if this CPU runs the engine as compiled; TURBOBLAKE_CPU=0 answers 0, to
+// test the path an older CPU takes.
+static B3E_BASE int b3e_cpu_ok(void) {
+  static int ok = -1;  // a race only computes the same answer twice
+  if (ok < 0) {
+    const char* force = getenv("TURBOBLAKE_CPU");
+    ok = force != NULL && force[0] == '0' ? 0 : b3e_cpu_check();
+  }
+  return ok;
+}
 
 typedef struct B3EJob {
   const unsigned char* p[B3E_SPANS];
@@ -72308,7 +72425,7 @@ static void b3e_report(void) {
 extern char* b3e_resv;
 #endif
 
-int b3e_inside(const void* p, uint64_t len) {
+B3E_BASE int b3e_inside(const void* p, uint64_t len) {
   uintptr_t base = (uintptr_t)b3e_heap, at = (uintptr_t)p;
 #if defined(__APPLE__)
   base = base != 0 || b3e_state != 0 ? base : (uintptr_t)b3e_resv;
@@ -72699,7 +72816,7 @@ Term eng_done_run(Env e, Term* f, IoWork* w) {
   return term_pak(CID_Unit, 0);
 }
 
-static void __attribute__((constructor)) eng_use(void) {
+static void B3E_CTOR eng_use(void) {
 #ifdef CID_Eng_next
   io_eff(CID_Eng_next, eng_next_run);
 #endif
@@ -72712,6 +72829,9 @@ static void __attribute__((constructor)) eng_use(void) {
 // -----------------
 
 int b3e_bend_main(int argc, char** argv);  // Bend's main, renamed
+#if defined(BEND_EMBED)
+static void b3e_ctors(void);  // the runtime's constructors (patch.py embed)
+#endif
 
 static pthread_once_t b3e_once = PTHREAD_ONCE_INIT;
 
@@ -72742,9 +72862,16 @@ static void b3e_child(void) {
   b3e_state = -1;
 }
 
-static void b3e_boot(void) {
+static B3E_BASE void b3e_boot(void) {
   pthread_attr_t a;
   pthread_t t;
+  if (!b3e_cpu_ok()) {
+    b3e_state = -1;
+    return;
+  }
+#if defined(BEND_EMBED)
+  b3e_ctors();
+#endif
   if (getenv("TURBOBLAKE_TRACE") != NULL) {
     atexit(b3e_report);
   }
@@ -72783,9 +72910,9 @@ static void b3e_boot(void) {
 char* b3e_resv;
 u64   b3e_resv_len;
 
-static void __attribute__((constructor)) b3e_reserve(void) {
+static void __attribute__((constructor)) B3E_BASE b3e_reserve(void) {
   const char* off = getenv("TURBOBLAKE");
-  if (off != NULL && !strcmp(off, "0")) {
+  if ((off != NULL && !strcmp(off, "0")) || !b3e_cpu_ok()) {
     return;
   }
   void* p = mmap(NULL, B3E_RESV, PROT_NONE, MAP_PRIVATE | MAP_ANON, -1, 0);
@@ -72836,13 +72963,13 @@ static bool b3e_heap_room(void) {
 }
 
 // Starts the engine once; 1 if it runs.
-int b3e_start(void) {
+B3E_BASE int b3e_start(void) {
   pthread_once(&b3e_once, b3e_boot);
   return b3e_state == 1;
 }
 
 // The heap's base: arrays inside [base, base + 8 TiB) go to Bend uncopied.
-const void* b3e_window(void) {
+B3E_BASE const void* b3e_window(void) {
   return b3e_heap;
 }
 
@@ -72850,7 +72977,7 @@ const void* b3e_window(void) {
 // (2^32 chunks), each within one 2^32-chunk block. turboblake.c asks
 // through a weak reference: an engine built before (a stale prebuilt
 // object) has no such symbol and gets counters below 2^32 only.
-int b3e_hi(void) {
+B3E_BASE int b3e_hi(void) {
   return 1;
 }
 
@@ -72862,10 +72989,10 @@ int b3e_hi(void) {
 // hashes in C). Bend adds a chunk's index to the span's low counter word
 // with no carry into the high one (law span.nocarry), so a span across a
 // 2^32-chunk block would hash with wrong counters: it is turned away here.
-int b3e_hash_k(uint32_t n, const unsigned char* const* p, const uint64_t* len,
-               const uint64_t* cb, const uint32_t* key, uint32_t kf,
-               unsigned char (*out)[32]) {
-  if (n == 0 || cid_arity(CID_SpOne) != 14) {
+B3E_BASE int b3e_hash_k(uint32_t n, const unsigned char* const* p, const uint64_t* len,
+                        const uint64_t* cb, const uint32_t* key, uint32_t kf,
+                        unsigned char (*out)[32]) {
+  if (n == 0 || !b3e_cpu_ok() || cid_arity(CID_SpOne) != 14) {
     return 0;
   }
   for (u32 i = 0; i < n; i += 1) {
@@ -72901,7 +73028,9 @@ int b3e_hash_k(uint32_t n, const unsigned char* const* p, const uint64_t* len,
     j->set = -1;
     j->ready = false;
     j->next = NULL;
-    memcpy(j->key, key, sizeof j->key);
+    // the builtin: a fortified libc's memcpy is inlined code for the
+    // engine's CPU, which this plain x86-64 function cannot take in
+    __builtin_memcpy(j->key, key, sizeof j->key);
     j->kf = kf;
     u32 copied = 0;
     while (i < n && j->n < B3E_SPANS) {
@@ -72944,9 +73073,12 @@ static pthread_mutex_t b3e_fcall = PTHREAD_MUTEX_INITIALIZER;
 // BLAKE3 hash and err[i] 0; or err[i] its errno, or -1 for a pipe or device
 // (the caller reads those itself). 1 on success, 0 if the engine is not
 // running.
-int b3e_files(uint32_t n, const char* const* paths, unsigned char (*out)[32], int* err) {
+B3E_BASE int b3e_files(uint32_t n, const char* const* paths, unsigned char (*out)[32], int* err) {
   if (n == 0) {
     return 1;
+  }
+  if (!b3e_cpu_ok()) {
+    return 0;
   }
   if (!b3e_start() || !b3e_heap_room()) {
     return 0;
@@ -72973,7 +73105,10 @@ static double b3_resident(int fd, u64 len);  // effs/load.c
 // loader samples it, without starting the engine: 1 yes, 0 mostly on disk
 // (the engine streams such a file), -1 not a regular file or not readable.
 // turboblake asks before it starts the engine for one big file.
-int b3e_cached(const char* path) {
+B3E_BASE int b3e_cached(const char* path) {
+  if (!b3e_cpu_ok()) {
+    return -1;
+  }
   int fd = open(path, O_RDONLY | O_NONBLOCK);
   if (fd < 0) {
     return -1;
@@ -72985,8 +73120,8 @@ int b3e_cached(const char* path) {
 }
 
 // b3e_hash_k in the default mode.
-int b3e_hash(uint32_t n, const unsigned char* const* p, const uint64_t* len,
-             const uint64_t* cb, unsigned char (*out)[32]) {
+B3E_BASE int b3e_hash(uint32_t n, const unsigned char* const* p, const uint64_t* len,
+                      const uint64_t* cb, unsigned char (*out)[32]) {
   static const uint32_t iv[8] = { 0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A,
                                   0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19 };
   return b3e_hash_k(n, p, len, cb, iv, 0, out);
@@ -73086,7 +73221,7 @@ static u64 b3_us(void) {
 // When the process started, for B3IO_TRACE's timeline.
 static u64 b3_t_start;
 
-static void __attribute__((constructor)) b3_t_init(void) {
+static void B3E_CTOR b3_t_init(void) {
   b3_t_start = b3_us();
 }
 
@@ -73980,7 +74115,7 @@ Term b3io_release_run(Env e, Term* f, IoWork* w) {
   return term_pak(CID_Unit, 0);
 }
 
-static void __attribute__((constructor)) b3io_load_use(void) {
+static void B3E_CTOR b3io_load_use(void) {
 #ifdef CID____b3io_B3IO_load
   io_eff(CID____b3io_B3IO_load, b3io_load_run);
 #endif
@@ -74329,7 +74464,7 @@ Term b3io_ob_fold_run(Env e, Term* f, IoWork* w) {
 
 #endif
 
-static void __attribute__((constructor)) b3io_emit_use(void) {
+static void B3E_CTOR b3io_emit_use(void) {
 #ifdef CID____b3io_B3IO_ob_write
   io_eff(CID____b3io_B3IO_ob_write, b3io_ob_write_run);
 #endif
@@ -74429,4 +74564,14 @@ int main(int argc, char** argv) {
   return 0;
 }
 
+#endif
+
+#if defined(BEND_EMBED)
+static void b3e_ctors(void) {
+  io_thread_count_use();
+  eng_use();
+  b3_t_init();
+  b3io_load_use();
+  b3io_emit_use();
+}
 #endif

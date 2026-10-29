@@ -10,9 +10,13 @@ suite passes.
 pip uninstall blake3 && pip install turboblake
 ```
 
-Wheels come with the engine built in for macOS and Linux (glibc and musl)
-on arm64 and x86-64, Python 3.9 to 3.14. Anywhere else pip builds from the
-sdist, which needs a C compiler, and clang for the engine.
+Wheels come with the engine built in for macOS and Linux (glibc 2.28+ and
+musl) on arm64 and x86-64, for every CPython from 3.9; the x86-64 ones take
+AVX2 where the CPU has it and run on any x86-64 CPU. On Windows, where the
+engine does not run yet, `pip install turboblake` installs the official
+`blake3` package instead, so `import blake3` is never slower than upstream's.
+Anywhere else pip builds from the sdist with clang; without clang it
+installs the official `blake3` too.
 
 ```python
 from blake3 import blake3

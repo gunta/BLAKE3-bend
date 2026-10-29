@@ -15,7 +15,17 @@
 
 #include "blake3.h"
 
+#if defined(_WIN32)
+#include "napi_win.h"
+
+// No engine on Windows yet (ADR 0020): hashFiles reads every file in JS.
+static int b3e_files(uint32_t n, const char* const* paths, unsigned char (*out)[32], int* err) {
+  (void)n, (void)paths, (void)out, (void)err;
+  return 0;
+}
+#else
 int b3e_files(uint32_t n, const char* const* paths, unsigned char (*out)[32], int* err);
+#endif
 
 #define CHECK(call)                                   \
   do {                                                \
@@ -198,6 +208,11 @@ fail:
 }
 
 static napi_value init(napi_env env, napi_value exports) {
+#if defined(_WIN32)
+  if (!tb_napi_load()) {
+    return NULL;
+  }
+#endif
   napi_property_descriptor props[] = {
     { "init", NULL, js_init, NULL, NULL, NULL, napi_default, NULL },
     { "update", NULL, js_update, NULL, NULL, NULL, napi_default, NULL },

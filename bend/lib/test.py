@@ -13,7 +13,7 @@ memory, at an odd offset, updates alternating with host ones), in a shared
 Metal buffer, in turboblake_alloc's memory (split with the engine), and host
 memory under TURBOBLAKE_GPU=all (the GPU takes every subtree, alone or split
 with the engine), with TURBOBLAKE_GPU_MIN=2048.
-    python3 bend/lib/test.py [--big] [--cli PATH]
+    python3 bend/lib/test.py [--big] [--cli PATH]   (B3SUM=PATH: the official b3sum)
 """
 import json
 import os
@@ -26,7 +26,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 CLI = pathlib.Path(sys.argv[sys.argv.index("--cli") + 1]) if "--cli" in sys.argv else \
     HERE / "build" / "bin" / "blake3"
-B3SUM = ROOT / "b3sum" / "target" / "release" / "b3sum"
+B3SUM = os.environ.get("B3SUM") or ROOT / "b3sum" / "target" / "release" / "b3sum"
 VECTORS = json.loads((ROOT / "test_vectors" / "test_vectors.json").read_text())
 ENV = {**os.environ, "TURBOBLAKE_MIN": "2048"}
 GPU_ENV = {**ENV, "TURBOBLAKE_GPU_MIN": "2048"}

@@ -1,0 +1,19 @@
+# The actions are pinned to commit SHAs; Dependabot keeps the pins current,
+# with the version in each pin's comment. The crate's Cargo.lock is what the
+# release binaries build --locked against.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
+  - package-ecosystem: cargo
+    directory: /bend/crate
+    schedule:
+      interval: monthly
+    groups:
+      cargo:
+        update-types: [minor, patch]

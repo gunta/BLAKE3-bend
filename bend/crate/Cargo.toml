@@ -156,6 +156,14 @@ pkg-url = "{ repo }/releases/download/turboblake-v{ version }/turboblake-{ versi
 bin-dir = "turboblake-{ version }-{ target }/{ bin }{ binary-ext }"
 pkg-fmt = "tgz"
 
+[package.metadata.binstall.overrides.x86_64-pc-windows-msvc]
+pkg-url = "{ repo }/releases/download/turboblake-v{ version }/turboblake-{ version }-{ target }.zip"
+pkg-fmt = "zip"
+
+[package.metadata.binstall.overrides.aarch64-pc-windows-msvc]
+pkg-url = "{ repo }/releases/download/turboblake-v{ version }/turboblake-{ version }-{ target }.zip"
+pkg-fmt = "zip"
+
 [dev-dependencies]
 duct = "1.0.0"
 hmac = "0.13.0"

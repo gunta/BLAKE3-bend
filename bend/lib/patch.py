@@ -4,8 +4,11 @@
   patch.py hook   <blake3.c>   the subtree hook in the official C library
   patch.py embed  <engine.c>   Bend's emitted C, made fit to run inside
                                another program: no process-wide signal
-                               handlers (a host such as V8 or Go owns those)
+                               handlers (a host such as V8 or Go owns those),
+                               and no runtime code at load (the constructors
+                               run from b3e_boot, after engine.c's CPU check)
 """
+import re
 import sys
 
 HOOK_DECL = (
@@ -96,6 +99,27 @@ EMBED = [
 ]
 
 
+# The runtime's constructors (effect tables, a clock) are compiled for the
+# engine's baseline CPU, so in a library they must not run at load: they
+# become plain functions that b3e_ctors, which b3e_boot calls once the CPU
+# check passes, runs in order. b3e_reserve (engine.c) stays a constructor:
+# it is compiled for plain x86-64 and asks first.
+CTOR = re.compile(r"static void __attribute__\(\(constructor\)\) (\w+)\(void\) \{\n")
+
+
+def defer_ctors(path):
+    s = open(path).read()
+    names = CTOR.findall(s)
+    if not names:
+        sys.exit(f"patch.py: {path}: no constructors found")
+    s = CTOR.sub(r"static void B3E_CTOR \1(void) {\n", s)
+    head = ("#if defined(BEND_EMBED)\n#define B3E_CTOR  // run by b3e_ctors (patch.py)\n"
+            "#else\n#define B3E_CTOR __attribute__((constructor))\n#endif\n")
+    tail = ("\n#if defined(BEND_EMBED)\nstatic void b3e_ctors(void) {\n"
+            + "".join(f"  {n}();\n" for n in names) + "}\n#endif\n")
+    open(path, "w").write(head + s + tail)
+
+
 def apply(path, pairs):
     s = open(path).read()
     for old, new in pairs:
@@ -108,3 +132,5 @@ def apply(path, pairs):
 if __name__ == "__main__":
     what, path = sys.argv[1], sys.argv[2]
     apply(path, {"hook": [HOOK_DECL, HOOK_CALL], "embed": EMBED}[what])
+    if what == "embed":
+        defer_ctors(path)
