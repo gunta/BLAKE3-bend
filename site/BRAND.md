@@ -19,7 +19,7 @@ turboblake --check B3SUMS
   measure faster (ADR 0013), without a rename.
 - Write it `turboblake`, always lowercase (it is a command). The wordmark sets
   "turbo" in volt and "blake" in ink.
-- The repository stays `BLAKE3-bend`.
+- The repository is `gunta/turboblake` (it was `BLAKE3-bend` until 2026-10-29; GitHub redirects the old URLs, but not the old Pages URL).
 
 ## Story, in the order a regular developer needs it
 

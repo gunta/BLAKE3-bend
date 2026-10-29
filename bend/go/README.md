@@ -6,15 +6,15 @@ engine:
 
 | was | now |
 |---|---|
-| `lukechampine.com/blake3` | `github.com/gunta/BLAKE3-bend/bend/go` |
-| `github.com/zeebo/blake3` | `github.com/gunta/BLAKE3-bend/bend/go/zeebo` |
+| `lukechampine.com/blake3` | `github.com/gunta/turboblake/bend/go` |
+| `github.com/zeebo/blake3` | `github.com/gunta/turboblake/bend/go/zeebo` |
 
 ```bash
-go get github.com/gunta/BLAKE3-bend/bend/go
+go get github.com/gunta/turboblake/bend/go
 ```
 
 ```go
-import blake3 "github.com/gunta/BLAKE3-bend/bend/go"
+import blake3 "github.com/gunta/turboblake/bend/go"
 
 sum := blake3.Sum256(data)
 h := blake3.New(64, key) // hash.Hash; h.XOF() for extended output

@@ -1,7 +1,7 @@
 name: pages
 
 # Builds the Astro site in site/ and deploys it to GitHub Pages
-# (https://gunta.github.io/BLAKE3-bend/). The page reads its numbers from
+# (https://gunta.github.io/turboblake/). The page reads its numbers from
 # bend/bench/results/results.json at build time, so a new result redeploys it.
 
 on:

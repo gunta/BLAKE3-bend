@@ -84,7 +84,7 @@ LANGS = {
         "crypto sha3-256": ("sha3_256", "SHA3-256", "other", "node:crypto"),
     }),
     "go": ("lang-go.json", "Go", {
-        "turboblake": ("bend", "turboblake", "bend", "github.com/gunta/BLAKE3-bend/bend/go"),
+        "turboblake": ("bend", "turboblake", "bend", "github.com/gunta/turboblake/bend/go"),
         "lukechampine.com/blake3": ("luke", "lukechampine.com/blake3", "blake3", "Go assembly, every core for big inputs"),
         "github.com/zeebo/blake3": ("zeebo", "github.com/zeebo/blake3", "blake3", "Go assembly, one thread"),
         "crypto/sha256": ("sha256", "SHA-256", "other", "crypto/sha256"),

@@ -97,8 +97,8 @@ PATCHES = {
          'description = "the BLAKE3 hash function, with big inputs hashed on every core by a Bend2 '
          'engine: a drop-in for the blake3 crate"\n'),
         ('repository = "https://github.com/BLAKE3-team/BLAKE3"\n',
-         'repository = "https://github.com/gunta/BLAKE3-bend"\n'
-         'homepage = "https://gunta.github.io/BLAKE3-bend/"\n'),
+         'repository = "https://github.com/gunta/turboblake"\n'
+         'homepage = "https://gunta.github.io/turboblake/"\n'),
         ('documentation = "https://docs.rs/blake3"\n',
          'documentation = "https://docs.rs/turboblake"\n'
          'links = "turboblake_engine"\n'),

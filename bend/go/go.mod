@@ -1,4 +1,4 @@
-module github.com/gunta/BLAKE3-bend/bend/go
+module github.com/gunta/turboblake/bend/go
 
 go 1.23
 
