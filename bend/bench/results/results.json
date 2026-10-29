@@ -1268,7 +1268,7 @@
         "bend": {
           "label": "turboblake",
           "kind": "bend",
-          "description": "github.com/gunta/BLAKE3-bend/bend/go"
+          "description": "github.com/gunta/turboblake/bend/go"
         },
         "luke": {
           "label": "lukechampine.com/blake3",
@@ -1566,7 +1566,7 @@
         "bend": {
           "label": "turboblake",
           "kind": "bend",
-          "description": "github.com/gunta/BLAKE3-bend/bend/go"
+          "description": "github.com/gunta/turboblake/bend/go"
         },
         "luke": {
           "label": "lukechampine.com/blake3",

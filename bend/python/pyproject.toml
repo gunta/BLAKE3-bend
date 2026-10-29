@@ -16,8 +16,8 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://gunta.github.io/BLAKE3-bend/"
-Repository = "https://github.com/gunta/BLAKE3-bend"
+Homepage = "https://gunta.github.io/turboblake/"
+Repository = "https://github.com/gunta/turboblake"
 
 [tool.setuptools]
 packages = ["blake3"]

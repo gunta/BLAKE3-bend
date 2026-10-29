@@ -21,8 +21,8 @@ npm install turboblake
 Until it is on npm, build it from this repository and install the folder:
 
 ```bash
-git clone https://github.com/gunta/BLAKE3-bend && (cd BLAKE3-bend/bend/node && npm install)
-npm install ./BLAKE3-bend/bend/node
+git clone https://github.com/gunta/turboblake && (cd turboblake/bend/node && npm install)
+npm install ./turboblake/bend/node
 ```
 
 It is a drop-in for the two APIs JavaScript code uses for BLAKE3:

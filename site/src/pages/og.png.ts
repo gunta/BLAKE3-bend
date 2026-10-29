@@ -41,7 +41,7 @@ async function card(): Promise<string> {
       )
     : undefined;
   const cmd = await outline(`$ ${INSTALL}`, { face: 'mono', size: 22, wght: 450 });
-  const site = await outline('gunta.github.io/BLAKE3-bend', { face: 'mono', size: 18, wght: 400 });
+  const site = await outline('gunta.github.io/turboblake', { face: 'mono', size: 18, wght: 400 });
 
   const { edges, root } = treePaths({ x0: 600, rootX: 1060, y: 300, half: 220 });
   const tree = edges

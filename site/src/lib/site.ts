@@ -1,7 +1,7 @@
 /** Site-wide constants and URL helpers. */
 import cargoToml from '../../../bend/crate/Cargo.toml?raw';
 
-export const REPO_URL = 'https://github.com/gunta/BLAKE3-bend';
+export const REPO_URL = 'https://github.com/gunta/turboblake';
 export const REPO_BRANCH = 'master';
 export const UPSTREAM_URL = 'https://github.com/BLAKE3-team/BLAKE3';
 export const BEND_URL = 'https://bend-lang.com';
@@ -30,8 +30,8 @@ export function treeUrl(path: string): string {
 }
 
 /**
- * An internal path under the configured `base` ("/BLAKE3-bend"), whether or not
- * BASE_URL carries a trailing slash. withBase('og.png') -> "/BLAKE3-bend/og.png".
+ * An internal path under the configured `base` ("/turboblake"), whether or not
+ * BASE_URL carries a trailing slash. withBase('og.png') -> "/turboblake/og.png".
  */
 export function withBase(path = ''): string {
   const base = import.meta.env.BASE_URL.replace(/\/+$/, '');

@@ -3,10 +3,10 @@
 // hashed on every core by a Bend2 engine. Swap the import path and keep the
 // code:
 //
-//	import "github.com/gunta/BLAKE3-bend/bend/go" // was lukechampine.com/blake3
+//	import "github.com/gunta/turboblake/bend/go" // was lukechampine.com/blake3
 //
 // For the API of github.com/zeebo/blake3, import
-// github.com/gunta/BLAKE3-bend/bend/go/zeebo instead. Both need cgo (a C
+// github.com/gunta/turboblake/bend/go/zeebo instead. Both need cgo (a C
 // compiler) and run on macOS and Linux.
 package blake3
 

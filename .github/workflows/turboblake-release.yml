@@ -109,7 +109,7 @@ jobs:
           \`\`\`
 
           Or download an archive below (macOS and Linux, arm64 and x86-64) and put \`turboblake\` on your PATH.
-          Benchmarks and method: https://gunta.github.io/BLAKE3-bend/
+          Benchmarks and method: https://gunta.github.io/turboblake/
           NOTES
           gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
             --title "turboblake ${version}" --notes-file notes.md \

@@ -20,7 +20,7 @@ import (
 	"strings"
 	"time"
 
-	b3 "github.com/gunta/BLAKE3-bend/bend/go"
+	b3 "github.com/gunta/turboblake/bend/go"
 	zeebo "github.com/zeebo/blake3"
 	"golang.org/x/crypto/blake2b"
 	"golang.org/x/crypto/blake2s"

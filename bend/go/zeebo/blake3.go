@@ -1,7 +1,7 @@
 // Package blake3 is BLAKE3 for Go with the API of github.com/zeebo/blake3,
 // on libturboblake (see the parent package). Swap the import path:
 //
-//	import "github.com/gunta/BLAKE3-bend/bend/go/zeebo" // was github.com/zeebo/blake3
+//	import "github.com/gunta/turboblake/bend/go/zeebo" // was github.com/zeebo/blake3
 package blake3
 
 import (
@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"io"
 
-	core "github.com/gunta/BLAKE3-bend/bend/go"
+	core "github.com/gunta/turboblake/bend/go"
 )
 
 // Hasher is a hash.Hash for BLAKE3.

@@ -88,7 +88,7 @@ lies in that window, the engine reads it in place.
 | Python | `turboblake` | `blake3` (PyPI) | blake3-py's own C extension (`c_impl`) on libblake3-bend, with a real `mmap` for `update_mmap`; module `blake3` |
 | Node, Bun, Deno | `turboblake` | `@noble/hashes/blake3`, `blake3`, `@napi-rs/blake-hash` | a Node-API addon on libblake3-bend, both APIs from one package |
 | browsers, workers | `turboblake/js` | `@noble/hashes/blake3`, `hash-wasm` | Bend's BLAKE3 emitted by Bend2's JS target |
-| Go | `github.com/gunta/BLAKE3-bend/bend/go` (and `/zeebo`) | `lukechampine.com/blake3`, `github.com/zeebo/blake3` | cgo on libblake3-bend |
+| Go | `github.com/gunta/turboblake/bend/go` (and `/zeebo`) | `lukechampine.com/blake3`, `github.com/zeebo/blake3` | cgo on libblake3-bend |
 
 Two of these needed more than a wrapper:
 

@@ -71,7 +71,7 @@ turboblake = { version = "1.8", default-features = false, features = ["std"] }
 
 To swap it in for every crate in a dependency graph (iroh, for example),
 generate the library as a package named `blake3` and patch it in (see
-[bend/rust](https://github.com/gunta/BLAKE3-bend/tree/master/bend/rust)).
+[bend/rust](https://github.com/gunta/turboblake/tree/master/bend/rust)).
 `TURBOBLAKE_THREADS=<n>` caps the engine's threads, `TURBOBLAKE_TRACE=1`
 prints what it did.
 
@@ -96,7 +96,7 @@ model shard bigger than RAM in 7.65 s against 211 s; 2,000 x 64 KiB files
 10.9x faster, 8,000 cargo source files 4.0x, stdin and `--no-mmap` 9x on
 1 GiB, and never slower on any case measured (ADR 0016). Benchmarks and
 method:
-[gunta.github.io/BLAKE3-bend](https://gunta.github.io/BLAKE3-bend/).
+[gunta.github.io/turboblake](https://gunta.github.io/turboblake/).
 
 License: CC0-1.0 OR Apache-2.0 OR Apache-2.0 WITH LLVM-exception, as
 BLAKE3. The engine contains the Bend2 runtime, Apache-2.0.

@@ -42,8 +42,8 @@ const packages: Package[] = [
     replaces: ['blake3'],
     where: 'from GitHub until its next crates.io release (turboblake 1.8.7 there is the command line alone)',
     steps: [
-      { label: 'shell', shell: true, code: 'cargo add turboblake --git https://github.com/gunta/BLAKE3-bend' },
-      { label: 'or in Cargo.toml', code: 'turboblake = { git = "https://github.com/gunta/BLAKE3-bend" }' },
+      { label: 'shell', shell: true, code: 'cargo add turboblake --git https://github.com/gunta/turboblake' },
+      { label: 'or in Cargo.toml', code: 'turboblake = { git = "https://github.com/gunta/turboblake" }' },
     ],
     notes: [
       'The library is still named blake3, so use blake3::… compiles unchanged: hash, Hasher::update, update_rayon, keyed_hash, derive_key and extended output all reach the engine past the size it calibrates at the first big input.',
@@ -60,7 +60,7 @@ const packages: Package[] = [
     replaces: ['the official C library (blake3.h)'],
     where: 'from the repository',
     steps: [
-      { label: 'shell', shell: true, code: `${CLONE}\nBLAKE3-bend/bend/lib/build.sh\ncc -I BLAKE3-bend/bend/lib/build/include app.c BLAKE3-bend/bend/lib/build/lib/libblake3.a -lpthread -o app` },
+      { label: 'shell', shell: true, code: `${CLONE}\nturboblake/bend/lib/build.sh\ncc -I turboblake/bend/lib/build/include app.c turboblake/bend/lib/build/lib/libblake3.a -lpthread -o app` },
     ],
     notes: [
       'blake3.h, its symbols and the blake3_hasher layout are upstream’s, so programs relink unchanged. build.sh also writes libblake3.dylib or libblake3.so, and libturboblake links to the same library.',
@@ -74,7 +74,7 @@ const packages: Package[] = [
     replaces: ['blake3 (PyPI)'],
     where: 'from the repository until it is on PyPI',
     steps: [
-      { label: 'shell', shell: true, code: 'pip uninstall blake3\npip install "turboblake @ git+https://github.com/gunta/BLAKE3-bend#subdirectory=bend/python"' },
+      { label: 'shell', shell: true, code: 'pip uninstall blake3\npip install "turboblake @ git+https://github.com/gunta/turboblake#subdirectory=bend/python"' },
       { label: 'your code, unchanged', code: 'from blake3 import blake3\n\nblake3(data).hexdigest()\nblake3(key=key).update_mmap("big.iso").digest(length=64)' },
     ],
     notes: [
@@ -90,7 +90,7 @@ const packages: Package[] = [
     replaces: ['@noble/hashes/blake3', 'blake3 (npm)', '@napi-rs/blake-hash'],
     where: 'from the repository until it is on npm',
     steps: [
-      { label: 'shell', shell: true, code: `${CLONE}\n(cd BLAKE3-bend/bend/node && npm install)\nnpm install ./BLAKE3-bend/bend/node` },
+      { label: 'shell', shell: true, code: `${CLONE}\n(cd turboblake/bend/node && npm install)\nnpm install ./turboblake/bend/node` },
       {
         label: 'swap the import',
         code: '// was: import { blake3 } from "@noble/hashes/blake3.js";\nimport { blake3 } from "turboblake";\n\n// was: import { hash, createHash } from "blake3";\nimport { hash, createHash } from "turboblake";',
@@ -119,14 +119,14 @@ const packages: Package[] = [
   {
     id: 'go',
     title: 'Go',
-    name: 'github.com/gunta/BLAKE3-bend/bend/go',
+    name: 'github.com/gunta/turboblake/bend/go',
     replaces: ['lukechampine.com/blake3', 'github.com/zeebo/blake3'],
     where: 'a Go module',
     steps: [
-      { label: 'shell', shell: true, code: 'go get github.com/gunta/BLAKE3-bend/bend/go' },
+      { label: 'shell', shell: true, code: 'go get github.com/gunta/turboblake/bend/go' },
       {
         label: 'swap the import',
-        code: '// was: import "lukechampine.com/blake3"\nimport blake3 "github.com/gunta/BLAKE3-bend/bend/go"\n\n// was: import "github.com/zeebo/blake3"\nimport blake3 "github.com/gunta/BLAKE3-bend/bend/go/zeebo"',
+        code: '// was: import "lukechampine.com/blake3"\nimport blake3 "github.com/gunta/turboblake/bend/go"\n\n// was: import "github.com/zeebo/blake3"\nimport blake3 "github.com/gunta/turboblake/bend/go/zeebo"',
       },
     ],
     notes: [

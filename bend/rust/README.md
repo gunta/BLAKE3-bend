@@ -11,7 +11,7 @@ command line's dependencies out.
 
 ```toml
 [dependencies]
-turboblake = { git = "https://github.com/gunta/BLAKE3-bend" }
+turboblake = { git = "https://github.com/gunta/turboblake" }
 ```
 
 From the next crates.io release it is `turboblake = "1.8"`; turboblake
@@ -28,7 +28,7 @@ To swap it in for every crate in a dependency graph (iroh, for example),
 generate a copy named `blake3` and patch it in:
 
 ```bash
-git clone https://github.com/gunta/BLAKE3-bend && TURBOBLAKE_NAME=blake3 BLAKE3-bend/bend/rust/gen.sh vendor/blake3
+git clone https://github.com/gunta/turboblake && TURBOBLAKE_NAME=blake3 turboblake/bend/rust/gen.sh vendor/blake3
 ```
 
 ```toml
@@ -56,7 +56,7 @@ blake3::hash(&m);                                                   // split bet
 off, `TURBOBLAKE_NO_GPU=1` builds without it.
 
 How it works, and the benchmarks:
-[github.com/gunta/BLAKE3-bend](https://github.com/gunta/BLAKE3-bend) (see
+[github.com/gunta/turboblake](https://github.com/gunta/turboblake) (see
 `bend/lib/README.md`).
 
 License: CC0-1.0 OR Apache-2.0 OR Apache-2.0 WITH LLVM-exception, as

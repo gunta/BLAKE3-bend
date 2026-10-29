@@ -1,4 +1,4 @@
-# BLAKE3-bend
+# turboblake
 
 **BLAKE3, written in [Bend2](https://bend-lang.com), raced against the official
 implementation and faster where it counts.** This repository is a fork of
@@ -9,7 +9,7 @@ Bend engine inside, drop-ins for Python, Node, Bun, Deno, browsers and Go,
 iroh-compatible bao outboards, a GPU path, and the benchmarks that keep all of
 it honest.
 
-Site with every chart: **[gunta.github.io/BLAKE3-bend](https://gunta.github.io/BLAKE3-bend/)**
+Site with every chart: **[gunta.github.io/turboblake](https://gunta.github.io/turboblake/)**
 
 | on an Apple M5 Pro (6 Super + 12 Performance cores, 20-core GPU) | official BLAKE3 1.8.7 | BLAKE3 in Bend2 |
 |---|---|---|
@@ -47,7 +47,7 @@ cargo install turboblake
 ```
 
 `cargo binstall turboblake` fetches the prebuilt binaries instead, and every
-archive is on the [releases page](https://github.com/gunta/BLAKE3-bend/releases).
+archive is on the [releases page](https://github.com/gunta/turboblake/releases).
 
 ```bash
 turboblake FILE...           # one "<hash>  <name>" line per file, as b3sum prints
@@ -66,12 +66,12 @@ hashed by Bend on every core and everything else is upstream's code
 
 | language | replaces | swap in |
 |---|---|---|
-| Rust | `blake3` | `cargo add turboblake --git https://github.com/gunta/BLAKE3-bend` (on crates.io from its next release; 1.8.7 there is the command line alone); the library is named `blake3` ([README](bend/rust/README.md)) |
+| Rust | `blake3` | `cargo add turboblake --git https://github.com/gunta/turboblake` (on crates.io from its next release; 1.8.7 there is the command line alone); the library is named `blake3` ([README](bend/rust/README.md)) |
 | C | the official `libblake3` | `bend/lib/build.sh`, then link `-lturboblake` (or `-lblake3`, the same library) ([README](bend/lib/README.md)) |
-| Python | `blake3` on PyPI | `pip install "turboblake @ git+https://github.com/gunta/BLAKE3-bend#subdirectory=bend/python"` ([README](bend/python/README.md)) |
+| Python | `blake3` on PyPI | `pip install "turboblake @ git+https://github.com/gunta/turboblake#subdirectory=bend/python"` ([README](bend/python/README.md)) |
 | Node, Bun, Deno | `@noble/hashes/blake3`, `blake3`, `@napi-rs/blake-hash` | `npm install` in [`bend/node`](bend/node/README.md), then `npm install <path>` |
 | browsers, workers | `@noble/hashes/blake3`, `hash-wasm` | `turboblake/js`: Bend's BLAKE3, emitted to JavaScript by Bend2 |
-| Go | `lukechampine.com/blake3`, `github.com/zeebo/blake3` | `go get github.com/gunta/BLAKE3-bend/bend/go` ([README](bend/go/README.md)) |
+| Go | `lukechampine.com/blake3`, `github.com/zeebo/blake3` | `go get github.com/gunta/turboblake/bend/go` ([README](bend/go/README.md)) |
 
 Your code keeps its imports (`use blake3`, `from blake3 import blake3`) or
 changes one line (JavaScript, Go). The Python and JavaScript packages are

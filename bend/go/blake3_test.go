@@ -12,8 +12,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	b3 "github.com/gunta/BLAKE3-bend/bend/go"
-	zb "github.com/gunta/BLAKE3-bend/bend/go/zeebo"
+	b3 "github.com/gunta/turboblake/bend/go"
+	zb "github.com/gunta/turboblake/bend/go/zeebo"
 	luke "lukechampine.com/blake3"
 	zeebo "github.com/zeebo/blake3"
 )

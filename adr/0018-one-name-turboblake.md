@@ -85,7 +85,18 @@ there for upstream's own crate too.
   a new version to publish (the version is the user's call; upstream is
   still 1.8.7). After it ships, `blake3-bend` 1.8.7 can be yanked. Until
   then the READMEs give library users the git dependency
-  (`turboblake = { git = "https://github.com/gunta/BLAKE3-bend" }`), which
+  (`turboblake = { git = "https://github.com/gunta/turboblake" }`), which
   cargo finds in `bend/crate`.
 - The site's install page and library snippet change to `turboblake = "1.8"`
   when that release is out.
+
+## Addendum: the repository too (2026-10-29)
+
+The user asked for the repository's name to follow: `gunta/BLAKE3-bend` is
+now `gunta/turboblake`. With it the Go module path is
+`github.com/gunta/turboblake/bend/go` (and `/zeebo`), the site is
+`gunta.github.io/turboblake/` (Astro `base: '/turboblake'`), and every
+package's repository and homepage fields, install line and clone path say
+turboblake. GitHub redirects the old repository URLs, git remotes and
+`go get` of the old path, but not the old Pages URL. The "Kept" paragraph
+above is history; only the internal `b3e_*` symbols keep their names.

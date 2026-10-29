@@ -52,10 +52,10 @@
     "native",
     "bun"
   ],
-  "homepage": "https://gunta.github.io/BLAKE3-bend/",
+  "homepage": "https://gunta.github.io/turboblake/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/gunta/BLAKE3-bend.git",
+    "url": "https://github.com/gunta/turboblake.git",
     "directory": "bend/node"
   },
   "license": "CC0-1.0 OR Apache-2.0 OR Apache-2.0 WITH LLVM-exception",
