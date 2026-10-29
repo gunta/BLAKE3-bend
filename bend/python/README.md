@@ -10,11 +10,9 @@ suite passes.
 pip uninstall blake3 && pip install turboblake
 ```
 
-Until it is on PyPI, install it from this repository:
-
-```bash
-pip install "turboblake @ git+https://github.com/gunta/turboblake#subdirectory=bend/python"
-```
+Wheels come with the engine built in for macOS and Linux (glibc and musl)
+on arm64 and x86-64, Python 3.9 to 3.14. Anywhere else pip builds from the
+sdist, which needs a C compiler, and clang for the engine.
 
 ```python
 from blake3 import blake3

@@ -1,5 +1,18 @@
 name: turboblake release
 
+# One turboblake-v* tag publishes every package of that version:
+#
+#   GitHub release   the command line archives (below), for Homebrew and cargo-binstall
+#   crates.io        turboblake, the library and the command line (bend/crate)
+#   npm              turboblake, and @turboblake/<platform> with its prebuilt addon
+#   PyPI             turboblake: wheels for macOS and Linux (glibc and musl), and the sdist
+#   Go               the tag bend/go/v<version>, which the Go module proxy serves
+#
+# Every prebuilt piece is built for the same baseline CPUs as the command
+# line, and tested before anything is published. Registry access:
+# crates.io and PyPI by trusted publishing (this workflow, environment
+# "release"); npm by the NPM_TOKEN secret, with provenance.
+#
 # Builds turboblake (bend/crate: the official b3sum on the turboblake library) for macOS
 # and Linux, arm64 and x86-64, when a turboblake-v* tag is pushed; checks each
 # binary against the official test vectors; and publishes the archives on a
@@ -22,7 +35,7 @@ on:
       - "turboblake-v*"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build:
@@ -85,6 +98,8 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     steps:
       - uses: actions/download-artifact@v8
         with:
@@ -114,3 +129,169 @@ jobs:
           gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
             --title "turboblake ${version}" --notes-file notes.md \
             *.tar.gz SHA256SUMS
+
+  # npm: the addon for each platform with a prebuilt package (bend/node/prebuilt.mjs).
+  # Linux builds in manylinux_2_28, so the addon needs glibc 2.17 or later.
+  npm-addon:
+    name: npm ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: macos-15, platform: darwin-arm64, cpu: "-mcpu=apple-m1" }
+          - { os: macos-15-intel, platform: darwin-x64, cpu: "-march=x86-64-v3" }
+          - { os: ubuntu-24.04, platform: linux-x64-gnu, cpu: "-march=x86-64-v3", image: quay.io/pypa/manylinux_2_28_x86_64 }
+          - { os: ubuntu-24.04-arm, platform: linux-arm64-gnu, cpu: "-mcpu=generic", image: quay.io/pypa/manylinux_2_28_aarch64 }
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v5
+        if: runner.os == 'macOS'
+        with:
+          node-version: 22
+      - name: Build, test and pack (macOS)
+        if: runner.os == 'macOS'
+        working-directory: bend/node
+        env:
+          TURBOBLAKE_TARGET_CPU: ${{ matrix.cpu }}
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          node build.mjs
+          node test/test.mjs
+          node prebuilt.mjs pack ../../npm-dist
+      - name: Build, test and pack (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          docker run --rm -v "$PWD:/w" -w /w/bend/node -e TURBOBLAKE_TARGET_CPU="${{ matrix.cpu }}" \
+            ${{ matrix.image }} bash -euxc '
+              dnf -y -q install clang
+              dnf -y -q module install nodejs:22/common
+              npm install --ignore-scripts --no-audit --no-fund
+              node build.mjs
+              node test/test.mjs
+              node prebuilt.mjs pack ../../npm-dist
+              objdump -T build/turboblake.node | grep -o "GLIBC_[0-9.]*" | sort -uV | tail -1'
+      - name: Check the package matches ${{ matrix.platform }}
+        run: test -f npm-dist/turboblake-${{ matrix.platform }}/turboblake.node
+      - uses: actions/upload-artifact@v7
+        with:
+          name: npm-${{ matrix.platform }}
+          path: npm-dist/
+
+  npm-publish:
+    needs: [npm-addon, release]
+    runs-on: ubuntu-24.04
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: npm-*
+          path: npm-dist
+          merge-multiple: true
+      - name: Publish @turboblake/<platform>, then turboblake
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          version="${GITHUB_REF_NAME#turboblake-v}"
+          test "$(node -p 'require("./bend/node/package.json").version')" = "$version"
+          for dir in npm-dist/*/; do
+            test "$(node -p "require('./${dir}package.json').version")" = "$version"
+            (cd "$dir" && npm publish --access public --provenance)
+          done
+          cd bend/node && npm publish --access public --provenance
+
+  # PyPI: the sdist, and wheels built from it (so the sdist is known to build).
+  # Settings in bend/python/pyproject.toml [tool.cibuildwheel].
+  sdist:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - run: pipx run build --sdist bend/python --outdir sdist
+      - uses: actions/upload-artifact@v7
+        with:
+          name: sdist
+          path: sdist/
+
+  wheels:
+    name: wheels ${{ matrix.os }}
+    needs: sdist
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-15, macos-15-intel]
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: sdist
+          path: sdist
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: Build and test the wheels
+        run: pipx run cibuildwheel sdist/*.tar.gz --output-dir wheelhouse
+      - uses: actions/upload-artifact@v7
+        with:
+          name: wheels-${{ matrix.os }}
+          path: wheelhouse/
+
+  pypi-publish:
+    needs: [wheels, release]
+    runs-on: ubuntu-24.04
+    environment: release
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: sdist
+          path: dist
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: wheels-*
+          path: dist
+          merge-multiple: true
+      - run: ls -l dist
+      - uses: pypa/gh-action-pypi-publish@release/v1
+
+  crates-publish:
+    needs: release
+    runs-on: ubuntu-24.04
+    environment: release
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: rust-lang/crates-io-auth-action@v1
+        id: auth
+      - name: cargo publish
+        working-directory: bend/crate
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+        run: |
+          test "$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')" = "${GITHUB_REF_NAME#turboblake-v}"
+          cargo publish
+
+  # Go: the module lives in bend/go, so its versions are tags bend/go/v<version>.
+  go-tag:
+    needs: release
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - name: Tag bend/go and warm the module proxy
+        run: |
+          version="${GITHUB_REF_NAME#turboblake-v}"
+          git tag "bend/go/v${version}" "$GITHUB_SHA"
+          git push origin "bend/go/v${version}"
+          curl -fsS "https://proxy.golang.org/github.com/gunta/turboblake/bend/go/@v/v${version}.info"

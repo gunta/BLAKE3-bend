@@ -1,6 +1,6 @@
 {
   "name": "turboblake",
-  "version": "1.8.7",
+  "version": "1.8.8",
   "description": "BLAKE3 for Node, Bun, Deno and browsers, with big inputs hashed on every core by a Bend2 engine (or by Bend's own JavaScript): a drop-in for @noble/hashes/blake3 and the blake3 package",
   "type": "module",
   "main": "./index.js",
@@ -23,6 +23,7 @@
     "index.d.ts",
     "api.js",
     "js/",
+    "prebuilt.mjs",
     "build.mjs",
     "src/",
     "csrc/",
@@ -30,12 +31,19 @@
   ],
   "scripts": {
     "install": "node build.mjs --optional",
+    "prepack": "node -e \"require('fs').cpSync('../lib/csrc','csrc',{recursive:true})\"",
     "build": "node build.mjs",
     "test": "node test/test.mjs",
     "bench": "node bench.mjs"
   },
   "dependencies": {
     "node-api-headers": "^1.5.0"
+  },
+  "optionalDependencies": {
+    "@turboblake/darwin-arm64": "1.8.8",
+    "@turboblake/darwin-x64": "1.8.8",
+    "@turboblake/linux-x64-gnu": "1.8.8",
+    "@turboblake/linux-arm64-gnu": "1.8.8"
   },
   "devDependencies": {
     "@napi-rs/blake-hash": "^1.4.0",

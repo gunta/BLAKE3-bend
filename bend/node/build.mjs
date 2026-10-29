@@ -3,7 +3,9 @@
 // bend/build.sh's vectorizer flags. Run by `npm install` (with --optional:
 // a failure is a warning, and turboblake runs on Bend's JavaScript instead);
 // needs clang and the Node-API headers (Node's own, or node-api-headers).
-// TURBOBLAKE_PORTABLE=1 builds for the baseline CPU instead of this one;
+// TURBOBLAKE_PORTABLE=1 builds for the baseline CPU instead of this one, and
+// TURBOBLAKE_TARGET_CPU (e.g. "-march=x86-64-v3") for a chosen one, as the
+// prebuilt packages are (prebuilt.mjs);
 // TURBOBLAKE_NO_GPU=1 leaves out the GPU backend (turboblake_gpu.c, which
 // loads Metal or CUDA at run time, ADR 0017).
 import { execFileSync } from "node:child_process";
@@ -14,6 +16,16 @@ import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
+const optional = process.argv.includes("--optional");
+
+// On install, a prebuilt addon (prebuilt.mjs) that npm fetched for this
+// platform wins; TURBOBLAKE_BUILD=1 builds here anyway, tuned for this CPU.
+if (optional && !process.env.TURBOBLAKE_BUILD) {
+  try {
+    createRequire(import.meta.url).resolve((await import("./prebuilt.mjs")).packageName());
+    process.exit(0);
+  } catch {}
+}
 // in the repository, always the current C; in a package, the copy it ships
 let csrc = join(here, "csrc");
 if (existsSync(join(here, "..", "lib", "csrc", "engine.c"))) {
@@ -32,12 +44,12 @@ function nodeApiInclude() {
 
 const cc = process.env.CC || "clang";
 const x86 = arch() === "x64";
-const cpu = process.env.TURBOBLAKE_PORTABLE ? [] : [x86 ? "-march=native" : "-mcpu=native"];
+const cpu = process.env.TURBOBLAKE_TARGET_CPU ? process.env.TURBOBLAKE_TARGET_CPU.split(" ")
+  : process.env.TURBOBLAKE_PORTABLE ? [] : [x86 ? "-march=native" : "-mcpu=native"];
 const slp = ["-mllvm", "-slp-max-reg-size=512", "-mllvm", "-slp-recursion-max-depth=100000",
   "-mllvm", "-slp-threshold=-20", "-mllvm", "-inline-threshold=20000"];
 const out = join(here, "build");
 mkdirSync(out, { recursive: true });
-const optional = process.argv.includes("--optional");
 const run = (args) => {
   console.log([cc, ...args].join(" "));
   try {

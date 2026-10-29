@@ -4,10 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "turboblake"
-version = "1.8.7"
+version = "1.8.8"
 description = "BLAKE3, with big inputs hashed on every core by a Bend2 engine: a drop-in for the blake3 module"
 readme = "README.md"
 license = "CC0-1.0 OR Apache-2.0 OR Apache-2.0 WITH LLVM-exception"
+license-files = ["LICENSE_*"]
 requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -24,3 +25,37 @@ packages = ["blake3"]
 
 [tool.setuptools.package-data]
 blake3 = ["py.typed", "__init__.pyi"]
+
+# The wheels on PyPI (.github/workflows/turboblake-release.yml): the engine
+# built for each platform's baseline CPU, as the release binaries are; the
+# official C picks its SIMD path at run time.
+[tool.cibuildwheel]
+build = "cp39-* cp310-* cp311-* cp312-* cp313-* cp314-*"
+test-requires = ["pytest", "numpy"]
+test-command = "pytest {project}/tests -q"
+
+[tool.cibuildwheel.linux]
+before-all = "dnf -y install clang || yum -y install clang"
+environment = { CC = "clang" }
+
+[[tool.cibuildwheel.overrides]]
+select = "*musllinux*"
+before-all = "apk add clang"
+
+[[tool.cibuildwheel.overrides]]
+select = "*-*linux_x86_64"
+inherit.environment = "append"
+environment = { TURBOBLAKE_TARGET_CPU = "-march=x86-64-v3" }
+
+[[tool.cibuildwheel.overrides]]
+select = "*-*linux_aarch64"
+inherit.environment = "append"
+environment = { TURBOBLAKE_TARGET_CPU = "-mcpu=generic" }
+
+[[tool.cibuildwheel.overrides]]
+select = "*-macosx_arm64"
+environment = { TURBOBLAKE_TARGET_CPU = "-mcpu=apple-m1" }
+
+[[tool.cibuildwheel.overrides]]
+select = "*-macosx_x86_64"
+environment = { TURBOBLAKE_TARGET_CPU = "-march=x86-64-v3" }

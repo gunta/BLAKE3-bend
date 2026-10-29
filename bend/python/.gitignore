@@ -4,3 +4,4 @@ build/
 *.so
 __pycache__/
 .venv/
+LICENSE_*

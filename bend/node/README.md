@@ -18,12 +18,12 @@ runs.
 npm install turboblake
 ```
 
-Until it is on npm, build it from this repository and install the folder:
-
-```bash
-git clone https://github.com/gunta/turboblake && (cd turboblake/bend/node && npm install)
-npm install ./turboblake/bend/node
-```
+The native addon comes prebuilt for macOS and Linux (glibc) on arm64 and
+x64: npm, Bun, pnpm and Deno fetch the one `@turboblake/<platform>` package
+that matches, so nothing compiles and no install script has to run.
+Anywhere else, installing builds the addon with clang; without a compiler
+turboblake runs on Bend's JavaScript. `TURBOBLAKE_BUILD=1 npm rebuild
+turboblake` builds it here anyway, tuned for this CPU.
 
 It is a drop-in for the two APIs JavaScript code uses for BLAKE3:
 

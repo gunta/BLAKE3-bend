@@ -6,12 +6,20 @@
 import { createRequire } from "node:module";
 import { faces } from "./api.js";
 
-// TURBOBLAKE_JS=1 picks the JavaScript engine even with the addon built.
+// The addon built here (build.mjs) first, then the prebuilt one npm fetched
+// for this platform (prebuilt.mjs). TURBOBLAKE_JS=1 picks the JavaScript
+// engine even with an addon there.
 let native = null;
 if (globalThis.process?.env?.TURBOBLAKE_JS !== "1") {
-  try {
-    native = createRequire(import.meta.url)("./build/turboblake.node");
-  } catch {}
+  const require = createRequire(import.meta.url);
+  const { platform, arch } = globalThis.process;
+  for (const id of ["./build/turboblake.node",
+    `@turboblake/${platform}-${arch}${platform === "linux" ? "-gnu" : ""}`]) {
+    try {
+      native = require(id);
+      break;
+    } catch {}
+  }
 }
 
 const engine = native === null ? (await import("./js/engine.js")).engine : {
