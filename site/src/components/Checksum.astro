@@ -4,6 +4,7 @@
  * what changing one character does to it (live), and what it is for.
  */
 import { FileCheck, FolderSync, Layers, ShieldCheck } from 'lucide-static';
+import Backdrop from './Backdrop.astro';
 import Icon from './Icon.astro';
 import { blake3Hex } from '../lib/blake3';
 
@@ -22,6 +23,7 @@ const uses = [
 ---
 
 <section id="checksum" class="home-section checksum" aria-labelledby="checksum-title">
+  <Backdrop name="checksum" />
   <div class="wrap grid">
     <header class="home-head copy">
       <p class="kicker" data-reveal>What is a checksum</p>
@@ -43,6 +45,7 @@ const uses = [
     </header>
 
     <div class="demo tile" data-avalanche data-reveal style="--i: 2">
+      <Backdrop name="tile-fingerprint" focus="85% 85%" scrim="bottom" />
       <p class="tile-kicker">Try it: edit either line</p>
       <label class="row">
         <span class="sr-only">Input A</span>
@@ -143,9 +146,6 @@ const uses = [
 
   .demo {
     gap: 1rem;
-    background:
-      radial-gradient(80% 70% at 100% 100%, rgb(212 255 58 / 0.08), transparent 70%),
-      var(--surface);
   }
 
   .row {

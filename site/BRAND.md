@@ -40,7 +40,7 @@ Each section is one idea, shown before it is explained, laid out as bento tiles:
 5. **How it works:** split, spread, fold, on one diagram. Bend2 in one line.
 6. **What's new:** the three newest changelog stories, the newest one large.
    The hero's "New" pill names the newest too.
-7. **Install:** one line, over the aurora.
+7. **Install:** one line, over a photograph.
 
 Everything else (every table, ties, floors, techniques, proofs, how to
 reproduce) lives on `/benchmarks/`, with `/install/`, `/languages/` and `/gpu/`
@@ -100,6 +100,12 @@ always labelled.
 
 **Geist** for everything, **Geist Mono** for commands, digests and labels.
 Headlines weight 650 with tight tracking (−0.045em to −0.055em); no italics.
+
+## Backgrounds
+
+Every background is a photograph in a named slot (`Backdrop.astro`); the slots,
+their art direction and their prompts are in `BACKGROUNDS.md`. The WebGPU hero tree
+and install aurora (`src/gl/`) are unmounted while the photographs go in.
 
 ## Motion and shaders
 

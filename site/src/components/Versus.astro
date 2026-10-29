@@ -5,6 +5,7 @@
  * a section; the benchmarks page passes `bare` and gives it its own heading.
  * Numbers come from src/lib/versus.ts.
  */
+import Backdrop from './Backdrop.astro';
 import BrandMark from './BrandMark.astro';
 import Stack from './Stack.astro';
 import { fmtTimes, versus } from '../lib/versus';
@@ -25,6 +26,7 @@ const kernels = story('0017');
 {
   versus && lead && (
     <section id={bare ? undefined : 'versus'} class:list={['versus', { 'home-section': !bare }]} aria-labelledby={bare ? undefined : 'versus-title'}>
+      {!bare && <Backdrop name="versus" />}
       <div class:list={{ wrap: !bare }}>
         {!bare && (
           <header class="home-head">
@@ -111,12 +113,6 @@ const kernels = story('0017');
 }
 
 <style>
-  .versus.home-section {
-    background:
-      radial-gradient(46rem 28rem at 85% 10%, rgb(70 227 255 / 0.06), transparent 70%),
-      radial-gradient(40rem 26rem at 10% 90%, rgb(212 255 58 / 0.04), transparent 70%);
-  }
-
   .machines {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -131,12 +127,6 @@ const kernels = story('0017');
 
   .machine {
     gap: 1rem;
-  }
-
-  .m-b200 {
-    background:
-      radial-gradient(70% 60% at 100% 0%, rgb(118 185 0 / 0.08), transparent 70%),
-      var(--surface);
   }
 
   .m-head {

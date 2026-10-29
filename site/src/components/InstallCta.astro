@@ -1,20 +1,18 @@
 ---
 /**
- * The close: one install line over an aurora (src/gl/aurora.ts on WebGPU, a
- * CSS gradient without it), where it runs, the one-line switch from
+ * The close: one install line over the `install` backdrop, where it runs, the one-line switch from
  * sha256sum, and the way on to the libraries and every install option.
  */
 import { ArrowRight } from 'lucide-static';
+import Backdrop from './Backdrop.astro';
 import BrandMark from './BrandMark.astro';
 import Icon from './Icon.astro';
 import InstallCommand from './InstallCommand.astro';
 import { CLI_VERSION, RELEASES_URL, REPO_URL, withBase } from '../lib/site';
 ---
 
-<section id="install" class="cta" aria-labelledby="install-title" data-aurora>
-  <div class="sky" aria-hidden="true">
-    <canvas data-aurora-canvas></canvas>
-  </div>
+<section id="install" class="cta" aria-labelledby="install-title">
+  <Backdrop name="install" scrim="center" />
 
   <div class="wrap inner">
     <p class="kicker" data-reveal>Get started</p>
@@ -51,35 +49,6 @@ import { CLI_VERSION, RELEASES_URL, REPO_URL, withBase } from '../lib/site';
   </div>
 </section>
 
-<script>
-  import { getGpu } from '../gl/gpu';
-
-  const host = document.querySelector<HTMLElement>('[data-aurora]');
-  const canvas = host?.querySelector<HTMLCanvasElement>('[data-aurora-canvas]');
-  // Wait until the section is near before paying for a second pipeline.
-  if (host && canvas) {
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (!entries.some((e) => e.isIntersecting)) return;
-        io.disconnect();
-        void (async () => {
-          const gpu = await getGpu();
-          if (!gpu) return;
-          try {
-            const { mountAurora } = await import('../gl/aurora');
-            await mountAurora(gpu, canvas, host);
-            host.classList.add('gpu-ready');
-          } catch (error) {
-            console.warn('aurora: WebGPU unavailable, keeping the gradient', error);
-          }
-        })();
-      },
-      { rootMargin: '600px' },
-    );
-    io.observe(host);
-  }
-</script>
-
 <style>
   .cta {
     position: relative;
@@ -87,31 +56,6 @@ import { CLI_VERSION, RELEASES_URL, REPO_URL, withBase } from '../lib/site';
     overflow: hidden;
     padding-block: clamp(7rem, 4rem + 9vw, 12rem);
     text-align: center;
-  }
-
-  .sky {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background:
-      radial-gradient(60% 45% at 30% 62%, rgb(70 227 255 / 0.16), transparent 70%),
-      radial-gradient(55% 40% at 70% 55%, rgb(212 255 58 / 0.14), transparent 70%),
-      var(--void);
-  }
-
-  canvas {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    display: block;
-    opacity: 0;
-    transition: opacity 1.4s var(--ease-out);
-  }
-
-  .cta:global(.gpu-ready) canvas {
-    opacity: 1;
   }
 
   .inner {

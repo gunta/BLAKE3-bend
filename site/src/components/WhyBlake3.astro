@@ -6,6 +6,7 @@
  * measured by this project; src/lib/official.ts says where each claim is from.
  */
 import { Binary, KeyRound, Network, ShieldCheck, Zap } from 'lucide-static';
+import Backdrop from './Backdrop.astro';
 import BrandMark from './BrandMark.astro';
 import Icon from './Icon.astro';
 import type { MarkName } from '../lib/brands';
@@ -51,6 +52,7 @@ const edges = rows.slice(1).flatMap((row, k) =>
 ---
 
 <section id="why" class="home-section why" aria-labelledby="why-title">
+  <Backdrop name="why" />
   <div class="wrap">
     <header class="home-head">
       <p class="kicker" data-reveal>Why BLAKE3</p>
@@ -63,6 +65,7 @@ const edges = rows.slice(1).flatMap((row, k) =>
 
     <div class="bento">
       <article class="tile t-fast" data-reveal data-bars>
+        <Backdrop name="tile-fast" focus="20% 20%" scrim="bottom" />
         <p class="tile-kicker"><Icon svg={Zap} /> Speed</p>
         <p class="mega fast-num">{official.times}<span class="x">×</span></p>
         <p class="tile-title">faster than SHA‑256, on a single core.</p>
@@ -209,9 +212,6 @@ const edges = rows.slice(1).flatMap((row, k) =>
   /* Speed */
   .t-fast {
     justify-content: space-between;
-    background:
-      radial-gradient(70% 60% at 0% 0%, rgb(212 255 58 / 0.09), transparent 70%),
-      var(--surface);
   }
 
   .fast-num {

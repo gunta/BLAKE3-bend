@@ -1,50 +1,20 @@
 ---
 /**
- * The hero: the tree as light (src/gl/hero.ts, on WebGPU through vgpu) behind
- * the headline, and a live BLAKE3 box: what you type is hashed in the page,
- * the wave runs down the tree, and the beam picks up the new bits.
- *
- * Without WebGPU (or with reduced motion and no GPU) the same tree is drawn as
- * static SVG from the same geometry, with CSS packets on it.
+ * The hero: the headline over the `hero` backdrop, and a live BLAKE3 box: what
+ * you type is hashed in the page.
  */
 import { blake3Hex } from '../lib/blake3';
-import { treePaths } from '../lib/tree';
 import { CLI_VERSION } from '../lib/site';
 import { latest } from '../lib/news';
+import Backdrop from './Backdrop.astro';
 import InstallCommand from './InstallCommand.astro';
 
 const SEED = 'hello, world';
 const seedDigest = blake3Hex(SEED);
-
-// The fallback tree: merge.wgsl's layout, frozen, in a 1600 x 900 box.
-const W = 1600;
-const H = 900;
-const { edges, root } = treePaths({ x0: 0.42 * W, rootX: 0.84 * W, y: 0.5 * H, half: 0.38 * H });
 ---
 
 <section class="hero" id="top" aria-labelledby="hero-title" data-hero>
-  <div class="stage" aria-hidden="true">
-    <svg class="fallback" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" focusable="false">
-      <defs>
-        <linearGradient id="hero-heat" x1="0" y1="0" x2={W} y2="0" gradientUnits="userSpaceOnUse">
-          <stop offset="0.05" style="stop-color: var(--ion)" />
-          <stop offset="0.7" style="stop-color: var(--volt)" />
-        </linearGradient>
-        <radialGradient id="hero-root">
-          <stop offset="0" stop-color="#fff" />
-          <stop offset="0.25" style="stop-color: var(--volt)" />
-          <stop offset="1" style="stop-color: var(--volt)" stop-opacity="0" />
-        </radialGradient>
-      </defs>
-      <g fill="none" stroke="url(#hero-heat)" stroke-linecap="round">
-        {edges.map((e) => <path class={`lv lv-${e.level}`} d={e.d} />)}
-      </g>
-      <path class="beam" d={`M${root.x} ${root.y}H${W + 20}`} />
-      <circle class="root" cx={root.x} cy={root.y} r="70" fill="url(#hero-root)" />
-    </svg>
-    <canvas class="gl" data-hero-canvas></canvas>
-    <div class="scrim"></div>
-  </div>
+  <Backdrop name="hero" focus="72% 50%" scrim="left" priority />
 
   <div class="wrap content">
     <a class="pill" href={latest?.href ?? '#install'} data-reveal>
@@ -82,7 +52,7 @@ const { edges, root } = treePaths({ x0: 0.42 * W, rootX: 0.84 * W, y: 0.5 * H, h
       <button class="hb-out" type="button" data-digest aria-describedby="hb-note" title="Copy the fingerprint">{seedDigest}</button>
       <p class="sr-only" aria-live="polite" data-hb-live></p>
       <p id="hb-note" class="hb-note">
-        Same as <code>printf '%s' 'hello, world' | turboblake</code>. Every keystroke runs through the tree behind this text.
+        Same as <code>printf '%s' 'hello, world' | turboblake</code>. Every keystroke is hashed right here, in this page.
       </p>
     </form>
   </div>
@@ -90,11 +60,8 @@ const { edges, root } = treePaths({ x0: 0.42 * W, rootX: 0.84 * W, y: 0.5 * H, h
 
 <script>
   import { blake3, toHex } from '../lib/blake3';
-  import { getGpu } from '../gl/gpu';
-  import type { HeroHandle } from '../gl/hero';
 
   const host = document.querySelector<HTMLElement>('[data-hero]');
-  const canvas = host?.querySelector<HTMLCanvasElement>('[data-hero-canvas]');
   const form = host?.querySelector<HTMLFormElement>('[data-hashbox]');
   const input = form?.querySelector<HTMLInputElement>('input');
   const out = form?.querySelector<HTMLButtonElement>('[data-digest]');
@@ -102,7 +69,6 @@ const { edges, root } = treePaths({ x0: 0.42 * W, rootX: 0.84 * W, y: 0.5 * H, h
   const tip = form?.querySelector<HTMLElement>('[data-hb-tip]');
   const note = form?.querySelector<HTMLElement>('#hb-note code:not(.plain)');
   const encoder = new TextEncoder();
-  let hero: HeroHandle | undefined;
 
   // The digest resolves left to right through a blur of hex, like a split-flap board on fast-forward.
   const HEX = '0123456789abcdef';
@@ -137,13 +103,9 @@ const { edges, root } = treePaths({ x0: 0.42 * W, rootX: 0.84 * W, y: 0.5 * H, h
     liveTimer = window.setTimeout(() => {
       if (live) live.textContent = `Digest: ${hex}`;
     }, 900);
-    hero?.pulse(bytes);
   }
 
-  form?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    hero?.boost();
-  });
+  form?.addEventListener('submit', (e) => e.preventDefault());
   input?.addEventListener('input', update);
   out?.addEventListener('click', async () => {
     const hex = out.dataset.value ?? out.textContent ?? '';
@@ -161,25 +123,6 @@ const { edges, root } = treePaths({ x0: 0.42 * W, rootX: 0.84 * W, y: 0.5 * H, h
       // Clipboard can be blocked; the digest is still selectable text.
     }
   });
-
-  // Click anywhere on the hero that is not a control: floor it.
-  host?.addEventListener('click', (e) => {
-    if ((e.target as Element).closest('a, button, input, label, form')) return;
-    hero?.boost();
-  });
-
-  void (async () => {
-    if (!host || !canvas || !input) return;
-    const gpu = await getGpu();
-    if (!gpu) return;
-    try {
-      const { mountHero } = await import('../gl/hero');
-      hero = await mountHero(gpu, canvas, host, blake3(encoder.encode(input.value)));
-      host.classList.add('gpu-ready');
-    } catch (error) {
-      console.warn('hero: WebGPU scene unavailable, keeping the static tree', error);
-    }
-  })();
 </script>
 
 <style>
@@ -192,98 +135,6 @@ const { edges, root } = treePaths({ x0: 0.42 * W, rootX: 0.84 * W, y: 0.5 * H, h
     min-height: max(100svh, 44rem);
     padding-block: calc(var(--header-h) + 3rem) 4rem;
     overflow: hidden;
-  }
-
-  .stage {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-  }
-
-  .gl,
-  .fallback {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    display: block;
-    transition: opacity 1.2s var(--ease-out);
-  }
-
-  .gl {
-    opacity: 0;
-  }
-
-  :global(.gpu-ready) .gl {
-    opacity: 1;
-  }
-
-  :global(.gpu-ready) .fallback {
-    opacity: 0;
-  }
-
-  /* The static tree: thin lines that thicken toward the root. */
-  .fallback {
-    opacity: 0.8;
-  }
-
-  .lv {
-    stroke-width: 1.2;
-    opacity: 0.45;
-  }
-  .lv-1 {
-    stroke-width: 1.6;
-    opacity: 0.55;
-  }
-  .lv-2 {
-    stroke-width: 2;
-    opacity: 0.65;
-  }
-  .lv-3 {
-    stroke-width: 2.6;
-    opacity: 0.8;
-  }
-  .lv-4 {
-    stroke-width: 3.2;
-    opacity: 0.9;
-  }
-
-  .beam {
-    stroke: var(--volt);
-    stroke-width: 2.5;
-    stroke-dasharray: 10 6 4 6 14 6;
-    opacity: 0.7;
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .lv {
-      stroke-dasharray: 26 140;
-      animation: flow 3.2s linear infinite;
-    }
-    .lv-2,
-    .lv-3,
-    .lv-4 {
-      stroke-dasharray: 30 70;
-      animation-duration: 1.8s;
-    }
-    .beam {
-      animation: flow 1.4s linear infinite;
-    }
-    @keyframes flow {
-      to {
-        stroke-dashoffset: -166;
-      }
-    }
-  }
-
-  /* Keep the copy legible over the light. */
-  .scrim {
-    position: absolute;
-    inset: 0;
-    background:
-      linear-gradient(90deg, rgb(6 6 8 / 0.9) 0%, rgb(6 6 8 / 0.7) 38%, rgb(6 6 8 / 0) 60%),
-      linear-gradient(180deg, rgb(6 6 8 / 0.5) 0%, rgb(6 6 8 / 0) 20%, rgb(6 6 8 / 0) 80%, rgb(6 6 8 / 1) 100%);
   }
 
   .content {
@@ -447,23 +298,11 @@ const { edges, root } = treePaths({ x0: 0.42 * W, rootX: 0.84 * W, y: 0.5 * H, h
     overflow-wrap: anywhere;
   }
 
-  /* Tall screens: the copy starts lower, leaving a band under the header where the tree grows. */
+  /* Tall screens: the copy starts lower, leaving the top of the photo clear. */
   @media (max-aspect-ratio: 23/20) {
     .hero {
       align-items: end;
       padding-top: calc(var(--header-h) + 28svh);
-    }
-    .scrim {
-      background: linear-gradient(
-        180deg,
-        rgb(6 6 8 / 0) 0,
-        rgb(6 6 8 / 0) calc(var(--header-h) + 20svh),
-        rgb(6 6 8 / 0.82) calc(var(--header-h) + 32svh),
-        rgb(6 6 8 / 0.9) 100%
-      );
-    }
-    .fallback {
-      height: calc(var(--header-h) + 30svh);
     }
   }
 </style>

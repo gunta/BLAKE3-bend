@@ -5,6 +5,7 @@
  * left for the changelog page.
  */
 import { ArrowRight, Rss } from 'lucide-static';
+import Backdrop from './Backdrop.astro';
 import Icon from './Icon.astro';
 import NewsTag from './NewsTag.astro';
 import { stories } from '../lib/news';
@@ -17,6 +18,7 @@ const leadStat = lead?.tag !== 'GPU' ? lead?.stat : undefined;
 {
   lead && (
     <section id="news" class="home-section news" aria-labelledby="news-title">
+      <Backdrop name="news" />
       <div class="wrap">
         <header class="home-head">
           <p class="kicker" data-reveal>
@@ -32,6 +34,7 @@ const leadStat = lead?.tag !== 'GPU' ? lead?.stat : undefined;
 
         <div class="bento grid">
           <a class="tile lead" href={lead.href} data-reveal>
+            <Backdrop name="tile-news" focus="80% 20%" scrim="bottom" />
             <span class="meta">
               <span class="new">New</span>
               <NewsTag tag={lead.tag} />
@@ -132,10 +135,6 @@ const leadStat = lead?.tag !== 'GPU' ? lead?.stat : undefined;
   .lead {
     gap: 1rem;
     padding: clamp(1.5rem, 1rem + 2vw, 2.5rem);
-    background:
-      radial-gradient(90% 70% at 100% 0%, rgb(212 255 58 / 0.07), transparent 60%),
-      radial-gradient(120% 90% at 0% 100%, rgb(70 227 255 / 0.05), transparent 60%),
-      var(--surface);
   }
 
   .meta {

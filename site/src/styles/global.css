@@ -450,9 +450,7 @@ pre {
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 20px;
-  background:
-    radial-gradient(120% 90% at 100% 0%, rgb(255 255 255 / 0.035), transparent 60%),
-    var(--surface);
+  background: var(--surface);
   isolation: isolate;
 }
 
@@ -539,5 +537,6 @@ pre {
 
 .home-section {
   position: relative;
+  isolation: isolate;
   padding-block: clamp(5rem, 3rem + 6vw, 9rem);
 }

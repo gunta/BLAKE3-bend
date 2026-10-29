@@ -3,6 +3,8 @@
  * What people fingerprint, in two rows of big type running opposite ways.
  * Decorative: the list is also in the page as plain text for assistive tech.
  */
+import Backdrop from './Backdrop.astro';
+
 const rows = [
   ['Model weights', 'ISO images', 'Photo libraries', 'Backups', 'Release artifacts', 'Datasets'],
   ['node_modules', 'Video archives', 'Docker layers', 'Git LFS objects', 'Game assets', 'Log archives'],
@@ -10,6 +12,7 @@ const rows = [
 ---
 
 <section class="things" aria-label="What you can fingerprint">
+  <Backdrop name="things" scrim="center" />
   <p class="sr-only">Fingerprint anything: {rows.flat().join(', ')}.</p>
   {
     rows.map((row, r) => (
@@ -31,6 +34,8 @@ const rows = [
 
 <style>
   .things {
+    position: relative;
+    isolation: isolate;
     display: grid;
     gap: 0.5rem;
     padding-block: clamp(2rem, 1rem + 3vw, 4rem);
