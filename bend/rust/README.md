@@ -11,11 +11,10 @@ command line's dependencies out.
 
 ```toml
 [dependencies]
-turboblake = { git = "https://github.com/gunta/turboblake" }
+turboblake = "1.8"
 ```
 
-From the next crates.io release it is `turboblake = "1.8"`; turboblake
-1.8.7 on crates.io is the command line alone. Your code keeps `use blake3::…`. `blake3::hash` and `Hasher::update` go
+Your code keeps `use blake3::…`. `blake3::hash` and `Hasher::update` go
 through the engine past a size it calibrates at the first big input (about
 256 KiB on an Apple M5 Pro), in every mode (keyed hashing and key derivation
 too). `update_rayon` hands it only what it beats rayon on: input it reads in

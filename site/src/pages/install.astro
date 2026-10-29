@@ -9,7 +9,7 @@ import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import Section from '../components/Section.astro';
 import InstallCommand from '../components/InstallCommand.astro';
-import { INSTALLS, REPO_URL, RELEASES_URL, blobUrl, treeUrl, withBase } from '../lib/site';
+import { INSTALLS, RELEASES_URL, blobUrl, treeUrl, withBase } from '../lib/site';
 
 interface Step {
   /** What the block is, e.g. "Cargo.toml". */
@@ -32,24 +32,22 @@ interface Package {
   readme: string;
 }
 
-const CLONE = `git clone ${REPO_URL}`;
-
 const packages: Package[] = [
   {
     id: 'rust',
     title: 'Rust',
     name: 'turboblake',
     replaces: ['blake3'],
-    where: 'from GitHub until its next crates.io release (turboblake 1.8.7 there is the command line alone)',
+    where: 'crates.io',
     steps: [
-      { label: 'shell', shell: true, code: 'cargo add turboblake --git https://github.com/gunta/turboblake' },
-      { label: 'or in Cargo.toml', code: 'turboblake = { git = "https://github.com/gunta/turboblake" }' },
+      { label: 'shell', shell: true, code: 'cargo add turboblake' },
+      { label: 'or in Cargo.toml', code: 'turboblake = "1.8"' },
     ],
     notes: [
       'The library is still named blake3, so use blake3::… compiles unchanged: hash, Hasher::update, update_rayon, keyed_hash, derive_key and extended output all reach the engine past the size it calibrates at the first big input.',
       'The crate holds the command line too, behind its default cli feature. For the library alone: default-features = false, features = ["std"].',
       'To swap it under every crate in a dependency graph, generate a copy named blake3 and add it to [patch.crates-io] (the README shows how).',
-      'Building needs clang; without it the crate builds as upstream and says so in a warning.',
+      'Building needs clang; without it, and on Windows, the crate builds as upstream and says so in a warning.',
     ],
     readme: 'bend/rust/README.md',
   },
@@ -58,12 +56,14 @@ const packages: Package[] = [
     title: 'C',
     name: 'libturboblake',
     replaces: ['the official C library (blake3.h)'],
-    where: 'from the repository',
+    where: 'Homebrew, the release archives, or CMake',
     steps: [
-      { label: 'shell', shell: true, code: `${CLONE}\nturboblake/bend/lib/build.sh\ncc -I turboblake/bend/lib/build/include app.c turboblake/bend/lib/build/lib/libblake3.a -lpthread -o app` },
+      { label: 'shell', shell: true, code: 'brew install gunta/tap/libturboblake\ncc app.c $(pkg-config --cflags --libs libturboblake) -o app' },
+      { label: 'or CMake, from source', code: 'find_package(turboblake REQUIRED)\ntarget_link_libraries(app turboblake::turboblake)' },
     ],
     notes: [
-      'blake3.h, its symbols and the blake3_hasher layout are upstream’s, so programs relink unchanged. build.sh also writes libblake3.dylib or libblake3.so, and libturboblake links to the same library.',
+      'blake3.h, its symbols and the blake3_hasher layout are upstream’s, so programs keep #include "blake3.h" and relink unchanged. It installs under include/turboblake/, beside an official blake3.h, never over it.',
+      'Release archives for macOS and Linux (glibc 2.28+), arm64 and x86-64, hold the static and shared library, a pkg-config file and a CMake package. cmake -S bend/lib builds the same from a clone; on Windows that is the official C alone.',
     ],
     readme: 'bend/lib/README.md',
   },
@@ -72,14 +72,14 @@ const packages: Package[] = [
     title: 'Python',
     name: 'turboblake',
     replaces: ['blake3 (PyPI)'],
-    where: 'from the repository until it is on PyPI',
+    where: 'PyPI',
     steps: [
-      { label: 'shell', shell: true, code: 'pip uninstall blake3\npip install "turboblake @ git+https://github.com/gunta/turboblake#subdirectory=bend/python"' },
+      { label: 'shell', shell: true, code: 'pip uninstall blake3\npip install turboblake' },
       { label: 'your code, unchanged', code: 'from blake3 import blake3\n\nblake3(data).hexdigest()\nh = blake3(key=key)\nh.update_mmap("big.iso")\nh.digest(length=64)' },
     ],
     notes: [
       'It installs the same blake3 module, so remove the PyPI one first. max_threads is accepted and ignored: big updates go to the engine on every core.',
-      'Building needs a C compiler, and clang for the engine (CC=clang if gcc is the default).',
+      'Wheels come with the engine built in for macOS and Linux (glibc 2.28+ and musl) on arm64 and x86-64, every CPython from 3.9. On Windows, where the engine does not run yet, it installs the official blake3 instead: never slower than upstream.',
     ],
     readme: 'bend/python/README.md',
   },
@@ -88,9 +88,9 @@ const packages: Package[] = [
     title: 'Node.js, Bun and Deno',
     name: 'turboblake',
     replaces: ['@noble/hashes/blake3', 'blake3 (npm)', '@napi-rs/blake-hash'],
-    where: 'from the repository until it is on npm',
+    where: 'npm',
     steps: [
-      { label: 'shell', shell: true, code: `${CLONE}\n(cd turboblake/bend/node && npm install)\nnpm install ./turboblake/bend/node` },
+      { label: 'shell', shell: true, code: 'npm install turboblake\nbun add turboblake\ndeno add npm:turboblake' },
       {
         label: 'swap the import',
         code: '// was: import { blake3 } from "@noble/hashes/blake3.js";\nimport { blake3 } from "turboblake";\n\n// was: import { hash, createHash } from "blake3";\nimport { hash, createHash } from "turboblake";',
@@ -98,7 +98,7 @@ const packages: Package[] = [
     ],
     notes: [
       'Both APIs, from one package: blake3(data, { dkLen, key, context }) and blake3.create() as in @noble/hashes; hash, keyedHash, deriveKey and createHash as in the blake3 package. hashFiles(paths) hashes many files at once.',
-      'Installing builds the native addon with clang. Without a compiler it still installs, and runs on Bend’s JavaScript; backend says which one runs.',
+      'One package, no install script: it carries the native addon prebuilt for macOS, Linux (glibc and musl) and Windows, arm64 and x64, and loads the one for your machine. On Windows the addon is the official C (no engine there yet). Anywhere else turboblake runs on Bend’s JavaScript; backend says which one runs.',
     ],
     readme: 'bend/node/README.md',
   },
@@ -131,7 +131,7 @@ const packages: Package[] = [
     ],
     notes: [
       'Same functions, types and output as each package it replaces, plus NewDeriveKey, Hasher.Clone and HashFiles. Needs cgo.',
-      'The engine comes prebuilt for darwin and linux on arm64 and amd64; anywhere else cgo builds it at plain flags, slower and still on every core.',
+      'The engine comes prebuilt for darwin and linux on arm64 and amd64; other Unix systems build it through cgo at plain flags, slower and still on every core. On Windows (MinGW) the package is the official C alone.',
     ],
     readme: 'bend/go/README.md',
   },
@@ -191,7 +191,7 @@ const html = (s: Step) =>
           </li>
           <li>
             <a href={RELEASES_URL}>GitHub Releases</a>
-            <span>Archives for macOS and Linux, arm64 and x86-64, with SHA256SUMS. Prebuilt x86-64 binaries require AVX2; build from source for older CPUs.</span>
+            <span>Archives for macOS, Linux (glibc 2.28+, or static musl) and Windows, arm64 and x86-64, with SHA256SUMS and build attestations. The x86-64 binaries use AVX2 where the CPU has it and run on any x86-64 CPU. On Windows it is the official b3sum, until the engine runs there.</span>
           </li>
         </ul>
       </div>

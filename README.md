@@ -64,8 +64,10 @@ turboblake --check B3SUMS    # verify them, like sha256sum -c
 BLAKE3 checksum files created by `b3sum` or `turboblake`. Keep using
 `sha256sum -c SHA256SUMS` for existing SHA-256 manifests.
 
-The prebuilt x86-64 binaries target x86-64-v3 (AVX2). Build from source for
-an older CPU.
+Prebuilt for macOS, Linux (glibc 2.28+, or static musl) and Windows, arm64
+and x86-64. The x86-64 builds use AVX2 where the CPU has it and run on any
+x86-64 CPU; on Windows turboblake is the official b3sum until the engine
+runs there ([ADR 0020](adr/0020-every-package-on-its-registry.md)).
 
 ### Libraries
 
@@ -76,10 +78,10 @@ to other languages
 
 | language | replaces | swap in |
 |---|---|---|
-| Rust | `blake3` | `cargo add turboblake --git https://github.com/gunta/turboblake` (on crates.io from its next release; 1.8.7 there is the command line alone); the library is named `blake3` ([README](bend/rust/README.md)) |
-| C | the official `libblake3` | `bend/lib/build.sh`, then link `-lturboblake` (or `-lblake3`, the same library) ([README](bend/lib/README.md)) |
-| Python | `blake3` on PyPI | `pip install "turboblake @ git+https://github.com/gunta/turboblake#subdirectory=bend/python"` ([README](bend/python/README.md)) |
-| Node, Bun, Deno | `@noble/hashes/blake3`, `blake3`, `@napi-rs/blake-hash` | In a clone: `(cd bend/node && npm install)`, then in your app: `npm install /path/to/turboblake/bend/node` ([README](bend/node/README.md)) |
+| Rust | `blake3` | `cargo add turboblake`; the library is named `blake3` ([README](bend/rust/README.md)) |
+| C | the official `libblake3` | `brew install gunta/tap/libturboblake`, a release archive, or CMake; then `pkg-config --cflags --libs libturboblake` or `find_package(turboblake)` ([README](bend/lib/README.md)) |
+| Python | `blake3` on PyPI | `pip install turboblake` ([README](bend/python/README.md)) |
+| Node, Bun, Deno | `@noble/hashes/blake3`, `blake3`, `@napi-rs/blake-hash` | `npm install turboblake` (or `bun add`, `deno add npm:turboblake`) ([README](bend/node/README.md)) |
 | browsers, workers | `@noble/hashes/blake3`, `hash-wasm` | Install the JavaScript package above, then import `turboblake/js`; compatible hashing output, not every package's API |
 | Go | `lukechampine.com/blake3`, `github.com/zeebo/blake3` | `go get github.com/gunta/turboblake/bend/go` ([README](bend/go/README.md)) |
 
