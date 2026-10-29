@@ -34,7 +34,7 @@ const leadStat = lead?.tag !== 'GPU' ? lead?.stat : undefined;
 
         <div class="bento grid">
           <a class="tile lead" href={lead.href} data-reveal>
-            <Backdrop name="tile-news" focus="80% 20%" scrim="bottom" />
+            <Backdrop name="tile-news" focus="80% 20%" scrim="bottom" sizes="(min-width: 62rem) 51rem, 100vw" />
             <span class="meta">
               <span class="new">New</span>
               <NewsTag tag={lead.tag} />

@@ -1,0 +1,2228 @@
+{
+  "schema_version": 1,
+  "slots": [
+    {
+      "slot": "hero",
+      "ratio": [
+        16,
+        9
+      ],
+      "master": {
+        "path": "hero.png",
+        "dimensions": [
+          3840,
+          2160
+        ],
+        "bytes": 7060141,
+        "sha256": "74774975faed784a05298722bef27dc290d6c313f79ae44b8724e3b98d597c2b"
+      },
+      "crop": {
+        "path": "backgrounds/crops/hero.png",
+        "box": [
+          0,
+          0,
+          3840,
+          2160
+        ],
+        "dimensions": [
+          3840,
+          2160
+        ],
+        "bytes": 5803056
+      },
+      "exports": [
+        {
+          "path": "public/backgrounds/hero-960.avif",
+          "format": "avif",
+          "dimensions": [
+            960,
+            540
+          ],
+          "bytes": 30598,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/hero-960.webp",
+          "format": "webp",
+          "dimensions": [
+            960,
+            540
+          ],
+          "bytes": 37278,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/hero-960.jxl",
+          "format": "jxl",
+          "dimensions": [
+            960,
+            540
+          ],
+          "bytes": 40246,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/hero-1600.avif",
+          "format": "avif",
+          "dimensions": [
+            1600,
+            900
+          ],
+          "bytes": 66055,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/hero-1600.webp",
+          "format": "webp",
+          "dimensions": [
+            1600,
+            900
+          ],
+          "bytes": 85034,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/hero-1600.jxl",
+          "format": "jxl",
+          "dimensions": [
+            1600,
+            900
+          ],
+          "bytes": 91016,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/hero-2400.avif",
+          "format": "avif",
+          "dimensions": [
+            2400,
+            1350
+          ],
+          "bytes": 121728,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/hero-2400.webp",
+          "format": "webp",
+          "dimensions": [
+            2400,
+            1350
+          ],
+          "bytes": 161684,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/hero-2400.jxl",
+          "format": "jxl",
+          "dimensions": [
+            2400,
+            1350
+          ],
+          "bytes": 174159,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/hero-3200.avif",
+          "format": "avif",
+          "dimensions": [
+            3200,
+            1800
+          ],
+          "bytes": 184466,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/hero-3200.webp",
+          "format": "webp",
+          "dimensions": [
+            3200,
+            1800
+          ],
+          "bytes": 252226,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/hero-3200.jxl",
+          "format": "jxl",
+          "dimensions": [
+            3200,
+            1800
+          ],
+          "bytes": 273662,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/hero-3840.avif",
+          "format": "avif",
+          "dimensions": [
+            3840,
+            2160
+          ],
+          "bytes": 243144,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/hero-3840.webp",
+          "format": "webp",
+          "dimensions": [
+            3840,
+            2160
+          ],
+          "bytes": 334486,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/hero-3840.jxl",
+          "format": "jxl",
+          "dimensions": [
+            3840,
+            2160
+          ],
+          "bytes": 368253,
+          "verified": true
+        }
+      ]
+    },
+    {
+      "slot": "speed",
+      "ratio": [
+        16,
+        9
+      ],
+      "master": {
+        "path": "speed.png",
+        "dimensions": [
+          3840,
+          2160
+        ],
+        "bytes": 7630653,
+        "sha256": "19c7c203cf15b9c7041fd573b7f469c582399f2849c16d8aabba2a387383e989"
+      },
+      "crop": {
+        "path": "backgrounds/crops/speed.png",
+        "box": [
+          0,
+          0,
+          3840,
+          2160
+        ],
+        "dimensions": [
+          3840,
+          2160
+        ],
+        "bytes": 6576210
+      },
+      "exports": [
+        {
+          "path": "public/backgrounds/speed-960.avif",
+          "format": "avif",
+          "dimensions": [
+            960,
+            540
+          ],
+          "bytes": 41212,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/speed-960.webp",
+          "format": "webp",
+          "dimensions": [
+            960,
+            540
+          ],
+          "bytes": 51490,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/speed-960.jxl",
+          "format": "jxl",
+          "dimensions": [
+            960,
+            540
+          ],
+          "bytes": 52532,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/speed-1600.avif",
+          "format": "avif",
+          "dimensions": [
+            1600,
+            900
+          ],
+          "bytes": 86499,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/speed-1600.webp",
+          "format": "webp",
+          "dimensions": [
+            1600,
+            900
+          ],
+          "bytes": 113750,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/speed-1600.jxl",
+          "format": "jxl",
+          "dimensions": [
+            1600,
+            900
+          ],
+          "bytes": 118660,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/speed-2400.avif",
+          "format": "avif",
+          "dimensions": [
+            2400,
+            1350
+          ],
+          "bytes": 155316,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/speed-2400.webp",
+          "format": "webp",
+          "dimensions": [
+            2400,
+            1350
+          ],
+          "bytes": 200636,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/speed-2400.jxl",
+          "format": "jxl",
+          "dimensions": [
+            2400,
+            1350
+          ],
+          "bytes": 223516,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/speed-3200.avif",
+          "format": "avif",
+          "dimensions": [
+            3200,
+            1800
+          ],
+          "bytes": 228581,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/speed-3200.webp",
+          "format": "webp",
+          "dimensions": [
+            3200,
+            1800
+          ],
+          "bytes": 306492,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/speed-3200.jxl",
+          "format": "jxl",
+          "dimensions": [
+            3200,
+            1800
+          ],
+          "bytes": 342936,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/speed-3840.avif",
+          "format": "avif",
+          "dimensions": [
+            3840,
+            2160
+          ],
+          "bytes": 295247,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/speed-3840.webp",
+          "format": "webp",
+          "dimensions": [
+            3840,
+            2160
+          ],
+          "bytes": 394038,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/speed-3840.jxl",
+          "format": "jxl",
+          "dimensions": [
+            3840,
+            2160
+          ],
+          "bytes": 453961,
+          "verified": true
+        }
+      ]
+    },
+    {
+      "slot": "tile-model",
+      "ratio": [
+        3,
+        2
+      ],
+      "master": {
+        "path": "tile-model.png",
+        "dimensions": [
+          3840,
+          2160
+        ],
+        "bytes": 6905514,
+        "sha256": "a4a03ef4fa5e7cac30cd34723737ee9b19be90d1723e15ba78a76f695b8964ce"
+      },
+      "crop": {
+        "path": "backgrounds/crops/tile-model.png",
+        "box": [
+          300,
+          0,
+          3540,
+          2160
+        ],
+        "dimensions": [
+          3240,
+          2160
+        ],
+        "bytes": 5509385
+      },
+      "exports": [
+        {
+          "path": "public/backgrounds/tile-model-960.avif",
+          "format": "avif",
+          "dimensions": [
+            960,
+            640
+          ],
+          "bytes": 53672,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-model-960.webp",
+          "format": "webp",
+          "dimensions": [
+            960,
+            640
+          ],
+          "bytes": 63052,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-model-960.jxl",
+          "format": "jxl",
+          "dimensions": [
+            960,
+            640
+          ],
+          "bytes": 69554,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-model-1600.avif",
+          "format": "avif",
+          "dimensions": [
+            1600,
+            1067
+          ],
+          "bytes": 109154,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-model-1600.webp",
+          "format": "webp",
+          "dimensions": [
+            1600,
+            1067
+          ],
+          "bytes": 131178,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-model-1600.jxl",
+          "format": "jxl",
+          "dimensions": [
+            1600,
+            1067
+          ],
+          "bytes": 148606,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-model-2400.avif",
+          "format": "avif",
+          "dimensions": [
+            2400,
+            1600
+          ],
+          "bytes": 190902,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-model-2400.webp",
+          "format": "webp",
+          "dimensions": [
+            2400,
+            1600
+          ],
+          "bytes": 230054,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-model-2400.jxl",
+          "format": "jxl",
+          "dimensions": [
+            2400,
+            1600
+          ],
+          "bytes": 271207,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-model-3200.avif",
+          "format": "avif",
+          "dimensions": [
+            3200,
+            2133
+          ],
+          "bytes": 279823,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-model-3200.webp",
+          "format": "webp",
+          "dimensions": [
+            3200,
+            2133
+          ],
+          "bytes": 343838,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-model-3200.jxl",
+          "format": "jxl",
+          "dimensions": [
+            3200,
+            2133
+          ],
+          "bytes": 409139,
+          "verified": true
+        }
+      ]
+    },
+    {
+      "slot": "versus",
+      "ratio": [
+        16,
+        9
+      ],
+      "master": {
+        "path": "versus.png",
+        "dimensions": [
+          3840,
+          2160
+        ],
+        "bytes": 11377357,
+        "sha256": "47c2c479b50e3ce46df1d1e925abd44d2599dac17a3bec024211838df8ca9521"
+      },
+      "crop": {
+        "path": "backgrounds/crops/versus.png",
+        "box": [
+          0,
+          0,
+          3840,
+          2160
+        ],
+        "dimensions": [
+          3840,
+          2160
+        ],
+        "bytes": 10396235
+      },
+      "exports": [
+        {
+          "path": "public/backgrounds/versus-960.avif",
+          "format": "avif",
+          "dimensions": [
+            960,
+            540
+          ],
+          "bytes": 56875,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/versus-960.webp",
+          "format": "webp",
+          "dimensions": [
+            960,
+            540
+          ],
+          "bytes": 64302,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/versus-960.jxl",
+          "format": "jxl",
+          "dimensions": [
+            960,
+            540
+          ],
+          "bytes": 70426,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/versus-1600.avif",
+          "format": "avif",
+          "dimensions": [
+            1600,
+            900
+          ],
+          "bytes": 147449,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/versus-1600.webp",
+          "format": "webp",
+          "dimensions": [
+            1600,
+            900
+          ],
+          "bytes": 164552,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/versus-1600.jxl",
+          "format": "jxl",
+          "dimensions": [
+            1600,
+            900
+          ],
+          "bytes": 181521,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/versus-2400.avif",
+          "format": "avif",
+          "dimensions": [
+            2400,
+            1350
+          ],
+          "bytes": 324667,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/versus-2400.webp",
+          "format": "webp",
+          "dimensions": [
+            2400,
+            1350
+          ],
+          "bytes": 357802,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/versus-2400.jxl",
+          "format": "jxl",
+          "dimensions": [
+            2400,
+            1350
+          ],
+          "bytes": 390258,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/versus-3200.avif",
+          "format": "avif",
+          "dimensions": [
+            3200,
+            1800
+          ],
+          "bytes": 557196,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/versus-3200.webp",
+          "format": "webp",
+          "dimensions": [
+            3200,
+            1800
+          ],
+          "bytes": 629814,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/versus-3200.jxl",
+          "format": "jxl",
+          "dimensions": [
+            3200,
+            1800
+          ],
+          "bytes": 652508,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/versus-3840.avif",
+          "format": "avif",
+          "dimensions": [
+            3840,
+            2160
+          ],
+          "bytes": 798727,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/versus-3840.webp",
+          "format": "webp",
+          "dimensions": [
+            3840,
+            2160
+          ],
+          "bytes": 913970,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/versus-3840.jxl",
+          "format": "jxl",
+          "dimensions": [
+            3840,
+            2160
+          ],
+          "bytes": 916679,
+          "verified": true
+        }
+      ]
+    },
+    {
+      "slot": "things",
+      "ratio": [
+        21,
+        9
+      ],
+      "master": {
+        "path": "things.png",
+        "dimensions": [
+          3840,
+          2160
+        ],
+        "bytes": 6935103,
+        "sha256": "788c621af3baf17ac88763114cc22ae1233d16244c54d617c58d9b8c139cd104"
+      },
+      "crop": {
+        "path": "backgrounds/crops/things.png",
+        "box": [
+          0,
+          257,
+          3840,
+          1903
+        ],
+        "dimensions": [
+          3840,
+          1646
+        ],
+        "bytes": 4343180
+      },
+      "exports": [
+        {
+          "path": "public/backgrounds/things-960.avif",
+          "format": "avif",
+          "dimensions": [
+            960,
+            412
+          ],
+          "bytes": 43497,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/things-960.webp",
+          "format": "webp",
+          "dimensions": [
+            960,
+            412
+          ],
+          "bytes": 49782,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/things-960.jxl",
+          "format": "jxl",
+          "dimensions": [
+            960,
+            412
+          ],
+          "bytes": 49320,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/things-1600.avif",
+          "format": "avif",
+          "dimensions": [
+            1600,
+            686
+          ],
+          "bytes": 79219,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/things-1600.webp",
+          "format": "webp",
+          "dimensions": [
+            1600,
+            686
+          ],
+          "bytes": 88018,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/things-1600.jxl",
+          "format": "jxl",
+          "dimensions": [
+            1600,
+            686
+          ],
+          "bytes": 100488,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/things-2400.avif",
+          "format": "avif",
+          "dimensions": [
+            2400,
+            1029
+          ],
+          "bytes": 127997,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/things-2400.webp",
+          "format": "webp",
+          "dimensions": [
+            2400,
+            1029
+          ],
+          "bytes": 134740,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/things-2400.jxl",
+          "format": "jxl",
+          "dimensions": [
+            2400,
+            1029
+          ],
+          "bytes": 166090,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/things-3200.avif",
+          "format": "avif",
+          "dimensions": [
+            3200,
+            1372
+          ],
+          "bytes": 168108,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/things-3200.webp",
+          "format": "webp",
+          "dimensions": [
+            3200,
+            1372
+          ],
+          "bytes": 185554,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/things-3200.jxl",
+          "format": "jxl",
+          "dimensions": [
+            3200,
+            1372
+          ],
+          "bytes": 234288,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/things-3840.avif",
+          "format": "avif",
+          "dimensions": [
+            3840,
+            1646
+          ],
+          "bytes": 202468,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/things-3840.webp",
+          "format": "webp",
+          "dimensions": [
+            3840,
+            1646
+          ],
+          "bytes": 225394,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/things-3840.jxl",
+          "format": "jxl",
+          "dimensions": [
+            3840,
+            1646
+          ],
+          "bytes": 287206,
+          "verified": true
+        }
+      ]
+    },
+    {
+      "slot": "checksum",
+      "ratio": [
+        16,
+        9
+      ],
+      "master": {
+        "path": "checksum.png",
+        "dimensions": [
+          3840,
+          2160
+        ],
+        "bytes": 9175023,
+        "sha256": "58bf902b71b030027f7b315410c356ac65672c6a61d3a8e2535491ab1e53a2ed"
+      },
+      "crop": {
+        "path": "backgrounds/crops/checksum.png",
+        "box": [
+          0,
+          0,
+          3840,
+          2160
+        ],
+        "dimensions": [
+          3840,
+          2160
+        ],
+        "bytes": 8772739
+      },
+      "exports": [
+        {
+          "path": "public/backgrounds/checksum-960.avif",
+          "format": "avif",
+          "dimensions": [
+            960,
+            540
+          ],
+          "bytes": 93330,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/checksum-960.webp",
+          "format": "webp",
+          "dimensions": [
+            960,
+            540
+          ],
+          "bytes": 106582,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/checksum-960.jxl",
+          "format": "jxl",
+          "dimensions": [
+            960,
+            540
+          ],
+          "bytes": 103249,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/checksum-1600.avif",
+          "format": "avif",
+          "dimensions": [
+            1600,
+            900
+          ],
+          "bytes": 209016,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/checksum-1600.webp",
+          "format": "webp",
+          "dimensions": [
+            1600,
+            900
+          ],
+          "bytes": 250462,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/checksum-1600.jxl",
+          "format": "jxl",
+          "dimensions": [
+            1600,
+            900
+          ],
+          "bytes": 241320,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/checksum-2400.avif",
+          "format": "avif",
+          "dimensions": [
+            2400,
+            1350
+          ],
+          "bytes": 386332,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/checksum-2400.webp",
+          "format": "webp",
+          "dimensions": [
+            2400,
+            1350
+          ],
+          "bytes": 468042,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/checksum-2400.jxl",
+          "format": "jxl",
+          "dimensions": [
+            2400,
+            1350
+          ],
+          "bytes": 465917,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/checksum-3200.avif",
+          "format": "avif",
+          "dimensions": [
+            3200,
+            1800
+          ],
+          "bytes": 583057,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/checksum-3200.webp",
+          "format": "webp",
+          "dimensions": [
+            3200,
+            1800
+          ],
+          "bytes": 709560,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/checksum-3200.jxl",
+          "format": "jxl",
+          "dimensions": [
+            3200,
+            1800
+          ],
+          "bytes": 717501,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/checksum-3840.avif",
+          "format": "avif",
+          "dimensions": [
+            3840,
+            2160
+          ],
+          "bytes": 760244,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/checksum-3840.webp",
+          "format": "webp",
+          "dimensions": [
+            3840,
+            2160
+          ],
+          "bytes": 931348,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/checksum-3840.jxl",
+          "format": "jxl",
+          "dimensions": [
+            3840,
+            2160
+          ],
+          "bytes": 946640,
+          "verified": true
+        }
+      ]
+    },
+    {
+      "slot": "tile-fingerprint",
+      "ratio": [
+        4,
+        3
+      ],
+      "master": {
+        "path": "tile-fingerprint.png",
+        "dimensions": [
+          3840,
+          2160
+        ],
+        "bytes": 6966130,
+        "sha256": "37cfbe5c6ef0814f10b9b758af4d3b889f7e782a84b11544a93d82407aacf857"
+      },
+      "crop": {
+        "path": "backgrounds/crops/tile-fingerprint.png",
+        "box": [
+          480,
+          0,
+          3360,
+          2160
+        ],
+        "dimensions": [
+          2880,
+          2160
+        ],
+        "bytes": 3910272
+      },
+      "exports": [
+        {
+          "path": "public/backgrounds/tile-fingerprint-960.avif",
+          "format": "avif",
+          "dimensions": [
+            960,
+            720
+          ],
+          "bytes": 21754,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-fingerprint-960.webp",
+          "format": "webp",
+          "dimensions": [
+            960,
+            720
+          ],
+          "bytes": 29952,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-fingerprint-960.jxl",
+          "format": "jxl",
+          "dimensions": [
+            960,
+            720
+          ],
+          "bytes": 32614,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-fingerprint-1600.avif",
+          "format": "avif",
+          "dimensions": [
+            1600,
+            1200
+          ],
+          "bytes": 44192,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-fingerprint-1600.webp",
+          "format": "webp",
+          "dimensions": [
+            1600,
+            1200
+          ],
+          "bytes": 60318,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-fingerprint-1600.jxl",
+          "format": "jxl",
+          "dimensions": [
+            1600,
+            1200
+          ],
+          "bytes": 69027,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-fingerprint-2400.avif",
+          "format": "avif",
+          "dimensions": [
+            2400,
+            1800
+          ],
+          "bytes": 77831,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-fingerprint-2400.webp",
+          "format": "webp",
+          "dimensions": [
+            2400,
+            1800
+          ],
+          "bytes": 105134,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-fingerprint-2400.jxl",
+          "format": "jxl",
+          "dimensions": [
+            2400,
+            1800
+          ],
+          "bytes": 132584,
+          "verified": true
+        }
+      ]
+    },
+    {
+      "slot": "why",
+      "ratio": [
+        16,
+        9
+      ],
+      "master": {
+        "path": "why.png",
+        "dimensions": [
+          3840,
+          2160
+        ],
+        "bytes": 7528741,
+        "sha256": "f3aef169b997f15e53c8cb8dcacfacb48c8e62c8483a940159c55c94202a8e5c"
+      },
+      "crop": {
+        "path": "backgrounds/crops/why.png",
+        "box": [
+          0,
+          0,
+          3840,
+          2160
+        ],
+        "dimensions": [
+          3840,
+          2160
+        ],
+        "bytes": 6730569
+      },
+      "exports": [
+        {
+          "path": "public/backgrounds/why-960.avif",
+          "format": "avif",
+          "dimensions": [
+            960,
+            540
+          ],
+          "bytes": 46347,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/why-960.webp",
+          "format": "webp",
+          "dimensions": [
+            960,
+            540
+          ],
+          "bytes": 51696,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/why-960.jxl",
+          "format": "jxl",
+          "dimensions": [
+            960,
+            540
+          ],
+          "bytes": 54827,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/why-1600.avif",
+          "format": "avif",
+          "dimensions": [
+            1600,
+            900
+          ],
+          "bytes": 108814,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/why-1600.webp",
+          "format": "webp",
+          "dimensions": [
+            1600,
+            900
+          ],
+          "bytes": 125746,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/why-1600.jxl",
+          "format": "jxl",
+          "dimensions": [
+            1600,
+            900
+          ],
+          "bytes": 137210,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/why-2400.avif",
+          "format": "avif",
+          "dimensions": [
+            2400,
+            1350
+          ],
+          "bytes": 210540,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/why-2400.webp",
+          "format": "webp",
+          "dimensions": [
+            2400,
+            1350
+          ],
+          "bytes": 248078,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/why-2400.jxl",
+          "format": "jxl",
+          "dimensions": [
+            2400,
+            1350
+          ],
+          "bytes": 278453,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/why-3200.avif",
+          "format": "avif",
+          "dimensions": [
+            3200,
+            1800
+          ],
+          "bytes": 327335,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/why-3200.webp",
+          "format": "webp",
+          "dimensions": [
+            3200,
+            1800
+          ],
+          "bytes": 382550,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/why-3200.jxl",
+          "format": "jxl",
+          "dimensions": [
+            3200,
+            1800
+          ],
+          "bytes": 442059,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/why-3840.avif",
+          "format": "avif",
+          "dimensions": [
+            3840,
+            2160
+          ],
+          "bytes": 436627,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/why-3840.webp",
+          "format": "webp",
+          "dimensions": [
+            3840,
+            2160
+          ],
+          "bytes": 510570,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/why-3840.jxl",
+          "format": "jxl",
+          "dimensions": [
+            3840,
+            2160
+          ],
+          "bytes": 598929,
+          "verified": true
+        }
+      ]
+    },
+    {
+      "slot": "tile-fast",
+      "ratio": [
+        4,
+        3
+      ],
+      "master": {
+        "path": "tile-fast.png",
+        "dimensions": [
+          3840,
+          2160
+        ],
+        "bytes": 7815180,
+        "sha256": "17cc04948c54126d67e7067b5b3c68e7f0a1d6ba8a23d49c3132882243141aab"
+      },
+      "crop": {
+        "path": "backgrounds/crops/tile-fast.png",
+        "box": [
+          480,
+          0,
+          3360,
+          2160
+        ],
+        "dimensions": [
+          2880,
+          2160
+        ],
+        "bytes": 5130996
+      },
+      "exports": [
+        {
+          "path": "public/backgrounds/tile-fast-960.avif",
+          "format": "avif",
+          "dimensions": [
+            960,
+            720
+          ],
+          "bytes": 39749,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-fast-960.webp",
+          "format": "webp",
+          "dimensions": [
+            960,
+            720
+          ],
+          "bytes": 38790,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-fast-960.jxl",
+          "format": "jxl",
+          "dimensions": [
+            960,
+            720
+          ],
+          "bytes": 55936,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-fast-1600.avif",
+          "format": "avif",
+          "dimensions": [
+            1600,
+            1200
+          ],
+          "bytes": 92155,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-fast-1600.webp",
+          "format": "webp",
+          "dimensions": [
+            1600,
+            1200
+          ],
+          "bytes": 90954,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-fast-1600.jxl",
+          "format": "jxl",
+          "dimensions": [
+            1600,
+            1200
+          ],
+          "bytes": 134459,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-fast-2400.avif",
+          "format": "avif",
+          "dimensions": [
+            2400,
+            1800
+          ],
+          "bytes": 174495,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-fast-2400.webp",
+          "format": "webp",
+          "dimensions": [
+            2400,
+            1800
+          ],
+          "bytes": 172354,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-fast-2400.jxl",
+          "format": "jxl",
+          "dimensions": [
+            2400,
+            1800
+          ],
+          "bytes": 263564,
+          "verified": true
+        }
+      ]
+    },
+    {
+      "slot": "how",
+      "ratio": [
+        16,
+        9
+      ],
+      "master": {
+        "path": "how.png",
+        "dimensions": [
+          3840,
+          2160
+        ],
+        "bytes": 13986193,
+        "sha256": "ee7e65b1a231a0c10a9cbd3e88a8000cac8632d7cb426a8f0df2369d7dd114b2"
+      },
+      "crop": {
+        "path": "backgrounds/crops/how.png",
+        "box": [
+          0,
+          0,
+          3840,
+          2160
+        ],
+        "dimensions": [
+          3840,
+          2160
+        ],
+        "bytes": 13932413
+      },
+      "exports": [
+        {
+          "path": "public/backgrounds/how-960.avif",
+          "format": "avif",
+          "dimensions": [
+            960,
+            540
+          ],
+          "bytes": 185112,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/how-960.webp",
+          "format": "webp",
+          "dimensions": [
+            960,
+            540
+          ],
+          "bytes": 221714,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/how-960.jxl",
+          "format": "jxl",
+          "dimensions": [
+            960,
+            540
+          ],
+          "bytes": 207723,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/how-1600.avif",
+          "format": "avif",
+          "dimensions": [
+            1600,
+            900
+          ],
+          "bytes": 456684,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/how-1600.webp",
+          "format": "webp",
+          "dimensions": [
+            1600,
+            900
+          ],
+          "bytes": 557892,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/how-1600.jxl",
+          "format": "jxl",
+          "dimensions": [
+            1600,
+            900
+          ],
+          "bytes": 570927,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/how-2400.avif",
+          "format": "avif",
+          "dimensions": [
+            2400,
+            1350
+          ],
+          "bytes": 886304,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/how-2400.webp",
+          "format": "webp",
+          "dimensions": [
+            2400,
+            1350
+          ],
+          "bytes": 1111210,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/how-2400.jxl",
+          "format": "jxl",
+          "dimensions": [
+            2400,
+            1350
+          ],
+          "bytes": 1181102,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/how-3200.avif",
+          "format": "avif",
+          "dimensions": [
+            3200,
+            1800
+          ],
+          "bytes": 1374214,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/how-3200.webp",
+          "format": "webp",
+          "dimensions": [
+            3200,
+            1800
+          ],
+          "bytes": 1737812,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/how-3200.jxl",
+          "format": "jxl",
+          "dimensions": [
+            3200,
+            1800
+          ],
+          "bytes": 1865464,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/how-3840.avif",
+          "format": "avif",
+          "dimensions": [
+            3840,
+            2160
+          ],
+          "bytes": 1816569,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/how-3840.webp",
+          "format": "webp",
+          "dimensions": [
+            3840,
+            2160
+          ],
+          "bytes": 2312782,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/how-3840.jxl",
+          "format": "jxl",
+          "dimensions": [
+            3840,
+            2160
+          ],
+          "bytes": 2504051,
+          "verified": true
+        }
+      ]
+    },
+    {
+      "slot": "news",
+      "ratio": [
+        16,
+        9
+      ],
+      "master": {
+        "path": "news.png",
+        "dimensions": [
+          3840,
+          2160
+        ],
+        "bytes": 6768284,
+        "sha256": "25d95cd1c5ccc11066a39c8ff5a5d9797d55b83a8e57b02812e2a3f21ff40baf"
+      },
+      "crop": {
+        "path": "backgrounds/crops/news.png",
+        "box": [
+          0,
+          0,
+          3840,
+          2160
+        ],
+        "dimensions": [
+          3840,
+          2160
+        ],
+        "bytes": 4919255
+      },
+      "exports": [
+        {
+          "path": "public/backgrounds/news-960.avif",
+          "format": "avif",
+          "dimensions": [
+            960,
+            540
+          ],
+          "bytes": 9391,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/news-960.webp",
+          "format": "webp",
+          "dimensions": [
+            960,
+            540
+          ],
+          "bytes": 8692,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/news-960.jxl",
+          "format": "jxl",
+          "dimensions": [
+            960,
+            540
+          ],
+          "bytes": 13622,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/news-1600.avif",
+          "format": "avif",
+          "dimensions": [
+            1600,
+            900
+          ],
+          "bytes": 24220,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/news-1600.webp",
+          "format": "webp",
+          "dimensions": [
+            1600,
+            900
+          ],
+          "bytes": 22258,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/news-1600.jxl",
+          "format": "jxl",
+          "dimensions": [
+            1600,
+            900
+          ],
+          "bytes": 35788,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/news-2400.avif",
+          "format": "avif",
+          "dimensions": [
+            2400,
+            1350
+          ],
+          "bytes": 51917,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/news-2400.webp",
+          "format": "webp",
+          "dimensions": [
+            2400,
+            1350
+          ],
+          "bytes": 48218,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/news-2400.jxl",
+          "format": "jxl",
+          "dimensions": [
+            2400,
+            1350
+          ],
+          "bytes": 80578,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/news-3200.avif",
+          "format": "avif",
+          "dimensions": [
+            3200,
+            1800
+          ],
+          "bytes": 81833,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/news-3200.webp",
+          "format": "webp",
+          "dimensions": [
+            3200,
+            1800
+          ],
+          "bytes": 79404,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/news-3200.jxl",
+          "format": "jxl",
+          "dimensions": [
+            3200,
+            1800
+          ],
+          "bytes": 135802,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/news-3840.avif",
+          "format": "avif",
+          "dimensions": [
+            3840,
+            2160
+          ],
+          "bytes": 110783,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/news-3840.webp",
+          "format": "webp",
+          "dimensions": [
+            3840,
+            2160
+          ],
+          "bytes": 107826,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/news-3840.jxl",
+          "format": "jxl",
+          "dimensions": [
+            3840,
+            2160
+          ],
+          "bytes": 194883,
+          "verified": true
+        }
+      ]
+    },
+    {
+      "slot": "tile-news",
+      "ratio": [
+        16,
+        10
+      ],
+      "master": {
+        "path": "tile-news.png",
+        "dimensions": [
+          3840,
+          2160
+        ],
+        "bytes": 7995330,
+        "sha256": "9deb78ea72b894696442c63fc996b9f9250ea89a1971ab4c4c65ed0784abb671"
+      },
+      "crop": {
+        "path": "backgrounds/crops/tile-news.png",
+        "box": [
+          192,
+          0,
+          3648,
+          2160
+        ],
+        "dimensions": [
+          3456,
+          2160
+        ],
+        "bytes": 6234002
+      },
+      "exports": [
+        {
+          "path": "public/backgrounds/tile-news-960.avif",
+          "format": "avif",
+          "dimensions": [
+            960,
+            600
+          ],
+          "bytes": 47495,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-news-960.webp",
+          "format": "webp",
+          "dimensions": [
+            960,
+            600
+          ],
+          "bytes": 56800,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-news-960.jxl",
+          "format": "jxl",
+          "dimensions": [
+            960,
+            600
+          ],
+          "bytes": 63739,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-news-1600.avif",
+          "format": "avif",
+          "dimensions": [
+            1600,
+            1000
+          ],
+          "bytes": 100868,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-news-1600.webp",
+          "format": "webp",
+          "dimensions": [
+            1600,
+            1000
+          ],
+          "bytes": 124600,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-news-1600.jxl",
+          "format": "jxl",
+          "dimensions": [
+            1600,
+            1000
+          ],
+          "bytes": 141354,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-news-2400.avif",
+          "format": "avif",
+          "dimensions": [
+            2400,
+            1500
+          ],
+          "bytes": 179774,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-news-2400.webp",
+          "format": "webp",
+          "dimensions": [
+            2400,
+            1500
+          ],
+          "bytes": 222852,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-news-2400.jxl",
+          "format": "jxl",
+          "dimensions": [
+            2400,
+            1500
+          ],
+          "bytes": 261816,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-news-3200.avif",
+          "format": "avif",
+          "dimensions": [
+            3200,
+            2000
+          ],
+          "bytes": 263997,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-news-3200.webp",
+          "format": "webp",
+          "dimensions": [
+            3200,
+            2000
+          ],
+          "bytes": 333584,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/tile-news-3200.jxl",
+          "format": "jxl",
+          "dimensions": [
+            3200,
+            2000
+          ],
+          "bytes": 394762,
+          "verified": true
+        }
+      ]
+    },
+    {
+      "slot": "install",
+      "ratio": [
+        16,
+        9
+      ],
+      "master": {
+        "path": "install.png",
+        "dimensions": [
+          3840,
+          2160
+        ],
+        "bytes": 7282444,
+        "sha256": "f26ff5ee3ed4f2b667e40528c42510070460e23eb8b30286bfb05ec957a0e275"
+      },
+      "crop": {
+        "path": "backgrounds/crops/install.png",
+        "box": [
+          0,
+          0,
+          3840,
+          2160
+        ],
+        "dimensions": [
+          3840,
+          2160
+        ],
+        "bytes": 5790509
+      },
+      "exports": [
+        {
+          "path": "public/backgrounds/install-960.avif",
+          "format": "avif",
+          "dimensions": [
+            960,
+            540
+          ],
+          "bytes": 17937,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/install-960.webp",
+          "format": "webp",
+          "dimensions": [
+            960,
+            540
+          ],
+          "bytes": 20888,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/install-960.jxl",
+          "format": "jxl",
+          "dimensions": [
+            960,
+            540
+          ],
+          "bytes": 26242,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/install-1600.avif",
+          "format": "avif",
+          "dimensions": [
+            1600,
+            900
+          ],
+          "bytes": 33477,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/install-1600.webp",
+          "format": "webp",
+          "dimensions": [
+            1600,
+            900
+          ],
+          "bytes": 41396,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/install-1600.jxl",
+          "format": "jxl",
+          "dimensions": [
+            1600,
+            900
+          ],
+          "bytes": 51378,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/install-2400.avif",
+          "format": "avif",
+          "dimensions": [
+            2400,
+            1350
+          ],
+          "bytes": 57827,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/install-2400.webp",
+          "format": "webp",
+          "dimensions": [
+            2400,
+            1350
+          ],
+          "bytes": 67854,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/install-2400.jxl",
+          "format": "jxl",
+          "dimensions": [
+            2400,
+            1350
+          ],
+          "bytes": 91974,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/install-3200.avif",
+          "format": "avif",
+          "dimensions": [
+            3200,
+            1800
+          ],
+          "bytes": 83279,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/install-3200.webp",
+          "format": "webp",
+          "dimensions": [
+            3200,
+            1800
+          ],
+          "bytes": 101274,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/install-3200.jxl",
+          "format": "jxl",
+          "dimensions": [
+            3200,
+            1800
+          ],
+          "bytes": 141580,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/install-3840.avif",
+          "format": "avif",
+          "dimensions": [
+            3840,
+            2160
+          ],
+          "bytes": 108472,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/install-3840.webp",
+          "format": "webp",
+          "dimensions": [
+            3840,
+            2160
+          ],
+          "bytes": 129760,
+          "verified": true
+        },
+        {
+          "path": "public/backgrounds/install-3840.jxl",
+          "format": "jxl",
+          "dimensions": [
+            3840,
+            2160
+          ],
+          "bytes": 189397,
+          "verified": true
+        }
+      ]
+    }
+  ],
+  "settings": {
+    "widths": [
+      960,
+      1600,
+      2400,
+      3200,
+      3840
+    ],
+    "workers": 3,
+    "encoder_threads": 1,
+    "color_space": "sRGB",
+    "metadata": "color profile only",
+    "avif": {
+      "quality": 75,
+      "speed": 6,
+      "yuv": "444"
+    },
+    "webp": {
+      "quality": 88,
+      "method": 6
+    },
+    "jxl": {
+      "distance": 1,
+      "effort": 7
+    }
+  },
+  "counts": {
+    "slots": 13,
+    "crops": 13,
+    "exports": 177,
+    "by_format": {
+      "avif": 59,
+      "webp": 59,
+      "jxl": 59
+    }
+  },
+  "total_encoded_bytes": 50115389
+}

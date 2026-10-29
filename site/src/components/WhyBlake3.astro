@@ -65,7 +65,7 @@ const edges = rows.slice(1).flatMap((row, k) =>
 
     <div class="bento">
       <article class="tile t-fast" data-reveal data-bars>
-        <Backdrop name="tile-fast" focus="20% 20%" scrim="bottom" />
+        <Backdrop name="tile-fast" focus="20% 20%" scrim="bottom" sizes="(min-width: 62rem) 57rem, 100vw" />
         <p class="tile-kicker"><Icon svg={Zap} /> Speed</p>
         <p class="mega fast-num">{official.times}<span class="x">×</span></p>
         <p class="tile-title">faster than SHA‑256, on a single core.</p>

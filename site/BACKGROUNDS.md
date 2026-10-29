@@ -1,10 +1,11 @@
 # Background images
 
 Every background on the home page is a photograph in a named slot
-(`src/components/Backdrop.astro`). To fill a slot, save the image as
-`src/assets/bg/<slot>.png` (or `.jpg`/`.webp`) and rebuild: Astro serves it as AVIF and
-WebP at 960 to 3200 px wide, quality 90. An empty slot renders nothing, so the page
-works with any subset of the images.
+(`src/components/Backdrop.astro`). To fill a slot, save the 4K master as
+`backgrounds/originals/<slot>.png`, run `scripts/optimize-backgrounds.py` (see
+`scripts/BACKGROUND-PIPELINE.md`), and rebuild: the page serves the exports in
+`public/backgrounds/` listed by `backgrounds/manifest.json`. An empty slot renders
+nothing, so the page works with any subset of the images.
 
 | Slot | Where | Ratio | Text sits | Scrim |
 | --- | --- | --- | --- | --- |

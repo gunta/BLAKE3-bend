@@ -17,9 +17,14 @@ import HowItWorks from '../components/HowItWorks.astro';
 import WhatsNew from '../components/WhatsNew.astro';
 import InstallCta from '../components/InstallCta.astro';
 import SiteFooter from '../components/SiteFooter.astro';
+import { HERO_SIZES, backdrop } from '../lib/backdrops';
+
+// The hero photo is the largest paint: fetch it from the head, not 120 KB into the body.
+const hero = backdrop('hero')?.sources.find((s) => s.type === 'image/avif');
 ---
 
 <Base>
+  {hero && <link slot="head" rel="preload" as="image" type="image/avif" imagesrcset={hero.srcset} imagesizes={HERO_SIZES} fetchpriority="high" />}
   <SiteHeader slot="header" />
   <Hero />
   <SpeedBento />

@@ -31,7 +31,7 @@ const cells = Array.from({ length: 96 }, (_, i) => ((i * 37) % 23) / 23);
       {
         model && (
           <article class="tile t-model" data-reveal data-race data-bend={model.bend} data-base={model.baseline}>
-            <Backdrop name="tile-model" focus="80% 30%" scrim="bottom" />
+            <Backdrop name="tile-model" focus="80% 30%" scrim="bottom" sizes="(min-width: 62rem) 46rem, 100vw" />
             <p class="tile-kicker">
               <Icon svg={HardDriveDownload} /> A model bigger than RAM
             </p>

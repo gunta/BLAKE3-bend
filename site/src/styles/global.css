@@ -532,6 +532,8 @@ pre {
 
 .home-head p:not(.kicker) {
   color: var(--ink-2);
+  /* A soft halo, so the lead stays readable wherever a backdrop photo is bright. */
+  text-shadow: 0 0 1.25rem rgb(6 6 8 / 0.9), 0 1px 2px rgb(6 6 8 / 0.8);
   font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);
 }
 
