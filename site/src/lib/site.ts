@@ -11,10 +11,13 @@ export const SITE_NAME = 'turboblake';
 export const SITE_TITLE = 'turboblake · BLAKE3, turbocharged';
 export const SITE_DESCRIPTION =
   'turboblake is BLAKE3, the SHA-256 replacement, turbocharged: a drop-in b3sum with a Bend2 engine, raced against the official Rust/C. Where it wins, where it ties, and the floors it hits.';
-/** How to get it. Homebrew first: prebuilt, no Rust needed. The crate and the command share the name. */
+/**
+ * How to get it, one line per visitor: Homebrew on Apple devices (prebuilt, no Rust needed), Cargo everywhere
+ * else and without JavaScript. Homebrew comes from the tap until homebrew-core takes it (packaging/homebrew-core).
+ */
 export const INSTALLS = [
-  { id: 'brew', label: 'Homebrew', command: 'brew install gunta/tap/turboblake', note: 'macOS and Linux, prebuilt' },
-  { id: 'cargo', label: 'Cargo', command: 'cargo install turboblake', note: 'from source, tuned for your CPU' },
+  { id: 'brew', label: 'Homebrew', command: 'brew install gunta/tap/turboblake', note: 'prebuilt, no Rust needed', apple: true },
+  { id: 'cargo', label: 'Cargo', command: 'cargo install turboblake', note: 'from source, tuned for your CPU', apple: false },
 ] as const;
 export const INSTALL = INSTALLS[0].command;
 export const RELEASES_URL = `${REPO_URL}/releases`;

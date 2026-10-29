@@ -1,8 +1,9 @@
 ---
 /**
- * One install line with a tab per channel (Homebrew, Cargo) and a copy
- * button. Every instance on the page switches together, and the choice is
- * remembered on this device. Without JavaScript the first channel shows.
+ * The install line for this visitor, with a copy button: Homebrew on Apple
+ * devices, Cargo everywhere else. Both are in the HTML; Base.astro marks Apple
+ * devices with .apple before first paint, so the line never flips. Without
+ * JavaScript, Cargo shows.
  */
 import { Copy } from 'lucide-static';
 import Icon from './Icon.astro';
@@ -16,21 +17,19 @@ const { class: className } = Astro.props;
 ---
 
 <div class:list={['install', className]} data-install>
-  <div class="tabs" role="tablist" aria-label="Install with">
-    {
-      INSTALLS.map((i, n) => (
-        <button type="button" role="tab" class="tab" data-channel={i.id} aria-selected={n === 0 ? 'true' : 'false'}>
-          {i.label}
-        </button>
-      ))
-    }
-  </div>
+  {
+    INSTALLS.map((i) => (
+      <p class:list={['channel', i.apple ? 'on-apple' : 'off-apple']}>
+        <span class="via">{i.label}</span> {i.note}
+      </p>
+    ))
+  }
   <div class="line">
     <code>
       <span class="prompt" aria-hidden="true">$</span>{' '}
       {
-        INSTALLS.map((i, n) => (
-          <span class="cmd" data-command={i.id} hidden={n !== 0}>
+        INSTALLS.map((i) => (
+          <span class:list={['cmd', i.apple ? 'on-apple' : 'off-apple']} data-command>
             {i.command}
           </span>
         ))
@@ -44,46 +43,14 @@ const { class: className } = Astro.props;
 </div>
 
 <script>
-  const KEY = 'turboblake-install';
-  const roots = [...document.querySelectorAll<HTMLElement>('[data-install]')];
+  const shown = document.documentElement.classList.contains('apple') ? '.on-apple' : '.off-apple';
 
-  function select(channel: string, remember: boolean): void {
-    for (const root of roots) {
-      for (const tab of root.querySelectorAll<HTMLElement>('[data-channel]')) {
-        tab.setAttribute('aria-selected', String(tab.dataset.channel === channel));
-      }
-      for (const cmd of root.querySelectorAll<HTMLElement>('[data-command]')) {
-        cmd.hidden = cmd.dataset.command !== channel;
-      }
-    }
-    if (remember) {
-      try {
-        localStorage.setItem(KEY, channel);
-      } catch {
-        // Private windows can refuse storage; the choice just is not kept.
-      }
-    }
-  }
-
-  try {
-    const saved = localStorage.getItem(KEY);
-    if (saved && document.querySelector(`[data-channel="${saved}"]`)) select(saved, false);
-  } catch {
-    // No storage: keep the default channel.
-  }
-
-  for (const root of roots) {
+  for (const root of document.querySelectorAll<HTMLElement>('[data-install]')) {
     root.addEventListener('click', async (e) => {
-      const target = e.target as Element;
-      const tab = target.closest<HTMLElement>('[data-channel]');
-      if (tab?.dataset.channel) {
-        select(tab.dataset.channel, true);
-        return;
-      }
-      const copy = target.closest<HTMLButtonElement>('[data-install-copy]');
+      const copy = (e.target as Element).closest<HTMLButtonElement>('[data-install-copy]');
       if (!copy) return;
       const label = copy.querySelector<HTMLElement>('[data-label]');
-      const text = root.querySelector<HTMLElement>('[data-command]:not([hidden])')?.textContent?.trim() ?? '';
+      const text = root.querySelector<HTMLElement>(`[data-command]${shown}`)?.textContent?.trim() ?? '';
       try {
         await navigator.clipboard.writeText(text);
         if (label) label.textContent = 'Copied';
@@ -107,34 +74,25 @@ const { class: className } = Astro.props;
     max-width: 100%;
   }
 
-  .tabs {
-    display: flex;
-    gap: 0.25rem;
+  /* One channel per visitor: Homebrew on Apple devices (Base.astro adds .apple), Cargo elsewhere. */
+  :global(.apple) .off-apple,
+  :global(html:not(.apple)) .on-apple {
+    display: none;
   }
 
-  .tab {
-    min-height: 32px;
-    padding: 0.25rem 0.7rem;
-    border: 1px solid transparent;
-    border-radius: 999px;
-    background: none;
+  .channel {
+    margin: 0;
+    padding-left: 0.2rem;
     color: var(--ink-3);
     font-family: var(--font-mono);
     font-size: 0.6875rem;
     font-stretch: 90%;
     letter-spacing: 0.06em;
-    text-transform: uppercase;
-    cursor: pointer;
   }
 
-  .tab:hover {
-    color: var(--ink);
-  }
-
-  .tab[aria-selected='true'] {
-    border-color: var(--line-strong);
-    background: var(--surface-2);
+  .via {
     color: var(--volt);
+    text-transform: uppercase;
   }
 
   .line {
