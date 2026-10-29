@@ -17,9 +17,11 @@ git rev-parse -q --verify "refs/tags/$tag" >/dev/null && die "$tag exists alread
 git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1 && die "$tag exists on origin"
 
 sha=$(git rev-parse HEAD)
-ci=$(gh run list --commit "$sha" --workflow turboblake-build.yml --json conclusion,status \
+# the repository origin points at (gh would otherwise pick the upstream of a fork)
+repo=$(git remote get-url origin | sed -E 's#(git@github.com:|https://github.com/)##; s#\.git$##')
+ci=$(gh run list --repo "$repo" --commit "$sha" --workflow turboblake-build.yml --json conclusion,status \
   --jq '[.[] | select(.status == "completed")][0].conclusion' 2>/dev/null || true)
-[ "$ci" = success ] || die "turboblake-build has not passed on $sha (${ci:-no completed run}); see gh run list --commit $sha"
+[ "$ci" = success ] || die "turboblake-build has not passed on $sha (${ci:-no completed run}); see gh run list --repo $repo --commit $sha"
 
 if [ -n "$(git config user.signingkey || true)" ]; then sign=-s; else sign=-a; fi
 git tag $sign "$tag" -m "turboblake $version"
