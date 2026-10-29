@@ -156,4 +156,15 @@ const picture = backdrop(name);
       background: linear-gradient(180deg, rgb(6 6 8 / 0.35) 0%, rgb(6 6 8 / 0) 25%, rgb(6 6 8 / 0) 55%, var(--void) 100%);
     }
   }
+
+  /* Narrow phones start the copy higher (Hero.astro: header + 14svh): the band
+     ends with it, so the badge and headline sit on the page, not the fibers. */
+  @media (max-aspect-ratio: 23/20) and (max-width: 30rem) {
+    .scrim-left {
+      height: calc(var(--header-h) + 14svh + 1.5rem);
+    }
+    .scrim-left::after {
+      background: linear-gradient(180deg, rgb(6 6 8 / 0.35) 0%, rgb(6 6 8 / 0) 30%, rgb(6 6 8 / 0) 50%, var(--void) 100%);
+    }
+  }
 </style>
