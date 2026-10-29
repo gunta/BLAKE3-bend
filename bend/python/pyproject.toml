@@ -32,7 +32,7 @@ blake3 = ["py.typed", "__init__.pyi"]
 [tool.cibuildwheel]
 build = "cp3*"
 skip = "cp3??t-*"
-test-requires = ["pytest", "numpy"]
+test-requires = ["pytest", "numpy", "typing_extensions"]
 test-command = "pytest {project}/tests -q"
 
 [tool.cibuildwheel.linux]

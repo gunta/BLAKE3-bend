@@ -58,7 +58,10 @@ export async function hashFiles(paths) {
     try {
       for await (const chunk of createReadStream(p)) h.update(chunk);
     } catch (e) {
-      e.errno = Math.abs(e.errno ?? 5);
+      // the POSIX number for the error's name: on Windows Node's errno is
+      // libuv's (-4058 for ENOENT), not the 2 the engine reports elsewhere
+      const { constants } = await import("node:os");
+      e.errno = constants.errno[e.code] ?? Math.abs(e.errno ?? 5);
       e.path = String(p);
       return e;
     }

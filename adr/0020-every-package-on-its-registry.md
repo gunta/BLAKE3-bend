@@ -126,6 +126,16 @@ the no-clang sdist build that installs `blake3`; the Linux release builds
 in their containers; `cargo publish --dry-run`. The x86-64 macOS, Windows
 and publishing steps run first in CI.
 
+**The GPU checks itself.** The first CI run found the Metal backend
+hashing input in GPU-only memory wrong on GitHub's Intel Mac runner
+(Apple's paravirtual GPU): 1,269 of 1,278 checks, while shared memory and
+the CPU were right. When the GPU backend loads, it now hashes 100 chunks
+from a shared buffer, from GPU-only memory and at an odd offset, and
+compares them with BLAKE3 computed on the CPU from the kernels' own
+compression (b3core.h); a GPU that disagrees is not used, so the CPU
+answers. A deliberately wrong reference turns the GPU off and the output
+stays right.
+
 ## Consequences
 
 - Windows has no engine: it is as fast as the official BLAKE3, not faster.
