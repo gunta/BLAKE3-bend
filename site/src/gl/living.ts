@@ -46,7 +46,7 @@ const NO_PULSE = 99;
 // HDR screens: draw into an extended float canvas and let highlights go past
 // white, up to this many times SDR white. SDR screens get 1 (no change).
 const HDR = typeof matchMedia === 'function' && matchMedia('(dynamic-range: high)').matches;
-const HEADROOM = HDR ? 2.4 : 1;
+const HEADROOM = HDR ? 2 : 1;
 
 // The motion is slow: 60 frames a second is plenty, even on 120 Hz screens.
 const MIN_FRAME_MS = 1000 / 62;
@@ -146,7 +146,7 @@ async function mount(gpu: Gpu, host: HTMLElement, motion: Motion): Promise<void>
         scroll: 0,
         pulse: NO_PULSE,
         intensity: motion.intensity ?? 1,
-        zoom: 1.08,
+        zoom: 1.05,
         seed: 0,
       },
     },

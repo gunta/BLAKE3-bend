@@ -62,6 +62,21 @@ fn photoAt(p: vec2f) -> vec3f {
   return textureSampleLevel(photo, samp, clamp(p, vec2f(0.0005), vec2f(0.9995)), 0.0).rgb;
 }
 
+// Highlight roll-off: linear up to `knee`, then easing smoothly into `peak` and
+// never past it, so stacked light glows instead of clipping into a flat blob.
+// Applied to the brightest channel and scaled back, so hue survives.
+fn rolloff(c: vec3f, knee: f32, peak: f32) -> vec3f {
+  let m = max(max(c.r, c.g), c.b);
+  if (m <= knee) {
+    return c;
+  }
+  let span = peak - knee;
+  let rolled = knee + span * (1.0 - exp(-(m - knee) / span));
+  // Past the knee the color also drifts toward white a little, like film.
+  let scaled = c * (rolled / m);
+  return mix(scaled, vec3f(rolled), smoothstep(knee, peak, m) * 0.35);
+}
+
 fn screen(base: vec3f, light: vec3f) -> vec3f {
   return 1.0 - (1.0 - base) * (1.0 - clamp(light, vec3f(0.0), vec3f(1.0)));
 }
@@ -163,15 +178,16 @@ fn packet(phase: f32, sharp: f32) -> f32 {
     let packets = packet((p.x - a.x) * 5.0 - t * 0.6 + wobble, 9.0) * 1.0
       + packet((p.x - a.x) * 11.0 - t * 1.25 + wobble * 2.0, 16.0) * 0.6;
     let hue = mix(ION, VOLT, smoothstep(0.25, 0.75, p.x / max(0.01, a.x)));
-    light += hue * packets * lit * step(0.0, toRoot) * 1.1;
+    let nearRoot = smoothstep(0.02, 0.12, toRoot);
+    light += hue * packets * lit * step(0.0, toRoot) * mix(0.35, 1.0, nearRoot);
     // A keystroke: one bright front sweeps the whole tree in under a second.
     let front = params.pulse * 0.95 * a.x;
-    light += mix(ION, VOLT, 0.5) * exp(-abs(p.x - front) * 45.0) * lit * step(0.0, toRoot) * exp(-params.pulse * 1.2) * 2.4;
+    light += mix(ION, VOLT, 0.5) * exp(-abs(p.x - front) * 45.0) * lit * step(0.0, toRoot) * exp(-params.pulse * 1.2) * 1.3;
     // The root breathes, flares as packets and pulses arrive.
     let r = length((p - a) * aspect);
     let arrive = exp(-max(params.pulse - 0.95, 0.0) * 4.0) * step(0.9, params.pulse);
-    let breathe = 0.55 + 0.45 * sin(t * 1.6) + arrive * 1.6;
-    light += VOLT * exp(-r * r * 2200.0) * breathe * 0.9 + VOLT * exp(-r * 22.0) * 0.12 * breathe;
+    let breathe = 0.6 + 0.4 * sin(t * 1.6) + arrive * 0.7;
+    light += VOLT * exp(-r * r * 3200.0) * breathe * 0.6 + VOLT * exp(-r * 45.0) * 0.06 * breathe;
     // The beam beyond the root carries the packets on.
     let beamY = exp(-abs(p.y - a.y) * 1400.0);
     light += VOLT * beamY * step(a.x, p.x) * (0.25 + packet((p.x - a.x) * 9.0 - t * 1.4, 7.0) * 0.9);
@@ -273,24 +289,28 @@ fn packet(phase: f32, sharp: f32) -> f32 {
 
   color = color * gain;
 
-  // A vivid grade: richer color, deeper blacks, punchier highlights.
+  // A vivid grade: richer color in the mid-tones, deeper blacks. It maps white to
+  // white, so the bright fibers keep their detail instead of clipping flat.
   let gray = dot(color, LUMA);
-  color = max(mix(vec3f(gray), color, 1.32), vec3f(0.0));
-  color = pow(color, vec3f(1.12)) * 1.1;
+  let mids = 1.0 - smoothstep(0.55, 0.95, gray);
+  color = clamp(mix(vec3f(gray), color, 1.0 + 0.25 * mids), vec3f(0.0), vec3f(1.0));
+  color = mix(color, color * color * (3.0 - 2.0 * color), 0.4);
 
   // The pointer lifts what is lit near it, like moving a lamp over a print.
   if (!away) {
     let d = length((uv - params.pointer) * vec2f(ca, 1.0));
     let lamp = exp(-d * d * 9.0);
-    light += color * lamp * 0.7 + mix(ION, VOLT, voltness(color)) * lamp * lit * 0.25;
+    light += color * lamp * 0.3 + mix(ION, VOLT, voltness(color)) * lamp * lit * 0.15;
   }
 
   if (params.headroom > 1.01) {
-    // HDR: lift the photo's own highlights past white, then add the light unclipped.
-    let hl = smoothstep(0.45, 1.0, dot(color, LUMA));
-    color = color * (1.0 + hl * (params.headroom - 1.0) * 0.55) + light * params.intensity * params.headroom * 0.85;
+    // HDR: only the brightest specks of the photo go past white, the light is
+    // added on top, and the roll-off eases everything into the display's peak.
+    let hl = smoothstep(0.8, 1.0, dot(color, LUMA));
+    let lifted = color * (1.0 + hl * (params.headroom - 1.0) * 0.3) + light * params.intensity * 1.4;
+    color = rolloff(lifted, 1.0, params.headroom);
   } else {
-    color = screen(color, light * params.intensity);
+    color = rolloff(screen(color, light * params.intensity), 0.86, 1.0);
   }
 
   // Fine grain, so the frame reads as footage rather than a flat still.
