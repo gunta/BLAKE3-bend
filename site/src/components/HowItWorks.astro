@@ -46,20 +46,20 @@ const engines: { marks: ('bend' | 'apple' | 'nvidia')[]; title: string; body: st
   {
     marks: ['bend'],
     title: 'Bend2 on the CPU',
-    body: 'Every core, eight chunks per SIMD call: pure Bend, with C only moving bytes in and out.',
-    where: 'Every turboblake command and library today',
+    body: 'Every core, eight chunks per SIMD call: compression and tree traversal written in Bend2.',
+    where: 'Large inputs in the command line and libraries',
   },
   {
     marks: ['apple', 'nvidia'],
     title: 'Bend2 on the GPU',
     body: 'The same Bend source, compiled for Metal and for CUDA, alone or beside the CPU cores on one input.',
-    where: 'Long-running, in-memory hashing',
+    where: 'Bend benchmark and daemon paths',
   },
   {
     marks: ['apple', 'nvidia'],
     title: 'Native kernels',
     body: 'Hand-written Metal and CUDA for the same tree, the same fingerprint, taking over where they measure faster.',
-    where: 'The fastest GPU numbers on this page',
+    where: 'GPU buffers in the C/Rust libraries and bindings',
   },
 ];
 ---
@@ -71,8 +71,8 @@ const engines: { marks: ('bend' | 'apple' | 'nvidia')[]; title: string; body: st
       <p class="kicker" data-reveal>How it works</p>
       <h2 id="how-title" data-reveal style="--i: 1">BLAKE3 is a tree. <span class="glow">Bend2 runs trees.</span></h2>
       <p data-reveal style="--i: 2">
-        The algorithm was always parallel; most tools still feed it one piece at a time. turboblake's engine is written in <a href={BEND_URL}>Bend2</a>,
-        a language that spreads tree-shaped work over every CPU core and GPU thread you have, with no threads or locks in sight.
+        BLAKE3 splits large inputs into independent branches. turboblake's CPU engine is written in <a href={BEND_URL}>Bend2</a>,
+        a language whose runtime spreads tree-shaped work across CPU cores or GPU threads. The command line uses the CPU; the libraries also offer native Metal and CUDA kernels.
       </p>
     </header>
 

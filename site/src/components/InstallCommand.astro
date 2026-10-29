@@ -40,6 +40,7 @@ const { class: className } = Astro.props;
       <span class="copy-label" data-label>Copy</span><span class="sr-only"> the install command</span>
     </button>
   </div>
+  <p class="sr-only" role="status" data-install-status></p>
 </div>
 
 <script>
@@ -50,13 +51,16 @@ const { class: className } = Astro.props;
       const copy = (e.target as Element).closest<HTMLButtonElement>('[data-install-copy]');
       if (!copy) return;
       const label = copy.querySelector<HTMLElement>('[data-label]');
+      const status = root.querySelector<HTMLElement>('[data-install-status]');
       const text = root.querySelector<HTMLElement>(`[data-command]${shown}`)?.textContent?.trim() ?? '';
       try {
         await navigator.clipboard.writeText(text);
         if (label) label.textContent = 'Copied';
+        if (status) status.textContent = 'Install command copied to clipboard.';
         copy.classList.add('done');
       } catch {
         if (label) label.textContent = 'Select it';
+        if (status) status.textContent = 'Clipboard unavailable. Select and copy the command manually.';
       }
       setTimeout(() => {
         if (label) label.textContent = 'Copy';
@@ -164,6 +168,8 @@ const { class: className } = Astro.props;
   @media (max-width: 30rem) {
     code {
       font-size: 0.8125rem;
+      white-space: normal;
+      overflow-wrap: anywhere;
     }
     .line {
       padding-left: 0.75rem;

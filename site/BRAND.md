@@ -27,7 +27,8 @@ The home page is for people who hash files, not people who benchmark hashers.
 Each section is one idea, shown before it is explained, laid out as bento tiles:
 
 1. **What it does** (hero): checksum anything at the speed of your SSD; use it
-   anywhere you use `sha256sum`.
+   with the flags and output of `b3sum`. SHA-256 manifests still need
+   `sha256sum`; they are not BLAKE3 manifests.
 2. **Speed** (bento): a handful of measured outcomes, big numbers, to scale.
    One footnote links the method; nothing about reproducing on the home page.
    Then **from SHA-256 to the GPU** (`Versus.astro`): one gigabyte on the
@@ -71,7 +72,10 @@ hero's light and the engine diagram both draw that tree.
 
 Calm, specific, honest. Sentence case. Numbers from `results.json`, never typed
 into copy; claims about BLAKE3 itself are the BLAKE3 team's, linked; ties are
-shown as plainly as wins. No racing metaphors.
+shown as plainly as wins. Identify the hardware and memory conditions for GPU
+speedups, and distinguish Bend benchmark paths from the shipped native GPU
+backend. The Bend proofs do not cover native kernels or integration code.
+No racing metaphors.
 
 ## The mark: the Merge
 

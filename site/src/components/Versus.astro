@@ -37,8 +37,8 @@ const kernels = story('0017');
               {fmtTimes(lead.fastest.timesSha)} faster <span class="glow">than SHA-256.</span>
             </h2>
             <p data-reveal style="--i: 2">
-              One gigabyte. On an {lead.title}, SHA-256 takes {lead.sha.ms} ms: each block waits for the one before, so it runs on one core however many the
-              machine has. BLAKE3 is a tree, so it can use every core. turboblake runs that tree on the GPU too, and finishes in {lead.fastest.ms} ms.
+              One gigabyte. On the {lead.title}, SHA-256 takes {lead.sha.ms} ms: each block waits for the one before, so it runs on one core however many the
+              machine has. BLAKE3 is a tree, so it can use every core. With the input already in GPU memory, turboblake’s native kernel finishes in {lead.fastest.ms} ms. This measures hashing, not reading a file or transferring it to the GPU.
             </p>
           </header>
         )}
@@ -57,8 +57,8 @@ const kernels = story('0017');
                 <span class="unit">GB/s</span>
               </p>
               <p class="tile-body">
-                {input} in {m.fastest.ms} ms, {fmtTimes(m.fastest.timesSha)} SHA-256
-                {m.blake3 && <> and {fmtTimes(m.fastest.timesSha / m.blake3.timesSha)} the official BLAKE3 on one core</>}.
+                {input} in {m.fastest.ms} ms: {fmtTimes(m.fastest.timesSha)} faster than SHA-256
+                {m.blake3All && <> and {fmtTimes(m.fastest.timesSha / m.blake3All.timesSha)} faster than the official BLAKE3 on every core</>}.
               </p>
               <p class="cols" aria-hidden="true">
                 <span>GB/s, to scale</span>

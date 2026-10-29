@@ -52,6 +52,7 @@ const { id, title, kicker, mark, tone = 'plain' } = Astro.props;
 
   .section-head {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 0.9rem;
     max-width: 46rem;
     margin-bottom: clamp(2rem, 1.5rem + 2vw, 2.75rem);

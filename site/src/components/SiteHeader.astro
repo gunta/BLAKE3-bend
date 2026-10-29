@@ -27,7 +27,7 @@ const here = Astro.url.pathname.replace(/\/?$/, '/');
     <a class="brand" href={withBase()} aria-label="turboblake: home">
       <Logo wordmark tagline />
     </a>
-    <nav aria-label="Sections">
+    <nav class="desktop-nav" aria-label="Sections">
       <ul role="list">
         {
           links.map((l) => (
@@ -40,6 +40,16 @@ const here = Astro.url.pathname.replace(/\/?$/, '/');
         }
       </ul>
     </nav>
+    <details class="mobile-menu" data-mobile-menu>
+      <summary>Menu</summary>
+      <nav aria-label="Mobile navigation">
+        <ul role="list">
+          {links.map((l) => (
+            <li><a href={l.href} aria-current={l.href === here ? 'page' : undefined}>{l.label}</a></li>
+          ))}
+        </ul>
+      </nav>
+    </details>
     <a class="gh" href={REPO_URL}>
       <BrandMark name="github" />
       <span>GitHub</span>
@@ -54,6 +64,19 @@ const here = Astro.url.pathname.replace(/\/?$/, '/');
     const update = () => header.classList.toggle('solid', window.scrollY > 24);
     update();
     window.addEventListener('scroll', update, { passive: true });
+    const menu = header.querySelector<HTMLDetailsElement>('[data-mobile-menu]');
+    menu?.addEventListener('click', (event) => {
+      if ((event.target as Element).closest('a')) menu.open = false;
+    });
+    header.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && menu?.open) {
+        menu.open = false;
+        menu.querySelector('summary')?.focus();
+      }
+    });
+    document.addEventListener('click', (event) => {
+      if (menu?.open && !menu.contains(event.target as Node)) menu.open = false;
+    });
   }
 </script>
 
@@ -116,7 +139,7 @@ const here = Astro.url.pathname.replace(/\/?$/, '/');
     transform: translateX(3px);
   }
 
-  nav {
+  .desktop-nav {
     flex: 1 1 auto;
     min-width: 0;
     display: none;
@@ -156,7 +179,7 @@ const here = Astro.url.pathname.replace(/\/?$/, '/');
   }
 
   .gh {
-    margin-left: auto;
+    margin-left: 0;
     flex: none;
     color: var(--ink);
     border: 1px solid var(--line-strong);
@@ -170,10 +193,45 @@ const here = Astro.url.pathname.replace(/\/?$/, '/');
     font-size: 1rem;
   }
 
+  .mobile-menu {
+    margin-left: auto;
+  }
+
+  .mobile-menu summary {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding-inline: 0.75rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    cursor: pointer;
+    font-size: 0.875rem;
+    list-style: none;
+  }
+
+  .mobile-menu summary::-webkit-details-marker { display: none; }
+
+  .mobile-menu nav {
+    position: absolute;
+    inset: calc(100% + 0.5rem) var(--gutter) auto;
+    max-height: calc(100dvh - var(--header-h) - 1.5rem);
+    overflow-y: auto;
+    padding: 0.5rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: 0 1rem 3rem rgb(0 0 0 / 0.5);
+  }
+
+  .mobile-menu ul { display: grid; }
+  .mobile-menu a { width: 100%; min-height: 44px; }
+
   @media (min-width: 70rem) {
-    nav {
+    .desktop-nav {
       display: block;
     }
+    .mobile-menu { display: none; }
     .gh {
       margin-left: 0;
     }

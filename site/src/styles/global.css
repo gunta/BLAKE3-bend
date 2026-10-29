@@ -164,7 +164,8 @@ pre {
   background: var(--surface-2);
   border: 1px solid var(--line);
   color: var(--ink);
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 strong {

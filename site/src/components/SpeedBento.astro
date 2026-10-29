@@ -23,7 +23,7 @@ const cells = Array.from({ length: 96 }, (_, i) => ((i * 37) % 23) / 23);
   <div class="wrap">
     <header class="home-head">
       <p class="kicker" data-reveal>Speed</p>
-      <h2 id="speed-title" data-reveal style="--i: 1">Hours become <span class="glow">seconds.</span></h2>
+      <h2 id="speed-title" data-reveal style="--i: 1">Minutes become <span class="glow">seconds.</span></h2>
       <p data-reveal style="--i: 2">The same BLAKE3 fingerprints as the official tools, without the wait. Measured, not promised.</p>
     </header>
 
@@ -101,11 +101,11 @@ const cells = Array.from({ length: 96 }, (_, i) => ((i * 37) % 23) / 23);
         <p class="tile-kicker">
           <Icon svg={Terminal} /> Drop-in
         </p>
-        <p class="tile-title">Same flags. Same output. Same checksum files.</p>
+        <p class="tile-title">Same flags. Same output. Same BLAKE3 checksums.</p>
         <pre class="term" aria-label="Example"><code><span class="p">$</span> turboblake --check B3SUMS
 <span class="ok">model.safetensors: OK</span>
 <span class="ok">release.iso: OK</span></code></pre>
-        <p class="tile-body">It is the official <code>b3sum</code> with a faster engine. Swap it in for <code>sha256sum -c</code> too.</p>
+        <p class="tile-body">Use existing <code>b3sum</code> checksum files unchanged. SHA-256 checksums use a different algorithm and need <code>sha256sum</code>.</p>
       </article>
 
       <article class="tile t-proofs" data-reveal style="--i: 2">

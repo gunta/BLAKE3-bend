@@ -10,7 +10,7 @@ export const BEND_URL = 'https://bend-lang.com';
 export const SITE_NAME = 'turboblake';
 export const SITE_TITLE = 'turboblake · BLAKE3, turbocharged';
 export const SITE_DESCRIPTION =
-  'turboblake is BLAKE3, the SHA-256 replacement, turbocharged: a drop-in b3sum with a Bend2 engine, raced against the official Rust/C. Where it wins, where it ties, and the floors it hits.';
+  'Create and verify BLAKE3 checksums with turboblake, a drop-in b3sum with a parallel Bend2 engine. Install for macOS and Linux, explore the libraries, and compare measured benchmarks.';
 /**
  * How to get it, one line per visitor: Homebrew on Apple devices (prebuilt, no Rust needed), Cargo everywhere
  * else and without JavaScript. Homebrew comes from the tap until homebrew-core takes it (packaging/homebrew-core).

@@ -36,10 +36,9 @@ const ogAlt = 'turboblake: checksum anything at the speed of your SSD. BLAKE3, t
     <link rel="alternate" type="application/rss+xml" title={`${SITE_NAME}: what's new`} href={withBase('changelog/rss.xml')} />
     <script is:inline>
       // .apple on macOS, iOS and iPadOS (which reports Macintosh) picks the Homebrew install line, before first paint.
-      (function (h, n) {
-        h.classList.add('js');
-        if (/mac|iphone|ipad|ipod/i.test((n.userAgentData && n.userAgentData.platform) || n.platform || n.userAgent)) h.classList.add('apple');
-      })(document.documentElement, navigator);
+      if (/mac|iphone|ipad|ipod/i.test((navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || navigator.userAgent)) {
+        document.documentElement.classList.add('apple');
+      }
     </script>
     <meta name="generator" content={Astro.generator} />
 
@@ -86,6 +85,9 @@ const ogAlt = 'turboblake: checksum anything at the speed of your SSD. BLAKE3, t
         if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add('in');
         else io.observe(el);
       }
+      // Hide off-screen content only after its reveal observer is ready.
+      // If this bundle fails to load, the complete page remains readable.
+      document.documentElement.classList.add('js');
 
       // Cards and bento tiles catch the light under the pointer (they read --mx/--my).
       document.addEventListener(
