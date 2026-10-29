@@ -9,7 +9,7 @@ import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import Section from '../components/Section.astro';
 import InstallCommand from '../components/InstallCommand.astro';
-import { REPO_URL, RELEASES_URL, blobUrl, treeUrl, withBase } from '../lib/site';
+import { INSTALLS, REPO_URL, RELEASES_URL, blobUrl, treeUrl, withBase } from '../lib/site';
 
 interface Step {
   /** What the block is, e.g. "Cargo.toml". */
@@ -173,6 +173,14 @@ const html = (s: Step) =>
       <div class="cli">
         <InstallCommand class="big" />
         <ul class="channels" role="list">
+          <li class="off-apple">
+            <code>{INSTALLS[0].command}</code>
+            <span>Homebrew on Linux, prebuilt.</span>
+          </li>
+          <li class="on-apple">
+            <code>{INSTALLS[1].command}</code>
+            <span>From source, tuned for your CPU.</span>
+          </li>
           <li>
             <code>cargo binstall turboblake</code>
             <span>The prebuilt binaries, through cargo.</span>
@@ -284,6 +292,12 @@ const html = (s: Step) =>
     gap: 1.25rem;
     max-width: 44rem;
     margin-top: 2.25rem;
+  }
+
+  /* The channel the install line above does not show (Base.astro adds .apple). */
+  :global(.apple) .channels .off-apple,
+  :global(html:not(.apple)) .channels .on-apple {
+    display: none;
   }
 
   .channels {
