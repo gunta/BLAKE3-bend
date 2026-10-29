@@ -104,18 +104,23 @@ Headlines weight 650 with tight tracking (−0.045em to −0.055em); no italics.
 ## Backgrounds
 
 Every background is a photograph in a named slot (`Backdrop.astro`); the slots,
-their art direction and their prompts are in `BACKGROUNDS.md`. The WebGPU hero tree
-and install aurora (`src/gl/`) are unmounted while the photographs go in.
+their art direction and their prompts are in `BACKGROUNDS.md`. On WebGPU each one
+comes alive (below); everywhere else it stays a still.
 
 ## Motion and shaders
 
 Quick out, no bounce (`--ease-out`), 150 ms hovers, ~0.6 s reveals; everything
 respects `prefers-reduced-motion`.
 
-- **Hero, `merge.wgsl`** (vgpu on WebGPU): BLAKE3's tree in light, packets
-  merging toward the root, a beam carrying the live digest's 256 bits. Typing in
-  the demo sends a wave down the tree; the pointer bends the field. Kept calm:
-  low bloom, no streaks. Static SVG from the same geometry without WebGPU.
+- **Living photographs, `living.wgsl`** (vgpu on WebGPU, `src/gl/living.ts`):
+  each photo is redrawn with its own motion, so it reads like footage. Light
+  runs down the hero's fibers into the root (BLAKE3's tree, merging), and each
+  keystroke in the demo sends a wave down it; the aurora sways over a rippling
+  lake; lightning strikes; light flows out along the leaf's veins; scan beams
+  cross the silicon; LEDs blink. Every photo drifts, leans with scroll, lifts
+  under the pointer like a lamp over a print, and answers a click with its
+  pulse. One device, one frame loop, only on-screen canvases draw; reduced
+  motion or no WebGPU keeps the still photo.
 - **Engine diagram:** eight chunks, three levels of parents, one root, with the
   levels lighting up in hashing order.
 

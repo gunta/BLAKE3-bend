@@ -32,7 +32,7 @@ const picture = backdrop(name);
 
 {
   picture && (
-    <div class:list={['backdrop', `scrim-${scrim}`]} style={`--focus: ${focus}; --focus-narrow: ${focusNarrow}`} aria-hidden="true">
+    <div class:list={['backdrop', `scrim-${scrim}`]} data-motion={name} style={`--focus: ${focus}; --focus-narrow: ${focusNarrow}`} aria-hidden="true">
       <picture>
         {picture.sources.map((source) => (
           <source type={source.type} srcset={source.srcset} sizes={sizes} />
@@ -49,6 +49,14 @@ const picture = backdrop(name);
     </div>
   )
 }
+
+<script>
+  // The motion (src/gl/living.ts) loads only where it can run: WebGPU, and no
+  // request for reduced motion. Everywhere else the photo stays a still.
+  if ('gpu' in navigator && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    void import('../gl/living').then((m) => m.startLiving());
+  }
+</script>
 
 <style>
   .backdrop {
@@ -85,6 +93,21 @@ const picture = backdrop(name);
     height: min(100%, max(56.25vw, 36rem));
   }
 
+  /* The living canvas covers the still once its first frame is up. */
+  .backdrop :global(canvas.living) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    opacity: 0;
+    transition: opacity 0.9s var(--ease-out);
+  }
+
+  .backdrop:global(.is-live) :global(canvas.living) {
+    opacity: 1;
+  }
+
   .backdrop::after {
     content: '';
     position: absolute;
@@ -111,7 +134,7 @@ const picture = backdrop(name);
   .scrim-edges::after {
     background:
       radial-gradient(60rem 26rem at 22% 15rem, rgb(6 6 8 / 0.82), rgb(6 6 8 / 0) 100%),
-      linear-gradient(180deg, var(--void) 0%, rgb(6 6 8 / 0.62) 14%, rgb(6 6 8 / 0.62) 86%, var(--void) 100%);
+      linear-gradient(180deg, var(--void) 0%, rgb(6 6 8 / 0.5) 14%, rgb(6 6 8 / 0.5) 86%, var(--void) 100%);
   }
 
   /* Tall screens (Hero.astro drops the copy below a band under the header): the

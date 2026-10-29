@@ -1,10 +1,9 @@
 /**
- * The hero tree's layout (src/gl/shaders/merge.wgsl) frozen into SVG paths:
- * 32 leaves merging over five levels into one root. Used where the live
- * shader is not: the hero's static fallback and the Open Graph card.
+ * BLAKE3's tree as SVG paths: 32 leaves merging over five levels into one
+ * root. Drawn on the Open Graph card.
  */
 
-/** Where each level starts along the tree, and how far its nodes spread. Keep in step with merge.wgsl. */
+/** Where each level starts along the tree, and how far its nodes spread. */
 const U = [0, 0.34, 0.56, 0.71, 0.82, 0.9];
 const S = [1, 0.8, 0.58, 0.38, 0.19, 0];
 

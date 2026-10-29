@@ -100,6 +100,8 @@ const seedDigest = blake3Hex(SEED);
     out.dataset.value = hex;
     show(out, hex);
     if (note) note.textContent = `printf '%s' '${input.value.replace(/'/g, `'\\''`)}' | turboblake`;
+    // The photo behind answers: a wave runs down the fibers into the root.
+    host?.dispatchEvent(new CustomEvent('tb:pulse'));
     clearTimeout(liveTimer);
     liveTimer = window.setTimeout(() => {
       if (live) live.textContent = `Digest: ${hex}`;
