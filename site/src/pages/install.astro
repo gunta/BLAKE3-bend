@@ -9,6 +9,8 @@ import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import Section from '../components/Section.astro';
 import InstallCommand from '../components/InstallCommand.astro';
+import LanguageInstalls from '../components/LanguageInstalls.astro';
+import type { MarkName } from '../lib/brands';
 import { INSTALLS, RELEASES_URL, blobUrl, treeUrl, withBase } from '../lib/site';
 
 interface Step {
@@ -22,6 +24,7 @@ interface Step {
 interface Package {
   id: string;
   title: string;
+  mark: MarkName;
   name: string;
   /** The packages it stands in for. */
   replaces: string[];
@@ -35,6 +38,7 @@ interface Package {
 const packages: Package[] = [
   {
     id: 'rust',
+    mark: 'rust',
     title: 'Rust',
     name: 'turboblake',
     replaces: ['blake3'],
@@ -53,6 +57,7 @@ const packages: Package[] = [
   },
   {
     id: 'c',
+    mark: 'c',
     title: 'C',
     name: 'libturboblake',
     replaces: ['the official C library (blake3.h)'],
@@ -69,6 +74,7 @@ const packages: Package[] = [
   },
   {
     id: 'python',
+    mark: 'python',
     title: 'Python',
     name: 'turboblake',
     replaces: ['blake3 (PyPI)'],
@@ -85,6 +91,7 @@ const packages: Package[] = [
   },
   {
     id: 'node',
+    mark: 'nodejs',
     title: 'Node.js, Bun and Deno',
     name: 'turboblake',
     replaces: ['@noble/hashes/blake3', 'blake3 (npm)', '@napi-rs/blake-hash'],
@@ -104,6 +111,7 @@ const packages: Package[] = [
   },
   {
     id: 'browser',
+    mark: 'javascript',
     title: 'Browsers and workers',
     name: 'turboblake/js',
     replaces: ['@noble/hashes/blake3', 'hash-wasm'],
@@ -118,6 +126,7 @@ const packages: Package[] = [
   },
   {
     id: 'go',
+    mark: 'go',
     title: 'Go',
     name: 'github.com/gunta/turboblake/bend/go',
     replaces: ['lukechampine.com/blake3', 'github.com/zeebo/blake3'],
@@ -195,12 +204,17 @@ const html = (s: Step) =>
           </li>
         </ul>
       </div>
+
+      <div class="libs">
+        <h2 class="libs-title">A library for each language</h2>
+        <LanguageInstalls local />
+      </div>
     </div>
   </section>
 
   {
     packages.map((p, i) => (
-      <Section id={p.id} kicker={p.where} title={p.title} tone={i % 2 === 0 ? 'alt' : 'plain'}>
+      <Section id={p.id} mark={p.mark} kicker={p.where} title={p.title} tone={i % 2 === 0 ? 'alt' : 'plain'}>
         <Fragment slot="lede">
           <p>
             <code>{p.name}</code>, in place of{' '}
@@ -296,6 +310,17 @@ const html = (s: Step) =>
     gap: 1.25rem;
     max-width: 44rem;
     margin-top: 2.25rem;
+  }
+
+  .libs {
+    display: grid;
+    gap: 1rem;
+    margin-top: 3.5rem;
+  }
+
+  .libs-title {
+    margin: 0;
+    font-size: 1.375rem;
   }
 
   /* The channel the install line above does not show (Base.astro adds .apple). */

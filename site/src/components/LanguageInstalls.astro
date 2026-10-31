@@ -1,0 +1,330 @@
+---
+/**
+ * A card per language (src/lib/packages.ts): its mark, the registry it is on, the one install line with a
+ * copy button, what it replaces, and the way on to its section of /install/. Three across, then two wider
+ * ones, so the long Go and C lines fit; one column on phones. Without JavaScript the copy buttons hide.
+ */
+import { ArrowRight, Copy } from 'lucide-static';
+import BrandMark from './BrandMark.astro';
+import Icon from './Icon.astro';
+import { LANGUAGE_INSTALLS } from '../lib/packages';
+import { withBase } from '../lib/site';
+
+interface Props {
+  /** Card titles' heading level: h3 under a section heading. */
+  level?: 'h2' | 'h3';
+  /** Link each card to its section on this page instead of /install/. */
+  local?: boolean;
+  class?: string;
+}
+
+const { level = 'h3', local = false, class: className } = Astro.props;
+const Heading = level;
+---
+
+<ul class:list={['langs', className]} role="list" data-copy-root>
+  {
+    LANGUAGE_INSTALLS.map((p) => (
+      <li class="card" style={`--accent: ${p.accent}`}>
+        <div class="head">
+          <span class="mark">
+            <BrandMark name={p.mark} />
+          </span>
+          <Heading class="title">{p.title}</Heading>
+          <a class="registry" href={p.registry.url}>
+            {p.registry.mark && <BrandMark name={p.registry.mark} />}
+            {p.registry.name}
+          </a>
+        </div>
+
+        <div class="line">
+          <code>
+            <span class="prompt" aria-hidden="true">$</span> <span data-copy-text>{p.command}</span>
+          </code>
+          <button class="copy" type="button" data-copy hidden>
+            <Icon svg={Copy} />
+            <span class="sr-only">Copy the {p.title} install command</span>
+          </button>
+        </div>
+        {p.also && (
+          <p class="also">
+            or{' '}
+            {p.also.map((a, i) => (
+              <>
+                {i > 0 && ' · '}
+                <code>{a}</code>
+              </>
+            ))}
+          </p>
+        )}
+
+        <p class="foot">
+          <span class="replaces">
+            In place of <code>{p.replaces}</code>
+          </span>
+          <a class="more" href={local ? `#${p.id}` : withBase(`install/#${p.id}`)}>
+            Swap in <Icon svg={ArrowRight} />
+            <span class="sr-only"> {p.title}</span>
+          </a>
+        </p>
+      </li>
+    ))
+  }
+  <li class="sr-only" role="status" data-copy-status></li>
+</ul>
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>('[data-copy-root]')) {
+    const status = root.querySelector<HTMLElement>('[data-copy-status]');
+    for (const b of root.querySelectorAll<HTMLButtonElement>('[data-copy]')) b.hidden = !navigator.clipboard;
+    root.addEventListener('click', async (e) => {
+      const button = (e.target as Element).closest<HTMLButtonElement>('[data-copy]');
+      if (!button) return;
+      const text = button.parentElement?.querySelector('[data-copy-text]')?.textContent?.trim() ?? '';
+      try {
+        await navigator.clipboard.writeText(text);
+        button.classList.add('done');
+        if (status) status.textContent = `Copied: ${text}`;
+      } catch {
+        if (status) status.textContent = 'Clipboard unavailable. Select and copy the command manually.';
+      }
+      setTimeout(() => button.classList.remove('done'), 1500);
+    });
+  }
+</script>
+
+<style>
+  .langs {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.875rem;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    text-align: left;
+  }
+
+  .card {
+    grid-column: span 2;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-width: 0;
+    padding: 1.1rem 1.1rem 0.9rem;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background:
+      radial-gradient(120% 90% at 0% 0%, color-mix(in oklab, var(--accent) 10%, transparent), transparent 60%),
+      rgb(12 12 16 / 0.72);
+    backdrop-filter: blur(10px);
+    transition: border-color 0.2s;
+  }
+
+  .card:nth-child(4),
+  .card:nth-child(5) {
+    grid-column: span 3;
+  }
+
+  .card:hover,
+  .card:focus-within {
+    border-color: color-mix(in oklab, var(--accent) 45%, transparent);
+  }
+
+  .head {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    min-width: 0;
+  }
+
+  .mark {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 11px;
+    background: color-mix(in oklab, var(--accent) 16%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent) 30%, transparent);
+    color: var(--accent);
+  }
+
+  .mark :global(svg) {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .title {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .registry {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-left: auto;
+    padding: 0.2rem 0.55rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--ink-2);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .registry:hover {
+    color: var(--ink);
+    border-color: var(--line-strong);
+  }
+
+  .line {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    padding: 0.3rem 0.3rem 0.3rem 0.8rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 10px;
+    background: rgb(6 6 8 / 0.75);
+  }
+
+  .line code {
+    flex: 1;
+    min-width: 0;
+    padding: 0.35rem 0;
+    border: 0;
+    background: none;
+    color: var(--ink);
+    font-size: 0.875rem;
+    white-space: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .prompt {
+    color: var(--accent);
+  }
+
+  .copy {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2.125rem;
+    height: 2.125rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 7px;
+    background: var(--surface-3);
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+
+  .copy[hidden] {
+    display: none;
+  }
+
+  .copy :global(svg) {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .copy:hover {
+    color: var(--ink);
+    border-color: var(--ink-3);
+  }
+
+  .copy:global(.done) {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #0b0b0e;
+  }
+
+  .also {
+    margin: -0.25rem 0 0;
+    color: var(--ink-3);
+    font-size: 0.75rem;
+  }
+
+  .also code {
+    white-space: nowrap;
+  }
+
+  .also code,
+  .replaces code {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--ink-2);
+    font-size: 0.75rem;
+  }
+
+  .foot {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin: auto 0 0;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--line);
+    color: var(--ink-3);
+    font-size: 0.75rem;
+  }
+
+  .replaces {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .more {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex: none;
+    color: var(--ink-2);
+    text-decoration: none;
+  }
+
+  .more :global(svg) {
+    width: 0.875rem;
+    height: 0.875rem;
+    transition: transform 0.2s;
+  }
+
+  .more:hover {
+    color: var(--accent);
+  }
+
+  .more:hover :global(svg) {
+    transform: translateX(2px);
+  }
+
+  @media (max-width: 64rem) {
+    .langs {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .card,
+    .card:nth-child(4),
+    .card:nth-child(5) {
+      grid-column: span 1;
+    }
+    .card:nth-child(5) {
+      grid-column: span 2;
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .langs {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .card:nth-child(5) {
+      grid-column: span 1;
+    }
+  }
+</style>

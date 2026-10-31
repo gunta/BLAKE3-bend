@@ -1,13 +1,14 @@
 ---
 /**
- * The close: one install line over the `install` backdrop, where it runs, the one-line switch from
- * sha256sum, and the way on to the libraries and every install option.
+ * The close: one install line over the `install` backdrop, where it runs, a card per language's
+ * package on its own registry, the one-line switch to checking files, and every install option.
  */
 import { ArrowRight } from 'lucide-static';
 import Backdrop from './Backdrop.astro';
 import BrandMark from './BrandMark.astro';
 import Icon from './Icon.astro';
 import InstallCommand from './InstallCommand.astro';
+import LanguageInstalls from './LanguageInstalls.astro';
 import { CLI_VERSION, RELEASES_URL, REPO_URL, withBase } from '../lib/site';
 ---
 
@@ -31,20 +32,25 @@ import { CLI_VERSION, RELEASES_URL, REPO_URL, withBase } from '../lib/site';
       </ul>
     </div>
 
-    <div class="switch" data-reveal style="--i: 4">
+    <div class="code" data-reveal style="--i: 4">
+      <p class="code-title">Or in your code, from your language’s registry</p>
+      <LanguageInstalls />
+    </div>
+
+    <div class="switch" data-reveal style="--i: 5">
       <p class="switch-title">Create checksums, then verify them</p>
       <pre class="diff"><code>turboblake FILE... &gt; B3SUMS
 <span class="after">turboblake --check B3SUMS</span></code></pre>
       <p class="fine">BLAKE3 checksums only. Keep using <code>sha256sum -c</code> for SHA-256 checksum files.</p>
     </div>
 
-    <p class="actions" data-reveal style="--i: 5">
+    <p class="actions" data-reveal style="--i: 6">
       <a class="button primary" href={withBase('install/')}><span>All install options <Icon svg={ArrowRight} /></span></a>
-      <a class="button" href={withBase('languages/')}><span>Python, JavaScript, Go, C</span></a>
+      <a class="button" href={withBase('languages/')}><span>Compare the libraries</span></a>
       <a class="button" href={REPO_URL}><span><BrandMark name="github" /> Star on GitHub</span></a>
     </p>
 
-    <p class="fine" data-reveal style="--i: 6">
+    <p class="fine" data-reveal style="--i: 7">
       turboblake {CLI_VERSION} · <a href={RELEASES_URL}>Release notes and checksums</a> · Open source, CC0 or Apache-2.0
     </p>
   </div>
@@ -126,16 +132,25 @@ import { CLI_VERSION, RELEASES_URL, REPO_URL, withBase } from '../lib/site';
     font-size: 0.8125rem;
   }
 
+  .code {
+    display: grid;
+    justify-items: center;
+    gap: 1rem;
+    width: min(100%, 68rem);
+    margin-top: 2.5rem;
+  }
+
+  .code-title,
+  .switch-title {
+    color: var(--ink-3);
+    font-size: 0.875rem;
+  }
+
   .switch {
     display: grid;
     justify-items: center;
     gap: 0.6rem;
     margin-top: 1.25rem;
-  }
-
-  .switch-title {
-    color: var(--ink-3);
-    font-size: 0.875rem;
   }
 
   .diff {

@@ -8,7 +8,8 @@
  * - Rust, C, Go, JavaScript, WebAssembly, GitHub, DeepSeek, Hugging Face, NVIDIA,
  *   WebGPU, Astro, LLVM, Python, the BLAKE3 adopters (Bazel, ClickHouse,
  *   Farcaster, IPFS, Nix, OpenZFS, Redox, Solana, Wasmer), Apple, Linux and
- *   Homebrew: Simple Icons
+ *   Homebrew, and the registries and runtimes on the install cards (Node.js, npm,
+ *   PyPI, Bun, Deno, CMake): Simple Icons
  *   (https://simpleicons.org), read from the package at build time.
  * Each mark stays its owner's trademark; it is shown here only to name the project.
  */
@@ -16,9 +17,12 @@ import {
   siApple,
   siAstro,
   siBazel,
+  siBun,
   siC,
   siClickhouse,
+  siCmake,
   siDeepseek,
+  siDeno,
   siFarcaster,
   siGithub,
   siGithubpages,
@@ -30,8 +34,11 @@ import {
   siLinux,
   siLlvm,
   siNixos,
+  siNodedotjs,
+  siNpm,
   siNvidia,
   siOpenzfs,
+  siPypi,
   siPython,
   siRedox,
   siRust,
@@ -92,6 +99,12 @@ export const MARKS = {
   apple: simple(siApple),
   linux: simple(siLinux),
   homebrew: simple(siHomebrew),
+  nodejs: simple(siNodedotjs),
+  npm: simple(siNpm),
+  pypi: simple(siPypi),
+  bun: simple(siBun),
+  deno: simple(siDeno),
+  cmake: simple(siCmake),
 } satisfies Record<string, Mark>;
 
 export type MarkName = keyof typeof MARKS;
