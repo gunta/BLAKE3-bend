@@ -1,0 +1,326 @@
+---
+/**
+ * One language's guide (src/lib/guides.ts): install with any of its package managers, the code
+ * swap, what to know, and a SKILL.md a coding agent follows to migrate a codebase (served beside
+ * the page as SKILL.md).
+ */
+import { ArrowRight, Download } from 'lucide-static';
+import Base from '../../layouts/Base.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import SiteFooter from '../../components/SiteFooter.astro';
+import Section from '../../components/Section.astro';
+import BrandMark from '../../components/BrandMark.astro';
+import CodeTabs from '../../components/CodeTabs.astro';
+import Icon from '../../components/Icon.astro';
+import LanguageInstalls from '../../components/LanguageInstalls.astro';
+import { GUIDES, type Guide } from '../../lib/guides';
+import { CLI_VERSION, REPO_URL, absoluteUrl, blobUrl, withBase } from '../../lib/site';
+
+export function getStaticPaths() {
+  return GUIDES.map((g) => ({ params: { lang: g.slug }, props: { g } }));
+}
+
+interface Props {
+  g: Guide;
+}
+
+const { g } = Astro.props;
+const path = `install/${g.slug}/`;
+const skillName = `migrate-to-turboblake-${g.slug}`;
+const skillUrl = absoluteUrl(`${path}SKILL.md`, Astro.site);
+const fetchSkill = `mkdir -p .claude/skills/${skillName} && curl -fsSL ${skillUrl} -o .claude/skills/${skillName}/SKILL.md`;
+
+const links = [
+  ...GUIDES.map((x) => ({ href: withBase(`install/${x.slug}/`), label: x.title })),
+  { href: withBase('install/'), label: 'Command line' },
+];
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareSourceCode',
+    name: `${g.name} (${g.title})`,
+    description: g.description,
+    programmingLanguage: g.title,
+    codeRepository: REPO_URL,
+    version: CLI_VERSION,
+    license: 'https://spdx.org/licenses/Apache-2.0.html',
+    url: absoluteUrl(path, Astro.site),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'turboblake', item: absoluteUrl('', Astro.site) },
+      { '@type': 'ListItem', position: 2, name: 'Install', item: absoluteUrl('install/', Astro.site) },
+      { '@type': 'ListItem', position: 3, name: g.title, item: absoluteUrl(path, Astro.site) },
+    ],
+  },
+];
+---
+
+<Base title={g.seoTitle} path={path} description={g.description}>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <SiteHeader slot="header" links={links} />
+
+  <section class="intro" style={`--accent: ${g.accent}`} aria-labelledby="guide-title">
+    <div class="wrap">
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <a href={withBase('install/')}>Install</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">{g.title}</span>
+      </nav>
+      <div class="title">
+        <span class="mark"><BrandMark name={g.mark} /></span>
+        <h1 id="guide-title">BLAKE3 for {g.title}, on every core</h1>
+      </div>
+      <p class="lede">{g.lede}</p>
+      <ul class="facts" role="list">
+        <li>
+          <a href={g.registry.url}>
+            {g.registry.mark && <BrandMark name={g.registry.mark} />}
+            <code>{g.name}</code> on {g.registry.name}
+          </a>
+        </li>
+        <li>
+          In place of{' '}
+          {g.replaces.map((r, i) => (
+            <>
+              {i > 0 && ', '}
+              <code>{r}</code>
+            </>
+          ))}
+        </li>
+        <li>Version {CLI_VERSION}</li>
+      </ul>
+
+      <div class="install">
+        <CodeTabs items={g.install} group={`pm-${g.slug}`} label={`Install with`} />
+      </div>
+    </div>
+  </section>
+
+  <Section id="use" kicker="Use" title={g.use[0]?.title ?? 'Use'} tone="alt">
+    <div class="blocks">
+      {
+        g.use.map((u, i) => (
+          <div class="block">
+            {i > 0 && <h3>{u.title}</h3>}
+            {u.text && <p class="text">{u.text}</p>}
+            <CodeTabs items={u.tabs} group={u.tabs.length > 1 ? `api-${g.slug}` : undefined} label={u.title} />
+          </div>
+        ))
+      }
+    </div>
+  </Section>
+
+  <Section id="know" kicker="Good to know" title="Before you ship">
+    <ul class="notes prose" role="list">
+      {g.notes.map((n) => <li>{n}</li>)}
+    </ul>
+    <p class="more prose">
+      The full write-up: <a href={blobUrl(g.readme)}>{g.readme}</a>. Every package reads the same settings (<code>TURBOBLAKE=0</code>,{' '}
+      <code>TURBOBLAKE_THREADS</code>, <code>TURBOBLAKE_TRACE=1</code>): <a href={withBase('install/#controls')}>controls</a>.
+    </p>
+  </Section>
+
+  <Section id="skill" kicker="Migrate with an agent" title="SKILL.md" tone="alt">
+    <Fragment slot="lede">
+      <p>
+        A skill a coding agent follows to move a codebase to turboblake: find every BLAKE3 call, swap the dependency with your package manager, change
+        what needs changing, check the result against the official test vectors, and say what to know before shipping. Save it under{' '}
+        <code>.claude/skills/</code>, or paste it into any agent.
+      </p>
+    </Fragment>
+    <div class="skill">
+      <CodeTabs items={[{ label: 'Add it to your project', lang: 'bash', code: fetchSkill }]} label="Add the skill" wrap />
+      <p class="skill-actions">
+        <a class="button primary" href={withBase(`${path}SKILL.md`)} download="SKILL.md">
+          <span><Icon svg={Download} /> Download SKILL.md</span>
+        </a>
+        <a class="button" href={withBase(`${path}SKILL.md`)}><span>View raw</span></a>
+      </p>
+      <details class="preview">
+        <summary>Read the skill</summary>
+        <CodeTabs items={[{ label: `${skillName}/SKILL.md`, lang: 'md', code: g.skill }]} label="SKILL.md" wrap />
+      </details>
+    </div>
+  </Section>
+
+  <Section id="others" kicker="Other languages" title="The same engine, everywhere">
+    <LanguageInstalls />
+    <p class="more prose">
+      <a href={withBase('install/')}>The turboblake command, and every install option <Icon svg={ArrowRight} /></a>
+    </p>
+  </Section>
+
+  <SiteFooter slot="footer" />
+</Base>
+
+<style>
+  .intro {
+    padding-block: calc(var(--header-h) + clamp(2.5rem, 2rem + 3vw, 4.5rem)) clamp(3rem, 2rem + 3vw, 4.5rem);
+    background: radial-gradient(60rem 26rem at 10% 0%, color-mix(in oklab, var(--accent) 9%, transparent), transparent 70%);
+  }
+
+  .crumbs {
+    display: flex;
+    gap: 0.5rem;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+  }
+
+  .crumbs a {
+    color: var(--ink-2);
+  }
+
+  .title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-block: 1.1rem 1rem;
+  }
+
+  .mark {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 15px;
+    background: color-mix(in oklab, var(--accent) 16%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent) 32%, transparent);
+    color: var(--accent);
+  }
+
+  .mark :global(svg) {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(2rem, 1.3rem + 3vw, 3.25rem);
+    line-height: 1.05;
+  }
+
+  .lede {
+    max-width: 46rem;
+    color: var(--ink-2);
+    font-size: 1.0625rem;
+  }
+
+  .facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1.25rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .facts li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--ink-3);
+    font-size: 0.8125rem;
+  }
+
+  .facts a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--ink-2);
+    text-decoration: none;
+  }
+
+  .facts code {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--ink);
+    font-size: 0.8125rem;
+  }
+
+  .install {
+    min-width: 0;
+    max-width: 46rem;
+    margin-top: 2rem;
+  }
+
+  .blocks {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.25rem;
+    max-width: 52rem;
+  }
+
+  .block {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+
+  .block h3 {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+
+  .text {
+    margin: 0;
+    color: var(--ink-2);
+  }
+
+  .notes {
+    display: grid;
+    gap: 0.9rem;
+    max-width: 46rem;
+    margin: 0;
+    padding-left: 1.1rem;
+  }
+
+  .more {
+    margin-top: 1.5rem;
+  }
+
+  .more :global(svg) {
+    width: 0.9em;
+    height: 0.9em;
+    vertical-align: -0.1em;
+  }
+
+  .skill {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+    max-width: 52rem;
+  }
+
+  .skill-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin: 0;
+  }
+
+  .skill-actions :global(svg) {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .preview summary {
+    color: var(--ink-2);
+    cursor: pointer;
+    margin-bottom: 0.75rem;
+  }
+
+  .preview :global(.panel pre) {
+    max-height: 32rem;
+    font-size: 0.8125rem;
+  }
+</style>

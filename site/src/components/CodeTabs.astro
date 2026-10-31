@@ -1,0 +1,288 @@
+---
+/**
+ * Highlighted code (Shiki, at build time) with a copy button; with more than one snippet, tabs
+ * to switch between them: the package managers of a language, or the APIs it replaces. Tabs
+ * that share a `group` switch together on the page and the choice is remembered (localStorage),
+ * so a pnpm user sees pnpm on every page. Without JavaScript every snippet shows, labelled.
+ */
+import { Code } from 'astro:components';
+import { Copy } from 'lucide-static';
+import BrandMark from './BrandMark.astro';
+import Icon from './Icon.astro';
+import type { Snippet } from '../lib/guides';
+
+interface Props {
+  items: readonly Snippet[];
+  /** Tab groups with the same name switch together and remember the choice. */
+  group?: string | undefined;
+  /** Accessible name of the tab list. */
+  label: string;
+  /** Wrap long lines instead of scrolling (prose such as a SKILL.md). */
+  wrap?: boolean;
+}
+
+const { items, group, label, wrap = false } = Astro.props;
+const id = `tabs-${Math.random().toString(36).slice(2, 9)}`;
+const many = items.length > 1;
+---
+
+<div class:list={['codetabs', { many }]} data-codetabs data-group={group}>
+  <div class="bar">
+    {
+      many ? (
+        <div class="tabs" role="tablist" aria-label={label}>
+          {items.map((it, i) => (
+            <button
+              type="button"
+              role="tab"
+              id={`${id}-tab-${i}`}
+              aria-controls={`${id}-panel-${i}`}
+              aria-selected={i === 0 ? 'true' : 'false'}
+              tabindex={i === 0 ? 0 : -1}
+              data-tab={it.label}
+            >
+              {it.mark && <BrandMark name={it.mark} />}
+              {it.label}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <span class="name">{items[0]?.label}</span>
+      )
+    }
+    <button class="copy" type="button" data-copy-code>
+      <Icon svg={Copy} />
+      <span class="copy-label">Copy</span>
+    </button>
+  </div>
+  {
+    items.map((it, i) => (
+      <div
+        class:list={['panel', { first: i === 0 }]}
+        id={`${id}-panel-${i}`}
+        role={many ? 'tabpanel' : undefined}
+        aria-labelledby={many ? `${id}-tab-${i}` : undefined}
+        data-panel={it.label}
+        data-code={it.code}
+      >
+        {many && <p class="nojs-label">{it.label}</p>}
+        <Code code={it.code} lang={it.lang as never} theme="github-dark-default" wrap={wrap} />
+      </div>
+    ))
+  }
+</div>
+
+<script>
+  const KEY = 'turboblake:tab:';
+  const read = (k: string) => {
+    try {
+      return localStorage.getItem(KEY + k);
+    } catch {
+      return null;
+    }
+  };
+  const write = (k: string, v: string) => {
+    try {
+      localStorage.setItem(KEY + k, v);
+    } catch {
+      /* private mode: the choice lasts this page only */
+    }
+  };
+
+  function select(root: HTMLElement, name: string, focus = false): boolean {
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+    const tab = tabs.find((t) => t.dataset['tab'] === name);
+    if (!tab) return false;
+    for (const t of tabs) {
+      const on = t === tab;
+      t.setAttribute('aria-selected', String(on));
+      t.tabIndex = on ? 0 : -1;
+      const panel = document.getElementById(t.getAttribute('aria-controls') ?? '');
+      if (panel) panel.hidden = !on;
+    }
+    if (focus) tab.focus();
+    return true;
+  }
+
+  const roots = [...document.querySelectorAll<HTMLElement>('[data-codetabs]')];
+  for (const root of roots) {
+    const group = root.dataset['group'];
+    const saved = group ? read(group) : null;
+    const first = root.querySelector<HTMLButtonElement>('[role="tab"]')?.dataset['tab'];
+    if (!(saved && select(root, saved)) && first) select(root, first);
+    root.classList.add('ready');
+
+    root.addEventListener('click', async (e) => {
+      const target = e.target as Element;
+      const tab = target.closest<HTMLButtonElement>('[role="tab"]');
+      if (tab) {
+        const name = tab.dataset['tab'] ?? '';
+        select(root, name);
+        if (group) {
+          write(group, name);
+          for (const other of roots) if (other !== root && other.dataset['group'] === group) select(other, name);
+        }
+        return;
+      }
+      const copy = target.closest<HTMLButtonElement>('[data-copy-code]');
+      if (!copy) return;
+      const panel = [...root.querySelectorAll<HTMLElement>('.panel')].find((p) => !p.hidden);
+      const label = copy.querySelector<HTMLElement>('.copy-label');
+      try {
+        await navigator.clipboard.writeText(panel?.dataset['code'] ?? '');
+        copy.classList.add('done');
+        if (label) label.textContent = 'Copied';
+      } catch {
+        if (label) label.textContent = 'Select it';
+      }
+      setTimeout(() => {
+        copy.classList.remove('done');
+        if (label) label.textContent = 'Copy';
+      }, 1500);
+    });
+
+    root.addEventListener('keydown', (e) => {
+      const tab = (e.target as Element).closest<HTMLButtonElement>('[role="tab"]');
+      if (!tab || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+      const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+      const i = tabs.indexOf(tab);
+      const next =
+        e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : (i + (e.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+      e.preventDefault();
+      tabs[next]?.click();
+      tabs[next]?.focus();
+    });
+  }
+</script>
+
+<style>
+  .codetabs {
+    min-width: 0;
+    border: 1px solid var(--line-strong);
+    border-radius: 12px;
+    background: #0d1117;
+    overflow: hidden;
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0.35rem 0.4rem 0.35rem 0.5rem;
+    border-bottom: 1px solid var(--line);
+    background: rgb(255 255 255 / 0.025);
+  }
+
+  .tabs {
+    display: flex;
+    gap: 0.15rem;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .tabs button,
+  .name {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex: none;
+    padding: 0.35rem 0.7rem;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    background: none;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  .tabs button {
+    cursor: pointer;
+  }
+
+  .name {
+    color: var(--ink-2);
+  }
+
+  .tabs button:hover {
+    color: var(--ink);
+  }
+
+  .tabs button[aria-selected='true'] {
+    border-color: var(--line-strong);
+    background: var(--surface-3);
+    color: var(--ink);
+  }
+
+  .copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex: none;
+    padding: 0.35rem 0.6rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 7px;
+    background: var(--surface-3);
+    color: var(--ink-2);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .copy :global(svg) {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+
+  .copy:hover {
+    color: var(--ink);
+  }
+
+  .copy:global(.done) {
+    background: var(--volt);
+    border-color: var(--volt);
+    color: var(--volt-ink);
+  }
+
+  .panel :global(pre) {
+    margin: 0;
+    padding: 1rem 1.1rem;
+    border: 0;
+    border-radius: 0;
+    background: transparent !important;
+    font-size: 0.875rem;
+    line-height: 1.65;
+    overflow-x: auto;
+  }
+
+  .panel[hidden] {
+    display: none;
+  }
+
+  /* Before the script picks a tab, show the first; without JavaScript, every one, labelled. */
+  :global(html.scripted) .codetabs.many:not(:global(.ready)) .panel:not(.first) {
+    display: none;
+  }
+
+  .nojs-label {
+    margin: 0;
+    padding: 0.6rem 1.1rem 0;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+  }
+
+  :global(html.scripted) .nojs-label {
+    display: none;
+  }
+
+  .codetabs:not(.many) .nojs-label {
+    display: none;
+  }
+</style>

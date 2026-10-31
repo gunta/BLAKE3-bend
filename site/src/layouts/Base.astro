@@ -39,6 +39,8 @@ const ogAlt = 'turboblake: checksum anything at the speed of your SSD. BLAKE3, t
       if (/mac|iphone|ipad|ipod/i.test((navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || navigator.userAgent)) {
         document.documentElement.classList.add('apple');
       }
+      // .scripted before first paint, so tab groups (CodeTabs.astro) show one tab, never all of them.
+      document.documentElement.classList.add('scripted');
     </script>
     <meta name="generator" content={Astro.generator} />
 

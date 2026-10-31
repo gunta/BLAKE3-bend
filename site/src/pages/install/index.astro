@@ -1,167 +1,27 @@
 ---
 /**
- * Install and swap: the command, then each language's package with the line
- * that replaces the BLAKE3 package it stands in for. The native bindings retain their supported predecessor APIs; the browser build
- * exposes a portable hashing API.
+ * Install: the command, a card per language (each with its own guide, /install/<slug>/), and
+ * the settings every package reads. Links to the old per-language sections (#rust, #node…)
+ * go on to the guides.
  */
-import Base from '../layouts/Base.astro';
-import SiteHeader from '../components/SiteHeader.astro';
-import SiteFooter from '../components/SiteFooter.astro';
-import Section from '../components/Section.astro';
-import InstallCommand from '../components/InstallCommand.astro';
-import LanguageInstalls from '../components/LanguageInstalls.astro';
-import type { MarkName } from '../lib/brands';
-import { INSTALLS, RELEASES_URL, blobUrl, treeUrl, withBase } from '../lib/site';
+import Base from '../../layouts/Base.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import SiteFooter from '../../components/SiteFooter.astro';
+import Section from '../../components/Section.astro';
+import InstallCommand from '../../components/InstallCommand.astro';
+import LanguageInstalls from '../../components/LanguageInstalls.astro';
+import { INSTALLS, RELEASES_URL, blobUrl, treeUrl, withBase } from '../../lib/site';
 
-interface Step {
-  /** What the block is, e.g. "Cargo.toml". */
-  label: string;
-  code: string;
-  /** A shell block gets the $ prompt on each command line. */
-  shell?: boolean;
-}
-
-interface Package {
-  id: string;
-  title: string;
-  mark: MarkName;
-  name: string;
-  /** The packages it stands in for. */
-  replaces: string[];
-  /** Where it is published, or how it is installed until it is. */
-  where: string;
-  steps: Step[];
-  notes: string[];
-  readme: string;
-}
-
-const packages: Package[] = [
-  {
-    id: 'rust',
-    mark: 'rust',
-    title: 'Rust',
-    name: 'turboblake',
-    replaces: ['blake3'],
-    where: 'crates.io',
-    steps: [
-      { label: 'shell', shell: true, code: 'cargo add turboblake' },
-      { label: 'or in Cargo.toml', code: 'turboblake = "1.8"' },
-    ],
-    notes: [
-      'The library is still named blake3, so use blake3::… compiles unchanged: hash, Hasher::update, update_rayon, keyed_hash, derive_key and extended output all reach the engine past the size it calibrates at the first big input.',
-      'The crate holds the command line too, behind its default cli feature. For the library alone: default-features = false, features = ["std"].',
-      'To swap it under every crate in a dependency graph, generate a copy named blake3 and add it to [patch.crates-io] (the README shows how).',
-      'Building needs clang; without it, and on Windows, the crate builds as upstream and says so in a warning.',
-    ],
-    readme: 'bend/rust/README.md',
-  },
-  {
-    id: 'c',
-    mark: 'c',
-    title: 'C',
-    name: 'libturboblake',
-    replaces: ['the official C library (blake3.h)'],
-    where: 'Homebrew, the release archives, or CMake',
-    steps: [
-      { label: 'shell', shell: true, code: 'brew install gunta/tap/libturboblake\ncc app.c $(pkg-config --cflags --libs libturboblake) -o app' },
-      { label: 'or CMake, from source', code: 'find_package(turboblake REQUIRED)\ntarget_link_libraries(app turboblake::turboblake)' },
-    ],
-    notes: [
-      'blake3.h, its symbols and the blake3_hasher layout are upstream’s, so programs keep #include "blake3.h" and relink unchanged. It installs under include/turboblake/, beside an official blake3.h, never over it.',
-      'Release archives for macOS and Linux (glibc 2.28+), arm64 and x86-64, hold the static and shared library, a pkg-config file and a CMake package. cmake -S bend/lib builds the same from a clone; on Windows that is the official C alone.',
-    ],
-    readme: 'bend/lib/README.md',
-  },
-  {
-    id: 'python',
-    mark: 'python',
-    title: 'Python',
-    name: 'turboblake',
-    replaces: ['blake3 (PyPI)'],
-    where: 'PyPI',
-    steps: [
-      { label: 'shell', shell: true, code: 'pip uninstall blake3\npip install turboblake' },
-      { label: 'your code, unchanged', code: 'from blake3 import blake3\n\nblake3(data).hexdigest()\nh = blake3(key=key)\nh.update_mmap("big.iso")\nh.digest(length=64)' },
-    ],
-    notes: [
-      'It installs the same blake3 module, so remove the PyPI one first. max_threads is accepted and ignored: big updates go to the engine on every core.',
-      'Wheels come with the engine built in for macOS and Linux (glibc 2.28+ and musl) on arm64 and x86-64, every CPython from 3.9. On Windows, where the engine does not run yet, it installs the official blake3 instead: never slower than upstream.',
-    ],
-    readme: 'bend/python/README.md',
-  },
-  {
-    id: 'node',
-    mark: 'nodejs',
-    title: 'Node.js, Bun and Deno',
-    name: 'turboblake',
-    replaces: ['@noble/hashes/blake3', 'blake3 (npm)', '@napi-rs/blake-hash'],
-    where: 'npm',
-    steps: [
-      { label: 'shell', shell: true, code: 'npm install turboblake\nbun add turboblake\ndeno add npm:turboblake' },
-      {
-        label: 'swap the import',
-        code: '// was: import { blake3 } from "@noble/hashes/blake3.js";\nimport { blake3 } from "turboblake";\n\n// was: import { hash, createHash } from "blake3";\nimport { hash, createHash } from "turboblake";',
-      },
-    ],
-    notes: [
-      'Both APIs, from one package: blake3(data, { dkLen, key, context }) and blake3.create() as in @noble/hashes; hash, keyedHash, deriveKey and createHash as in the blake3 package. hashFiles(paths) hashes many files at once.',
-      'One package, no install script: it carries the native addon prebuilt for macOS, Linux (glibc and musl) and Windows, arm64 and x64, and loads the one for your machine. On Windows the addon is the official C (no engine there yet). Anywhere else turboblake runs on Bend’s JavaScript; backend says which one runs.',
-    ],
-    readme: 'bend/node/README.md',
-  },
-  {
-    id: 'browser',
-    mark: 'javascript',
-    title: 'Browsers and workers',
-    name: 'turboblake/js',
-    replaces: ['@noble/hashes/blake3', 'hash-wasm'],
-    where: 'the same package',
-    steps: [
-      { label: 'your code', code: 'import { blake3 } from "turboblake"; // bundlers pick turboblake/js for browsers and workers\n// Or import { blake3 } from "turboblake/js"; to select the JS build explicitly' },
-    ],
-    notes: [
-      'BLAKE3 as written in Bend, emitted to JavaScript by Bend2’s own JS target: no native code, no WebAssembly, every mode. It exposes the noble-style API; hash-wasm users need to adapt their calls. It is the portable fallback for environments where the native addon cannot run.',
-    ],
-    readme: 'bend/node/README.md',
-  },
-  {
-    id: 'go',
-    mark: 'go',
-    title: 'Go',
-    name: 'github.com/gunta/turboblake/bend/go',
-    replaces: ['lukechampine.com/blake3', 'github.com/zeebo/blake3'],
-    where: 'a Go module',
-    steps: [
-      { label: 'shell', shell: true, code: 'go get github.com/gunta/turboblake/bend/go' },
-      {
-        label: 'swap the import',
-        code: '// was: import "lukechampine.com/blake3"\nimport blake3 "github.com/gunta/turboblake/bend/go"\n\n// was: import "github.com/zeebo/blake3"\nimport blake3 "github.com/gunta/turboblake/bend/go/zeebo"',
-      },
-    ],
-    notes: [
-      'Same functions, types and output as each package it replaces, plus NewDeriveKey, Hasher.Clone and HashFiles. Needs cgo.',
-      'The engine comes prebuilt for darwin and linux on arm64 and amd64; other Unix systems build it through cgo at plain flags, slower and still on every core. On Windows (MinGW) the package is the official C alone.',
-    ],
-    readme: 'bend/go/README.md',
-  },
-];
+import { GUIDES } from '../../lib/guides';
 
 const links = [
   { href: '#cli', label: 'Command line' },
-  ...packages.map((p) => ({ href: `#${p.id}`, label: p.title.split(',')[0]! })),
+  ...GUIDES.map((g) => ({ href: withBase(`install/${g.slug}/`), label: g.title })),
   { href: '#controls', label: 'Controls' },
 ];
 
-const escape = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-/** A block's HTML in one string, since a template inside <pre> keeps its indentation. */
-const html = (s: Step) =>
-  s.shell
-    ? s.code
-        .split('\n')
-        .map((l) => `<span class="p" aria-hidden="true">$ </span>${escape(l)}`)
-        .join('\n')
-    : escape(s.code);
+/** The old sections of this page, now guides of their own. */
+const moved = { rust: 'rust', c: 'c', python: 'python', node: 'typescript', browser: 'typescript', go: 'go' };
 ---
 
 <Base title="Install: the command and every library" path="install/" description="Install turboblake, the drop-in b3sum, and swap in its libraries for Rust, C, Python, Node.js, Bun, Deno, browsers and Go: one line each, the same API as the BLAKE3 package each replaces.">
@@ -207,47 +67,10 @@ const html = (s: Step) =>
 
       <div class="libs">
         <h2 class="libs-title">A library for each language</h2>
-        <LanguageInstalls local />
+        <LanguageInstalls />
       </div>
     </div>
   </section>
-
-  {
-    packages.map((p, i) => (
-      <Section id={p.id} mark={p.mark} kicker={p.where} title={p.title} tone={i % 2 === 0 ? 'alt' : 'plain'}>
-        <Fragment slot="lede">
-          <p>
-            <code>{p.name}</code>, in place of{' '}
-            {p.replaces.map((r, j) => (
-              <>
-                {j > 0 && (j === p.replaces.length - 1 ? ' and ' : ', ')}
-                <code>{r}</code>
-              </>
-            ))}
-            .
-          </p>
-        </Fragment>
-        <div class="pkg">
-          <div class="steps">
-            {p.steps.map((s) => (
-              <figure class="step">
-                <figcaption>{s.label}</figcaption>
-                <pre><code set:html={html(s)} /></pre>
-              </figure>
-            ))}
-          </div>
-          <div class="notes prose">
-            {p.notes.map((n) => (
-              <p>{n}</p>
-            ))}
-            <p>
-              <a href={blobUrl(p.readme)}>{p.readme}</a>
-            </p>
-          </div>
-        </div>
-      </Section>
-    ))
-  }
 
   <Section id="controls" kicker="Every package" title="Controls">
     <Fragment slot="lede">
@@ -288,6 +111,11 @@ const html = (s: Step) =>
 
   <SiteFooter slot="footer" />
 </Base>
+
+<script is:inline define:vars={{ moved, base: withBase('install/') }}>
+  const to = moved[location.hash.slice(1)];
+  if (to) location.replace(base + to + '/');
+</script>
 
 <style>
   .intro {

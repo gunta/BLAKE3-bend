@@ -1,30 +1,28 @@
 ---
 /**
- * A card per language (src/lib/packages.ts): its mark, the registry it is on, the one install line with a
- * copy button, what it replaces, and the way on to its section of /install/. Three across, then two wider
+ * A card per language (src/lib/guides.ts): its mark, the registry it is on, the one install line with a
+ * copy button, what it replaces, and the way on to its own page. Three across, then two wider
  * ones, so the long Go and C lines fit; one column on phones. Without JavaScript the copy buttons hide.
  */
 import { ArrowRight, Copy } from 'lucide-static';
 import BrandMark from './BrandMark.astro';
 import Icon from './Icon.astro';
-import { LANGUAGE_INSTALLS } from '../lib/packages';
+import { GUIDES } from '../lib/guides';
 import { withBase } from '../lib/site';
 
 interface Props {
   /** Card titles' heading level: h3 under a section heading. */
   level?: 'h2' | 'h3';
-  /** Link each card to its section on this page instead of /install/. */
-  local?: boolean;
   class?: string;
 }
 
-const { level = 'h3', local = false, class: className } = Astro.props;
+const { level = 'h3', class: className } = Astro.props;
 const Heading = level;
 ---
 
 <ul class:list={['langs', className]} role="list" data-copy-root>
   {
-    LANGUAGE_INSTALLS.map((p) => (
+    GUIDES.map((p) => (
       <li class="card" style={`--accent: ${p.accent}`}>
         <div class="head">
           <span class="mark">
@@ -60,10 +58,10 @@ const Heading = level;
 
         <p class="foot">
           <span class="replaces">
-            In place of <code>{p.replaces}</code>
+            In place of <code>{p.replacesShort}</code>
           </span>
-          <a class="more" href={local ? `#${p.id}` : withBase(`install/#${p.id}`)}>
-            Swap in <Icon svg={ArrowRight} />
+          <a class="more" href={withBase(`install/${p.slug}/`)}>
+            Guide <Icon svg={ArrowRight} />
             <span class="sr-only"> {p.title}</span>
           </a>
         </p>
