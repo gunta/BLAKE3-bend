@@ -1,67 +1,139 @@
 name: turboblake release
 
-# A turboblake-v<version> tag (scripts/release/tag.sh) publishes that
-# version everywhere, from one build:
+# Publishes turboblake everywhere, by itself, once a new version is on
+# master and built:
 #
-#   1. turboblake-build.yml builds and tests every package on every platform
-#   2. a draft GitHub release gets every file, SHA256SUMS, and a signed
+#   0. a push to master that changes bend/VERSION (scripts/release/prepare.sh
+#      X.Y.Z) runs turboblake-build.yml, which builds and tests every package
+#      on every platform; when that run passes and its commit is still the
+#      head of master, this workflow starts (workflow_run) and releases if
+#      turboblake-v<version> does not exist yet. It takes the build's files;
+#      nothing is built twice. A turboblake-v* tag pushed by hand (tag.sh)
+#      still works: then this workflow builds first.
+#   1. a draft GitHub release gets every file, SHA256SUMS, and a signed
 #      build provenance attestation for each (gh attestation verify)
-#   3. crates.io, npm and PyPI, each by trusted publishing (OIDC: no
+#   2. crates.io, npm and PyPI, each by trusted publishing (OIDC: no
 #      long-lived token), each skipped if that version is already there, so
 #      a failed run can simply be re-run
-#   4. once all three have it, the release is published; then the Go module
-#      tag (bend/go/v<version>), the Homebrew tap (tested with brew before
-#      it is pushed), and a pull request with the homebrew-core formula's
-#      new checksum
+#   3. once all three have it, the release is published (which creates the
+#      tag); then the Go module tag (bend/go/v<version>), the Homebrew tap
+#      (tested with brew before it is pushed), and the homebrew-core
+#      formula's new checksum, committed to master
 #
-# The publishing jobs run in the "release" environment: protect it (Settings,
-# Environments) with required reviewers to approve each release by hand.
-# Registry setup, once: crates.io, PyPI and npm trusted publishers for this
-# workflow and environment, so no registry token is stored (npm's first
-# version, 1.8.8, went out by hand before npm knew the package).
-# The Homebrew tap needs a HOMEBREW_TAP_TOKEN secret (a fine-grained token
-# with contents: write on gunta/homebrew-tap only); without it that job
-# says so and stops.
+# The publishing jobs run in the "release" environment (Settings,
+# Environments): it admits master and turboblake-v* tags; required reviewers
+# there make each release wait for a click. Registry setup, once: crates.io,
+# PyPI and npm trusted publishers for this workflow and environment, so no
+# registry token is stored. The Homebrew tap needs a HOMEBREW_TAP_TOKEN
+# secret (a fine-grained token with contents: write on gunta/homebrew-tap
+# only); without it that job says so and stops.
 
 on:
   push:
     tags:
       - "turboblake-v*"
+  # the plan job admits only a passing build of a push to this repository's master
+  workflow_run:  # zizmor: ignore[dangerous-triggers]
+    workflows: ["turboblake build"]
+    types: [completed]
+    branches: [master]
 
 permissions: {}
 
 concurrency:
-  group: turboblake-release-${{ github.ref_name }}
+  group: turboblake-release
   cancel-in-progress: false
 
 jobs:
+  plan:
+    # a build of a push to master in this repository, that passed (not a pull request's, not a fork's)
+    if: >-
+      github.event_name == 'push' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    outputs:
+      release: ${{ steps.plan.outputs.release }}
+      version: ${{ steps.plan.outputs.version }}
+      tag: ${{ steps.plan.outputs.tag }}
+      sha: ${{ steps.plan.outputs.sha }}
+      files: ${{ steps.plan.outputs.files }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - name: A new version?
+        id: plan
+        env:
+          EVENT: ${{ github.event_name }}
+          REF: ${{ github.ref_name }}
+          SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          BUILD_RUN: ${{ github.event.workflow_run.id }}
+          RUN: ${{ github.run_id }}
+        run: |
+          version=$(cat bend/VERSION)
+          tag="turboblake-v$version"
+          release=true
+          if [ "$EVENT" = push ]; then
+            python3 scripts/release/version.py check "$REF"
+            files=$RUN
+          else
+            python3 scripts/release/version.py check
+            files=$BUILD_RUN
+            if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
+              echo "$tag exists: nothing to release"
+              release=false
+            elif [ "$(git ls-remote origin refs/heads/master | cut -f1)" != "$SHA" ]; then
+              echo "master has moved past $SHA: its own build releases $tag"
+              release=false
+            else
+              echo "releasing $tag from $SHA"
+            fi
+          fi
+          {
+            echo "release=$release"
+            echo "version=$version"
+            echo "tag=$tag"
+            echo "sha=$SHA"
+            echo "files=$files"
+          } >> "$GITHUB_OUTPUT"
+
   build:
+    needs: plan
+    if: needs.plan.outputs.release == 'true' && github.event_name == 'push'
     uses: ./.github/workflows/turboblake-build.yml
     permissions:
       contents: read
 
   github-release:
-    needs: build
+    needs: [plan, build]
+    # build is skipped when the files come from master's build
+    if: ${{ !cancelled() && !failure() && needs.plan.outputs.release == 'true' }}
     runs-on: ubuntu-24.04
     permissions:
       contents: write
+      actions: read
       id-token: write
       attestations: write
     outputs:
-      version: ${{ steps.files.outputs.version }}
+      version: ${{ needs.plan.outputs.version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
+          ref: ${{ needs.plan.outputs.sha }}
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
         with:
           path: dist
           merge-multiple: true
+          run-id: ${{ needs.plan.outputs.files }}
+          github-token: ${{ github.token }}
       - name: Files and checksums
-        id: files
         run: |
-          version=$(cat bend/VERSION)
-          echo "version=$version" >> "$GITHUB_OUTPUT"
           cd dist
           rm -f blake3-*   # the test command lines, not for release
           # the npm add-ons by platform (directories): the npm package carries them
@@ -74,14 +146,16 @@ jobs:
       - name: Draft release
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.ref_name }}
-          VERSION: ${{ steps.files.outputs.version }}
+          TAG: ${{ needs.plan.outputs.tag }}
+          SHA: ${{ needs.plan.outputs.sha }}
+          VERSION: ${{ needs.plan.outputs.version }}
         run: |
           scripts/release/notes.sh "$VERSION" > notes.md
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" --clobber dist/*
           else
-            gh release create "$TAG" --draft --verify-tag --title "turboblake $VERSION" \
+            # the tag exists (pushed by hand) or is made on $SHA when the release is published
+            gh release create "$TAG" --draft --target "$SHA" --title "turboblake $VERSION" \
               --notes-file notes.md dist/*
           fi
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
@@ -90,7 +164,7 @@ jobs:
           path: dist/
 
   crates-io:
-    needs: github-release
+    needs: [plan, github-release]
     runs-on: ubuntu-24.04
     environment: release
     permissions:
@@ -100,6 +174,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
+          ref: ${{ needs.plan.outputs.sha }}
       - name: Already on crates.io?
         id: there
         env:
@@ -121,11 +196,12 @@ jobs:
           cargo publish --locked
 
   npm:
-    needs: github-release
+    needs: [plan, github-release]
     runs-on: ubuntu-24.04
     environment: release
     permissions:
       contents: read
+      actions: read
       id-token: write
     steps:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
@@ -137,6 +213,8 @@ jobs:
         with:
           name: npm
           path: dist
+          run-id: ${{ needs.plan.outputs.files }}
+          github-token: ${{ github.token }}
       - name: npm publish (trusted publishing, with provenance)
         env:
           VERSION: ${{ needs.github-release.outputs.version }}
@@ -150,27 +228,32 @@ jobs:
           npm publish "./dist/turboblake-$VERSION.tgz" --access public --provenance
 
   pypi:
-    needs: github-release
+    needs: [plan, github-release]
     runs-on: ubuntu-24.04
     environment: release
     permissions:
+      actions: read
       id-token: write
     steps:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
         with:
           name: sdist
           path: dist
+          run-id: ${{ needs.plan.outputs.files }}
+          github-token: ${{ github.token }}
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
         with:
           pattern: wheels-*
           path: dist
           merge-multiple: true
+          run-id: ${{ needs.plan.outputs.files }}
+          github-token: ${{ github.token }}
       - uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086  # v1.14.3
         with:
           skip-existing: true
 
   publish-release:
-    needs: [crates-io, npm, pypi]
+    needs: [plan, crates-io, npm, pypi]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -178,11 +261,11 @@ jobs:
       - name: Publish the GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ needs.plan.outputs.tag }}
         run: gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false --latest
 
   go:
-    needs: [publish-release, github-release]
+    needs: [plan, publish-release, github-release]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -190,14 +273,16 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: true  # pushes the module's tag
-      # tag.sh pushes bend/go/vX.Y.Z with the release tag; this only covers a tag made without it
-      - name: Make sure bend/go is tagged, and ask the module proxy for it
+          ref: ${{ needs.plan.outputs.sha }}
+      # tag.sh pushes bend/go/vX.Y.Z with a tag made by hand; a release from master makes it here
+      - name: Tag bend/go, and ask the module proxy for it
         env:
           VERSION: ${{ needs.github-release.outputs.version }}
+          SHA: ${{ needs.plan.outputs.sha }}
         run: |
           tag="bend/go/v$VERSION"
           if ! git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then
-            git tag "$tag" "$GITHUB_SHA"
+            git tag "$tag" "$SHA"
             git push origin "refs/tags/$tag"
           fi
           for _ in 1 2 3 4 5; do
@@ -207,7 +292,7 @@ jobs:
           echo "::warning::the Go module proxy does not list v$VERSION yet; go get will fetch it on first use"
 
   homebrew-tap:
-    needs: [publish-release, github-release]
+    needs: [plan, publish-release, github-release]
     runs-on: macos-15
     permissions:
       contents: read
@@ -215,6 +300,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
+          ref: ${{ needs.plan.outputs.sha }}
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
         with:
           name: release
@@ -257,28 +343,27 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: write
-      pull-requests: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
-          persist-credentials: true  # pushes the branch for the pull request
+          persist-credentials: true  # pushes the formula to master
           ref: master
-      - name: Open a pull request with the crate's checksum
+      - name: Commit the crate's checksum to packaging/homebrew-core
         env:
-          GH_TOKEN: ${{ github.token }}
           VERSION: ${{ needs.github-release.outputs.version }}
         run: |
           # the .crate crates.io serves is the one cargo publish uploaded
           sha=$(curl -fsSL -A "turboblake-release (github.com/gunta/turboblake)" \
             "https://static.crates.io/crates/turboblake/turboblake-$VERSION.crate" | sha256sum | cut -c1-64)
-          python3 scripts/release/formulas.py core "$sha"
-          git diff --quiet && { echo "the formula has this version already"; exit 0; }
-          branch="release/homebrew-core-$VERSION"
           git config user.name "turboblake release"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git switch -c "$branch"
-          git commit -q -am "packaging: homebrew-core formula for turboblake $VERSION"
-          git push -q origin "$branch"
-          gh pr create --base master --head "$branch" --title "homebrew-core formula: turboblake $VERSION" \
-            --body "The crates.io release's checksum for packaging/homebrew-core/turboblake.rb, from turboblake-release." \
-            || echo "::warning::could not open the pull request (Settings, Actions: allow GitHub Actions to create pull requests); the branch $branch has the change"
+          for _ in 1 2 3; do
+            git fetch -q origin master && git reset -q --hard origin/master
+            python3 scripts/release/formulas.py core "$sha"
+            git diff --quiet && { echo "the formula has this version already"; exit 0; }
+            git commit -q -am "packaging: homebrew-core formula for turboblake $VERSION"
+            git push -q origin HEAD:master && exit 0
+            sleep 5
+          done
+          echo "::error::could not push the formula to master"
+          exit 1

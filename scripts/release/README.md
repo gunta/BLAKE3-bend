@@ -4,17 +4,23 @@ One version (`bend/VERSION`) for every package, one tag to publish them all
 (ADR 0020).
 
 ```bash
-scripts/release/prepare.sh 1.8.9   # set the version everywhere, regenerate the crate, dry-run each package, commit
-git push origin master             # turboblake-build builds and tests every package on every platform
-scripts/release/tag.sh             # once that passed: tag (signed if git has a key), confirm, push
+scripts/release/prepare.sh 1.8.9   # set the version everywhere, regenerate the crate, dry-run each package, commit, push
 ```
 
-The tag runs `.github/workflows/turboblake-release.yml`: the same build, a
-draft GitHub release with every file, `SHA256SUMS` and build provenance
-attestations, then crates.io, npm and PyPI, then the published release, the
-Go module tag, the Homebrew tap and a homebrew-core pull request. Every
-publish step skips a version that is already there: if a step fails, fix
-the cause and re-run the failed jobs.
+That is the whole release. The push to master runs turboblake-build, which
+builds and tests every package on every platform; when it passes,
+`.github/workflows/turboblake-release.yml` starts by itself (it releases
+when `turboblake-v<version>` does not exist yet) and, with that build's
+files: a GitHub release with every file, `SHA256SUMS` and build provenance
+attestations, then crates.io, npm and PyPI, then the published release (and
+its tag), the Go module tag, the Homebrew tap and the homebrew-core
+formula's checksum (committed to master). Every publish step skips a
+version that is already there: if a step fails, fix the cause and re-run
+the failed jobs. If the `release` environment has required reviewers, each
+release waits for that approval.
+
+`scripts/release/tag.sh` tags by hand instead (then the release builds
+first); it is not needed.
 
 ## What gets built
 
@@ -39,10 +45,10 @@ docker run --rm -v "$PWD:/w" -w /w quay.io/pypa/manylinux_2_28_aarch64 \
 
 ## One-time setup
 
-- **GitHub**: an environment named `release` (Settings, Environments); add
-  required reviewers to approve each publish by hand. Settings, Actions,
-  General: allow GitHub Actions to create pull requests (for the
-  homebrew-core formula).
+- **GitHub**: an environment named `release` (Settings, Environments) that
+  admits the branch `master` and tags `turboblake-v*`; required reviewers
+  there make each release wait for a click. Master has no branch
+  protection, so the release can commit the homebrew-core formula to it.
 - **crates.io**: on the `turboblake` crate, Settings, Trusted Publishing:
   repository `gunta/turboblake`, workflow `turboblake-release.yml`,
   environment `release`.

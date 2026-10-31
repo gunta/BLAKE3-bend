@@ -1,15 +1,22 @@
 #!/bin/sh
-# Step 1 of a release: sets turboblake's version everywhere, regenerates the
-# crate from it, checks that every package builds as it will be published,
-# and commits "turboblake X.Y.Z". Nothing leaves this machine; push the
-# commit and let CI (turboblake-build.yml) build and test every package on
-# every platform, then run tag.sh.
-#   scripts/release/prepare.sh X.Y.Z
+# A release, in one command: sets turboblake's version everywhere,
+# regenerates the crate from it, checks that every package builds as it will
+# be published, commits "turboblake X.Y.Z" and pushes it to master. CI does
+# the rest: turboblake-build.yml builds and tests every package on every
+# platform, and when it passes turboblake-release.yml publishes them all
+# (crates.io, npm, PyPI, GitHub release, Go, Homebrew). --no-push stops
+# after the commit.
+#   scripts/release/prepare.sh X.Y.Z [--no-push]
 set -eu
 . "$(dirname "$0")/common.sh"
-new=${1:?usage: prepare.sh X.Y.Z}
+new=${1:?usage: prepare.sh X.Y.Z [--no-push]}
+push=yes; [ "${2:-}" = --no-push ] && push=no
 cd "$root"
 [ -z "$(git status --porcelain --untracked-files=no)" ] || die "commit or stash your changes first"
+if [ $push = yes ]; then
+  git fetch -q origin master
+  [ "$(git rev-parse HEAD)" = "$(git rev-parse origin/master)" ] || die "HEAD is not origin/master: release from master as it is on GitHub"
+fi
 git rev-parse -q --verify "refs/tags/turboblake-v$new" >/dev/null && die "turboblake-v$new exists already"
 
 say "== version $version -> $new"
@@ -29,4 +36,10 @@ rm -rf "$tmp"
 
 git add -A bend/VERSION bend/crate bend/node/package.json bend/python/pyproject.toml bend/python/setup.py
 git commit -q -m "turboblake $new"
-say "committed turboblake $new. Next: push it, wait for turboblake-build to pass, then scripts/release/tag.sh"
+if [ $push = no ]; then
+  say "committed turboblake $new; git push origin HEAD:master releases it"
+  exit 0
+fi
+git push -q origin HEAD:master
+repo=$(git remote get-url origin | sed -E 's#(git@github.com:|https://github.com/)##; s#\.git$##')
+say "pushed turboblake $new: https://github.com/$repo/actions builds it, then publishes it everywhere"
