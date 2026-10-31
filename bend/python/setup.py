@@ -32,7 +32,7 @@ from setuptools.command.build_ext import build_ext
 
 HERE = Path(__file__).resolve().parent
 CSRC = HERE / "csrc"
-VERSION = "1.8.8"
+VERSION = "1.8.9"
 
 # in the repository, always the current C; in an sdist, the copy it ships
 if (HERE.parent / "lib" / "csrc" / "engine.c").exists():

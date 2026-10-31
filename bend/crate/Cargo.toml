@@ -1,6 +1,6 @@
 [package]
 name = "turboblake"
-version = "1.8.8"
+version = "1.8.9"
 authors = ["Jack O'Connor <oconnor663@gmail.com>", "Samuel Neves"]
 description = "BLAKE3, turbocharged: big inputs and many files hashed on every core by a Bend2 engine; a drop-in for the blake3 crate, b3sum and sha256sum"
 repository = "https://github.com/gunta/turboblake"

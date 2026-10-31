@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "turboblake"
-version = "1.8.8"
+version = "1.8.9"
 description = "BLAKE3, with big inputs hashed on every core by a Bend2 engine: a drop-in for the blake3 module"
 readme = "README.md"
 license = "CC0-1.0 OR Apache-2.0 OR Apache-2.0 WITH LLVM-exception"
