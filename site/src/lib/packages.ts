@@ -42,9 +42,9 @@ export const LANGUAGE_INSTALLS: readonly LanguageInstall[] = [
   },
   {
     id: 'node',
-    title: 'JavaScript',
-    mark: 'javascript',
-    accent: '#f7df1e',
+    title: 'TypeScript',
+    mark: 'typescript',
+    accent: '#4a9be8',
     registry: { name: 'npm', mark: 'npm', url: 'https://www.npmjs.com/package/turboblake' },
     command: 'npm install turboblake',
     also: ['bun add turboblake', 'deno add npm:turboblake'],

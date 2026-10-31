@@ -9,7 +9,7 @@
  *   WebGPU, Astro, LLVM, Python, the BLAKE3 adopters (Bazel, ClickHouse,
  *   Farcaster, IPFS, Nix, OpenZFS, Redox, Solana, Wasmer), Apple, Linux and
  *   Homebrew, and the registries and runtimes on the install cards (Node.js, npm,
- *   PyPI, Bun, Deno, CMake): Simple Icons
+ *   PyPI, Bun, Deno, CMake, TypeScript): Simple Icons
  *   (https://simpleicons.org), read from the package at build time.
  * Each mark stays its owner's trademark; it is shown here only to name the project.
  */
@@ -43,6 +43,7 @@ import {
   siRedox,
   siRust,
   siSolana,
+  siTypescript,
   siWasmer,
   siWebassembly,
   siWebgpu,
@@ -105,6 +106,7 @@ export const MARKS = {
   bun: simple(siBun),
   deno: simple(siDeno),
   cmake: simple(siCmake),
+  typescript: simple(siTypescript),
 } satisfies Record<string, Mark>;
 
 export type MarkName = keyof typeof MARKS;
