@@ -118,8 +118,9 @@ jobs:
             if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
               echo "$tag exists: nothing to release"
               release=false
-            else
+            elif [ "$EVENT" = workflow_run ]; then
               # a newer change to the packages on master gets its own build, which releases instead
+              # (by hand, workflow_dispatch, the build named is the one released)
               git fetch -q --depth=1 origin master
               newer=$(git diff --name-only "$SHA" FETCH_HEAD -- bend scripts/release .github/workflows/turboblake-build.yml \
                 ':(exclude,glob)bend/**/*.md' ':(exclude)bend/bench')
