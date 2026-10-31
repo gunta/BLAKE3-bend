@@ -8,9 +8,16 @@ on:
   push:
     branches:
       - master
+    # the site, and what it reads from the rest of the repository
     paths:
       - "site/**"
       - "bend/bench/results/**"
+      - "bend/crate/Cargo.toml"
+      - "bend/LAWS.bend"
+      - "bend/PROOF.bend"
+      - "adr/**"
+      - "test_vectors/test_vectors.json"
+      - ".github/workflows/pages.yml"
   workflow_dispatch:
 
 permissions:

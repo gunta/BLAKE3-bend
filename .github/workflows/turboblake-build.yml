@@ -21,10 +21,13 @@ on:
   workflow_call:
   workflow_dispatch:
   pull_request:
+    # the packages' code only: docs, benchmarks and the site build elsewhere
     paths: &paths
       - "bend/**"
       - "scripts/release/**"
       - ".github/workflows/turboblake-*.yml"
+      - "!bend/**/*.md"
+      - "!bend/bench/**"
   push:
     branches: [master]
     paths: *paths

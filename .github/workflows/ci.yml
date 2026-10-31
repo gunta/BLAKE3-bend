@@ -5,7 +5,19 @@ on:
     branches:
       - "*"
     # not on tags
+    paths-ignore: &not-upstream
+      # turboblake's own packages, site and docs (turboblake-build and pages test those)
+      - "bend/**"
+      - "site/**"
+      - "adr/**"
+      - "packaging/**"
+      - "scripts/release/**"
+      - "**.md"
+      - ".github/workflows/turboblake-*.yml"
+      - ".github/workflows/pages.yml"
+      - ".github/workflows/workflows-lint.yml"
   pull_request:
+    paths-ignore: *not-upstream
 
 env:
   BLAKE3_CI: "1"
