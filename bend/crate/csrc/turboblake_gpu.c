@@ -803,6 +803,8 @@ static void env(void) {
   pthread_once(&once, read_env);
 }
 
+static int selftest(void);
+
 static void load(void) {
   env();
   if (gpu_off) {
@@ -817,6 +819,13 @@ static void load(void) {
   }
 #endif
   backend_pid = getpid();
+  // a GPU that hashes wrong is not used at all: the CPU paths take over
+  if (backend != 0 && !selftest()) {
+    if (trace) {
+      fprintf(stderr, "turboblake: GPU: the self-test failed, so the GPU is not used\n");
+    }
+    backend = 0;
+  }
 }
 
 int tbg_backend(void) {
@@ -1278,12 +1287,9 @@ int tbg_register_metal(void *buffer) {
 // For the tests (cli.c, the Rust crate's): GPU memory holding len bytes of
 // p after pad bytes of zeros; on Metal a shared buffer, or a private one
 // (gpu_only). Freed with tbg_drop.
-void *tbg_upload(const void *p, uint64_t len, uint64_t pad, int gpu_only) {
-  if (!tbg_backend()) {
-    return NULL;
-  }
+// tbg_upload with gpu_mu held and the backend loaded (or loading)
+static void *upload(const void *p, uint64_t len, uint64_t pad, int gpu_only) {
   void *obj = NULL;
-  pthread_mutex_lock(&gpu_mu);
 #if TBG_WITH_METAL
   void *pool = mt.push();
   void *shared = mt_buffer(pad + len + 1);
@@ -1335,14 +1341,20 @@ void *tbg_upload(const void *p, uint64_t len, uint64_t pad, int gpu_only) {
 #else
   (void)p; (void)len; (void)pad; (void)gpu_only;
 #endif
+  return obj;
+}
+
+void *tbg_upload(const void *p, uint64_t len, uint64_t pad, int gpu_only) {
+  if (!tbg_backend()) {
+    return NULL;
+  }
+  pthread_mutex_lock(&gpu_mu);
+  void *obj = upload(p, len, pad, gpu_only);
   pthread_mutex_unlock(&gpu_mu);
   return obj;
 }
 
-void tbg_drop(void *obj) {
-  if (obj == NULL || !tbg_backend()) {
-    return;
-  }
+static void drop(void *obj) {
 #if TBG_WITH_METAL
   void *pool = mt.push();
   mt_release(obj);
@@ -1350,4 +1362,72 @@ void tbg_drop(void *obj) {
 #elif TBG_WITH_CUDA
   cu.MemFree((CUdeviceptr)(uintptr_t)obj);
 #endif
+}
+
+void tbg_drop(void *obj) {
+  if (obj != NULL && tbg_backend()) {
+    drop(obj);
+  }
+}
+
+// The self-test
+// -------------
+//
+// BLAKE3 by the book on the CPU, from the kernels' own compression
+// (b3core.h): the CV of the subtree of len bytes at chunk counter ctr.
+static void ref_cv(const uint8_t *in, uint64_t len, uint64_t ctr, uint32_t cv[8]) {
+  if (len <= CHUNK) {
+    uint64_t blocks = len == 0 ? 1 : (len + 63) / 64;
+    b3_iv(cv);
+    for (uint64_t b = 0; b < blocks; b += 1) {
+      uint32_t m[16] = { 0 };
+      uint64_t n = len - b * 64 < 64 ? len - b * 64 : 64;
+      memcpy(m, in + b * 64, n);  // little-endian, as every host here is
+      uint32_t flags = (b == 0 ? B3_CHUNK_START : 0) | (b == blocks - 1 ? B3_CHUNK_END : 0);
+      b3_compress(cv, m, (uint32_t)ctr, (uint32_t)(ctr >> 32), (uint32_t)n, flags);
+    }
+    return;
+  }
+  uint64_t l = left_len(len);
+  uint32_t m[16];
+  ref_cv(in, l, ctr, m);
+  ref_cv(in + l, len - l, ctr + l / CHUNK, m + 8);
+  b3_iv(cv);
+  b3_compress(cv, m, 0, 0, 64, B3_PARENT);
+}
+
+// 1 if the GPU hashes a subtree as the CPU does, from each kind of GPU
+// memory: a shared buffer, GPU-only memory, and an odd offset in it. A
+// Metal device on CI (Apple's paravirtual GPU on an Intel Mac) hashed
+// GPU-only memory wrong; a GPU that does is not used (ADR 0020).
+static int selftest(void) {
+  static const uint32_t iv[8] = { B3_IV0, B3_IV1, B3_IV2, B3_IV3, B3_IV4, B3_IV5, B3_IV6, B3_IV7 };
+  uint64_t len = 100 * CHUNK + 77;  // groups of chunks, and a short last chunk
+  uint64_t l = left_len(len);
+  uint8_t *in = malloc(len);
+  if (in == NULL) {
+    return 0;
+  }
+  for (uint64_t i = 0; i < len; i += 1) {
+    in[i] = (uint8_t)(i % 251);
+  }
+  uint32_t want[16];
+  ref_cv(in, l, 0, want);
+  ref_cv(in + l, len - l, l / CHUNK, want + 8);
+  int kind = backend == 1 ? TBG_METAL : TBG_CUDA;
+  int ok = 1;
+  for (int t = 0; t < 3 && ok; t += 1) {
+    uint64_t pad = t == 2 ? 5 : 0;
+    uint8_t got[2][32];
+    pthread_mutex_lock(&gpu_mu);
+    void *obj = upload(in, len, pad, t != 0);
+    ok = obj != NULL && start(kind, obj, pad, len, NULL, iv, 0, 0, log2u(l / CHUNK), 0) &&
+         finish(got) && memcmp(got, want, 64) == 0;
+    if (obj != NULL) {
+      drop(obj);
+    }
+    pthread_mutex_unlock(&gpu_mu);
+  }
+  free(in);
+  return ok;
 }

@@ -1,0 +1,95 @@
+{
+  "blake3": {
+    "kind": "fork",
+    "repo": "https://github.com/BLAKE3-team/BLAKE3",
+    "remote": "upstream",
+    "branch": "master",
+    "tags": "^\\d+\\.\\d+\\.\\d+$",
+    "why": "This repository is a fork of it: src/, c/, b3sum/, reference_impl/, test_vectors/ are upstream's, merged by scripts/sync-upstream.sh. Its pin is the merge base.",
+    "watch": {
+      "c/blake3.c": "bend/lib/patch.py hooks compress_subtree_to_parent_node here (libturboblake, every binding)",
+      "c/blake3.h": "the C API every binding exposes (bend/lib, python, node, go)",
+      "c/blake3_impl.h": "copied into bend/lib/csrc and bend/go/csrc",
+      "c/blake3_dispatch.c": "copied into bend/lib/csrc and bend/go/csrc",
+      "c/*": "bend/lib/gen.sh copies the official C into bend/lib/csrc; bend/go/gen.sh into bend/go/csrc",
+      "src/lib.rs": "bend/rust/patch_crate.py anchors (the subtree hook) in the turboblake crate",
+      "src/*": "copied into bend/crate/src by bend/rust/gen.sh",
+      "Cargo.toml": "the crate's version, features and dependencies; patch_crate.py rewrites it",
+      "build.rs": "patch_crate.py adds build_bend_engine to it",
+      "b3sum/src/*": "bend/rust/patch_b3sum.py anchors (the fast path, the pool); the turboblake CLI",
+      "b3sum/tests/*": "the CLI tests, copied into bend/crate/tests",
+      "b3sum/Cargo.toml": "the CLI's dependencies, merged into bend/crate/Cargo.toml",
+      "test_vectors/*": "the official vectors; copied to bend/python/tests and bend/go/testdata",
+      "reference_impl/*": "copied into bend/crate/reference_impl"
+    },
+    "copies": {
+      "bend/python/tests/test_vectors.json": "test_vectors/test_vectors.json",
+      "bend/go/testdata/vectors.json": "test_vectors/test_vectors.json"
+    }
+  },
+  "blake3-py": {
+    "kind": "vendored",
+    "repo": "https://github.com/oconnor663/blake3-py",
+    "pin": "1.0.11",
+    "tags": "^\\d+\\.\\d+\\.\\d+$",
+    "why": "bend/python is blake3-py's C implementation and tests on libturboblake: `import blake3` must keep its API (PyPI blake3).",
+    "files": {
+      "bend/python/blake3module.c": "c_impl/blake3module.c",
+      "bend/python/blake3/__init__.pyi": "blake3.pyi",
+      "bend/python/tests/test_blake3.py": "tests/test_blake3.py",
+      "bend/python/tests/example.py": "tests/example.py"
+    },
+    "watch": {
+      "src/lib.rs": "the Rust module PyPI ships: its API and behavior are what blake3module.c must match",
+      "pyproject.toml": "supported Pythons and build settings (compare bend/python/pyproject.toml, setup.py)",
+      "tests/*": "new tests to take"
+    }
+  },
+  "go-lukechampine": {
+    "kind": "api",
+    "repo": "https://github.com/lukechampine/blake3",
+    "pin": "v1.4.1",
+    "tags": "^v\\d+\\.\\d+\\.\\d+$",
+    "why": "bend/go (github.com/gunta/turboblake/bend/go) has lukechampine.com/blake3's API; the bench races it.",
+    "watch": {
+      "*.go": "exported API and behavior bend/go/blake3.go mirrors",
+      "!*_test.go": "",
+      "go.mod": "the Go version it needs"
+    },
+    "mirrors": ["bend/go/blake3.go", "bend/go/blake3_test.go", "bend/go/go.mod", "bend/go/bench/go.mod"]
+  },
+  "go-zeebo": {
+    "kind": "api",
+    "repo": "https://github.com/zeebo/blake3",
+    "pin": "v0.2.4",
+    "tags": "^v\\d+\\.\\d+\\.\\d+$",
+    "why": "bend/go/zeebo has github.com/zeebo/blake3's API; the bench races it.",
+    "watch": {
+      "*.go": "exported API and behavior bend/go/zeebo/blake3.go mirrors",
+      "!*_test.go": "",
+      "!internal/*": "",
+      "go.mod": "the Go version it needs"
+    },
+    "mirrors": ["bend/go/zeebo/blake3.go", "bend/go/go.mod", "bend/go/bench/go.mod"]
+  },
+  "noble-hashes": {
+    "kind": "api",
+    "repo": "https://github.com/paulmillr/noble-hashes",
+    "pin": "2.4.0",
+    "tags": "^\\d+\\.\\d+\\.\\d+$",
+    "why": "The npm package turboblake is a drop-in for @noble/hashes/blake3: blake3(data, {dkLen, key, context}), blake3.create().",
+    "watch": {
+      "src/blake3.ts": "the blake3 API bend/node mirrors (api.js, index.js, index.d.ts, js/index.js)",
+      "src/_blake.ts": "shared BLAKE code (options, checks)",
+      "src/utils.ts": "the hash interface (create, update, digest, clone, destroy)",
+      "package.json": "exports and engines"
+    },
+    "mirrors": ["bend/node/api.js", "bend/node/index.js", "bend/node/index.d.ts", "bend/node/js/index.js", "bend/node/package.json"]
+  },
+  "bend2": {
+    "kind": "toolchain",
+    "pin": "2.0.39",
+    "why": "Bend2 compiles blake3.bend, engine.bend and the proofs; a new compiler changes the emitted C (bend/lib/csrc/engine.c, every binding) and may change speed or what checks.",
+    "update": "bend update"
+  }
+}

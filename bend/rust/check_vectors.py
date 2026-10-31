@@ -23,7 +23,9 @@ for c in cases:
     paths.append(path)
 
 lines = subprocess.run([binary, *paths], capture_output=True, text=True, check=True).stdout.splitlines()
-bad = sum(1 for c, p, line in zip(cases, paths, lines) if line != f"{c['hash'][:64]}  {p}")
+# b3sum prints Windows paths with forward slashes (b3sum/src/main.rs)
+shown = [p.replace("\\", "/") if os.name == "nt" else p for p in paths]
+bad = sum(1 for c, p, line in zip(cases, shown, lines) if line != f"{c['hash'][:64]}  {p}")
 bad += abs(len(lines) - len(cases))
 print(f"files: {len(cases) - bad}/{len(cases)} test vectors match")
 

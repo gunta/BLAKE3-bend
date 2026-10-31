@@ -285,14 +285,26 @@ money: `modal run bend/bench/modal_gpu.py --gpu H100!`.
 ## Keeping up with upstream
 
 ```bash
-scripts/sync-upstream.sh
+scripts/update-upstream.sh
 ```
 
-It rebases this fork onto `BLAKE3-team/BLAKE3` master (or merges, with
-`--merge`) on a `sync/upstream-YYYYMMDD` branch, keeps this README (upstream's
-lives on in [README.upstream.md](README.upstream.md)), and runs
-`scripts/refresh.sh`, so a new upstream release is re-verified and re-raced
-before it reaches `master`.
+One command for everything turboblake copies or mirrors
+([scripts/upstream/upstreams.json](scripts/upstream/upstreams.json)): BLAKE3
+itself, blake3-py (the Python package), the Go and JavaScript packages the
+bindings stand in for, and Bend2. It says what moved, merges upstream BLAKE3
+on a `sync/upstream-YYYYMMDD` branch, three-way merges the files we copy,
+writes every diff that matters to `.upstream/REPORT.md`, and hands the branch
+to a coding agent (`claude`; `--headless`, or `--no-agent` to stop at the
+report). The agent decides what to adopt by the rules in
+[scripts/upstream/AGENT.md](scripts/upstream/AGENT.md), regenerates and checks
+every package (`scripts/upstream/verify.sh`), records the new pins, commits on
+the branch, and leaves pushing and releasing to you.
+`python3 scripts/upstream/upstream.py status` only reports what moved.
+
+The BLAKE3 step alone is `scripts/sync-upstream.sh`: it rebases this fork onto
+`BLAKE3-team/BLAKE3` master (or merges, with `--merge`, as the update does),
+keeps this README (upstream's lives on in
+[README.upstream.md](README.upstream.md)), and runs `scripts/refresh.sh`.
 
 ## Credits and license
 

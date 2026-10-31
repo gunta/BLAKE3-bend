@@ -15,3 +15,6 @@ target
 /bend/**/build/
 .DS_Store
 !/bend/crate/Cargo.lock
+
+# scripts/update-upstream.sh: clones, the report, logs
+/.upstream/

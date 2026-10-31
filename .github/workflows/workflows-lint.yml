@@ -26,6 +26,9 @@ jobs:
       - uses: zizmorcore/zizmor-action@53290badfa369cb0bf7ad16342cb62c2fa47ac7b  # v0.8.0
         with:
           advanced-security: false
+          # fails on medium and above; the one low finding is a style hint
+          # (GitHub's newer $/ syntax for a reusable workflow in this repository)
+          min-severity: medium
           inputs: |
             .github/workflows/turboblake-build.yml
             .github/workflows/turboblake-release.yml

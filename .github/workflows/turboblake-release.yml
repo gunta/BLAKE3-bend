@@ -64,6 +64,8 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
           cd dist
           rm -f blake3-*   # the test command lines, not for release
+          # the npm add-ons by platform (directories): the npm package carries them
+          find . -mindepth 1 -maxdepth 1 -type d -exec rm -r -- {} +
           sha256sum -- * > SHA256SUMS
           cat SHA256SUMS
       - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8  # v4.2.2
