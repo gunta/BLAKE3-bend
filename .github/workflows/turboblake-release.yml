@@ -33,6 +33,12 @@ on:
     tags:
       - "turboblake-v*"
   # the plan job admits only a passing build of a push to this repository's master
+  # by hand, from a passing turboblake build of master (its run id), without building again
+  workflow_dispatch:
+    inputs:
+      build-run:
+        description: "The run id of a passing turboblake build of master"
+        required: true
   workflow_run:  # zizmor: ignore[dangerous-triggers]
     workflows: ["turboblake build"]
     types: [completed]
@@ -48,13 +54,14 @@ jobs:
   plan:
     # a build of a push to master in this repository, that passed (not a pull request's, not a fork's)
     if: >-
-      github.event_name == 'push' ||
+      github.event_name == 'push' || github.event_name == 'workflow_dispatch' ||
       (github.event.workflow_run.conclusion == 'success' &&
        github.event.workflow_run.event == 'push' &&
        github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-24.04
     permissions:
       contents: read
+      actions: read
     outputs:
       release: ${{ steps.plan.outputs.release }}
       version: ${{ steps.plan.outputs.version }}
@@ -62,17 +69,41 @@ jobs:
       sha: ${{ steps.plan.outputs.sha }}
       files: ${{ steps.plan.outputs.files }}
     steps:
+      - name: Which build
+        id: build
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          INPUT_RUN: ${{ inputs.build-run }}
+          RUN_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          case "$EVENT" in
+            push) echo "sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"; echo "run=" >> "$GITHUB_OUTPUT" ;;
+            workflow_run) echo "sha=$RUN_SHA" >> "$GITHUB_OUTPUT"; echo "run=$RUN_ID" >> "$GITHUB_OUTPUT" ;;
+            workflow_dispatch)
+              case "$INPUT_RUN" in ''|*[!0-9]*) echo "::error::build-run must be a run id"; exit 1 ;; esac
+              info=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$INPUT_RUN" \
+                --jq '[.name, .conclusion, .event, .head_branch, .head_sha] | join(" ")')
+              read -r name1 name2 conclusion event branch sha <<< "$info"
+              if [ "$name1 $name2" != "turboblake build" ] || [ "$conclusion" != success ] || [ "$event" != push ] || [ "$branch" != master ]; then
+                echo "::error::run $INPUT_RUN is not a passing turboblake build of a push to master ($info)"
+                exit 1
+              fi
+              echo "sha=$sha" >> "$GITHUB_OUTPUT"
+              echo "run=$INPUT_RUN" >> "$GITHUB_OUTPUT" ;;
+          esac
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          ref: ${{ steps.build.outputs.sha }}
       - name: A new version?
         id: plan
         env:
           EVENT: ${{ github.event_name }}
           REF: ${{ github.ref_name }}
-          SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
-          BUILD_RUN: ${{ github.event.workflow_run.id }}
+          SHA: ${{ steps.build.outputs.sha }}
+          BUILD_RUN: ${{ steps.build.outputs.run }}
           RUN: ${{ github.run_id }}
         run: |
           version=$(cat bend/VERSION)
@@ -88,9 +119,9 @@ jobs:
               echo "$tag exists: nothing to release"
               release=false
             else
-              # a newer change to the packages (turboblake-build's paths) on master gets its own build, which releases instead
+              # a newer change to the packages on master gets its own build, which releases instead
               git fetch -q --depth=1 origin master
-              newer=$(git diff --name-only "$SHA" FETCH_HEAD -- bend scripts/release '.github/workflows/turboblake-*.yml' \
+              newer=$(git diff --name-only "$SHA" FETCH_HEAD -- bend scripts/release .github/workflows/turboblake-build.yml \
                 ':(exclude,glob)bend/**/*.md' ':(exclude)bend/bench')
               if [ -n "$newer" ]; then
                 echo "master has newer package changes than $SHA; their build releases $tag:"
@@ -119,7 +150,8 @@ jobs:
 
   github-release:
     needs: [plan, build]
-    # build is skipped when the files come from master's build
+    # build is skipped when the files come from master's build; a skipped job
+    # upstream skips every job after it unless it says otherwise, as each one here does
     if: ${{ !cancelled() && !failure() && needs.plan.outputs.release == 'true' }}
     runs-on: ubuntu-24.04
     permissions:
@@ -173,6 +205,7 @@ jobs:
 
   crates-io:
     needs: [plan, github-release]
+    if: ${{ !cancelled() && !failure() && needs.plan.outputs.release == 'true' }}
     runs-on: ubuntu-24.04
     environment: release
     permissions:
@@ -205,6 +238,7 @@ jobs:
 
   npm:
     needs: [plan, github-release]
+    if: ${{ !cancelled() && !failure() && needs.plan.outputs.release == 'true' }}
     runs-on: ubuntu-24.04
     environment: release
     permissions:
@@ -237,6 +271,7 @@ jobs:
 
   pypi:
     needs: [plan, github-release]
+    if: ${{ !cancelled() && !failure() && needs.plan.outputs.release == 'true' }}
     runs-on: ubuntu-24.04
     environment: release
     permissions:
@@ -262,6 +297,7 @@ jobs:
 
   publish-release:
     needs: [plan, crates-io, npm, pypi]
+    if: ${{ !cancelled() && !failure() && needs.plan.outputs.release == 'true' }}
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -274,6 +310,7 @@ jobs:
 
   go:
     needs: [plan, publish-release, github-release]
+    if: ${{ !cancelled() && !failure() && needs.plan.outputs.release == 'true' }}
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -301,6 +338,7 @@ jobs:
 
   homebrew-tap:
     needs: [plan, publish-release, github-release]
+    if: ${{ !cancelled() && !failure() && needs.plan.outputs.release == 'true' }}
     runs-on: macos-15
     permissions:
       contents: read
@@ -347,7 +385,8 @@ jobs:
           git push -q origin HEAD
 
   homebrew-core:
-    needs: [crates-io, github-release]
+    needs: [plan, crates-io, github-release]
+    if: ${{ !cancelled() && !failure() && needs.plan.outputs.release == 'true' }}
     runs-on: ubuntu-24.04
     permissions:
       contents: write

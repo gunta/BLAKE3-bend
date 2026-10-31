@@ -25,7 +25,7 @@ on:
     paths: &paths
       - "bend/**"
       - "scripts/release/**"
-      - ".github/workflows/turboblake-*.yml"
+      - ".github/workflows/turboblake-build.yml"
       - "!bend/**/*.md"
       - "!bend/bench/**"
   push:
