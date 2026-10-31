@@ -87,10 +87,18 @@ jobs:
             if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
               echo "$tag exists: nothing to release"
               release=false
-            elif [ "$(git ls-remote origin refs/heads/master | cut -f1)" != "$SHA" ]; then
-              echo "master has moved past $SHA: its own build releases $tag"
-              release=false
             else
+              # a newer change to the packages (turboblake-build's paths) on master gets its own build, which releases instead
+              git fetch -q --depth=1 origin master
+              newer=$(git diff --name-only "$SHA" FETCH_HEAD -- bend scripts/release '.github/workflows/turboblake-*.yml' \
+                ':(exclude,glob)bend/**/*.md' ':(exclude)bend/bench')
+              if [ -n "$newer" ]; then
+                echo "master has newer package changes than $SHA; their build releases $tag:"
+                echo "$newer"
+                release=false
+              fi
+            fi
+            if [ "$release" = true ]; then
               echo "releasing $tag from $SHA"
             fi
           fi
