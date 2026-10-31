@@ -1,8 +1,8 @@
 class Turboblake < Formula
   desc "BLAKE3 checksums, turbocharged: a drop-in b3sum with a Bend2 engine"
   homepage "https://gunta.github.io/turboblake/"
-  url "https://static.crates.io/crates/turboblake/turboblake-1.8.7.crate"
-  sha256 "4d2c9f8c081421b7c732908e2371079e566f7011a395884ac3a67d672871da13"
+  url "https://static.crates.io/crates/turboblake/turboblake-1.8.8.crate"
+  sha256 "0dba52f897ec8d4b26977181a2cfc0810b269064f230f50edb00e603f84b326b"
   license any_of: [
     "CC0-1.0",
     "Apache-2.0",
