@@ -16,9 +16,9 @@ name: turboblake release
 #
 # The publishing jobs run in the "release" environment: protect it (Settings,
 # Environments) with required reviewers to approve each release by hand.
-# Registry setup, once: crates.io and PyPI trusted publishers for this
-# workflow and environment; on npm, publish 1.8.8 once with an NPM_TOKEN
-# environment secret, then add the trusted publisher and delete the token.
+# Registry setup, once: crates.io, PyPI and npm trusted publishers for this
+# workflow and environment, so no registry token is stored (npm's first
+# version, 1.8.8, went out by hand before npm knew the package).
 # The Homebrew tap needs a HOMEBREW_TAP_TOKEN secret (a fine-grained token
 # with contents: write on gunta/homebrew-tap only); without it that job
 # says so and stops.
@@ -140,8 +140,7 @@ jobs:
       - name: npm publish (trusted publishing, with provenance)
         env:
           VERSION: ${{ needs.github-release.outputs.version }}
-          # only for the first publish, before npm knows the trusted publisher
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        # no token: npm trusts this workflow in the release environment (OIDC, id-token above)
         run: |
           if npm view "turboblake@$VERSION" version >/dev/null 2>&1; then
             echo "turboblake $VERSION is on npm already"

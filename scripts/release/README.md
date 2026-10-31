@@ -48,11 +48,10 @@ docker run --rm -v "$PWD:/w" -w /w quay.io/pypa/manylinux_2_28_aarch64 \
   environment `release`.
 - **PyPI**: a pending trusted publisher for the project `turboblake`, with
   the same repository, workflow and environment.
-- **npm**: the first publish needs a token: a granular access token that can
-  publish, as the `NPM_TOKEN` secret of the `release` environment. After
-  1.8.8 is out, add the trusted publisher on npmjs.com (package `turboblake`,
-  Settings, Trusted Publisher: GitHub Actions, the same repository, workflow
-  and environment) and delete the token and the secret.
+- **npm**: the package `turboblake`, Settings, Trusted Publisher: GitHub
+  Actions, the same repository, workflow and environment. (npm only offers
+  that for a package that exists: a brand-new package's first version is
+  published by hand, as 1.8.8 was.)
 - **Homebrew**: a fine-grained token with Contents: read and write on
   `gunta/homebrew-tap` only, as the `HOMEBREW_TAP_TOKEN` secret of the
   repository. Without it the release leaves the tap alone and prints the
