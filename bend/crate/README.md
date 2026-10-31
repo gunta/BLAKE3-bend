@@ -32,6 +32,7 @@ official b3sum there.
 ```bash
 turboblake FILE...           # one "<hash>  <name>" line per file, as b3sum prints
 turboblake FILE... > B3SUMS  # write checksums
+turboblake --recursive DIR   # every file under DIR, one line each
 turboblake --check B3SUMS    # verify them, like sha256sum -c
 ```
 
@@ -52,6 +53,11 @@ at a time. stdin and `--no-mmap` read big blocks while the block before
 hashes on every core (upstream reads 64 KiB at a time on one). `--keyed`,
 `--derive-key`, `--length` and `--seek` run upstream's code. rayon's threads
 start only when a file needs them, and a small file hashes on one thread.
+`--recursive` (b3sum has no such flag) hashes the regular files under each
+directory given, as `find DIR -type f` lists them: depth first, each
+directory's entries in name order, links inside not followed, fifos and
+devices skipped. A thread walks the tree while the engine hashes the files
+it found, and the output is a checkfile for `--check`.
 `TURBOBLAKE=0` turns the engine off. Error messages start with
 `turboblake:`, or `b3sum:` for the `replace` install.
 

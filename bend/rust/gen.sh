@@ -51,6 +51,7 @@ mkdir -p "$out/tests"
 cp "$root/b3sum/what_does_check_do.md" "$out/"
 cp "$root"/b3sum/src/*.rs "$out/src/"
 cp "$root"/b3sum/tests/*.rs "$out/tests/"
+cp "$here/recursive_tests.rs" "$out/tests/"
 cp "$here/fast.rs" "$out/src/fast.rs"
 printf '%s\n' "// turboblake installed as b3sum (cargo install turboblake --features replace)." \
   'include!("main.rs");' > "$out/src/replace.rs"

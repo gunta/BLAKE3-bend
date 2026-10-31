@@ -15,6 +15,9 @@
 //!   before the first file.
 //! - --check reads its lines a batch at a time and hashes their files as a
 //!   batch of arguments is hashed (`check_batch`).
+//! - --recursive (b3sum has no such flag) hashes the regular files in each
+//!   directory given and in every directory under it, as `find DIR -type f`
+//!   lists them; a thread walks them ahead of the hashing (`walk`).
 //!
 //! The engine is not faster on everything (ADR 0016). Starting it costs
 //! about what a few small files cost upstream, and one big file in the page
@@ -31,7 +34,6 @@ use std::io::{self, BufRead, Read, Write};
 use std::os::unix::fs::FileExt;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
-#[cfg(unix)]
 use std::sync::mpsc;
 
 /// Files a batch: bounds the memory of files read into the heap, and keeps
@@ -244,14 +246,20 @@ pub(crate) fn update_stdin(hasher: &mut blake3::Hasher) -> io::Result<()> {
     Ok(())
 }
 
-pub(crate) struct Batch<'a> {
-    args: &'a Args,
+/// A path to hash, or a directory --recursive could not list.
+type Walked = Result<PathBuf, (PathBuf, io::Error)>;
+
+/// The inputs main hashes, in order, each with its hash if the engine took
+/// it: the arguments, or with --recursive what `walk` finds in them. They
+/// are taken `BATCH` at a time, and a batch the engine is faster on is
+/// hashed at once.
+pub(crate) struct Inputs<'a> {
     on: bool,
-    lo: usize,
-    hashes: Vec<Option<io::Result<blake3::Hash>>>,
+    paths: Box<dyn Iterator<Item = Walked> + 'a>,
+    batch: VecDeque<(PathBuf, Option<io::Result<blake3::Hash>>)>,
 }
 
-impl<'a> Batch<'a> {
+impl<'a> Inputs<'a> {
     pub(crate) fn new(args: &'a Args) -> Self {
         let on = !args.check()
             && !args.keyed()
@@ -260,58 +268,119 @@ impl<'a> Batch<'a> {
             && args.seek() == 0
             && !args.no_mmap()
             && std::env::var("TURBOBLAKE").as_deref() != Ok("0");
-        Batch { args, on, lo: 0, hashes: Vec::new() }
+        let paths: Box<dyn Iterator<Item = Walked> + 'a> = if args.inner.recursive {
+            Box::new(walk(args.file_args.clone()))
+        } else {
+            Box::new(args.file_args.iter().cloned().map(Ok))
+        };
+        Inputs { on, paths, batch: VecDeque::new() }
     }
 
-    /// File i's hash, if the engine took it. Call with i in order.
-    pub(crate) fn take(&mut self, i: usize) -> Option<io::Result<blake3::Hash>> {
-        if !self.on {
-            return None;
-        }
-        if i < self.lo || i >= self.lo + self.hashes.len() {
-            self.load(i);
-        }
-        match self.hashes.get_mut(i - self.lo)?.take()? {
-            Err(e) if e.kind() == io::ErrorKind::Unsupported => None,
-            r => Some(r),
-        }
-    }
-
-    fn load(&mut self, lo: usize) {
-        let all = &self.args.file_args;
-        let hi = (lo + BATCH).min(all.len());
+    fn load(&mut self) {
+        let walked: Vec<Walked> = self.paths.by_ref().take(BATCH).collect();
         let mut which = Vec::new();
         let mut paths: Vec<&Path> = Vec::new();
-        for (i, p) in all[lo..hi].iter().enumerate() {
-            if p.as_path() != Path::new("-") {
-                which.push(i);
-                paths.push(p);
-            }
-        }
-        self.lo = lo;
-        self.hashes = (lo..hi).map(|_| None).collect();
-        if !engine_wins(&paths) {
-            return;
-        }
-        match blake3::bend::hash_files(&paths) {
-            Some(rs) => {
-                for (i, r) in which.into_iter().zip(rs) {
-                    self.hashes[i] = Some(r);
+        for (i, w) in walked.iter().enumerate() {
+            if let Ok(p) = w {
+                if p.as_path() != Path::new("-") {
+                    which.push(i);
+                    paths.push(p);
                 }
             }
-            None => self.on = false,
         }
+        let mut hashes: Vec<Option<io::Result<blake3::Hash>>> = walked.iter().map(|_| None).collect();
+        if self.on && engine_wins(&paths) {
+            match blake3::bend::hash_files(&paths) {
+                Some(rs) => {
+                    for (i, r) in which.into_iter().zip(rs) {
+                        hashes[i] = match r {
+                            Err(e) if e.kind() == io::ErrorKind::Unsupported => None,
+                            r => Some(r),
+                        };
+                    }
+                }
+                None => self.on = false,
+            }
+        }
+        self.batch.extend(walked.into_iter().zip(hashes).map(|(w, h)| match w {
+            Ok(p) => (p, h),
+            Err((dir, e)) => (dir, Some(Err(e))),
+        }));
     }
 }
 
-// --check: a batch of lines at a time, their files hashed as `Batch` hashes
+impl Iterator for Inputs<'_> {
+    type Item = (PathBuf, Option<io::Result<blake3::Hash>>);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.batch.is_empty() {
+            self.load();
+        }
+        self.batch.pop_front()
+    }
+}
+
+/// --recursive: the arguments, each directory among them replaced by the
+/// regular files in it and in every directory under it, depth first and
+/// each directory's entries in name order, as `find DIR -type f` lists
+/// them: links inside are not followed (a link given as an argument is),
+/// and fifos, sockets and devices are skipped. A thread of its own walks
+/// them, up to two batches ahead of the hashing.
+fn walk(args: Vec<PathBuf>) -> impl Iterator<Item = Walked> {
+    let (tx, rx) = mpsc::sync_channel::<Walked>(2 * BATCH);
+    std::thread::spawn(move || -> Result<(), mpsc::SendError<Walked>> {
+        for arg in args {
+            if arg.as_path() == Path::new("-") || !std::fs::metadata(&arg).is_ok_and(|m| m.is_dir()) {
+                tx.send(Ok(arg))?;
+                continue;
+            }
+            // each directory still being listed, its entries left in order
+            let mut open = Vec::new();
+            match list(&arg) {
+                Ok(entries) => open.push(entries.into_iter()),
+                Err(e) => tx.send(Err((arg, e)))?,
+            }
+            while let Some(entries) = open.last_mut() {
+                match entries.next() {
+                    None => drop(open.pop()),
+                    Some((path, false)) => tx.send(Ok(path))?,
+                    Some((path, true)) => match list(&path) {
+                        Ok(entries) => open.push(entries.into_iter()),
+                        Err(e) => tx.send(Err((path, e)))?,
+                    },
+                }
+            }
+        }
+        Ok(())
+    });
+    rx.into_iter()
+}
+
+/// A directory's regular files and directories, in name order, each with
+/// whether it is a directory. The type comes with the entry (d_type), so
+/// most need no stat.
+fn list(dir: &Path) -> io::Result<Vec<(PathBuf, bool)>> {
+    let mut entries = Vec::new();
+    for entry in std::fs::read_dir(dir)? {
+        let entry = entry?;
+        let kind = entry.file_type()?;
+        if kind.is_dir() || kind.is_file() {
+            entries.push((entry.path(), kind.is_dir()));
+        }
+    }
+    // one directory's paths differ only in their last component
+    entries.sort_unstable();
+    Ok(entries)
+}
+
+// --check: a batch of lines at a time, their files hashed as `Inputs` hashes
 // a batch of arguments; check_one_line takes each file's hash in order.
 thread_local! {
     static CHECKED: RefCell<VecDeque<(PathBuf, io::Result<blake3::Hash>)>> = const { RefCell::new(VecDeque::new()) };
 }
 
 /// Reads the next `BATCH` lines of a checkfile, and has the engine hash
-/// their files at once if it is faster on them (see `Batch`).
+/// their files at once if it is faster on them (see `Inputs`).
 pub(crate) fn check_batch(lines: &mut dyn BufRead, args: &Args) -> io::Result<Vec<String>> {
     let mut batch = Vec::new();
     while batch.len() < BATCH {

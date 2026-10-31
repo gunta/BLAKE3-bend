@@ -99,6 +99,15 @@ struct Inner {
     /// Must be used with --check.
     #[arg(long, requires(CHECK_ARG))]
     quiet: bool,
+
+    /// Hash the files in each directory given, and in every directory under it
+    ///
+    /// Each regular file gets its own line, as `find DIR -type f` lists them,
+    /// with each directory's entries in name order, so the output is a
+    /// checkfile for --check. Symbolic links inside the directories are not
+    /// followed. Files given are hashed as without it. (turboblake only.)
+    #[arg(long, conflicts_with(CHECK_ARG), conflicts_with(RAW_ARG))]
+    recursive: bool,
 }
 
 struct Args {
@@ -542,8 +551,10 @@ fn main() -> anyhow::Result<()> {
     fast::pool(args.num_threads(), || {
         let mut files_failed = 0u64;
         // Note that file_args automatically includes `-` if nothing is given.
-        let mut batch = fast::Batch::new(&args);
-        for (i, path) in args.file_args.iter().enumerate() {
+        // turboblake: each input with its hash if the engine took it, and
+        // with --recursive the files in the directories given (fast.rs)
+        for (path, hash) in fast::Inputs::new(&args) {
+            let path = path.as_path();
             if args.check() {
                 check_one_checkfile(path, &args, &mut files_failed)?;
             } else {
@@ -551,7 +562,7 @@ fn main() -> anyhow::Result<()> {
                 // stderr. This allows e.g. `b3sum *` to print errors for
                 // non-files and keep going. However, if we encounter any
                 // errors we'll still return non-zero at the end.
-                let result = match batch.take(i) {
+                let result = match hash {
                     Some(hash) => fast::print(path, hash, &args),
                     None => hash_one_input(path, &args),
                 };

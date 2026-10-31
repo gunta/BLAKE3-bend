@@ -81,6 +81,22 @@ CHECK_HASH = """    let found_hash: blake3::Hash;
         }
 """
 
+QUIET = """    /// Must be used with --check.
+    #[arg(long, requires(CHECK_ARG))]
+    quiet: bool,
+"""
+
+RECURSIVE = """
+    /// Hash the files in each directory given, and in every directory under it
+    ///
+    /// Each regular file gets its own line, as `find DIR -type f` lists them,
+    /// with each directory's entries in name order, so the output is a
+    /// checkfile for --check. Symbolic links inside the directories are not
+    /// followed. Files given are hashed as without it. (turboblake only.)
+    #[arg(long, conflicts_with(CHECK_ARG), conflicts_with(RAW_ARG))]
+    recursive: bool,
+"""
+
 PATCHES = {
     "Cargo.toml": [
         ('description = "the BLAKE3 hash function, with big inputs hashed on every core by a Bend2 '
@@ -168,13 +184,16 @@ PATCHES = {
          '        // (turboblake: on one thread if it is small)\n'
          '        fast::update_path(&mut hasher, path)?;\n'),
         (LOOP, LOOP.replace("        for path in &args.file_args {",
-                            "        let mut batch = fast::Batch::new(&args);\n"
-                            "        for (i, path) in args.file_args.iter().enumerate() {")
+                            "        // turboblake: each input with its hash if the engine took it, and\n"
+                            "        // with --recursive the files in the directories given (fast.rs)\n"
+                            "        for (path, hash) in fast::Inputs::new(&args) {\n"
+                            "            let path = path.as_path();")
                    .replace("                let result = hash_one_input(path, &args);",
-                            "                let result = match batch.take(i) {\n"
+                            "                let result = match hash {\n"
                             "                    Some(hash) => fast::print(path, hash, &args),\n"
                             "                    None => hash_one_input(path, &args),\n"
                             "                };")),
+        (QUIET, QUIET + RECURSIVE),
     ],
     "tests/cli_tests.rs": [
         ('env!("CARGO_BIN_EXE_b3sum")', 'env!("CARGO_BIN_EXE_turboblake")'),
