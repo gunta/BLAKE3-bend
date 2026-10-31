@@ -147,7 +147,8 @@ jobs:
             echo "turboblake $VERSION is on npm already"
             exit 0
           fi
-          npm publish "dist/turboblake-$VERSION.tgz" --access public --provenance
+          # ./ makes it a file: a bare dir/name.tgz is read as a GitHub repository
+          npm publish "./dist/turboblake-$VERSION.tgz" --access public --provenance
 
   pypi:
     needs: github-release
