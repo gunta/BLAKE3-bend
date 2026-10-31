@@ -15,6 +15,7 @@ git rev-parse -q --verify "refs/tags/turboblake-v$new" >/dev/null && die "turbob
 say "== version $version -> $new"
 python3 scripts/release/version.py set "$new"
 bend/rust/gen.sh >/dev/null           # bend/crate, with the new version
+(cd bend/crate && cargo update -q -w --offline)  # its own entry in Cargo.lock, nothing else
 python3 scripts/release/version.py check
 
 say "== crates.io: cargo publish --dry-run"
